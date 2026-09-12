@@ -38,6 +38,10 @@ export interface SaveData {
   adoptions?: unknown[];
   pendingReturns?: unknown[];
   lastInspection?: unknown;
+  staff?: unknown[];
+  candidates?: unknown[];
+  candidatesDay?: number;
+  policies?: unknown;
 }
 
 export interface SaveSummary {

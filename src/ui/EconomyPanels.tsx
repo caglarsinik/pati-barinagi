@@ -48,6 +48,9 @@ export function OfficePanel() {
           <button class="btn" onClick={() => (store.panel.value = 'finance')}>
             Finans
           </button>
+          <button class="btn" onClick={() => (store.panel.value = 'staff')}>
+            Personel {sim.candidates.length > 0 ? `(${sim.candidates.length} aday)` : ''}
+          </button>
         </div>
         <button
           class="btn primary"

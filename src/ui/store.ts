@@ -7,7 +7,7 @@ import type { WeekSummary } from '../sim/systems/EconomySystem';
 import { type Tool, resolveAction } from '../sim/systems/Interaction';
 
 export type Screen = 'menu' | 'game';
-export type Panel = 'none' | 'dog' | 'dogs' | 'shed' | 'kennel' | 'incubator' | 'egg' | 'office' | 'adoption' | 'finance';
+export type Panel = 'none' | 'dog' | 'dogs' | 'shed' | 'kennel' | 'incubator' | 'egg' | 'office' | 'adoption' | 'finance' | 'staff' | 'deployment';
 
 export type BuildTool =
   | { kind: 'none' }
@@ -35,6 +35,7 @@ export const store = {
   backpackCount: signal(0),
   reputation: signal(0),
   licenseLevel: signal(1),
+  staffCount: signal(0),
   adoptersWaiting: signal(0),
   /** Hafta sonu raporu açık pencere. */
   report: signal<WeekSummary | null>(null),
@@ -92,6 +93,7 @@ export function syncStore(sim: Sim): void {
   store.treats.value = sim.treats;
   store.backpackCount.value = sim.backpack.length;
   store.reputation.value = Math.round(sim.reputation);
+  store.staffCount.value = sim.staff.length;
   store.licenseLevel.value = sim.licenseLevel;
   store.adoptersWaiting.value = sim.adopters.filter((a) => a.state === 'waiting').length;
   store.kennelCapacity.value = sim.kennelCapacity();

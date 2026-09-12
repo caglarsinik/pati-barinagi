@@ -21,7 +21,7 @@ Tasarım dokümanı ve kilometre taşları: `docs/PLAN.md`
 | E | Baktığın şeye göre iş yap: köpeği sev/oyna/eğit/fırçala, yem kabını doldur, pisliği temizle, kileri aç | – |
 | 1-5 | Araç seç: Sev, Oyna, Eğit, Yem, Temizle | – |
 | Sol tık | Köpeği seç (panel açılır) | Köpeği seç |
-| I / O / N | Köpek listesi / Sahiplendirme masası / Finans | Aynı |
+| I / O / N / P / F | Köpek listesi / Sahiplendirme / Finans / Personel / Görevlendirme | Aynı |
 | B | İnşa çubuğu (yönetim moduna geçer) | İnşa çubuğu |
 | X / Z | – | Yık aracı / Bölge boyama |
 | Tab | Yönetim moduna geç | Avatara dön |
@@ -65,6 +65,13 @@ Alt çubuk her an E ile ne yapacağını yazar. Sağ üstteki uyarılara tıklay
 - Her Pazartesi 06:00 hafta raporu: denetim (temizlik, sağlık, keyif, pislik, kulübe, yem) yardım çarpanını (0,4-1,5) belirler; köpek başına 150 ₺ × çarpan devlet yardımı yatar, bina bakım gideri düşer.
 - Lisans seviyesi yardım alınan köpek sayısını sınırlar (8/20/45); ofisten yükseltilir. Finans (N) kasa hareketlerini ve geçmiş haftaları gösterir.
 
+## Personel ve görevlendirme
+
+- Ofisten ya da P tuşuyla personel paneli: her sabah 3 aday (bakıcı, eğitmen, veteriner) gelir; nitelikleri (hız, çalışkanlık, şefkat, dayanıklılık, beceri) ve huyları farklıdır. Maaşlar her Pazartesi ödenir; kasa iki hafta eksideyse personel istifa eder.
+- F tuşu görevlendirme ekranı: **Vardiya** sekmesinde 24 saatlik çizelgeyi boyarsın (çalış/mola/izin), **Öncelikler** sekmesinde her personel için görev türlerine 0-5 öncelik verirsin (bakıcı tedavi yapamaz, veteriner en iyi tedaviyi yapar), **Politikalar** sekmesinde otomatik yem siparişi ve eğitim hedefi vardır.
+- Görev tahtası barınağın ihtiyaçlarından otomatik dolar: boş yem kabı, pislik, sıkılan/kirli/hasta köpek, eğitim. Personel aciliyet, verim, öncelik ve mesafeye göre iş seçer; oyuncu işi yaparsa görev düşer. Görevler saatlerce beklerse darboğaz uyarısı çıkar.
+- Personel enerjisi bitince personel odasında (yoksa personel bölgesinde ya da ofis önünde) mola verir.
+
 ## Durum
 
 - [x] M0 İskelet: dünya üretimi, avatar, kamera, gün/gece, HUD, hız, mini harita, kayıt
@@ -72,7 +79,7 @@ Alt çubuk her an E ile ne yapacağını yazar. Sağ üstteki uyarılara tıklay
 - [x] M2 İnşa: inşa çubuğu, hayalet önizleme, çit/kapı/yol, bölgeler, yıkım, inşaat süresi, arsa genişletme, yeni binalar
 - [x] M3 Yumurta ve büyüme: yuvalar, yumurta genetiği ve ipuçları, kuluçka, haftalık büyüme, sokak köpekleri ve evcilleştirme, keşif sisi, uyku/bayılma
 - [x] M4 Ekonomi ve sahiplendirme: sahiplenici akışı ve eşleşme, itibar, geri dönüş, defter, haftalık denetim ve yardım, bakım gideri, lisans, finans ve rapor ekranları
-- [ ] M5 Personel ve görevlendirme
+- [x] M5 Personel ve görevlendirme: adaylar ve işe alma, görev tahtası, personel yapay zekâsı, vardiya çizelgesi, öncelikler, politikalar, maaş ve istifa
 - [ ] M6 Ses ve cila
 
 ## Geliştirme

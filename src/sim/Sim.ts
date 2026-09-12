@@ -22,6 +22,7 @@ import { Dog, type DogOrigin, SKILL_KEYS, STAGE_NAMES_TR, type SkillKey, default
 import { type DogGenome, randomGenome } from './entities/DogGenome';
 import { type Egg, eggFromJSON } from './entities/Egg';
 import { IDLE_INPUT, Player, type PlayerInput } from './entities/Player';
+import { Staff, TASK_TYPES, type TaskType } from './entities/Staff';
 import { type AdoptionRecord, AdoptionSystem, type PendingReturn } from './systems/AdoptionSystem';
 import { AlertSystem } from './systems/AlertSystem';
 import {
@@ -48,6 +49,8 @@ import { type ActionOutcome, TOOL_DEFS, type Tool, performAction } from './syste
 import { rebuildMessSet } from './systems/MessSystem';
 import { NeedsSystem } from './systems/NeedsSystem';
 import { tickNests } from './systems/NestSystem';
+import { StaffSystem } from './systems/StaffSystem';
+import { TaskBoard } from './systems/TaskBoard';
 import type { TilePos, TileWorld } from './world/TileWorld';
 import { generateWorld } from './world/WorldGen';
 import { Biome, Ground, Obj, Zone } from './world/tiles';
@@ -73,6 +76,8 @@ export interface SimEvents extends Record<string, unknown> {
   buildingReady: Building;
   adopterArrived: Adopter;
   weekReport: WeekSummary;
+  staffHired: Staff;
+  staffRemoved: number;
   /** Uyku / bayılma gibi zaman atlamaları (arayüz karartma yapar). */
   slept: { minutes: number; passedOut: boolean };
   /** Oyuncuya kısa bildirim. */
@@ -96,7 +101,24 @@ export type Command =
   | { type: 'sleep' }
   | { type: 'adopt'; adopterId: number; dogId: number }
   | { type: 'declineAdopter'; adopterId: number }
-  | { type: 'upgradeLicense' };
+  | { type: 'upgradeLicense' }
+  | { type: 'hire'; candidateId: number }
+  | { type: 'fire'; staffId: number }
+  | { type: 'setShift'; staffId: number; hour: number; value: 0 | 1 | 2 }
+  | { type: 'setSchedule'; staffId: number; schedule: number[] }
+  | { type: 'setPriority'; staffId: number; task: TaskType; value: number }
+  | { type: 'setPolicy'; policy: Partial<Policies> };
+
+export interface Policies {
+  autoOrderFood: boolean;
+  foodThreshold: number;
+  /** Personel köpekleri bu beceri seviyesine kadar eğitir (0 = eğitme). */
+  trainTarget: number;
+}
+
+export function defaultPolicies(): Policies {
+  return { autoOrderFood: false, foodThreshold: 10, trainTarget: 6 };
+}
 
 export interface SimStats {
   cleaned: number;
@@ -112,6 +134,8 @@ export interface SimStats {
   hatched: number;
   strays: number;
   adopted: number;
+  staffTasks: number;
+  autoOrders: number;
 }
 
 function emptyStats(): SimStats {
@@ -129,6 +153,8 @@ function emptyStats(): SimStats {
     hatched: 0,
     strays: 0,
     adopted: 0,
+    staffTasks: 0,
+    autoOrders: 0,
   };
 }
 
@@ -147,6 +173,8 @@ export class Sim {
   readonly brain: DogBrain;
   readonly alerts: AlertSystem;
   readonly adoption: AdoptionSystem;
+  readonly tasks: TaskBoard;
+  readonly staffSystem: StaffSystem;
   speed: Speed = 1;
   mode: Mode = 'avatar';
   money: number;
@@ -169,6 +197,10 @@ export class Sim {
   adoptions: AdoptionRecord[] = [];
   pendingReturns: PendingReturn[] = [];
   lastInspection: InspectionReport | null = null;
+  staff: Staff[] = [];
+  candidates: Staff[] = [];
+  candidatesDay = 0;
+  policies: Policies = defaultPolicies();
   stats: SimStats = emptyStats();
   nextId = 1;
   private lastRunningSpeed: Speed = 1;
@@ -188,6 +220,8 @@ export class Sim {
     this.brain = new DogBrain(this);
     this.alerts = new AlertSystem(this);
     this.adoption = new AdoptionSystem(this);
+    this.tasks = new TaskBoard(this);
+    this.staffSystem = new StaffSystem(this);
     this.events.on('day', (d) => this.needs.onDay(d));
     this.events.on('week', (w) => this.onWeek(w));
     this.events.on('hour', (h) => this.onHour(h));
@@ -200,8 +234,18 @@ export class Sim {
     sim.setupStarterShelter();
     sim.spawnStrays();
     sim.revealPlayer(true);
+    sim.staffSystem.refreshCandidates();
+    sim.candidatesDay = 1;
     sim.alerts.refresh();
     return sim;
+  }
+
+  /** Her gün adaylar yenilenir (saat atlasa da gün numarasına bakılır). */
+  private refreshCandidatesIfNewDay(): void {
+    if (this.candidatesDay !== this.clock.day) {
+      this.candidatesDay = this.clock.day;
+      this.staffSystem.refreshCandidates();
+    }
   }
 
   get paused(): boolean {
@@ -247,8 +291,11 @@ export class Sim {
     this.minuteAcc += dtMin;
     if (this.minuteAcc >= 1) {
       this.minuteAcc %= 1;
+      this.refreshCandidatesIfNewDay();
+      this.tasks.refresh();
       this.alerts.refresh();
     }
+    this.staffSystem.update(dtMin);
   }
 
   private revealPlayer(force: boolean): void {
@@ -306,6 +353,7 @@ export class Sim {
       }
     }
     const summary = closeWeek(this, newWeek);
+    this.staffSystem.afterPayday();
     this.events.emit('weekReport', summary);
   }
 
@@ -325,9 +373,9 @@ export class Sim {
     this.ledger.push({ week, day: this.clock.day, category, amount: -amount, note });
   }
 
-  /** Personel maaşları (M5'te dolar). */
+  /** Haftalık personel maaşı toplamı. */
   weeklyWages(): number {
-    return 0;
+    return this.staffSystem.totalWages();
   }
 
   licenseCap(): number {
@@ -431,6 +479,35 @@ export class Sim {
         return this.adoption.adopt(cmd.adopterId, cmd.dogId);
       case 'declineAdopter':
         return { ok: this.adoption.decline(cmd.adopterId) };
+      case 'hire':
+        return this.staffSystem.hire(cmd.candidateId);
+      case 'fire':
+        return this.staffSystem.fire(cmd.staffId);
+      case 'setShift': {
+        const s = this.staffById(cmd.staffId);
+        if (!s || cmd.hour < 0 || cmd.hour > 23) return { ok: false };
+        s.schedule[cmd.hour] = cmd.value;
+        return { ok: true };
+      }
+      case 'setSchedule': {
+        const s = this.staffById(cmd.staffId);
+        if (!s || cmd.schedule.length !== 24) return { ok: false };
+        s.schedule = cmd.schedule.map((v) => (v === 1 || v === 2 ? v : 0)) as Staff['schedule'];
+        return { ok: true };
+      }
+      case 'setPriority': {
+        const s = this.staffById(cmd.staffId);
+        if (!s || !TASK_TYPES.includes(cmd.task)) return { ok: false };
+        s.priorities[cmd.task] = Math.max(0, Math.min(5, Math.round(cmd.value)));
+        return { ok: true };
+      }
+      case 'setPolicy': {
+        const p = cmd.policy;
+        if (typeof p.autoOrderFood === 'boolean') this.policies.autoOrderFood = p.autoOrderFood;
+        if (typeof p.foodThreshold === 'number' && Number.isFinite(p.foodThreshold)) this.policies.foodThreshold = Math.max(0, Math.min(200, Math.round(p.foodThreshold)));
+        if (typeof p.trainTarget === 'number' && Number.isFinite(p.trainTarget)) this.policies.trainTarget = Math.max(0, Math.min(6, Math.round(p.trainTarget)));
+        return { ok: true };
+      }
       case 'upgradeLicense': {
         const cost = licenseUpgradeCost(this.licenseLevel);
         if (cost === null) return { ok: false, message: 'Lisans en üst seviyede' };
@@ -479,6 +556,10 @@ export class Sim {
 
   dogById(id: number): Dog | undefined {
     return this.dogMap.get(id);
+  }
+
+  staffById(id: number): Staff | undefined {
+    return this.staff.find((s) => s.id === id);
   }
 
   addDog(genome: DogGenome, origin: DogOrigin, ageWeeks: number, x: number, y: number, name?: string): Dog {
@@ -788,6 +869,10 @@ export class Sim {
       adoptions: this.adoptions.map((a) => ({ ...a })),
       pendingReturns: this.pendingReturns.map((r) => ({ ...r })),
       lastInspection: this.lastInspection,
+      staff: this.staff.map((s) => s.toJSON()),
+      candidates: this.candidates.map((s) => s.toJSON()),
+      candidatesDay: this.candidatesDay,
+      policies: { ...this.policies },
     };
   }
 
@@ -969,6 +1054,34 @@ export class Sim {
         }
       }
     }
+    if (Array.isArray(data.staff)) {
+      for (const raw of data.staff) {
+        const s = Staff.fromJSON(raw);
+        if (!s || sim.staff.length >= BALANCE.staff.maxStaff) continue;
+        if (s.state !== 'offDuty' && world.isSolid(s.tileX, s.tileY)) {
+          s.x = world.spawn.x;
+          s.y = world.spawn.y;
+        }
+        sim.staff.push(s);
+        maxId = Math.max(maxId, s.id);
+      }
+    }
+    if (Array.isArray(data.candidates)) {
+      for (const raw of data.candidates) {
+        const s = Staff.fromJSON(raw);
+        if (s) {
+          sim.candidates.push(s);
+          maxId = Math.max(maxId, s.id);
+        }
+      }
+    }
+    sim.candidatesDay = typeof data.candidatesDay === 'number' ? data.candidatesDay : 0;
+    if (data.policies && typeof data.policies === 'object') {
+      const p = data.policies as Partial<Policies>;
+      if (typeof p.autoOrderFood === 'boolean') sim.policies.autoOrderFood = p.autoOrderFood;
+      if (typeof p.foodThreshold === 'number') sim.policies.foodThreshold = p.foodThreshold;
+      if (typeof p.trainTarget === 'number') sim.policies.trainTarget = p.trainTarget;
+    }
     if (Array.isArray(data.adopters)) {
       for (const raw of data.adopters) {
         const a = adopterFromJSON(raw);
@@ -991,6 +1104,10 @@ export class Sim {
     }
     world.dirty = [];
     sim.revealPlayer(true);
+    if (sim.candidates.length === 0) {
+      sim.staffSystem.refreshCandidates();
+      sim.candidatesDay = sim.clock.day;
+    }
     sim.alerts.refresh();
     return sim;
   }

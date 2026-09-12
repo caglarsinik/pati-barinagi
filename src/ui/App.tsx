@@ -3,6 +3,7 @@ import { DogList } from './DogList';
 import { DogPanel } from './DogPanel';
 import { Backpack, EggPanel, IncubatorPanel } from './EggPanels';
 import { AdoptionDesk, FinancePanel, OfficePanel, WeeklyReport } from './EconomyPanels';
+import { DeploymentPanel, StaffPanel } from './StaffPanels';
 import { HUD } from './HUD';
 import { MainMenu } from './MainMenu';
 import { AlertsPanel, KennelPanel, ShedPanel } from './Panels';
@@ -33,6 +34,8 @@ export function App() {
           {panel === 'office' && <OfficePanel />}
           {panel === 'adoption' && <AdoptionDesk />}
           {panel === 'finance' && <FinancePanel />}
+          {panel === 'staff' && <StaffPanel />}
+          {panel === 'deployment' && <DeploymentPanel />}
           {store.report.value && <WeeklyReport />}
           {store.pauseMenu.value && <PauseMenu />}
         </>

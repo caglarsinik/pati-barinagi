@@ -850,3 +850,227 @@ select,
   gap: 8px;
   font-size: 0.9rem;
 }
+
+/* --- Personel ve görevlendirme --- */
+.staff-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.staff-card {
+  flex: 1;
+  min-width: 260px;
+  max-width: 340px;
+  background: #2a2640;
+  border: 2px solid #4a4468;
+  border-radius: 3px;
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.staff-card.candidate {
+  border-color: #6a5f94;
+}
+
+.staff-head {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.role {
+  font-size: 0.75rem;
+  padding: 1px 6px;
+  border-radius: 3px;
+  background: #3a3550;
+}
+
+.role-caretaker {
+  background: #2f7f5c;
+}
+
+.role-trainer {
+  background: #6b3fa0;
+}
+
+.role-vet {
+  background: #b23a3a;
+}
+
+.attrs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2px 10px;
+  font-size: 0.8rem;
+}
+
+.attr {
+  display: flex;
+  justify-content: space-between;
+}
+
+.dots {
+  display: inline-flex;
+  gap: 2px;
+}
+
+.dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 2px;
+  background: #3a3550;
+  border: 1px solid #0f0d1a;
+}
+
+.dot.on {
+  background: var(--accent);
+}
+
+.deployment {
+  min-width: 860px;
+}
+
+.shift-grid,
+.priority-grid {
+  display: grid;
+  gap: 2px;
+  align-items: center;
+  margin-top: 6px;
+  user-select: none;
+}
+
+.shift-hour {
+  text-align: center;
+  font-size: 0.7rem;
+  color: var(--muted);
+}
+
+.shift-hour.now {
+  color: var(--accent);
+  font-weight: 700;
+}
+
+.shift-name {
+  font-size: 0.85rem;
+  padding-right: 6px;
+}
+
+.shift-cell {
+  height: 22px;
+  border: 1px solid #0f0d1a;
+  cursor: pointer;
+}
+
+.shift-cell.now {
+  outline: 1px solid var(--accent);
+}
+
+.shift-0 {
+  background: #2a2640;
+}
+
+.shift-1 {
+  background: var(--accent-2);
+}
+
+.shift-2 {
+  background: #4fb3e8;
+}
+
+.btn.shift-1.active {
+  background: var(--accent-2);
+  color: #14200f;
+}
+
+.btn.shift-2.active {
+  background: #4fb3e8;
+  color: #0f2230;
+}
+
+.btn.shift-0.active {
+  background: #6b6f7a;
+}
+
+.prio-head {
+  text-align: center;
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+
+.prio-cell {
+  text-align: center;
+}
+
+.prio-buttons {
+  display: inline-flex;
+  gap: 2px;
+}
+
+.prio {
+  pointer-events: auto;
+  width: 20px;
+  height: 20px;
+  border: 1px solid #0f0d1a;
+  background: #3a3550;
+  color: var(--text);
+  font-size: 0.7rem;
+  cursor: pointer;
+  border-radius: 2px;
+}
+
+.prio.active {
+  background: var(--accent);
+  color: #1b1a2a;
+  font-weight: 700;
+}
+
+.prio.off.active {
+  background: var(--danger);
+  color: #fff;
+}
+
+.policies {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.policy {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+  font-size: 0.9rem;
+}
+
+.policy input[type='number'] {
+  width: 70px;
+  font: inherit;
+  padding: 2px 6px;
+  border: 2px solid var(--border);
+  background: #14121f;
+  color: var(--text);
+}
+
+.task-board {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  max-height: 120px;
+  overflow-y: auto;
+}
+
+.task {
+  background: #2a2640;
+  border: 1px solid #4a4468;
+  border-radius: 3px;
+  padding: 2px 6px;
+  font-size: 0.8rem;
+}
+
+.task.claimed {
+  border-color: var(--accent-2);
+}

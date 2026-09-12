@@ -5,6 +5,7 @@ import type { DogGenome } from '../sim/entities/DogGenome';
 import { drawBuilding } from './BuildingArt';
 import { DOG_DIRS, DOG_FRAME, DOG_FRAMES, buildDogSheet, dogTextureKey } from './DogPainter';
 import { HUMAN_DIRS, HUMAN_FRAMES, HUMAN_H, HUMAN_W, PLAYER_STYLE, buildHumanSheet, humanStyleFromSeed } from './HumanPainter';
+import { hex, shade } from './Pixels';
 import { buildTileset } from './TileArt';
 
 export const TEX = {
@@ -51,11 +52,19 @@ export function registerAnimations(scene: Phaser.Scene): void {
   }
 }
 
-/** Sahiplenici / personel dokusu: görünüş tohumu başına bir kez. */
-export function ensureHumanTexture(scene: Phaser.Scene, look: number): string {
-  const key = `human-${look}`;
+const ROLE_SHIRTS: Record<string, number> = { caretaker: 0x4fb36b, trainer: 0xa66bd6, vet: 0xf7f3ea };
+
+/** Sahiplenici / personel dokusu: görünüş tohumu (ve rol) başına bir kez. */
+export function ensureHumanTexture(scene: Phaser.Scene, look: number, role?: string): string {
+  const key = role ? `human-${look}-${role}` : `human-${look}`;
   if (scene.textures.exists(key)) return key;
-  const sheet = buildHumanSheet(humanStyleFromSeed(look));
+  const style = humanStyleFromSeed(look);
+  if (role && ROLE_SHIRTS[role] !== undefined) {
+    style.shirt = hex(ROLE_SHIRTS[role]);
+    style.shirtDark = shade(style.shirt, 0.75);
+    style.hat = role === 'vet' ? hex(0xe4514f) : role === 'caretaker' ? hex(0x2f7f5c) : style.hat;
+  }
+  const sheet = buildHumanSheet(style);
   const tex = scene.textures.addCanvas(key, sheet.toCanvas());
   if (!tex) return key;
   for (let i = 0; i < HUMAN_DIRS * HUMAN_FRAMES; i++) tex.add(i, 0, i * HUMAN_W, 0, HUMAN_W, HUMAN_H);

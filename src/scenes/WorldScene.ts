@@ -14,12 +14,12 @@ import { OBJ_INFO, Obj, ZONE_COLORS, ZONE_TILE_BASE, Zone, objTileIndex } from '
 import { showToast, store, syncStore } from '../ui/store';
 
 type KeyName =
-  | 'W' | 'A' | 'S' | 'D' | 'UP' | 'DOWN' | 'LEFT' | 'RIGHT' | 'SHIFT' | 'E' | 'I' | 'B' | 'X' | 'Z' | 'O' | 'N' | 'TAB' | 'SPACE' | 'ESC'
+  | 'W' | 'A' | 'S' | 'D' | 'UP' | 'DOWN' | 'LEFT' | 'RIGHT' | 'SHIFT' | 'E' | 'I' | 'B' | 'X' | 'Z' | 'O' | 'N' | 'P' | 'F' | 'TAB' | 'SPACE' | 'ESC'
   | 'PLUS' | 'MINUS' | 'NUMPAD_ADD' | 'NUMPAD_SUBTRACT' | 'ONE' | 'TWO' | 'THREE' | 'FOUR' | 'FIVE';
 type Keys = Record<KeyName, Phaser.Input.Keyboard.Key>;
 
 const KEY_LIST: KeyName[] = [
-  'W', 'A', 'S', 'D', 'UP', 'DOWN', 'LEFT', 'RIGHT', 'SHIFT', 'E', 'I', 'B', 'X', 'Z', 'O', 'N', 'TAB', 'SPACE', 'ESC',
+  'W', 'A', 'S', 'D', 'UP', 'DOWN', 'LEFT', 'RIGHT', 'SHIFT', 'E', 'I', 'B', 'X', 'Z', 'O', 'N', 'P', 'F', 'TAB', 'SPACE', 'ESC',
   'PLUS', 'MINUS', 'NUMPAD_ADD', 'NUMPAD_SUBTRACT', 'ONE', 'TWO', 'THREE', 'FOUR', 'FIVE',
 ];
 
@@ -66,6 +66,7 @@ export class WorldScene extends Phaser.Scene {
   private buildingImages = new Map<number, Phaser.GameObjects.Image>();
   private dogSprites = new Map<number, Phaser.GameObjects.Sprite>();
   private adopterSprites = new Map<number, Phaser.GameObjects.Sprite>();
+  private staffSprites = new Map<number, Phaser.GameObjects.Sprite>();
 
   constructor() {
     super('World');
@@ -193,6 +194,7 @@ export class WorldScene extends Phaser.Scene {
       this.buildingImages.clear();
       this.dogSprites.clear();
       this.adopterSprites.clear();
+      this.staffSprites.clear();
     });
 
     syncStore(this.sim);
@@ -206,6 +208,7 @@ export class WorldScene extends Phaser.Scene {
     this.syncPlayerSprite();
     this.syncDogs();
     this.syncAdopters();
+    this.syncStaff();
     this.syncBuildings();
     this.syncSelection();
     this.syncGhost();
@@ -241,6 +244,8 @@ export class WorldScene extends Phaser.Scene {
     if (JustDown(k.I)) store.panel.value = store.panel.value === 'dogs' ? 'none' : 'dogs';
     if (JustDown(k.O)) store.panel.value = store.panel.value === 'adoption' ? 'none' : 'adoption';
     if (JustDown(k.N)) store.panel.value = store.panel.value === 'finance' ? 'none' : 'finance';
+    if (JustDown(k.P)) store.panel.value = store.panel.value === 'staff' ? 'none' : 'staff';
+    if (JustDown(k.F)) store.panel.value = store.panel.value === 'deployment' ? 'none' : 'deployment';
     if (JustDown(k.B)) this.game.events.emit('ui:build-toggle');
     if (this.sim.mode === 'manage') {
       if (JustDown(k.X)) store.build.value = store.build.value.kind === 'demolish' ? { kind: 'none' } : { kind: 'demolish' };
@@ -526,6 +531,39 @@ export class WorldScene extends Phaser.Scene {
       if (!seen.has(id)) {
         s.destroy();
         this.adopterSprites.delete(id);
+      }
+    }
+  }
+
+  private syncStaff(): void {
+    const T = GAME.tile;
+    const seen = new Set<number>();
+    for (const s of this.sim.staff) {
+      if (s.state === 'offDuty') continue;
+      seen.add(s.id);
+      const key = ensureHumanTexture(this, s.look, s.role);
+      let sp = this.staffSprites.get(s.id);
+      if (!sp) {
+        sp = this.add.sprite(0, 0, key, 0).setOrigin(0.5, 1);
+        this.staffSprites.set(s.id, sp);
+      }
+      const px = Math.round(s.x * T);
+      const py = Math.round(s.y * T + 6);
+      sp.setPosition(px, py);
+      sp.setDepth(100 + py);
+      if (s.moving && !this.sim.paused) {
+        sp.anims.play(`${key}-walk-${s.facing}`, true);
+        sp.anims.timeScale = Math.max(0.6, Math.min(3, this.sim.speed * 0.9));
+      } else {
+        sp.anims.stop();
+        sp.setFrame(s.facing * 3);
+      }
+      sp.setAlpha(s.state === 'working' ? 1 : s.state === 'resting' ? 0.85 : 1);
+    }
+    for (const [id, sp] of this.staffSprites) {
+      if (!seen.has(id)) {
+        sp.destroy();
+        this.staffSprites.delete(id);
       }
     }
   }

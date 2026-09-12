@@ -20,7 +20,7 @@ export function HUD() {
           🐕 {store.dogCount.value}/{store.kennelCapacity.value} · 🥣 {store.foodStock.value} porsiyon
         </div>
         <div class="muted small-text" title="İtibar: sahiplenici sayısını ve isteklerini etkiler">
-          ⭐ İtibar {store.reputation.value} · Lisans {store.licenseLevel.value}
+          ⭐ İtibar {store.reputation.value} · Lisans {store.licenseLevel.value} · 👷 {store.staffCount.value}
           {store.adoptersWaiting.value > 0 ? ` · 🧑 ${store.adoptersWaiting.value} bekliyor` : ''}
         </div>
         <div class={'stamina' + (store.exhausted.value ? ' exhausted' : '')} title="Dayanıklılık">
@@ -66,6 +66,12 @@ export function HUD() {
           </button>
           <button class={'btn small' + (store.panel.value === 'finance' ? ' active' : '')} onClick={() => app.togglePanel('finance')}>
             Finans (N)
+          </button>
+          <button class={'btn small' + (store.panel.value === 'staff' ? ' active' : '')} onClick={() => app.togglePanel('staff')}>
+            Personel (P)
+          </button>
+          <button class={'btn small' + (store.panel.value === 'deployment' ? ' active' : '')} onClick={() => app.togglePanel('deployment')}>
+            Görevlendirme (F)
           </button>
           <button class="btn small" onClick={() => app.openPauseMenu()}>
             Menü (Esc)

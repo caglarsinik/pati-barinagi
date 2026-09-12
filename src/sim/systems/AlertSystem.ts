@@ -51,6 +51,11 @@ export class AlertSystem {
         severity: soonest < 40 ? 'warn' : 'info',
       });
     }
+    const wait = sim.tasks.longestWait();
+    if (wait && wait.minutes > 180 && sim.staff.length > 0) {
+      out.push({ id: 'bottleneck', text: `Görevler ${Math.round(wait.minutes / 60)} saattir bekliyor: personel yetmiyor`, severity: 'warn' });
+    }
+    if (sim.shelterDogs().length >= 4 && sim.staff.length === 0) out.push({ id: 'nostaff', text: 'İşler çoğaldı: ofisten personel al', severity: 'info' });
     const cap = BALANCE.economy.licenseCaps[sim.licenseLevel - 1];
     if (sim.shelterDogs().length > cap) out.push({ id: 'license', text: `Lisans aşıldı (${sim.shelterDogs().length}/${cap}): yardım kesilir`, severity: 'danger' });
 

@@ -54,6 +54,27 @@ export const BALANCE = {
     /** Haftalık bina bakımı: maliyetin oranı. */
     upkeepRate: 0.01,
     startReputation: 20,
+    deliveryFee: 10,
+  },
+  staff: {
+    baseWage: { caretaker: 350, trainer: 500, vet: 650 } as const,
+    maxStaff: 12,
+    candidatesPerDay: 3,
+    /** Kare / oyun dakikası. */
+    baseSpeed: 1.4,
+    decisionIntervalMin: 2,
+    taskMinutes: { feed: 15, clean: 12, play: 25, train: 40, groom: 25, treat: 35 } as const,
+    playBelow: 45,
+    groomBelow: 45,
+    treatBelow: 65,
+    energyDrainWorking: 5,
+    energyDrainIdle: 1.5,
+    breakBelow: 25,
+    breakBelowLazy: 40,
+    restUntil: 80,
+    restRegenRoom: 25,
+    restRegenOutside: 10,
+    quitAfterUnpaidWeeks: 2,
   },
   adoption: {
     dailyBase: 0.6,
