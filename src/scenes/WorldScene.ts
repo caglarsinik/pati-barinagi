@@ -12,6 +12,9 @@ import type { Tool } from '../sim/systems/Interaction';
 import type { TilePos } from '../sim/world/TileWorld';
 import { OBJ_INFO, Obj, ZONE_COLORS, ZONE_TILE_BASE, Zone, objTileIndex } from '../sim/world/tiles';
 import { showToast, store, syncStore } from '../ui/store';
+import { audio } from '../audio/audio';
+import { resolveAction } from '../sim/systems/Interaction';
+import { drawLightDisc } from '../render/LightArt';
 
 type KeyName =
   | 'W' | 'A' | 'S' | 'D' | 'UP' | 'DOWN' | 'LEFT' | 'RIGHT' | 'SHIFT' | 'E' | 'I' | 'B' | 'X' | 'Z' | 'O' | 'N' | 'P' | 'F' | 'TAB' | 'SPACE' | 'ESC'
@@ -63,6 +66,9 @@ export class WorldScene extends Phaser.Scene {
   private dragStartTile: TilePos | null = null;
   private hoverTile: TilePos = { x: 0, y: 0 };
   private unsub: Array<() => void> = [];
+  private stepTimer = 0;
+  private barkTimer = 4;
+  private lightMap!: Phaser.GameObjects.RenderTexture;
   private buildingImages = new Map<number, Phaser.GameObjects.Image>();
   private dogSprites = new Map<number, Phaser.GameObjects.Sprite>();
   private adopterSprites = new Map<number, Phaser.GameObjects.Sprite>();
@@ -162,12 +168,14 @@ export class WorldScene extends Phaser.Scene {
     cam.roundPixels = true;
     cam.setZoom(this.sim.mode === 'avatar' ? BALANCE.camera.avatarZoom : BALANCE.camera.manageZoom);
 
-    // --- Gece örtüsü ---
+    // --- Gece örtüsü ve lamba ışıkları ---
     this.nightRect = this.add
       .rectangle(0, 0, 64, 64, 0xffffff)
       .setOrigin(0, 0)
       .setDepth(8000)
       .setBlendMode(Phaser.BlendModes.MULTIPLY);
+    if (!this.textures.exists('light')) this.textures.addCanvas('light', drawLightDisc(96).toCanvas());
+    this.lightMap = this.add.renderTexture(0, 0, 1400, 800).setOrigin(0, 0).setDepth(8001).setBlendMode(Phaser.BlendModes.MULTIPLY).setVisible(false);
 
     // --- Girdi ---
     const kb = this.input.keyboard;
@@ -216,6 +224,7 @@ export class WorldScene extends Phaser.Scene {
     this.updateZoom(dt);
     this.updateWater(dt);
     this.updateNight();
+    this.updateSounds(dt);
     this.applyDirtyTiles();
     this.syncTimer += dt;
     if (this.syncTimer >= 0.1) {
@@ -237,7 +246,10 @@ export class WorldScene extends Phaser.Scene {
       return;
     }
     if (store.pauseMenu.value) return;
-    if (JustDown(k.TAB)) this.sim.toggleMode();
+    if (JustDown(k.TAB)) {
+      this.sim.toggleMode();
+      audio.play('click');
+    }
     if (JustDown(k.SPACE)) this.sim.togglePause();
     if (JustDown(k.PLUS) || JustDown(k.NUMPAD_ADD)) this.sim.changeSpeed(1);
     if (JustDown(k.MINUS) || JustDown(k.NUMPAD_SUBTRACT)) this.sim.changeSpeed(-1);
@@ -256,8 +268,30 @@ export class WorldScene extends Phaser.Scene {
   }
 
   private interact(): void {
+    const kind = resolveAction(this.sim).kind;
     const r = this.sim.command({ type: 'interact' });
     if (r.message) showToast(r.message);
+    if (r.ok) {
+      const sfx: Partial<Record<typeof kind, Parameters<typeof audio.play>[0]>> = {
+        pet: 'pet',
+        play: 'play',
+        train: 'play',
+        groom: 'groom',
+        wash: 'groom',
+        fillBowl: 'feed',
+        clean: 'clean',
+        pickEgg: 'pick',
+        berries: 'berries',
+        treatWild: 'pet',
+        treat: 'treat',
+        shed: 'click',
+        kennel: 'click',
+        incubator: 'click',
+        office: 'click',
+      };
+      const name = sfx[kind];
+      if (name) audio.play(name);
+    } else if (r.message) audio.play('error');
     if (r.open === 'shed' && r.building) {
       store.panelBuildingId.value = r.building.id;
       store.panel.value = 'shed';
@@ -341,19 +375,24 @@ export class WorldScene extends Phaser.Scene {
 
   private applyBuildTool(tool: Exclude<typeof store.build.value, { kind: 'none' }>, start: TilePos | null, end: TilePos): void {
     let r: { ok: boolean; message?: string } = { ok: false };
+    const done = (res: { ok: boolean; message?: string }): void => {
+      r = res;
+      if (res.ok) audio.play(tool.kind === 'demolish' ? 'demolish' : tool.kind === 'zone' ? 'click' : 'build');
+      else if (res.message) audio.play('error');
+    };
     switch (tool.kind) {
       case 'building':
-        r = this.sim.command({ type: 'placeBuilding', building: tool.type, x: end.x, y: end.y });
+        done(this.sim.command({ type: 'placeBuilding', building: tool.type, x: end.x, y: end.y }));
         break;
       case 'demolish':
-        r = this.sim.command({ type: 'demolish', x: end.x, y: end.y });
+        done(this.sim.command({ type: 'demolish', x: end.x, y: end.y }));
         break;
       case 'tile':
-        r = this.sim.command({ type: 'placeTiles', tool: tool.tool, tiles: lineTiles(start ?? end, end) });
+        done(this.sim.command({ type: 'placeTiles', tool: tool.tool, tiles: lineTiles(start ?? end, end) }));
         break;
       case 'zone': {
         const s = start ?? end;
-        r = this.sim.command({ type: 'paintZone', zone: tool.zone, x0: s.x, y0: s.y, x1: end.x, y1: end.y });
+        done(this.sim.command({ type: 'paintZone', zone: tool.zone, x0: s.x, y0: s.y, x1: end.x, y1: end.y }));
         break;
       }
       default:
@@ -645,10 +684,58 @@ export class WorldScene extends Phaser.Scene {
     const [r, g, b] = this.sim.clock.tint();
     const color = Phaser.Display.Color.GetColor(Math.round(r * 255), Math.round(g * 255), Math.round(b * 255));
     const v = this.cameras.main.worldView;
-    this.nightRect.setFillStyle(color);
-    this.nightRect.setPosition(v.x - 8, v.y - 8);
-    this.nightRect.setSize(v.width + 16, v.height + 16);
-    this.nightRect.setVisible(color !== 0xffffff);
+    const T = GAME.tile;
+    const dark = r < 0.85;
+    const lamps = dark ? this.sim.buildings.filter((b) => b.type === 'lamp' && isReady(b)) : [];
+    if (lamps.length === 0 || v.width > 1400 || v.height > 800) {
+      this.lightMap.setVisible(false);
+      this.nightRect.setFillStyle(color);
+      this.nightRect.setPosition(v.x - 8, v.y - 8);
+      this.nightRect.setSize(v.width + 16, v.height + 16);
+      this.nightRect.setVisible(color !== 0xffffff);
+      return;
+    }
+    // Lambalar: gece haritasına ışık delikleri.
+    this.nightRect.setVisible(false);
+    const ox = Math.floor(v.x - 8);
+    const oy = Math.floor(v.y - 8);
+    this.lightMap.setPosition(ox, oy).setVisible(true);
+    this.lightMap.clear();
+    this.lightMap.fill(color, 1, 0, 0, 1400, 800);
+    for (const l of lamps) {
+      const lx = (l.x + 0.5) * T - ox;
+      const ly = (l.y + 0.3) * T - oy;
+      this.lightMap.erase('light', lx - 48, ly - 48);
+    }
+  }
+
+  /** Adım sesleri ve arada bir havlama. */
+  private updateSounds(dt: number): void {
+    const p = this.sim.player;
+    if (p.moving && this.sim.mode === 'avatar' && !this.sim.paused) {
+      this.stepTimer -= dt * (p.running ? 1.5 : 1);
+      if (this.stepTimer <= 0) {
+        this.stepTimer = 0.3;
+        audio.play('step', { pitch: 0.9 + Math.random() * 0.2, volume: 0.7 }, 0);
+      }
+    } else this.stepTimer = 0;
+    if (this.sim.paused) return;
+    this.barkTimer -= dt;
+    if (this.barkTimer > 0) return;
+    this.barkTimer = 5 + Math.random() * 7;
+    const v = this.cameras.main.worldView;
+    const T = GAME.tile;
+    const candidates = this.sim.dogs.filter((d) => {
+      const px = d.x * T;
+      const py = d.y * T;
+      if (px < v.x || py < v.y || px > v.right || py > v.bottom) return false;
+      return d.needs.hunger > 70 || d.needs.play < 30 || d.state === 'play' || (d.wild && !d.following);
+    });
+    if (candidates.length === 0) return;
+    const d = candidates[Math.floor(Math.random() * candidates.length)];
+    const pitch = (d.genome.size === 'S' ? 1.5 : d.genome.size === 'L' ? 0.75 : 1) * (d.stage === 'puppy' ? 1.4 : 1);
+    if (d.needs.play < 30 && d.needs.hunger <= 70 && Math.random() < 0.5) audio.play('whine', { pitch, volume: 0.6 });
+    else audio.play('bark', { pitch, volume: 0.7 });
   }
 
   /** Nesne katmanı (alt) ve üst katman için tile indeksleri. */

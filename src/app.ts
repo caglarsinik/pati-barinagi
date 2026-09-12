@@ -1,4 +1,5 @@
 import Phaser from 'phaser';
+import { audio } from './audio/audio';
 import type { Speed } from './config/balance';
 import type { Tool } from './sim/systems/Interaction';
 import type { BuildTool, Panel } from './ui/store';
@@ -52,6 +53,19 @@ class AppController {
     this.game.events.on('ui:build-toggle', () => this.toggleBuildBar());
     store.hasSave.value = SaveManager.has(SLOT);
     window.addEventListener('beforeunload', () => this.save(true));
+    // Ses: ilk kullanıcı hareketinde açılır; arayüz düğmeleri tık sesi verir.
+    const unlock = (): void => audio.unlock();
+    window.addEventListener('pointerdown', unlock, { passive: true });
+    window.addEventListener('keydown', unlock);
+    document.getElementById('ui')?.addEventListener('click', (e) => {
+      const t = e.target as HTMLElement | null;
+      if (t && t.closest('button')) audio.play('click', {}, 60);
+    });
+    try {
+      store.guideHidden.value = localStorage.getItem(`${SaveManager.key(0)}.guideHidden`) === '1';
+    } catch {
+      /* yoksay */
+    }
   }
 
   newGame(seedInput: string): void {
@@ -86,6 +100,16 @@ class AppController {
         store.speed.value = s;
       }),
     );
+    this.unsub.push(
+      sim.events.on('hour', () => audio.setMusicMode(sim.clock.isNight() ? 'night' : 'day')),
+      sim.events.on('dogHatched', () => audio.play('hatch')),
+      sim.events.on('dogTamed', () => audio.play('tame')),
+      sim.events.on('weekReport', () => audio.play('week')),
+      sim.events.on('adopterArrived', () => audio.play('alert')),
+      sim.events.on('slept', () => audio.play('sleep')),
+      sim.events.on('buildingReady', () => audio.play('build')),
+    );
+    audio.startMusic(sim.clock.isNight() ? 'night' : 'day');
     const sm = this.game.scene;
     if (sm.isActive('World') || sm.isPaused('World')) sm.stop('World');
     sm.start('World', { sim });
@@ -117,6 +141,8 @@ class AppController {
     this.game.scene.stop('World');
     this.detach();
     this.sim = null;
+    audio.stopMusic();
+    store.settingsOpen.value = false;
     store.pauseMenu.value = false;
     store.screen.value = 'menu';
   }
@@ -193,6 +219,64 @@ class AppController {
   /** Kamerayı bir kareye götürür (yönetim moduna geçer). */
   focusTile(x: number, y: number): void {
     this.game?.events.emit('ui:focus-tile', { x, y });
+  }
+
+  setGuideHidden(hidden: boolean): void {
+    store.guideHidden.value = hidden;
+    try {
+      localStorage.setItem(`${SaveManager.key(0)}.guideHidden`, hidden ? '1' : '0');
+    } catch {
+      /* yoksay */
+    }
+  }
+
+  exportSave(): string {
+    return this.sim ? SaveManager.exportText(this.sim.toJSON()) : '';
+  }
+
+  downloadSave(): void {
+    if (!this.sim) return;
+    try {
+      const blob = new Blob([this.exportSave()], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `pati-barinagi-gun${this.sim.clock.day}.json`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+    } catch {
+      showToast('İndirme başlatılamadı; panoya kopyalamayı dene');
+    }
+  }
+
+  /** Yapıştırılan ya da dosyadan gelen kaydı doğrulayıp yükler. */
+  importSave(text: string): boolean {
+    let data;
+    try {
+      data = SaveManager.parse(text);
+    } catch {
+      data = null;
+    }
+    if (!data) {
+      showToast('Kayıt okunamadı: geçerli bir JSON değil');
+      audio.play('error');
+      return false;
+    }
+    try {
+      const sim = Sim.fromJSON(data);
+      SaveManager.write(SLOT, sim.toJSON());
+      store.settingsOpen.value = false;
+      this.start(sim);
+      showToast('Kayıt içe aktarıldı');
+      return true;
+    } catch (err) {
+      console.warn(err);
+      showToast('Kayıt yüklenemedi');
+      audio.play('error');
+      return false;
+    }
   }
 }
 

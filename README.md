@@ -72,6 +72,23 @@ Alt çubuk her an E ile ne yapacağını yazar. Sağ üstteki uyarılara tıklay
 - Görev tahtası barınağın ihtiyaçlarından otomatik dolar: boş yem kabı, pislik, sıkılan/kirli/hasta köpek, eğitim. Personel aciliyet, verim, öncelik ve mesafeye göre iş seçer; oyuncu işi yaparsa görev düşer. Görevler saatlerce beklerse darboğaz uyarısı çıkar.
 - Personel enerjisi bitince personel odasında (yoksa personel bölgesinde ya da ofis önünde) mola verir.
 
+## Ses
+
+Tüm efektler ve müzik Web Audio API ile çalışma anında sentezlenir (`src/audio/`): havlama köpeğin boyuna göre
+inceliyor/kalınlaşıyor, yem dökme, fırça, yumurta çatlama, sahiplendirme cıngılı, hafta raporu akoru gibi
+20'den fazla efekt ve gündüz/gece değişen üretken bir ortam müziği var. Tarayıcı kuralı gereği ilk tıklamadan
+sonra ses açılır. Ayarlar (Esc → Ayarlar) ses seviyelerini ve sessiz modu tutar.
+
+Gerçek ses dosyası kullanmak istersen: `src/audio/Sfx.ts` içindeki `playSfx` her efekt için tek giriş noktasıdır;
+oraya bir `Audio` nesnesi ya da `AudioBufferSourceNode` oynatan bir dal ekleyip dosyayı `public/` altına koyabilirsin.
+Ücretsiz kaynaklar: Kenney (kenney.nl, CC0 efekt paketleri), OpenGameArt (CC0/CC-BY), Kevin MacLeod (incompetech.com, CC-BY müzik).
+Lisans gerektirenleri README'de anmayı unutma.
+
+## Kayıt aktarımı
+
+Ayarlar panelinden kaydı JSON olarak panoya kopyalayabilir, dosya olarak indirebilir ya da yapıştırıp/dosyadan yükleyebilirsin.
+Bilgisayar değiştirirken ya da yedek almak için kullan.
+
 ## Durum
 
 - [x] M0 İskelet: dünya üretimi, avatar, kamera, gün/gece, HUD, hız, mini harita, kayıt
@@ -80,7 +97,8 @@ Alt çubuk her an E ile ne yapacağını yazar. Sağ üstteki uyarılara tıklay
 - [x] M3 Yumurta ve büyüme: yuvalar, yumurta genetiği ve ipuçları, kuluçka, haftalık büyüme, sokak köpekleri ve evcilleştirme, keşif sisi, uyku/bayılma
 - [x] M4 Ekonomi ve sahiplendirme: sahiplenici akışı ve eşleşme, itibar, geri dönüş, defter, haftalık denetim ve yardım, bakım gideri, lisans, finans ve rapor ekranları
 - [x] M5 Personel ve görevlendirme: adaylar ve işe alma, görev tahtası, personel yapay zekâsı, vardiya çizelgesi, öncelikler, politikalar, maaş ve istifa
-- [ ] M6 Ses ve cila
+- [x] M6 Ses ve cila: sentezlenen efektler ve üretken müzik, ayarlar, kayıt dışa/içe aktarma, başlangıç rehberi, lamba ışıkları, uzun koşu denge testi, tek dosya build
+- [ ] M7 İsteğe bağlı: hava/mevsim, olaylar, yaşlı köpek aşaması, başarımlar, İngilizce dil
 
 ## Geliştirme
 

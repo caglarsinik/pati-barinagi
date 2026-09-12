@@ -32,6 +32,9 @@ export function MainMenu() {
         <button class="btn" disabled={!booted} onClick={() => app.newGame(seed)}>
           Yeni oyun
         </button>
+        <button class="btn small" onClick={() => (store.settingsOpen.value = true)}>
+          Ayarlar
+        </button>
         <p class="version">
           v{GAME.version} · {booted ? 'hazır' : 'dokular üretiliyor...'}
         </p>

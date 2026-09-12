@@ -56,8 +56,9 @@ export class AdoptionSystem {
     this.planDay();
     const m = sim.clock.minuteOfDay;
     while (this.scheduled.length > 0 && this.scheduled[0] <= m) {
-      this.scheduled.shift();
-      this.spawnAdopter();
+      const at = this.scheduled.shift()!;
+      // Saat atlatıldıysa (uyku, kayıt yükleme) kaçan sahiplenici gelmez.
+      if (m - at <= 30) this.spawnAdopter();
     }
     for (const a of sim.adopters) this.updateAdopter(a, dtMin);
     sim.adopters = sim.adopters.filter((a) => !(a.state === 'leaving' && a.path.length === 0));

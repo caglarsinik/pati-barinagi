@@ -1074,3 +1074,61 @@ select,
 .task.claimed {
   border-color: var(--accent-2);
 }
+
+/* --- Ayarlar ve rehber --- */
+.setting {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  margin: 4px 0;
+}
+
+.setting span:first-child {
+  min-width: 90px;
+}
+
+.setting input[type='range'] {
+  flex: 1;
+  max-width: 260px;
+}
+
+.save-text {
+  width: 100%;
+  min-height: 70px;
+  font: 11px/1.3 monospace;
+  background: #14121f;
+  color: var(--muted);
+  border: 2px solid var(--border);
+  border-radius: 3px;
+  padding: 6px;
+  resize: vertical;
+  box-sizing: border-box;
+}
+
+.settings {
+  max-height: 85vh;
+  overflow-y: auto;
+}
+
+.guide {
+  left: 12px;
+  top: 158px;
+  width: 260px;
+  padding: 8px 10px;
+  font-size: 0.85rem;
+}
+
+.guide-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.guide-head b {
+  flex: 1;
+}
+
+.guide-step {
+  padding: 1px 0;
+}

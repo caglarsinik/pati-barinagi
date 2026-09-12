@@ -39,6 +39,8 @@ export const store = {
   adoptersWaiting: signal(0),
   /** Hafta sonu raporu açık pencere. */
   report: signal<WeekSummary | null>(null),
+  settingsOpen: signal(false),
+  guideHidden: signal(false),
   buildBar: signal(false),
   build: signal<BuildTool>({ kind: 'none' }),
   selectedDogId: signal<number | null>(null),

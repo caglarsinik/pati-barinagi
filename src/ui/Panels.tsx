@@ -3,6 +3,7 @@ import { BALANCE } from '../config/balance';
 import { buildingDef } from '../sim/entities/Building';
 import { formatMoney } from './HUD';
 import { store } from './store';
+import { audio } from '../audio/audio';
 
 /** Sağ üstteki uyarı listesi; tıklayınca ilgili köpeğe/kareye gider. */
 export function AlertsPanel() {
@@ -39,6 +40,7 @@ export function ShedPanel() {
   const order = (bags: number): void => {
     const r = sim.command({ type: 'orderFood', bags });
     if (r.message) store.toast.value = r.message;
+    audio.play(r.ok ? 'coin' : 'error');
   };
   return (
     <div class="overlay">

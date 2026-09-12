@@ -4,6 +4,8 @@ import { DogPanel } from './DogPanel';
 import { Backpack, EggPanel, IncubatorPanel } from './EggPanels';
 import { AdoptionDesk, FinancePanel, OfficePanel, WeeklyReport } from './EconomyPanels';
 import { DeploymentPanel, StaffPanel } from './StaffPanels';
+import { SettingsPanel } from './SettingsPanel';
+import { Guide } from './Guide';
 import { HUD } from './HUD';
 import { MainMenu } from './MainMenu';
 import { AlertsPanel, KennelPanel, ShedPanel } from './Panels';
@@ -23,6 +25,7 @@ export function App() {
           <HUD />
           <Toolbar />
           <Backpack />
+          <Guide />
           <BuildBar />
           <AlertsPanel />
           {panel === 'dog' && <DogPanel />}
@@ -40,6 +43,7 @@ export function App() {
           {store.pauseMenu.value && <PauseMenu />}
         </>
       )}
+      {store.settingsOpen.value && <SettingsPanel />}
       {store.toast.value && <div class="toast panel">{store.toast.value}</div>}
     </>
   );

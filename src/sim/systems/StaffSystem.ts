@@ -45,6 +45,7 @@ export class StaffSystem {
     s.state = 'offDuty';
     s.hiredDay = sim.clock.day;
     sim.staff.push(s);
+    sim.stats.hired++;
     sim.events.emit('staffHired', s);
     return { ok: true, message: `${s.name} işe alındı (${s.wage} ${BALANCE.economy.currency}/hafta)` };
   }

@@ -235,6 +235,7 @@ export function performAction(sim: Sim): ActionOutcome {
       if (take <= 0) return { ok: false };
       b.food += take;
       sim.foodStock -= take;
+      sim.stats.bowlsFilled++;
       p.setBusy(0.5, 'feed');
       return { ok: true, message: `Kap dolduruldu (${Math.floor(b.food)}/${cap})` };
     }

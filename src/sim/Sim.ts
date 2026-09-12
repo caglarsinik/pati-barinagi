@@ -136,6 +136,9 @@ export interface SimStats {
   adopted: number;
   staffTasks: number;
   autoOrders: number;
+  bowlsFilled: number;
+  hired: number;
+  slept: number;
 }
 
 function emptyStats(): SimStats {
@@ -155,6 +158,9 @@ function emptyStats(): SimStats {
     adopted: 0,
     staffTasks: 0,
     autoOrders: 0,
+    bowlsFilled: 0,
+    hired: 0,
+    slept: 0,
   };
 }
 
@@ -317,6 +323,7 @@ export class Sim {
     }
     this.player.stamina = BALANCE.player.staminaMax;
     this.player.exhausted = false;
+    this.stats.slept++;
     this.events.emit('slept', { minutes: total, passedOut });
   }
 

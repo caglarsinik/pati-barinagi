@@ -13,6 +13,9 @@ export function PauseMenu() {
         <button class="btn" onClick={() => app.save()}>
           Kaydet
         </button>
+        <button class="btn" onClick={() => (store.settingsOpen.value = true)}>
+          Ayarlar ve kayıt aktarımı
+        </button>
         <button class="btn" onClick={() => app.toMenu()}>
           Kaydet ve ana menüye dön
         </button>

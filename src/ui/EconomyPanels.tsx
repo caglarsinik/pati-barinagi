@@ -7,9 +7,11 @@ import { DogPortrait } from './DogPortrait';
 import { formatMoney } from './HUD';
 import { showToast, store } from './store';
 import { useState } from 'preact/hooks';
+import { audio } from '../audio/audio';
 
 function run(r: { ok: boolean; message?: string }): void {
   if (r.message) showToast(r.message);
+  if (!r.ok && r.message) audio.play('error');
 }
 
 /** Ofis: lisans, uyku, kısa özet. */
@@ -34,7 +36,15 @@ export function OfficePanel() {
           Lisans seviyesi <b>{sim.licenseLevel}</b>: en fazla <b>{sim.licenseCap()}</b> köpek için yardım alınır. Şu an {sim.shelterDogs().length} köpek.
         </p>
         {cost !== null ? (
-          <button class="btn" disabled={sim.money < cost} onClick={() => run(sim.command({ type: 'upgradeLicense' }))}>
+          <button
+            class="btn"
+            disabled={sim.money < cost}
+            onClick={() => {
+              const r = sim.command({ type: 'upgradeLicense' });
+              run(r);
+              if (r.ok) audio.play('coin');
+            }}
+          >
             Lisansı yükselt ({formatMoney(cost)})
           </button>
         ) : (
@@ -126,7 +136,15 @@ export function AdoptionDesk() {
                     <div class="small-text">{why ? <span class="bad">{why}</span> : score >= 70 ? 'Harika eşleşme' : score >= 50 ? 'İdare eder' : 'Zayıf eşleşme (geri gelebilir)'}</div>
                   </div>
                   <div class={'score' + (score >= 70 ? ' good' : score >= 50 ? ' mid' : ' low')}>{score}</div>
-                  <button class="btn small primary" disabled={!!why || score === 0} onClick={() => run(sim.command({ type: 'adopt', adopterId: selected.id, dogId: dog.id }))}>
+                  <button
+                    class="btn small primary"
+                    disabled={!!why || score === 0}
+                    onClick={() => {
+                      const r = sim.command({ type: 'adopt', adopterId: selected.id, dogId: dog.id });
+                      run(r);
+                      if (r.ok) audio.play('adopt');
+                    }}
+                  >
                     Sahiplendir
                   </button>
                 </div>
