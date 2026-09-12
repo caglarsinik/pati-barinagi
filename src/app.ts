@@ -1,5 +1,7 @@
 import Phaser from 'phaser';
 import type { Speed } from './config/balance';
+import type { Tool } from './sim/systems/Interaction';
+import type { Panel } from './ui/store';
 import { parseSeed } from './core/Rng';
 import { SaveManager } from './core/SaveManager';
 import { BootScene } from './scenes/BootScene';
@@ -87,6 +89,8 @@ class AppController {
     if (sm.isActive('World') || sm.isPaused('World')) sm.stop('World');
     sm.start('World', { sim });
     store.pauseMenu.value = false;
+    store.panel.value = 'none';
+    store.selectedDogId.value = null;
     store.screen.value = 'game';
     syncStore(sim);
   }
@@ -127,10 +131,24 @@ class AppController {
     if (this.sim && !this.pausedBeforeMenu) this.sim.togglePause();
   }
 
+  /** Esc: önce açık panel kapanır, panel yoksa duraklatma menüsü açılır/kapanır. */
   togglePauseMenu(): void {
     if (store.screen.value !== 'game') return;
+    if (!store.pauseMenu.value && store.panel.value !== 'none') {
+      this.closePanel();
+      return;
+    }
     if (store.pauseMenu.value) this.closePauseMenu();
     else this.openPauseMenu();
+  }
+
+  togglePanel(panel: Panel): void {
+    store.panel.value = store.panel.value === panel ? 'none' : panel;
+  }
+
+  closePanel(): void {
+    store.panel.value = 'none';
+    if (store.selectedDogId.value !== null) store.selectedDogId.value = null;
   }
 
   setSpeed(s: Speed): void {
@@ -139,6 +157,15 @@ class AppController {
 
   toggleMode(): void {
     this.sim?.toggleMode();
+  }
+
+  setTool(tool: Tool): void {
+    this.sim?.command({ type: 'setTool', tool });
+  }
+
+  /** Kamerayı bir kareye götürür (yönetim moduna geçer). */
+  focusTile(x: number, y: number): void {
+    this.game?.events.emit('ui:focus-tile', { x, y });
   }
 }
 

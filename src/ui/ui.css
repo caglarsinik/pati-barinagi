@@ -264,3 +264,278 @@ body {
     transform: translate(-50%, 0);
   }
 }
+
+/* --- Araç çubuğu --- */
+.toolbar {
+  left: 12px;
+  bottom: 12px;
+  padding: 6px 8px;
+}
+
+.tool-row {
+  display: flex;
+  gap: 4px;
+}
+
+.tool {
+  pointer-events: auto;
+  position: relative;
+  width: 44px;
+  height: 44px;
+  background: #3a3550;
+  border: 2px solid var(--border);
+  border-radius: 3px;
+  cursor: pointer;
+  font-size: 1.3rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.tool.active {
+  background: var(--accent);
+}
+
+.tool-key {
+  position: absolute;
+  right: 2px;
+  bottom: 0;
+  font-size: 0.65rem;
+  color: var(--muted);
+  font-weight: 700;
+}
+
+.tool.active .tool-key {
+  color: #1b1a2a;
+}
+
+.tool-desc {
+  margin-top: 4px;
+  font-size: 0.8rem;
+  color: var(--muted);
+  max-width: 260px;
+}
+
+/* --- Yan panel --- */
+.side-panel {
+  right: 12px;
+  top: 120px;
+  width: 300px;
+  max-height: calc(100vh - 320px);
+  overflow-y: auto;
+  padding: 10px 12px;
+}
+
+.panel-head {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+}
+
+.panel-title {
+  flex: 1;
+  min-width: 0;
+}
+
+.panel-title h3,
+.panel-head h2 {
+  margin: 0 0 2px;
+  cursor: pointer;
+}
+
+.panel-head h2 {
+  flex: 1;
+  cursor: default;
+}
+
+.close {
+  flex: none;
+}
+
+.portrait {
+  image-rendering: pixelated;
+  background: #2a2640;
+  border: 1px solid #0f0d1a;
+  flex: none;
+}
+
+.muted {
+  color: var(--muted);
+}
+
+.small-text {
+  font-size: 0.8rem;
+}
+
+.traits {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin: 8px 0;
+}
+
+.traits span {
+  background: #2f2a45;
+  border: 1px solid #4a4468;
+  border-radius: 3px;
+  padding: 1px 6px;
+  font-size: 0.78rem;
+}
+
+.side-panel h4 {
+  margin: 10px 0 4px;
+  font-size: 0.9rem;
+  color: var(--accent);
+}
+
+.need {
+  display: grid;
+  grid-template-columns: 70px 1fr 30px;
+  align-items: center;
+  gap: 6px;
+  margin: 3px 0;
+  font-size: 0.85rem;
+}
+
+.need .bar {
+  height: 9px;
+  background: #3a3550;
+  border: 1px solid #0f0d1a;
+}
+
+.need .fill,
+.bar.mini .fill {
+  height: 100%;
+  background: var(--accent-2);
+}
+
+.need .fill.bad {
+  background: var(--danger);
+}
+
+.need-value {
+  text-align: right;
+  color: var(--muted);
+}
+
+.skills .skill {
+  display: grid;
+  grid-template-columns: 16px 90px 1fr 30px;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.82rem;
+  margin: 2px 0;
+  cursor: pointer;
+}
+
+.skill.focus .skill-name {
+  color: var(--accent);
+  font-weight: 700;
+}
+
+.skill.done .skill-name {
+  color: var(--accent-2);
+}
+
+.bar.mini {
+  height: 7px;
+  background: #3a3550;
+  border: 1px solid #0f0d1a;
+}
+
+.bar.mini .fill {
+  background: #a66bd6;
+}
+
+.row {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  margin: 4px 0;
+}
+
+select,
+.name-input {
+  font: inherit;
+  padding: 4px 6px;
+  border: 2px solid var(--border);
+  background: #14121f;
+  color: var(--text);
+  border-radius: 3px;
+  max-width: 100%;
+}
+
+/* --- Uyarılar --- */
+.alerts {
+  top: 96px;
+  right: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  align-items: flex-end;
+  pointer-events: none;
+}
+
+.alert {
+  pointer-events: auto;
+  font: inherit;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--text);
+  background: var(--bg);
+  border: 2px solid var(--border);
+  border-left-width: 6px;
+  padding: 3px 8px;
+  cursor: pointer;
+  border-radius: 3px;
+}
+
+.alert.info {
+  border-left-color: #7aa6f0;
+}
+
+.alert.warn {
+  border-left-color: var(--accent);
+}
+
+.alert.danger {
+  border-left-color: var(--danger);
+}
+
+/* --- Köpek listesi --- */
+.menu-card.wide {
+  min-width: 640px;
+  max-width: 90vw;
+  max-height: 80vh;
+  overflow: auto;
+}
+
+.dog-table {
+  border-collapse: collapse;
+  width: 100%;
+  font-size: 0.85rem;
+}
+
+.dog-table th,
+.dog-table td {
+  padding: 4px 8px;
+  text-align: left;
+  border-bottom: 1px solid #3a3550;
+}
+
+.dog-table tbody tr {
+  cursor: pointer;
+}
+
+.dog-table tbody tr:hover {
+  background: #2f2a45;
+}
+
+.dog-table tr.selected {
+  background: #3f3860;
+}
+
+.dog-table td.bad {
+  color: var(--danger);
+  font-weight: 700;
+}

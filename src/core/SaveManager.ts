@@ -10,6 +10,17 @@ export interface SaveData {
   speed: number;
   mode: string;
   money: number;
+  tool?: string;
+  foodStock?: number;
+  nextId?: number;
+  stats?: unknown;
+  plot?: { x: number; y: number; w: number; h: number };
+  /** Arsa içindeki nesne/bölge/zemin katmanları, satır satır. */
+  plotObjects?: number[];
+  plotZones?: number[];
+  plotGround?: number[];
+  buildings?: unknown[];
+  dogs?: unknown[];
 }
 
 export interface SaveSummary {

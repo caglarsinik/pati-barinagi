@@ -27,6 +27,10 @@ export class Player {
   exhausted = false;
   /** Yürüme animasyonu için biriken süre (saniye). */
   animTime = 0;
+  /** Bir eylem yaparken kalan süre (gerçek saniye); bu sürede hareket edemez. */
+  busy = 0;
+  busyTotal = 0;
+  busyAction: string | null = null;
 
   constructor(x: number, y: number) {
     this.x = x;
@@ -47,10 +51,26 @@ export class Player {
     return { x: Math.floor(this.x + d.x * 0.8), y: Math.floor(this.y - 0.2 + d.y * 0.8) };
   }
 
+  setBusy(seconds: number, action: string): void {
+    this.busy = seconds;
+    this.busyTotal = seconds;
+    this.busyAction = action;
+    this.moving = false;
+  }
+
   update(dtSec: number, input: PlayerInput, world: TileWorld): void {
     const p = BALANCE.player;
     let dx = input.dx;
     let dy = input.dy;
+    if (this.busy > 0) {
+      this.busy -= dtSec;
+      if (this.busy <= 0) {
+        this.busy = 0;
+        this.busyAction = null;
+      }
+      dx = 0;
+      dy = 0;
+    }
     this.moving = dx !== 0 || dy !== 0;
 
     if (this.exhausted && this.stamina > 25) this.exhausted = false;

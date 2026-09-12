@@ -1,6 +1,6 @@
 /**
  * Kare (tile) tanımları. Sayılar tileset dokusundaki indekslerdir:
- * zemin kareleri 0-31, nesne kareleri 32-63 aralığında.
+ * zemin 0-31, nesneler 32-47, çit varyantları 48-63, çeşitli 64-79, bölge örtüleri 80-95.
  */
 export enum Ground {
   Grass0 = 0,
@@ -36,12 +36,35 @@ export enum Obj {
   Stump = 10,
   Nest = 11,
   NestEggs = 12,
-  COUNT = 13,
+  Fence = 13,
+  Gate = 14,
+  Mess = 15,
+  COUNT = 16,
 }
 
 export const OBJ_TILE_OFFSET = 32;
+export const FENCE_TILE_BASE = 48;
+export const GATE_TILE = 64;
+export const MESS_TILE = 65;
+export const ZONE_TILE_BASE = 80;
 export const TILESET_COLUMNS = 16;
-export const TILESET_ROWS = 4;
+export const TILESET_ROWS = 6;
+
+/** Nesnenin tileset dizini. Çit için komşu maskesi (L=1, R=2, U=4, D=8) eklenir. */
+export function objTileIndex(o: Obj, fenceMask = 0): number {
+  switch (o) {
+    case Obj.None:
+      return -1;
+    case Obj.Fence:
+      return FENCE_TILE_BASE + (fenceMask & 15);
+    case Obj.Gate:
+      return GATE_TILE;
+    case Obj.Mess:
+      return MESS_TILE;
+    default:
+      return OBJ_TILE_OFFSET + o;
+  }
+}
 
 export enum Biome {
   Water = 0,
@@ -71,6 +94,34 @@ export const BIOME_NAMES_TR: Record<Biome, string> = {
   [Biome.Road]: 'Yol',
 };
 
+export enum Zone {
+  None = 0,
+  Toilet = 1,
+  Play = 2,
+  Training = 3,
+  Quarantine = 4,
+  Staff = 5,
+  COUNT = 6,
+}
+
+export const ZONE_NAMES_TR: Record<Zone, string> = {
+  [Zone.None]: 'Yok',
+  [Zone.Toilet]: 'Tuvalet alanı',
+  [Zone.Play]: 'Oyun bahçesi',
+  [Zone.Training]: 'Eğitim alanı',
+  [Zone.Quarantine]: 'Karantina',
+  [Zone.Staff]: 'Personel alanı',
+  [Zone.COUNT]: '',
+};
+
+export const ZONE_COLORS: Record<number, number> = {
+  [Zone.Toilet]: 0xc9a24a,
+  [Zone.Play]: 0x4fb3e8,
+  [Zone.Training]: 0xa66bd6,
+  [Zone.Quarantine]: 0xe4514f,
+  [Zone.Staff]: 0x7f8c8d,
+};
+
 /** Zemin kendisi geçilmez mi? */
 export const GROUND_SOLID: Readonly<Record<number, boolean>> = {
   [Ground.Water]: true,
@@ -98,6 +149,9 @@ export const OBJ_INFO: Readonly<Record<number, ObjInfo>> = {
   [Obj.Stump]: { solid: true, above: false },
   [Obj.Nest]: { solid: false, above: false },
   [Obj.NestEggs]: { solid: false, above: false },
+  [Obj.Fence]: { solid: true, above: false },
+  [Obj.Gate]: { solid: false, above: false },
+  [Obj.Mess]: { solid: false, above: false },
 };
 
 /** Mini harita ve hata ayıklama için biyom renkleri (hex). */

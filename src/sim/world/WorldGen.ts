@@ -162,9 +162,11 @@ function carveRoad(world: TileWorld, rng: Rng, startX: number, startY: number, d
   let x = startX;
   let y = startY;
   let drift = 0;
+  let steps = 0;
   while (world.inBounds(x, y)) {
-    // Hafif kıvrım: 4 adımda bir bir yana kayabilir, arsadan uzaklaşınca daha rahat.
-    if (rng.chance(0.22)) drift = rng.int(-1, 1);
+    // Hafif kıvrım; ilk adımlar düz ki yol kapıyla hizalı kalsın.
+    if (steps++ < 4) drift = 0;
+    else if (rng.chance(0.22)) drift = rng.int(-1, 1);
     else if (rng.chance(0.5)) drift = 0;
     if (dirY !== 0) x = clampInt(x + drift, 3, world.width - 5);
     else y = clampInt(y + drift, 3, world.height - 5);

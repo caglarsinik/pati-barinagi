@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { HUMAN_DIRS, HUMAN_FRAMES, HUMAN_H, HUMAN_W, PLAYER_STYLE, buildHumanSheet } from '../../src/render/HumanPainter';
 import { Pixels, hex } from '../../src/render/Pixels';
 import { TILE, buildTileset } from '../../src/render/TileArt';
-import { Ground, OBJ_TILE_OFFSET, Obj, TILESET_COLUMNS, TILESET_ROWS } from '../../src/sim/world/tiles';
+import { FENCE_TILE_BASE, Ground, Obj, TILESET_COLUMNS, TILESET_ROWS, objTileIndex } from '../../src/sim/world/tiles';
 
 function opaqueCount(p: Pixels, x: number, y: number, w: number, h: number): number {
   let n = 0;
@@ -43,12 +43,19 @@ describe('TileArt', () => {
       expect(opaqueCount(sheet, x, y, TILE, TILE)).toBe(TILE * TILE);
     }
     for (let o = 1; o < Obj.COUNT; o++) {
-      const id = OBJ_TILE_OFFSET + o;
+      const id = objTileIndex(o as Obj, 0b0011);
       const x = (id % TILESET_COLUMNS) * TILE;
       const y = Math.floor(id / TILESET_COLUMNS) * TILE;
       const n = opaqueCount(sheet, x, y, TILE, TILE);
-      expect(n).toBeGreaterThan(10);
-      expect(n).toBeLessThan(TILE * TILE);
+      expect(n, `obj ${Obj[o]}`).toBeGreaterThan(10);
+      expect(n, `obj ${Obj[o]}`).toBeLessThan(TILE * TILE);
+    }
+    // 16 çit varyantının hepsi çizili
+    for (let m = 0; m < 16; m++) {
+      const id = FENCE_TILE_BASE + m;
+      const x = (id % TILESET_COLUMNS) * TILE;
+      const y = Math.floor(id / TILESET_COLUMNS) * TILE;
+      expect(opaqueCount(sheet, x, y, TILE, TILE), `çit ${m}`).toBeGreaterThan(8);
     }
   });
 

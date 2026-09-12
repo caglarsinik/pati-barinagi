@@ -16,6 +16,9 @@ export function HUD() {
     <>
       <div class="hud hud-top-left panel">
         <div class="money">{formatMoney(store.money.value)}</div>
+        <div class="muted small-text">
+          🐕 {store.dogCount.value}/{store.kennelCapacity.value} · 🥣 {store.foodStock.value} porsiyon
+        </div>
         <div class={'stamina' + (store.exhausted.value ? ' exhausted' : '')} title="Dayanıklılık">
           <div class="bar">
             <div class="fill" style={{ width: `${store.stamina.value}%` }} />
@@ -46,7 +49,10 @@ export function HUD() {
         </div>
         <div class="btn-row">
           <button class={'btn small' + (mode === 'manage' ? ' active' : '')} onClick={() => app.toggleMode()}>
-            {mode === 'avatar' ? 'Yönetim modu (Tab)' : 'Avatara dön (Tab)'}
+            {mode === 'avatar' ? 'Yönetim (Tab)' : 'Avatar (Tab)'}
+          </button>
+          <button class={'btn small' + (store.panel.value === 'dogs' ? ' active' : '')} onClick={() => app.togglePanel('dogs')}>
+            Köpekler (I)
           </button>
           <button class="btn small" onClick={() => app.openPauseMenu()}>
             Menü (Esc)

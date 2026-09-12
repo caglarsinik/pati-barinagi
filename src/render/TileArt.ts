@@ -1,5 +1,17 @@
 import { Rng, hash2 } from '../core/Rng';
-import { Ground, OBJ_TILE_OFFSET, Obj, TILESET_COLUMNS, TILESET_ROWS } from '../sim/world/tiles';
+import {
+  FENCE_TILE_BASE,
+  GATE_TILE,
+  Ground,
+  MESS_TILE,
+  Obj,
+  TILESET_COLUMNS,
+  TILESET_ROWS,
+  ZONE_COLORS,
+  ZONE_TILE_BASE,
+  Zone,
+  objTileIndex,
+} from '../sim/world/tiles';
 import { Pixels, type RGBA } from './Pixels';
 import { P } from './palette';
 
@@ -15,11 +27,83 @@ export function buildTileset(frame: 0 | 1): Pixels {
     sheet.blit(drawGround(g as Ground, frame), (g % TILESET_COLUMNS) * TILE, Math.floor(g / TILESET_COLUMNS) * TILE);
   }
   const objs = drawObjects();
+  const put = (id: number, tile: Pixels): void => {
+    sheet.blit(tile, (id % TILESET_COLUMNS) * TILE, Math.floor(id / TILESET_COLUMNS) * TILE);
+  };
   for (let o = 1; o < Obj.COUNT; o++) {
-    const id = OBJ_TILE_OFFSET + o;
-    sheet.blit(objs[o], (id % TILESET_COLUMNS) * TILE, Math.floor(id / TILESET_COLUMNS) * TILE);
+    if (o === Obj.Fence || o === Obj.Gate || o === Obj.Mess) continue;
+    put(objTileIndex(o as Obj), objs[o]);
   }
+  for (let mask = 0; mask < 16; mask++) put(FENCE_TILE_BASE + mask, drawFence(mask));
+  put(GATE_TILE, drawGate());
+  put(MESS_TILE, drawMess());
+  for (let z = 1; z < Zone.COUNT; z++) put(ZONE_TILE_BASE + z, drawZoneOverlay(ZONE_COLORS[z] ?? 0xffffff));
   return sheet;
+}
+
+/** Çit: L=1, R=2, U=4, D=8 komşu maskesine göre direk + tahtalar. */
+export function drawFence(mask: number): Pixels {
+  const p = new Pixels(TILE, TILE);
+  const L = mask & 1;
+  const R = mask & 2;
+  const U = mask & 4;
+  const D = mask & 8;
+  const post = P.trunk;
+  const postDark = P.trunkDark;
+  const rail = P.trunkLight;
+  // Yatay tahtalar (iki sıra)
+  if (L) {
+    p.fillRect(0, 6, 8, 2, rail);
+    p.fillRect(0, 11, 8, 2, rail);
+  }
+  if (R) {
+    p.fillRect(8, 6, 8, 2, rail);
+    p.fillRect(8, 11, 8, 2, rail);
+  }
+  // Dikey tahtalar
+  if (U) p.fillRect(6, 0, 3, 8, rail);
+  if (D) p.fillRect(6, 8, 3, 8, rail);
+  // Direk
+  p.fillRect(5, 3, 5, 12, post);
+  p.fillRect(8, 3, 2, 12, postDark);
+  p.fillRect(5, 2, 5, 1, P.trunkLight);
+  p.outline(P.outline);
+  return p;
+}
+
+export function drawGate(): Pixels {
+  const p = new Pixels(TILE, TILE);
+  p.fillRect(1, 2, 3, 12, P.trunk);
+  p.fillRect(12, 2, 3, 12, P.trunk);
+  p.fillRect(3, 5, 10, 1, P.trunkLight);
+  p.fillRect(3, 10, 10, 1, P.trunkLight);
+  p.fillRect(1, 1, 3, 1, P.trunkLight);
+  p.fillRect(12, 1, 3, 1, P.trunkLight);
+  p.outline(P.outline);
+  return p;
+}
+
+export function drawMess(): Pixels {
+  const p = new Pixels(TILE, TILE);
+  p.ellipse(8, 11, 4, 2.2, P.trunkDark);
+  p.ellipse(7, 9.5, 2.5, 1.8, P.trunk);
+  p.ellipse(8, 8, 1.5, 1.2, P.trunkDark);
+  p.set(9, 5, P.mountainLight);
+  p.set(6, 4, P.mountainLight);
+  p.outline(P.outline);
+  return p;
+}
+
+function drawZoneOverlay(color: number): Pixels {
+  const p = new Pixels(TILE, TILE);
+  const c: RGBA = [(color >> 16) & 0xff, (color >> 8) & 0xff, color & 0xff, 110];
+  const edge: RGBA = [(color >> 16) & 0xff, (color >> 8) & 0xff, color & 0xff, 200];
+  p.fill(c);
+  p.fillRect(0, 0, TILE, 1, edge);
+  p.fillRect(0, TILE - 1, TILE, 1, edge);
+  p.fillRect(0, 0, 1, TILE, edge);
+  p.fillRect(TILE - 1, 0, 1, TILE, edge);
+  return p;
 }
 
 function tileRng(id: number, salt = 0): Rng {
