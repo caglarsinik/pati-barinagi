@@ -1,24 +1,25 @@
 import Phaser from 'phaser';
 import { BALANCE } from '../config/balance';
 import { GAME } from '../config/game';
-import { BUILDING_OVERHANG } from '../render/BuildingArt';
+import { BUILDING_DEFS } from '../content/buildings';
 import { DOG_FRAMES, DOG_FRAME_EAT, DOG_FRAME_IDLE, DOG_FRAME_LIE, DOG_FRAME_SIT } from '../render/DogPainter';
 import { TEX, buildingTextureKey, ensureDogTexture } from '../render/TextureRegistry';
-import { type Building, buildingDef } from '../sim/entities/Building';
+import { type Building, buildingDef, canPlaceBuilding, isReady } from '../sim/entities/Building';
 import type { Dog } from '../sim/entities/Dog';
 import type { PlayerInput } from '../sim/entities/Player';
 import type { Mode, Sim } from '../sim/Sim';
 import type { Tool } from '../sim/systems/Interaction';
-import { OBJ_INFO, Obj, ZONE_TILE_BASE, Zone, objTileIndex } from '../sim/world/tiles';
+import type { TilePos } from '../sim/world/TileWorld';
+import { OBJ_INFO, Obj, ZONE_COLORS, ZONE_TILE_BASE, Zone, objTileIndex } from '../sim/world/tiles';
 import { showToast, store, syncStore } from '../ui/store';
 
 type KeyName =
-  | 'W' | 'A' | 'S' | 'D' | 'UP' | 'DOWN' | 'LEFT' | 'RIGHT' | 'SHIFT' | 'E' | 'I' | 'TAB' | 'SPACE' | 'ESC'
+  | 'W' | 'A' | 'S' | 'D' | 'UP' | 'DOWN' | 'LEFT' | 'RIGHT' | 'SHIFT' | 'E' | 'I' | 'B' | 'X' | 'Z' | 'TAB' | 'SPACE' | 'ESC'
   | 'PLUS' | 'MINUS' | 'NUMPAD_ADD' | 'NUMPAD_SUBTRACT' | 'ONE' | 'TWO' | 'THREE' | 'FOUR' | 'FIVE';
 type Keys = Record<KeyName, Phaser.Input.Keyboard.Key>;
 
 const KEY_LIST: KeyName[] = [
-  'W', 'A', 'S', 'D', 'UP', 'DOWN', 'LEFT', 'RIGHT', 'SHIFT', 'E', 'I', 'TAB', 'SPACE', 'ESC',
+  'W', 'A', 'S', 'D', 'UP', 'DOWN', 'LEFT', 'RIGHT', 'SHIFT', 'E', 'I', 'B', 'X', 'Z', 'TAB', 'SPACE', 'ESC',
   'PLUS', 'MINUS', 'NUMPAD_ADD', 'NUMPAD_SUBTRACT', 'ONE', 'TWO', 'THREE', 'FOUR', 'FIVE',
 ];
 
@@ -34,6 +35,9 @@ export interface WorldSceneData {
   sim: Sim;
 }
 
+const GHOST_OK = 0x8cff8c;
+const GHOST_BAD = 0xff7b7b;
+
 /** Dünyayı çizer ve girdiyi sim'e taşır. Oyun mantığı burada değil, Sim içindedir. */
 export class WorldScene extends Phaser.Scene {
   private sim!: Sim;
@@ -46,6 +50,8 @@ export class WorldScene extends Phaser.Scene {
   private nightRect!: Phaser.GameObjects.Rectangle;
   private selectRing!: Phaser.GameObjects.Ellipse;
   private busyBar!: Phaser.GameObjects.Graphics;
+  private ghostImage!: Phaser.GameObjects.Image;
+  private ghostGfx!: Phaser.GameObjects.Graphics;
   private keys!: Keys;
   private zoomTarget: number = BALANCE.camera.avatarZoom;
   private waterTimer = 0;
@@ -53,6 +59,9 @@ export class WorldScene extends Phaser.Scene {
   private syncTimer = 0;
   private dragLast: { x: number; y: number } | null = null;
   private dragMoved = false;
+  private dragButton = 0;
+  private dragStartTile: TilePos | null = null;
+  private hoverTile: TilePos = { x: 0, y: 0 };
   private unsub: Array<() => void> = [];
   private buildingImages = new Map<number, Phaser.GameObjects.Image>();
   private dogSprites = new Map<number, Phaser.GameObjects.Sprite>();
@@ -115,12 +124,14 @@ export class WorldScene extends Phaser.Scene {
         this.buildingImages.get(id)?.destroy();
         this.buildingImages.delete(id);
       }),
+      this.sim.events.on('buildingReady', (b) => this.buildingImages.get(b.id)?.setAlpha(1)),
       this.sim.events.on('dogRemoved', (id) => {
         this.dogSprites.get(id)?.destroy();
         this.dogSprites.delete(id);
         if (store.selectedDogId.value === id) store.selectedDogId.value = null;
       }),
       this.sim.events.on('modeChanged', (m) => this.applyMode(m)),
+      this.sim.events.on('message', (m) => showToast(m)),
     );
 
     // --- Oyuncu ---
@@ -128,8 +139,10 @@ export class WorldScene extends Phaser.Scene {
     this.playerSprite = this.add.sprite(Math.round(p.x * T), Math.round(p.y * T), TEX.player, 0).setOrigin(0.5, 1);
     this.busyBar = this.add.graphics().setDepth(7000);
 
-    // --- Seçim halkası ---
+    // --- Seçim halkası ve inşa hayaleti ---
     this.selectRing = this.add.ellipse(0, 0, 22, 11).setStrokeStyle(1.5, 0xf6d55c, 0.95).setDepth(60).setVisible(false);
+    this.ghostImage = this.add.image(0, 0, buildingTextureKey('bowl')).setOrigin(0, 1).setAlpha(0.6).setDepth(6000).setVisible(false);
+    this.ghostGfx = this.add.graphics().setDepth(6001);
 
     // --- Kamera ---
     const cam = this.cameras.main;
@@ -154,26 +167,9 @@ export class WorldScene extends Phaser.Scene {
       const f = dy > 0 ? 1 / 1.15 : 1.15;
       this.zoomTarget = clamp(this.zoomTarget * f, BALANCE.camera.minZoom, BALANCE.camera.maxZoom);
     });
-    this.input.on('pointerdown', (ptr: Phaser.Input.Pointer) => {
-      this.dragLast = { x: ptr.x, y: ptr.y };
-      this.dragMoved = false;
-    });
-    this.input.on('pointermove', (ptr: Phaser.Input.Pointer) => {
-      if (!this.dragLast || !ptr.isDown) return;
-      const dx = ptr.x - this.dragLast.x;
-      const dy = ptr.y - this.dragLast.y;
-      if (Math.abs(dx) + Math.abs(dy) > 3) this.dragMoved = true;
-      if (this.sim.mode === 'manage') {
-        const cam2 = this.cameras.main;
-        cam2.scrollX -= dx / cam2.zoom;
-        cam2.scrollY -= dy / cam2.zoom;
-      }
-      this.dragLast = { x: ptr.x, y: ptr.y };
-    });
-    this.input.on('pointerup', (ptr: Phaser.Input.Pointer) => {
-      if (this.dragLast && !this.dragMoved) this.onClick(ptr);
-      this.dragLast = null;
-    });
+    this.input.on('pointerdown', (ptr: Phaser.Input.Pointer) => this.onPointerDown(ptr));
+    this.input.on('pointermove', (ptr: Phaser.Input.Pointer) => this.onPointerMove(ptr));
+    this.input.on('pointerup', (ptr: Phaser.Input.Pointer) => this.onPointerUp(ptr));
 
     this.game.events.on('ui:focus-tile', this.focusTile, this);
     this.applyMode(this.sim.mode);
@@ -199,6 +195,7 @@ export class WorldScene extends Phaser.Scene {
     this.syncDogs();
     this.syncBuildings();
     this.syncSelection();
+    this.syncGhost();
     if (this.sim.mode === 'manage') this.panCamera(dt, input);
     this.updateZoom(dt);
     this.updateWater(dt);
@@ -212,7 +209,7 @@ export class WorldScene extends Phaser.Scene {
   }
 
   // ---------------------------------------------------------------------------
-  // Girdi
+  // Klavye
   // ---------------------------------------------------------------------------
 
   private handleHotkeys(): void {
@@ -229,6 +226,11 @@ export class WorldScene extends Phaser.Scene {
     if (JustDown(k.PLUS) || JustDown(k.NUMPAD_ADD)) this.sim.changeSpeed(1);
     if (JustDown(k.MINUS) || JustDown(k.NUMPAD_SUBTRACT)) this.sim.changeSpeed(-1);
     if (JustDown(k.I)) store.panel.value = store.panel.value === 'dogs' ? 'none' : 'dogs';
+    if (JustDown(k.B)) this.game.events.emit('ui:build-toggle');
+    if (this.sim.mode === 'manage') {
+      if (JustDown(k.X)) store.build.value = store.build.value.kind === 'demolish' ? { kind: 'none' } : { kind: 'demolish' };
+      if (JustDown(k.Z)) store.build.value = store.build.value.kind === 'zone' ? { kind: 'none' } : { kind: 'zone', zone: Zone.Toilet };
+    }
     for (const [key, tool] of TOOL_KEYS) if (JustDown(k[key])) this.sim.command({ type: 'setTool', tool });
     if (JustDown(k.E) && this.sim.mode === 'avatar' && !this.sim.paused) this.interact();
   }
@@ -255,6 +257,85 @@ export class WorldScene extends Phaser.Scene {
     const up = k.W.isDown || k.UP.isDown;
     const down = k.S.isDown || k.DOWN.isDown;
     return { dx: (right ? 1 : 0) - (left ? 1 : 0), dy: (down ? 1 : 0) - (up ? 1 : 0), run: k.SHIFT.isDown };
+  }
+
+  // ---------------------------------------------------------------------------
+  // Fare
+  // ---------------------------------------------------------------------------
+
+  private tileAt(ptr: Phaser.Input.Pointer): TilePos {
+    const T = GAME.tile;
+    return { x: Math.floor(ptr.worldX / T), y: Math.floor(ptr.worldY / T) };
+  }
+
+  private onPointerDown(ptr: Phaser.Input.Pointer): void {
+    this.dragLast = { x: ptr.x, y: ptr.y };
+    this.dragMoved = false;
+    this.dragButton = ptr.button;
+    this.hoverTile = this.tileAt(ptr);
+    const tool = store.build.value;
+    if (ptr.button === 2) {
+      // Sağ tık: inşa aracını bırak (sürükleme kaydırma olarak devam eder).
+      if (tool.kind !== 'none') store.build.value = { kind: 'none' };
+      return;
+    }
+    if (ptr.button !== 0 || this.sim.mode !== 'manage') return;
+    if (tool.kind === 'tile' || tool.kind === 'zone') this.dragStartTile = { ...this.hoverTile };
+  }
+
+  private onPointerMove(ptr: Phaser.Input.Pointer): void {
+    this.hoverTile = this.tileAt(ptr);
+    if (!this.dragLast || !ptr.isDown) return;
+    const dx = ptr.x - this.dragLast.x;
+    const dy = ptr.y - this.dragLast.y;
+    if (Math.abs(dx) + Math.abs(dy) > 3) this.dragMoved = true;
+    const painting = this.dragStartTile !== null && this.dragButton === 0;
+    const panAllowed = this.sim.mode === 'manage' && (this.dragButton === 2 || (this.dragButton === 0 && store.build.value.kind === 'none'));
+    if (!painting && panAllowed) {
+      const cam = this.cameras.main;
+      cam.scrollX -= dx / cam.zoom;
+      cam.scrollY -= dy / cam.zoom;
+    }
+    this.dragLast = { x: ptr.x, y: ptr.y };
+  }
+
+  private onPointerUp(ptr: Phaser.Input.Pointer): void {
+    const tool = store.build.value;
+    const start = this.dragStartTile;
+    this.dragStartTile = null;
+    const wasDrag = this.dragLast !== null;
+    this.dragLast = null;
+    if (!wasDrag) return;
+    if (this.dragButton !== 0) return;
+    const tile = this.tileAt(ptr);
+    if (this.sim.mode === 'manage' && tool.kind !== 'none') {
+      this.applyBuildTool(tool, start, tile);
+      return;
+    }
+    if (!this.dragMoved) this.onClick(ptr);
+  }
+
+  private applyBuildTool(tool: Exclude<typeof store.build.value, { kind: 'none' }>, start: TilePos | null, end: TilePos): void {
+    let r: { ok: boolean; message?: string } = { ok: false };
+    switch (tool.kind) {
+      case 'building':
+        r = this.sim.command({ type: 'placeBuilding', building: tool.type, x: end.x, y: end.y });
+        break;
+      case 'demolish':
+        r = this.sim.command({ type: 'demolish', x: end.x, y: end.y });
+        break;
+      case 'tile':
+        r = this.sim.command({ type: 'placeTiles', tool: tool.tool, tiles: lineTiles(start ?? end, end) });
+        break;
+      case 'zone': {
+        const s = start ?? end;
+        r = this.sim.command({ type: 'paintZone', zone: tool.zone, x0: s.x, y0: s.y, x1: end.x, y1: end.y });
+        break;
+      }
+      default:
+        break;
+    }
+    if (r.message) showToast(r.message);
   }
 
   /** Tıklama: köpek seç; boşluğa tıklayınca seçimi kaldır. */
@@ -284,6 +365,51 @@ export class WorldScene extends Phaser.Scene {
     if (this.sim.mode !== 'manage') this.sim.setMode('manage');
     const T = GAME.tile;
     this.cameras.main.pan((tile.x + 0.5) * T, (tile.y + 0.5) * T, 350, 'Sine.easeInOut');
+  }
+
+  // ---------------------------------------------------------------------------
+  // İnşa hayaleti
+  // ---------------------------------------------------------------------------
+
+  private syncGhost(): void {
+    const tool = store.build.value;
+    const T = GAME.tile;
+    this.ghostGfx.clear();
+    if (this.sim.mode !== 'manage' || tool.kind === 'none') {
+      this.ghostImage.setVisible(false);
+      return;
+    }
+    const t = this.hoverTile;
+    const start = this.dragStartTile ?? t;
+    if (tool.kind === 'building') {
+      const def = BUILDING_DEFS[tool.type];
+      const ok = this.sim.money >= def.cost && canPlaceBuilding(this.sim.world, tool.type, t.x, t.y);
+      this.ghostImage
+        .setTexture(buildingTextureKey(tool.type, tool.type === 'bowl' ? 2 : 0))
+        .setPosition(t.x * T, (t.y + def.h) * T)
+        .setTint(ok ? GHOST_OK : GHOST_BAD)
+        .setVisible(true);
+      this.ghostGfx.lineStyle(1, ok ? GHOST_OK : GHOST_BAD, 0.9).strokeRect(t.x * T + 0.5, t.y * T + 0.5, def.w * T - 1, def.h * T - 1);
+      return;
+    }
+    this.ghostImage.setVisible(false);
+    if (tool.kind === 'demolish') {
+      this.ghostGfx.fillStyle(0xff5050, 0.35).fillRect(t.x * T, t.y * T, T, T).lineStyle(1, 0xff5050, 1).strokeRect(t.x * T + 0.5, t.y * T + 0.5, T - 1, T - 1);
+      return;
+    }
+    if (tool.kind === 'tile') {
+      const color = tool.tool === 'path' ? 0xd1b283 : 0xf6d55c;
+      for (const tile of lineTiles(start, t)) this.ghostGfx.fillStyle(color, 0.45).fillRect(tile.x * T, tile.y * T, T, T);
+      return;
+    }
+    if (tool.kind === 'zone') {
+      const color = tool.zone === Zone.None ? 0xffffff : (ZONE_COLORS[tool.zone] ?? 0xffffff);
+      const x0 = Math.min(start.x, t.x);
+      const y0 = Math.min(start.y, t.y);
+      const w = Math.abs(t.x - start.x) + 1;
+      const h = Math.abs(t.y - start.y) + 1;
+      this.ghostGfx.fillStyle(color, 0.3).fillRect(x0 * T, y0 * T, w * T, h * T).lineStyle(1, color, 1).strokeRect(x0 * T + 0.5, y0 * T + 0.5, w * T - 1, h * T - 1);
+    }
   }
 
   // ---------------------------------------------------------------------------
@@ -360,24 +486,29 @@ export class WorldScene extends Phaser.Scene {
     const img = this.add.image(b.x * T, (b.y + def.h) * T, buildingTextureKey(b.type, this.buildingVariant(b))).setOrigin(0, 1);
     const solidRows = def.solidRows === 'all' ? def.h : Math.max(def.solidRows, 0.5);
     img.setDepth(100 + (b.y + solidRows) * T);
+    if (!isReady(b)) img.setAlpha(0.45);
     this.buildingImages.set(b.id, img);
-    void BUILDING_OVERHANG;
   }
 
   private buildingVariant(b: Building): number {
     if (b.type !== 'bowl') return 0;
-    const cap = buildingDef(b).foodCapacity ?? 4;
+    const cap = this.sim.bowlCapacity(b);
     if (b.food <= 0.01) return 0;
     return b.food >= cap * 0.6 ? 2 : 1;
   }
 
   private syncBuildings(): void {
     for (const b of this.sim.buildings) {
-      if (b.type !== 'bowl') continue;
       const img = this.buildingImages.get(b.id);
       if (!img) continue;
-      const key = buildingTextureKey(b.type, this.buildingVariant(b));
-      if (img.texture.key !== key) img.setTexture(key);
+      if (b.type === 'bowl') {
+        const key = buildingTextureKey(b.type, this.buildingVariant(b));
+        if (img.texture.key !== key) img.setTexture(key);
+      }
+      if (!isReady(b)) {
+        const def = buildingDef(b);
+        img.setAlpha(0.35 + 0.5 * (1 - b.buildLeft / Math.max(1, def.buildMinutes)));
+      }
     }
   }
 
@@ -468,10 +599,27 @@ export class WorldScene extends Phaser.Scene {
     } else {
       cam.startFollow(this.playerSprite, true, 0.2, 0.2);
       this.zoomTarget = BALANCE.camera.avatarZoom;
+      store.build.value = { kind: 'none' };
+      store.buildBar.value = false;
     }
     this.zoneLayer.setVisible(mode === 'manage');
     store.mode.value = mode;
   }
+}
+
+/** Sürükleme çizgisi: baskın eksende düz çizgi (Prison Architect çit çekme gibi). */
+function lineTiles(a: TilePos, b: TilePos): TilePos[] {
+  const out: TilePos[] = [];
+  const dx = b.x - a.x;
+  const dy = b.y - a.y;
+  if (Math.abs(dx) >= Math.abs(dy)) {
+    const s = Math.sign(dx) || 1;
+    for (let x = a.x; s > 0 ? x <= b.x : x >= b.x; x += s) out.push({ x, y: a.y });
+  } else {
+    const s = Math.sign(dy) || 1;
+    for (let y = a.y; s > 0 ? y <= b.y : y >= b.y; y += s) out.push({ x: a.x, y });
+  }
+  return out;
 }
 
 function must<T>(v: T | null | undefined): T {

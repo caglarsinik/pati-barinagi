@@ -1,5 +1,5 @@
 import { BALANCE } from '../../config/balance';
-import { type Building, buildingDef, kennelRestTile } from '../entities/Building';
+import { type Building, buildingDef, isReady, kennelRestTile } from '../entities/Building';
 import { type Dog, clamp100 } from '../entities/Dog';
 import type { Facing } from '../entities/Player';
 import { findPath } from '../world/Pathfinder';
@@ -40,7 +40,9 @@ export class DogBrain {
         break;
       case 'play':
         if (dog.stateTimer <= 0) {
-          dog.needs.play = clamp100(dog.needs.play + BALANCE.dogs.selfPlayGain);
+          const toy = dog.targetBuildingId !== null ? this.sim.buildingById(dog.targetBuildingId) : null;
+          const gain = toy ? (buildingDef(toy).playGain ?? BALANCE.dogs.selfPlayGain) : BALANCE.dogs.selfPlayGain;
+          dog.needs.play = clamp100(dog.needs.play + gain);
           this.setIdle(dog, 5);
         }
         break;
@@ -102,10 +104,12 @@ export class DogBrain {
       return;
     }
 
-    // Can sıkıntısı: oyuncak.
+    // Can sıkıntısı: oyuncak ya da oyun bahçesi.
     if (n.play < B.selfPlayBelow) {
-      const toy = this.nearestBuilding(dog, 'toyBall');
+      const toy = this.nearestToy(dog);
       if (toy && this.goTo(dog, { x: toy.x, y: toy.y }, 'toToy', toy.id)) return;
+      const yard = this.randomZoneTile(dog, Zone.Play);
+      if (yard && this.goTo(dog, yard, 'wander')) return;
     }
 
     // Boş zaman.
@@ -252,12 +256,12 @@ export class DogBrain {
     this.setState(dog, 'idle', minutes);
   }
 
-  /** En yakın dolu kap; başka köpeğin hedeflediği kaplarda yem yeterliyse paylaşılır. */
-  private findBowl(dog: Dog): Building | null {
+  /** En yakın hazır oyuncak. */
+  private nearestToy(dog: Dog): Building | null {
     let best: Building | null = null;
     let bestD = Infinity;
     for (const b of this.sim.buildings) {
-      if (b.type !== 'bowl' || b.food <= 0) continue;
+      if (buildingDef(b).playGain === undefined || !isReady(b)) continue;
       const d = Math.hypot(b.x + 0.5 - dog.x, b.y + 0.5 - dog.y);
       if (d < bestD) {
         bestD = d;
@@ -267,13 +271,20 @@ export class DogBrain {
     return best;
   }
 
-  private nearestBuilding(dog: Dog, type: Building['type']): Building | null {
+  private randomZoneTile(dog: Dog, zone: Zone): TilePos | null {
+    const tiles = this.sim.world.zoneTiles(zone).filter((t) => !this.sim.world.isSolid(t.x, t.y));
+    if (tiles.length === 0) return null;
+    const t = tiles[this.sim.rng.int(0, tiles.length - 1)];
+    return dog.tileX === t.x && dog.tileY === t.y ? null : t;
+  }
+
+  /** En yakın dolu ve hazır kap. */
+  private findBowl(dog: Dog): Building | null {
     let best: Building | null = null;
     let bestD = Infinity;
     for (const b of this.sim.buildings) {
-      if (b.type !== type) continue;
-      const def = buildingDef(b);
-      const d = Math.hypot(b.x + def.w / 2 - dog.x, b.y + def.h / 2 - dog.y);
+      if (b.type !== 'bowl' || b.food <= 0 || !isReady(b)) continue;
+      const d = Math.hypot(b.x + 0.5 - dog.x, b.y + 0.5 - dog.y);
       if (d < bestD) {
         bestD = d;
         best = b;

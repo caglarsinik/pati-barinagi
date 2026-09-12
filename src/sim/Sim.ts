@@ -1,5 +1,5 @@
 import { BALANCE, type Speed } from '../config/balance';
-import { BUILDING_DEFS, type BuildingType } from '../content/buildings';
+import { BUILDING_DEFS, type BuildingType, type TileTool } from '../content/buildings';
 import { DOG_NAMES } from '../content/names';
 import { GAME } from '../config/game';
 import { Clock } from '../core/Clock';
@@ -11,6 +11,7 @@ import {
   type BuildingSave,
   buildingDef,
   canPlaceBuilding,
+  isReady,
   kennelRestTile,
   stampBuilding,
   unstampBuilding,
@@ -19,13 +20,22 @@ import { Dog, type DogOrigin, type SkillKey, SKILL_KEYS } from './entities/Dog';
 import { type DogGenome, randomGenome } from './entities/DogGenome';
 import { IDLE_INPUT, Player, type PlayerInput } from './entities/Player';
 import { AlertSystem } from './systems/AlertSystem';
+import {
+  type ExpandDir,
+  paintZone,
+  tickConstruction,
+  tryDemolish,
+  tryExpandPlot,
+  tryPlaceBuilding,
+  tryPlaceTiles,
+} from './systems/BuildSystem';
 import { DogBrain } from './systems/DogBrain';
 import { type ActionOutcome, TOOL_DEFS, type Tool, performAction } from './systems/Interaction';
 import { rebuildMessSet } from './systems/MessSystem';
 import { NeedsSystem } from './systems/NeedsSystem';
-import type { TileWorld } from './world/TileWorld';
+import type { TilePos, TileWorld } from './world/TileWorld';
 import { generateWorld } from './world/WorldGen';
-import { Ground, Obj, Zone } from './world/tiles';
+import { Biome, Ground, Obj, Zone } from './world/tiles';
 
 export type Mode = 'avatar' | 'manage';
 
@@ -43,6 +53,7 @@ export interface SimEvents extends Record<string, unknown> {
   dogRemoved: number;
   buildingAdded: Building;
   buildingRemoved: number;
+  buildingReady: Building;
   /** Oyuncuya kısa bildirim. */
   message: string;
 }
@@ -53,7 +64,12 @@ export type Command =
   | { type: 'renameDog'; id: number; name: string }
   | { type: 'orderFood'; bags: number }
   | { type: 'setTrainingFocus'; id: number; skill: SkillKey | null }
-  | { type: 'assignKennel'; dogId: number; buildingId: number | null };
+  | { type: 'assignKennel'; dogId: number; buildingId: number | null }
+  | { type: 'placeBuilding'; building: BuildingType; x: number; y: number }
+  | { type: 'placeTiles'; tool: TileTool; tiles: TilePos[] }
+  | { type: 'demolish'; x: number; y: number }
+  | { type: 'paintZone'; zone: Zone; x0: number; y0: number; x1: number; y1: number }
+  | { type: 'expandPlot'; dir: ExpandDir };
 
 export interface SimStats {
   cleaned: number;
@@ -62,7 +78,9 @@ export interface SimStats {
   petted: number;
   trained: number;
   groomed: number;
+  treated: number;
   messes: number;
+  built: number;
 }
 
 /**
@@ -87,7 +105,7 @@ export class Sim {
   buildings: Building[] = [];
   foodStock = 0;
   messTiles = new Set<number>();
-  stats: SimStats = { cleaned: 0, fed: 0, played: 0, petted: 0, trained: 0, groomed: 0, messes: 0 };
+  stats: SimStats = { cleaned: 0, fed: 0, played: 0, petted: 0, trained: 0, groomed: 0, treated: 0, messes: 0, built: 0 };
   nextId = 1;
   private lastRunningSpeed: Speed = 1;
   private minuteAcc = 0;
@@ -135,6 +153,7 @@ export class Sim {
     for (const w of crossed.weeks) this.events.emit('week', w);
     this.needs.update(dtMin);
     this.brain.update(dtMin);
+    tickConstruction(this, dtMin);
     if (this.mode === 'avatar') this.player.update(dtSec, input, this.world);
     this.minuteAcc += dtMin;
     if (this.minuteAcc >= 1) {
@@ -194,6 +213,26 @@ export class Sim {
         if (!kennel || !this.kennelHasRoom(kennel, dog)) return { ok: false, message: 'Kulübede yer yok' };
         this.assignKennel(dog, kennel);
         return { ok: true };
+      }
+      case 'placeBuilding': {
+        const r = tryPlaceBuilding(this, cmd.building, cmd.x, cmd.y);
+        return { ok: r.ok, message: r.message, building: r.building };
+      }
+      case 'placeTiles': {
+        const r = tryPlaceTiles(this, cmd.tool, cmd.tiles);
+        return { ok: r.ok, message: r.message };
+      }
+      case 'demolish': {
+        const r = tryDemolish(this, cmd.x, cmd.y);
+        return { ok: r.ok, message: r.message };
+      }
+      case 'paintZone': {
+        const r = paintZone(this, cmd.zone, cmd.x0, cmd.y0, cmd.x1, cmd.y1);
+        return { ok: r.ok, message: r.message };
+      }
+      case 'expandPlot': {
+        const r = tryExpandPlot(this, cmd.dir);
+        return { ok: r.ok, message: r.message };
       }
       default:
         return { ok: false };
@@ -270,7 +309,7 @@ export class Sim {
 
   kennelHasRoom(kennel: Building, dog: Dog): boolean {
     const def = buildingDef(kennel);
-    if (def.capacity === undefined) return false;
+    if (def.capacity === undefined || !isReady(kennel)) return false;
     if (kennel.occupants.includes(dog.id)) return true;
     if (kennel.occupants.length >= def.capacity) return false;
     if (dog.genome.size === 'L' && kennel.type === 'kennelSmall') return false;
@@ -297,11 +336,21 @@ export class Sim {
     }
   }
 
-  /** Kulübe kapasitesi toplamı. */
+  /** Hazır kulübe kapasitesi toplamı. */
   kennelCapacity(): number {
     let n = 0;
-    for (const b of this.buildings) n += buildingDef(b).capacity ?? 0;
+    for (const b of this.buildings) if (isReady(b)) n += buildingDef(b).capacity ?? 0;
     return n;
+  }
+
+  hasReady(type: BuildingType): boolean {
+    return this.buildings.some((b) => b.type === type && isReady(b));
+  }
+
+  /** Kap kapasitesi: mutfak varsa iki kat. */
+  bowlCapacity(b: Building): number {
+    const base = buildingDef(b).foodCapacity ?? 4;
+    return this.hasReady('kitchen') ? base * 2 : base;
   }
 
   // ---------------------------------------------------------------------------
@@ -312,9 +361,9 @@ export class Sim {
     return this.buildingMap.get(id);
   }
 
-  placeBuilding(type: BuildingType, x: number, y: number): Building | null {
+  placeBuilding(type: BuildingType, x: number, y: number, buildMinutes = 0): Building | null {
     if (!canPlaceBuilding(this.world, type, x, y)) return null;
-    const b: Building = { id: this.nextId++, type, x, y, food: 0, occupants: [] };
+    const b: Building = { id: this.nextId++, type, x, y, food: 0, occupants: [], buildLeft: Math.max(0, buildMinutes) };
     this.buildings.push(b);
     this.buildingMap.set(b.id, b);
     stampBuilding(this.world, b);
@@ -411,10 +460,18 @@ export class Sim {
         plotGround.push(this.world.ground[i]);
       }
     }
+    const objectChanges: number[] = [];
+    for (const [i, o] of this.world.objectChanges) {
+      const x = i % this.world.width;
+      const y = Math.floor(i / this.world.width);
+      if (this.world.inPlot(x, y)) continue;
+      objectChanges.push(i, o);
+    }
     return {
       version: GAME.saveVersion,
       savedAt: Date.now(),
       seed: this.seed,
+      objectChanges,
       clock: this.clock.toJSON(),
       player: this.player.toJSON(),
       speed: this.speed,
@@ -428,7 +485,7 @@ export class Sim {
       plotObjects,
       plotZones,
       plotGround,
-      buildings: this.buildings.map((b) => ({ id: b.id, type: b.type, x: b.x, y: b.y, food: b.food, occupants: [...b.occupants] })),
+      buildings: this.buildings.map((b) => ({ id: b.id, type: b.type, x: b.x, y: b.y, food: b.food, occupants: [...b.occupants], buildLeft: b.buildLeft })),
       dogs: this.dogs.map((d) => d.toJSON()),
     };
   }
@@ -453,7 +510,33 @@ export class Sim {
       }
     }
 
-    // Arsa katmanları
+    // Arsa (genişletilmiş olabilir): önce sınırı kaydedilen boyuta getir.
+    if (data.plot && typeof data.plot.w === 'number' && typeof data.plot.h === 'number') {
+      const sp = data.plot;
+      const okSize = sp.w <= BALANCE.world.plotMaxW && sp.h <= BALANCE.world.plotMaxH;
+      if (sp.x === world.plot.x && sp.y === world.plot.y && sp.w >= world.plot.w && sp.h >= world.plot.h && okSize) {
+        for (let y = sp.y; y < sp.y + sp.h; y++) {
+          for (let x = sp.x; x < sp.x + sp.w; x++) {
+            if (!world.inBounds(x, y)) continue;
+            const o = world.objectAt(x, y);
+            if (o === Obj.TreeTrunk || o === Obj.PineTrunk) world.setObject(x, y - 1, Obj.None);
+            world.setObject(x, y, Obj.None);
+            world.setBiome(x, y, Biome.Plot);
+          }
+        }
+        world.nests = world.nests.filter((nn) => !(nn.x >= sp.x && nn.y >= sp.y && nn.x < sp.x + sp.w && nn.y < sp.y + sp.h));
+        world.plot = { x: sp.x, y: sp.y, w: sp.w, h: sp.h };
+      }
+    }
+    if (Array.isArray(data.objectChanges)) {
+      const oc = data.objectChanges;
+      for (let k = 0; k + 1 < oc.length; k += 2) {
+        const i = oc[k];
+        const o = oc[k + 1];
+        if (typeof i !== 'number' || typeof o !== 'number' || i < 0 || i >= world.object.length || o < 0 || o >= Obj.COUNT) continue;
+        world.setObject(i % world.width, Math.floor(i / world.width), o as Obj);
+      }
+    }
     const p = world.plot;
     const n = p.w * p.h;
     const objs = Array.isArray(data.plotObjects) && data.plotObjects.length === n ? data.plotObjects : null;
@@ -494,6 +577,7 @@ export class Sim {
           y: raw.y,
           food: typeof raw.food === 'number' && Number.isFinite(raw.food) ? Math.max(0, raw.food) : 0,
           occupants: [],
+          buildLeft: typeof raw.buildLeft === 'number' && Number.isFinite(raw.buildLeft) ? Math.max(0, raw.buildLeft) : 0,
         };
         sim.buildings.push(b);
         sim.buildingMap.set(b.id, b);

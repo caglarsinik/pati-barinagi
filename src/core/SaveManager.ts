@@ -19,6 +19,8 @@ export interface SaveData {
   plotObjects?: number[];
   plotZones?: number[];
   plotGround?: number[];
+  /** Arsa dışı nesne değişiklikleri: [kareIndeksi, nesne, ...] düz dizi. */
+  objectChanges?: number[];
   buildings?: unknown[];
   dogs?: unknown[];
 }

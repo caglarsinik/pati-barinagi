@@ -11,6 +11,8 @@ export interface Building {
   food: number;
   /** Kulübe: barınan köpek id'leri. */
   occupants: number[];
+  /** Kalan inşaat süresi (oyun dakikası); 0 ise hazır. */
+  buildLeft: number;
 }
 
 export interface BuildingSave {
@@ -20,10 +22,15 @@ export interface BuildingSave {
   y: number;
   food?: number;
   occupants?: number[];
+  buildLeft?: number;
 }
 
 export function buildingDef(b: Building | BuildingType): BuildingDef {
   return BUILDING_DEFS[typeof b === 'string' ? b : b.type];
+}
+
+export function isReady(b: Building): boolean {
+  return b.buildLeft <= 0;
 }
 
 export function buildingFootprint(b: Building): { x: number; y: number; w: number; h: number } {
@@ -40,7 +47,7 @@ export function buildingDoorTile(b: Building): { x: number; y: number } {
 /** Kulübenin köpeğin yattığı eşik karesi. */
 export function kennelRestTile(b: Building, slot = 0): { x: number; y: number } {
   const d = buildingDef(b);
-  return { x: b.x + Math.min(d.w - 1, slot), y: b.y + d.h - 1 };
+  return { x: b.x + Math.min(d.w - 1, Math.max(0, slot)), y: b.y + d.h - 1 };
 }
 
 export function isTileSolidForBuilding(def: BuildingDef, row: number): boolean {
@@ -48,12 +55,12 @@ export function isTileSolidForBuilding(def: BuildingDef, row: number): boolean {
   return row < def.solidRows;
 }
 
-/** Bina yerleştirilebilir mi: tüm kareler arsa içinde, boş ve nesnesiz. */
+/** Bina yerleştirilebilir mi: tüm kareler arsa içinde (çit satırları hariç), boş ve nesnesiz. */
 export function canPlaceBuilding(world: TileWorld, type: BuildingType, x: number, y: number): boolean {
   const d = BUILDING_DEFS[type];
   for (let yy = y; yy < y + d.h; yy++) {
     for (let xx = x; xx < x + d.w; xx++) {
-      if (!world.inPlot(xx, yy)) return false;
+      if (!world.inPlotInterior(xx, yy)) return false;
       const i = world.idx(xx, yy);
       if (world.object[i] !== 0) return false;
       if (world.buildingIndex[i] !== -1) return false;

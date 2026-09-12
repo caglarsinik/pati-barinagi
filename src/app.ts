@@ -1,7 +1,7 @@
 import Phaser from 'phaser';
 import type { Speed } from './config/balance';
 import type { Tool } from './sim/systems/Interaction';
-import type { Panel } from './ui/store';
+import type { BuildTool, Panel } from './ui/store';
 import { parseSeed } from './core/Rng';
 import { SaveManager } from './core/SaveManager';
 import { BootScene } from './scenes/BootScene';
@@ -49,6 +49,7 @@ class AppController {
     window.addEventListener('resize', syncSize);
     window.setInterval(syncSize, 500);
     this.game.events.on('ui:escape', () => this.togglePauseMenu());
+    this.game.events.on('ui:build-toggle', () => this.toggleBuildBar());
     store.hasSave.value = SaveManager.has(SLOT);
     window.addEventListener('beforeunload', () => this.save(true));
   }
@@ -91,6 +92,8 @@ class AppController {
     store.pauseMenu.value = false;
     store.panel.value = 'none';
     store.selectedDogId.value = null;
+    store.buildBar.value = false;
+    store.build.value = { kind: 'none' };
     store.screen.value = 'game';
     syncStore(sim);
   }
@@ -131,9 +134,17 @@ class AppController {
     if (this.sim && !this.pausedBeforeMenu) this.sim.togglePause();
   }
 
-  /** Esc: önce açık panel kapanır, panel yoksa duraklatma menüsü açılır/kapanır. */
+  /** Esc: önce inşa aracı, sonra açık panel kapanır; hiçbiri yoksa duraklatma menüsü açılır/kapanır. */
   togglePauseMenu(): void {
     if (store.screen.value !== 'game') return;
+    if (!store.pauseMenu.value && store.build.value.kind !== 'none') {
+      store.build.value = { kind: 'none' };
+      return;
+    }
+    if (!store.pauseMenu.value && store.buildBar.value) {
+      store.buildBar.value = false;
+      return;
+    }
     if (!store.pauseMenu.value && store.panel.value !== 'none') {
       this.closePanel();
       return;
@@ -144,6 +155,22 @@ class AppController {
 
   togglePanel(panel: Panel): void {
     store.panel.value = store.panel.value === panel ? 'none' : panel;
+  }
+
+  /** İnşa çubuğunu açar (gerekirse yönetim moduna geçer). */
+  toggleBuildBar(): void {
+    if (!this.sim) return;
+    if (store.buildBar.value) {
+      store.buildBar.value = false;
+      store.build.value = { kind: 'none' };
+      return;
+    }
+    if (this.sim.mode !== 'manage') this.sim.setMode('manage');
+    store.buildBar.value = true;
+  }
+
+  setBuildTool(tool: BuildTool): void {
+    store.build.value = tool;
   }
 
   closePanel(): void {

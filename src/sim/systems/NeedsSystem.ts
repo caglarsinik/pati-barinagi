@@ -1,6 +1,7 @@
 import { BALANCE } from '../../config/balance';
 import { type Dog, clamp100 } from '../entities/Dog';
 import type { Sim } from '../Sim';
+import { Zone } from '../world/tiles';
 
 /** İhtiyaçların zamanla değişimi. Davranış (yeme, tuvalet) DogBrain'de; burada sadece sürekli akış var. */
 export class NeedsSystem {
@@ -20,7 +21,10 @@ export class NeedsSystem {
     n.hunger = clamp100(n.hunger + hungerRate * (asleep ? 0.5 : 1) * dtH);
 
     const playRate = dog.genome.temperament === 'playful' ? B.playDecayPerHour * 1.3 : dog.genome.temperament === 'calm' ? B.playDecayPerHour * 0.75 : B.playDecayPerHour;
-    if (!asleep) n.play = clamp100(n.play - playRate * dtH);
+    if (!asleep) {
+      const inYard = this.sim.world.zoneAt(dog.tileX, dog.tileY) === Zone.Play;
+      n.play = clamp100(n.play - playRate * dtH + (inYard ? B.playYardGainPerHour * dtH : 0));
+    }
 
     n.bladder = clamp100(n.bladder + B.bladderPerHour * (asleep ? 0.4 : 1) * dtH);
     n.hygiene = clamp100(n.hygiene - B.hygieneDecayPerHour * dtH);

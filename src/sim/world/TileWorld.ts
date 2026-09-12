@@ -32,6 +32,8 @@ export class TileWorld {
   nests: TilePos[] = [];
   spawn: { x: number; y: number } = { x: 0, y: 0 };
   dirty: number[] = [];
+  /** Üretimden sonra değişen nesne kareleri (kayıt için): kare indeksi → nesne. */
+  objectChanges = new Map<number, number>();
   private zoneCache = new Map<Zone, TilePos[]>();
 
   constructor(width: number, height: number, plot: Rect) {
@@ -110,6 +112,7 @@ export class TileWorld {
     if (!this.inBounds(x, y)) return;
     const i = this.idx(x, y);
     this.object[i] = o;
+    this.objectChanges.set(i, o);
     this.recomputeSolid(i);
     this.dirty.push(i);
     // Çit komşuları kenar deseni için yeniden çizilir.

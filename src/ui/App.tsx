@@ -1,3 +1,4 @@
+import { BuildBar } from './BuildBar';
 import { DogList } from './DogList';
 import { DogPanel } from './DogPanel';
 import { HUD } from './HUD';
@@ -18,6 +19,7 @@ export function App() {
         <>
           <HUD />
           <Toolbar />
+          <BuildBar />
           <AlertsPanel />
           {panel === 'dog' && <DogPanel />}
           {panel === 'dogs' && <DogList />}

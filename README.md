@@ -22,12 +22,15 @@ Tasarım dokümanı ve kilometre taşları: `docs/PLAN.md`
 | 1-5 | Araç seç: Sev, Oyna, Eğit, Yem, Temizle | – |
 | Sol tık | Köpeği seç (panel açılır) | Köpeği seç |
 | I | Köpek listesi | Köpek listesi |
+| B | İnşa çubuğu (yönetim moduna geçer) | İnşa çubuğu |
+| X / Z | – | Yık aracı / Bölge boyama |
 | Tab | Yönetim moduna geç | Avatara dön |
 | Space | Duraklat / devam | Duraklat / devam |
 | + / - | Hız artır / azalt | Hız artır / azalt |
 | Fare tekeri | Yakınlaştır | Yakınlaştır |
-| Sol tık sürükle | – | Kamerayı kaydır |
-| Esc | Paneli kapat / menü | Paneli kapat / menü |
+| Sol tık sürükle | – | Kamerayı kaydır (araç seçiliyse çit/yol çizgisi ya da bölge dikdörtgeni) |
+| Sağ tık sürükle | – | Kamerayı kaydır (her zaman) |
+| Esc | Paneli kapat / menü | Aracı bırak / paneli kapat / menü |
 
 Alt çubuk her an E ile ne yapacağını yazar. Sağ üstteki uyarılara tıklayınca ilgili köpeğe gidersin.
 
@@ -39,11 +42,19 @@ Alt çubuk her an E ile ne yapacağını yazar. Sağ üstteki uyarılara tıklay
 - Sevmek sadakati, oynamak keyfi, fırçalamak temizliği artırır. Eğitim aracıyla köpek panelinden seçtiğin beceriyi çalıştırırsın.
 - Gece köpekler kulübelerinde uyur; kulübesi olmayan köpek dışarıda kötü uyur.
 
+## İnşa
+
+- Yönetim modunda B ile inşa çubuğu açılır: kategori → bina. Hayalet yeşilse yerleşir, kırmızıysa sığmıyor ya da para yetmiyor.
+- Çit ve yol sürükleyerek düz çizgi halinde çekilir; kapı çitin üstüne konur. Bölgeler (tuvalet, oyun bahçesi, eğitim, karantina, personel) dikdörtgen sürükleyerek boyanır.
+- Büyük binalar inşaat süresi boyunca yarı saydamdır ve kullanılamaz. Yıkım bedelin yarısını iade eder.
+- Arsa sekmesinden doğuya/güneye 16 kare genişletilir (2.500 ₺); alan temizlenir, çit ve yol kapıları yeniden kurulur.
+- Tımar istasyonu yakındaki köpeği yıkar, veteriner odası tedavi eder, mutfak kapların kapasitesini ikiye katlar, oyuncaklar köpeklerin kendi kendine oynamasını sağlar.
+
 ## Durum
 
 - [x] M0 İskelet: dünya üretimi, avatar, kamera, gün/gece, HUD, hız, mini harita, kayıt
 - [x] M1 Köpekler ve ihtiyaçlar: genom ve modüler sprite, ihtiyaçlar, davranış, başlangıç barınağı, bakım araçları, köpek paneli/listesi, uyarılar
-- [ ] M2 İnşa
+- [x] M2 İnşa: inşa çubuğu, hayalet önizleme, çit/kapı/yol, bölgeler, yıkım, inşaat süresi, arsa genişletme, yeni binalar
 - [ ] M3 Yumurta ve büyüme
 - [ ] M4 Ekonomi ve sahiplendirme
 - [ ] M5 Personel ve görevlendirme

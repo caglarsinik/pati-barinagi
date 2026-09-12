@@ -1,9 +1,9 @@
 import { BALANCE } from '../../config/balance';
-import { type Building, buildingDef } from '../entities/Building';
+import { type Building, buildingDef, isReady } from '../entities/Building';
 import { type Dog, SKILL_KEYS, SKILL_NAMES_TR, type SkillKey, clamp100 } from '../entities/Dog';
 import { FACING_DELTA } from '../entities/Player';
 import type { TilePos } from '../world/TileWorld';
-import { Obj } from '../world/tiles';
+import { Obj, Zone } from '../world/tiles';
 import type { Sim } from '../Sim';
 import { cleanMess } from './MessSystem';
 
@@ -25,7 +25,19 @@ export const TOOL_DEFS: readonly ToolDef[] = [
   { id: 'clean', name: 'Temizle', icon: '🧹', key: '5', desc: 'Pisliğin önünde E: temizle. Köpeğin önünde E: fırçala (hijyen artar).' },
 ];
 
-export type ActionKind = 'pet' | 'play' | 'train' | 'groom' | 'fillBowl' | 'clean' | 'shed' | 'kennel' | 'incubator' | 'none';
+export type ActionKind =
+  | 'pet'
+  | 'play'
+  | 'train'
+  | 'groom'
+  | 'fillBowl'
+  | 'clean'
+  | 'wash'
+  | 'treat'
+  | 'shed'
+  | 'kennel'
+  | 'incubator'
+  | 'none';
 
 export interface ResolvedAction {
   kind: ActionKind;
@@ -72,10 +84,32 @@ export function resolveAction(sim: Sim): ResolvedAction {
   const building = bid >= 0 ? sim.buildingById(bid) : null;
   if (building) {
     const def = buildingDef(building);
+    if (!isReady(building)) {
+      const pct = Math.round(100 * (1 - building.buildLeft / Math.max(1, def.buildMinutes)));
+      return { kind: 'none', hint: `${def.name} inşa ediliyor (%${pct})`, building };
+    }
     if (building.type === 'bowl') {
-      if (building.food >= (def.foodCapacity ?? 4) - 0.01) return { kind: 'none', hint: 'Yem kabı dolu', building };
+      const cap = sim.bowlCapacity(building);
+      if (building.food >= cap - 0.01) return { kind: 'none', hint: 'Yem kabı dolu', building };
       if (sim.foodStock <= 0) return { kind: 'none', hint: 'Kiler boş: kilerden yem sipariş et', building };
-      return { kind: 'fillBowl', hint: `E: yem kabını doldur (${Math.floor(building.food)}/${def.foodCapacity})`, building };
+      return { kind: 'fillBowl', hint: `E: yem kabını doldur (${Math.floor(building.food)}/${cap})`, building };
+    }
+    if (building.type === 'groomStation') {
+      const near = nearestDogToBuilding(sim, building, BALANCE.dogs.stationRadius);
+      if (!near) return { kind: 'none', hint: 'Tımar: yakında köpek yok', building };
+      if (near.needs.hygiene >= 99) return { kind: 'none', hint: `${near.name} zaten tertemiz`, building };
+      return { kind: 'wash', hint: `E: ${near.name}'i yıka (temizlik ${Math.floor(near.needs.hygiene)}%)`, building, dog: near };
+    }
+    if (building.type === 'vetClinic') {
+      const near = nearestDogToBuilding(sim, building, BALANCE.dogs.stationRadius);
+      if (!near) return { kind: 'none', hint: 'Veteriner: yakında köpek yok', building };
+      if (near.needs.health >= 90) return { kind: 'none', hint: `${near.name} sağlıklı`, building };
+      return {
+        kind: 'treat',
+        hint: `E: ${near.name}'i tedavi et (${BALANCE.economy.treatmentPrice} ${BALANCE.economy.currency})`,
+        building,
+        dog: near,
+      };
     }
     if (building.type === 'shed') return { kind: 'shed', hint: `E: kiler (${Math.floor(sim.foodStock)} porsiyon)`, building };
     if (building.type === 'kennelSmall' || building.type === 'kennelLarge') {
@@ -147,9 +181,29 @@ export function performAction(sim: Sim): ActionOutcome {
       p.setBusy(0.6, 'clean');
       return { ok: true };
     }
+    case 'wash': {
+      const dog = r.dog!;
+      dog.needs.hygiene = 100;
+      dog.needs.loyalty = clamp100(dog.needs.loyalty + 1);
+      interactWith(sim, dog, B.washDurationMin);
+      sim.stats.groomed++;
+      p.setBusy(1.2, 'wash');
+      return { ok: true, message: `${dog.name} yıkandı` };
+    }
+    case 'treat': {
+      const dog = r.dog!;
+      const price = BALANCE.economy.treatmentPrice;
+      if (sim.money < price) return { ok: false, message: 'İlaç için para yok' };
+      sim.money -= price;
+      dog.needs.health = clamp100(dog.needs.health + B.treatHealthGain);
+      interactWith(sim, dog, B.treatDurationMin);
+      sim.stats.treated++;
+      p.setBusy(1.2, 'treat');
+      return { ok: true, message: `${dog.name} tedavi edildi` };
+    }
     case 'fillBowl': {
       const b = r.building!;
-      const cap = buildingDef(b).foodCapacity ?? 4;
+      const cap = sim.bowlCapacity(b);
       const take = Math.min(cap - b.food, sim.foodStock);
       if (take <= 0) return { ok: false };
       b.food += take;
@@ -184,7 +238,8 @@ export function performAction(sim: Sim): ActionOutcome {
       const skill = trainingSkill(dog);
       if (!skill) return { ok: false };
       const temper = dog.genome.temperament === 'calm' ? 1.1 : dog.genome.temperament === 'shy' ? 0.85 : dog.genome.temperament === 'bold' ? 0.95 : 1;
-      const gain = (B.trainBaseGain + dog.genome.intelligence * B.trainIntelligenceGain + dog.needs.loyalty * B.trainLoyaltyGain) * temper;
+      const zone = trainingZoneFactor(sim, dog);
+      const gain = (B.trainBaseGain + dog.genome.intelligence * B.trainIntelligenceGain + dog.needs.loyalty * B.trainLoyaltyGain) * temper * zone;
       const before = dog.skills[skill];
       dog.skills[skill] = clamp100(before + gain);
       dog.needs.energy = clamp100(dog.needs.energy - B.trainEnergyCost);
@@ -213,6 +268,32 @@ export function performAction(sim: Sim): ActionOutcome {
     default:
       return { ok: false };
   }
+}
+
+function nearestDogToBuilding(sim: Sim, b: Building, radius: number): Dog | null {
+  const def = buildingDef(b);
+  const cx = b.x + def.w / 2;
+  const cy = b.y + def.h / 2;
+  let best: Dog | null = null;
+  let bestD = radius + Math.max(def.w, def.h) / 2;
+  for (const dog of sim.dogs) {
+    const d = Math.hypot(dog.x - cx, dog.y - cy);
+    if (d < bestD) {
+      bestD = d;
+      best = dog;
+    }
+  }
+  return best;
+}
+
+/** Eğitim alanında çalışınca bonus; alandaki engeller (en fazla 3) küçük ek bonus verir. */
+export function trainingZoneFactor(sim: Sim, dog: Dog): number {
+  if (sim.world.zoneAt(dog.tileX, dog.tileY) !== Zone.Training) return 1;
+  let obstacles = 0;
+  for (const b of sim.buildings) {
+    if (b.type === 'obstacle' && isReady(b) && sim.world.zoneAt(b.x, b.y) === Zone.Training) obstacles++;
+  }
+  return BALANCE.dogs.trainingZoneBonus + Math.min(3, obstacles) * BALANCE.dogs.obstacleBonus;
 }
 
 function interactWith(sim: Sim, dog: Dog, minutes: number): void {

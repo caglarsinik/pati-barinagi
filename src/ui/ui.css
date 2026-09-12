@@ -539,3 +539,79 @@ select,
   color: var(--danger);
   font-weight: 700;
 }
+
+/* --- İnşa çubuğu --- */
+.build-bar {
+  left: 50%;
+  bottom: 52px;
+  transform: translateX(-50%);
+  width: min(900px, calc(100vw - 40px));
+  padding: 6px 8px;
+}
+
+.build-tabs {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.build-tabs .spacer {
+  flex: 1;
+}
+
+.btn.danger {
+  background: #6b2a2a;
+}
+
+.btn.danger.active {
+  background: var(--danger);
+  color: #fff;
+}
+
+.build-items {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-top: 6px;
+  min-height: 44px;
+  align-items: center;
+}
+
+.build-item {
+  pointer-events: auto;
+  font: inherit;
+  color: var(--text);
+  background: #3a3550;
+  border: 2px solid var(--border);
+  border-radius: 3px;
+  padding: 4px 8px;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  min-width: 96px;
+}
+
+.build-item:hover {
+  background: #4b4568;
+}
+
+.build-item.active {
+  background: var(--accent);
+  color: #1b1a2a;
+}
+
+.build-item.poor {
+  opacity: 0.55;
+}
+
+.bi-name {
+  font-weight: 700;
+  font-size: 0.85rem;
+}
+
+.bi-cost {
+  font-size: 0.75rem;
+  opacity: 0.85;
+}

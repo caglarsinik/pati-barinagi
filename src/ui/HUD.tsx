@@ -51,6 +51,9 @@ export function HUD() {
           <button class={'btn small' + (mode === 'manage' ? ' active' : '')} onClick={() => app.toggleMode()}>
             {mode === 'avatar' ? 'Yönetim (Tab)' : 'Avatar (Tab)'}
           </button>
+          <button class={'btn small' + (store.buildBar.value ? ' active' : '')} onClick={() => app.toggleBuildBar()}>
+            İnşa (B)
+          </button>
           <button class={'btn small' + (store.panel.value === 'dogs' ? ' active' : '')} onClick={() => app.togglePanel('dogs')}>
             Köpekler (I)
           </button>
