@@ -1,4 +1,5 @@
 import { app } from '../app';
+import { t } from '../i18n';
 import { isReady } from '../sim/entities/Building';
 import { store } from './store';
 
@@ -26,24 +27,24 @@ export function Guide() {
   ];
   const remaining = steps.filter((s) => !s.done);
   if (remaining.length === 0) return null;
-  const shown = steps.filter((s) => !s.done).slice(0, 4);
+  const shown = remaining.slice(0, 4);
   return (
     <div class="hud guide panel">
       <div class="guide-head">
-        <b>Başlangıç rehberi</b>
+        <b>{t('Başlangıç rehberi')}</b>
         <span class="muted small-text">
           {steps.length - remaining.length}/{steps.length}
         </span>
-        <button class="btn small close" title="Gizle (Ayarlar'dan açılır)" onClick={() => app.setGuideHidden(true)}>
+        <button class="btn small close" title={t("Gizle (Ayarlar'dan açılır)")} onClick={() => app.setGuideHidden(true)}>
           ✕
         </button>
       </div>
       {shown.map((s) => (
         <div key={s.text} class="guide-step">
-          ☐ {s.text}
+          ☐ {t(s.text)}
         </div>
       ))}
-      {sim.buildings.some((b) => !isReady(b)) && <div class="muted small-text">İnşaat sürüyor…</div>}
+      {sim.buildings.some((b) => !isReady(b)) && <div class="muted small-text">{t('İnşaat sürüyor…')}</div>}
     </div>
   );
 }

@@ -1,5 +1,6 @@
 import { useState } from 'preact/hooks';
 import { app } from '../app';
+import { t } from '../i18n';
 import { buildingDef } from '../sim/entities/Building';
 import { SKILL_KEYS, SKILL_NAMES_TR, STAGE_NAMES_TR } from '../sim/entities/Dog';
 import {
@@ -15,7 +16,7 @@ import {
 import { DogPortrait } from './DogPortrait';
 import { store } from './store';
 
-export function Bar({ label, value, invert = false, danger = 30 }: { label: string; value: number; invert?: boolean; danger?: number }) {
+export function Bar({ label, value, danger = 30 }: { label: string; value: number; danger?: number }) {
   const v = Math.round(value);
   const bad = v < danger;
   return (
@@ -27,7 +28,6 @@ export function Bar({ label, value, invert = false, danger = 30 }: { label: stri
       <span class="need-value">{v}</span>
     </div>
   );
-  void invert;
 }
 
 const STATE_TR: Record<string, string> = {
@@ -86,7 +86,7 @@ export function DogPanel() {
             />
           ) : (
             <h3
-              title="Adı değiştirmek için tıkla"
+              title={t('Adı değiştirmek için tıkla')}
               onClick={() => {
                 setDraft(dog.name);
                 setEditing(true);
@@ -96,37 +96,40 @@ export function DogPanel() {
             </h3>
           )}
           <div class="muted">
-            {STAGE_NAMES_TR[dog.stage]} · {dog.ageWeeks} haftalık · {RARITY_NAMES_TR[g.rarity]}
+            {t(STAGE_NAMES_TR[dog.stage])} · {t('{age} haftalık', { age: dog.ageWeeks })} · {t(RARITY_NAMES_TR[g.rarity])}
           </div>
-          <div class="muted">{STATE_TR[dog.state] ?? dog.state}{dog.sick ? ' · HASTA' : ''}</div>
+          <div class="muted">
+            {t(STATE_TR[dog.state] ?? dog.state)}
+            {dog.sick ? ` · ${t('HASTA')}` : ''}
+          </div>
         </div>
-        <button class="btn small close" onClick={close} title="Kapat (Esc)">
+        <button class="btn small close" onClick={close} title={t('Kapat (Esc)')}>
           ✕
         </button>
       </div>
 
       <div class="traits">
-        <span>{SIZE_NAMES_TR[g.size]}</span>
-        <span>{BODY_NAMES_TR[g.body]}</span>
-        <span>{COAT_COLORS[g.coat].name}</span>
-        <span>{PATTERN_NAMES_TR[g.pattern]}</span>
-        <span>{EAR_NAMES_TR[g.ears]}</span>
-        <span>{TAIL_NAMES_TR[g.tail]}</span>
-        <span>{TEMPERAMENT_NAMES_TR[g.temperament]}</span>
-        <span>Zekâ {g.intelligence}/5</span>
-        <span>Enerji {g.energy}/5</span>
+        <span>{t(SIZE_NAMES_TR[g.size])}</span>
+        <span>{t(BODY_NAMES_TR[g.body])}</span>
+        <span>{t(COAT_COLORS[g.coat].name)}</span>
+        <span>{t(PATTERN_NAMES_TR[g.pattern])}</span>
+        <span>{t(EAR_NAMES_TR[g.ears])}</span>
+        <span>{t(TAIL_NAMES_TR[g.tail])}</span>
+        <span>{t(TEMPERAMENT_NAMES_TR[g.temperament])}</span>
+        <span>{t('Zekâ {n}/5', { n: g.intelligence })}</span>
+        <span>{t('Enerji {n}/5', { n: g.energy })}</span>
       </div>
 
-      <h4>İhtiyaçlar · keyif {dog.mood()}</h4>
-      <Bar label="Tokluk" value={100 - n.hunger} />
-      <Bar label="Keyif" value={n.play} />
-      <Bar label="Rahatlık" value={100 - n.bladder} danger={20} />
-      <Bar label="Temizlik" value={n.hygiene} />
-      <Bar label="Sağlık" value={n.health} danger={40} />
-      <Bar label="Sadakat" value={n.loyalty} danger={0} />
-      <Bar label="Enerji" value={n.energy} danger={20} />
+      <h4>{t('İhtiyaçlar · keyif {mood}', { mood: dog.mood() })}</h4>
+      <Bar label={t('Tokluk')} value={100 - n.hunger} />
+      <Bar label={t('Keyif')} value={n.play} />
+      <Bar label={t('Rahatlık')} value={100 - n.bladder} danger={20} />
+      <Bar label={t('Temizlik')} value={n.hygiene} />
+      <Bar label={t('Sağlık')} value={n.health} danger={40} />
+      <Bar label={t('Sadakat')} value={n.loyalty} danger={0} />
+      <Bar label={t('Enerji')} value={n.energy} danger={20} />
 
-      <h4>Eğitim · seviye {dog.trainingLevel()}/6</h4>
+      <h4>{t('Eğitim · seviye {lvl}/6', { lvl: dog.trainingLevel() })}</h4>
       <div class="skills">
         {SKILL_KEYS.map((k) => (
           <label key={k} class={'skill' + (dog.trainingFocus === k ? ' focus' : '') + (dog.skills[k] >= 100 ? ' done' : '')}>
@@ -136,17 +139,17 @@ export function DogPanel() {
               checked={dog.trainingFocus === k}
               onChange={() => sim.command({ type: 'setTrainingFocus', id: dog.id, skill: dog.trainingFocus === k ? null : k })}
             />
-            <span class="skill-name">{SKILL_NAMES_TR[k]}</span>
+            <span class="skill-name">{t(SKILL_NAMES_TR[k])}</span>
             <div class="bar mini">
               <div class="fill" style={{ width: `${dog.skills[k]}%` }} />
             </div>
             <span class="need-value">{Math.floor(dog.skills[k])}</span>
           </label>
         ))}
-        <div class="muted small-text">Odak seçmezsen önce tuvalet eğitimi çalışılır.</div>
+        <div class="muted small-text">{t('Odak seçmezsen önce tuvalet eğitimi çalışılır.')}</div>
       </div>
 
-      <h4>Kulübe</h4>
+      <h4>{t('Kulübe')}</h4>
       <div class="row">
         <select
           value={dog.kennelId ?? ''}
@@ -155,22 +158,22 @@ export function DogPanel() {
             sim.command({ type: 'assignKennel', dogId: dog.id, buildingId: v === '' ? null : Number(v) });
           }}
         >
-          <option value="">Kulübesiz</option>
+          <option value="">{t('Kulübesiz')}</option>
           {kennels.map((b) => (
             <option key={b.id} value={b.id}>
-              {buildingDef(b).name} #{b.id} ({b.occupants.length}/{buildingDef(b).capacity})
+              {t(buildingDef(b).name)} #{b.id} ({b.occupants.length}/{buildingDef(b).capacity})
             </option>
           ))}
         </select>
         {kennel && (
           <button class="btn small" onClick={() => app.focusTile(kennel.x, kennel.y)}>
-            Göster
+            {t('Göster')}
           </button>
         )}
       </div>
       <div class="row">
         <button class="btn small" onClick={() => app.focusTile(dog.tileX, dog.tileY)}>
-          Köpeğe git (kamera)
+          {t('Köpeğe git (kamera)')}
         </button>
       </div>
     </div>

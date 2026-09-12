@@ -3,11 +3,12 @@ import type { TilePos } from '../world/TileWorld';
 import { type DogGenome, isValidGenome } from './DogGenome';
 import type { Facing } from './Player';
 
-export type GrowthStage = 'puppy' | 'young' | 'adult';
-export const STAGE_NAMES_TR: Record<GrowthStage, string> = { puppy: 'Yavru', young: 'Genç', adult: 'Yetişkin' };
+export type GrowthStage = 'puppy' | 'young' | 'adult' | 'senior';
+export const STAGE_NAMES_TR: Record<GrowthStage, string> = { puppy: 'Yavru', young: 'Genç', adult: 'Yetişkin', senior: 'Yaşlı' };
 
 export function stageForAge(weeks: number): GrowthStage {
   const g = BALANCE.dogs.growth;
+  if (weeks >= g.seniorAtWeek) return 'senior';
   return weeks < g.youngAtWeek ? 'puppy' : weeks < g.adultAtWeek ? 'young' : 'adult';
 }
 
@@ -157,7 +158,7 @@ export class Dog {
 
   /** Kare/dakika hızı (oyun zamanı). */
   speed(): number {
-    const stage = this.stage === 'puppy' ? 0.7 : this.stage === 'young' ? 0.9 : 1;
+    const stage = this.stage === 'puppy' ? 0.7 : this.stage === 'young' ? 0.9 : this.stage === 'senior' ? BALANCE.dogs.senior.speedMul : 1;
     const energy = 0.85 + (this.genome.energy - 1) * 0.075;
     return BALANCE.dogs.baseSpeed * stage * energy;
   }

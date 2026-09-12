@@ -5,6 +5,7 @@ import { Backpack, EggPanel, IncubatorPanel } from './EggPanels';
 import { AdoptionDesk, FinancePanel, OfficePanel, WeeklyReport } from './EconomyPanels';
 import { DeploymentPanel, StaffPanel } from './StaffPanels';
 import { SettingsPanel } from './SettingsPanel';
+import { AchievementsPanel } from './AchievementsPanel';
 import { Guide } from './Guide';
 import { HUD } from './HUD';
 import { MainMenu } from './MainMenu';
@@ -14,6 +15,7 @@ import { Toolbar } from './Toolbar';
 import { store } from './store';
 
 export function App() {
+  store.lang.value;
   const screen = store.screen.value;
   const panel = store.panel.value;
   return (
@@ -39,6 +41,7 @@ export function App() {
           {panel === 'finance' && <FinancePanel />}
           {panel === 'staff' && <StaffPanel />}
           {panel === 'deployment' && <DeploymentPanel />}
+          {panel === 'achievements' && <AchievementsPanel />}
           {store.report.value && <WeeklyReport />}
           {store.pauseMenu.value && <PauseMenu />}
         </>

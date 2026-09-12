@@ -71,6 +71,12 @@ body {
   flex-direction: column;
   gap: 6px;
   align-items: flex-end;
+  max-width: 400px;
+}
+
+.hud-top-right .btn-row {
+  flex-wrap: wrap;
+  justify-content: flex-end;
 }
 
 .hud-bottom {
@@ -1131,4 +1137,41 @@ select,
 
 .guide-step {
   padding: 1px 0;
+}
+
+/* --- Olaylar ve başarımlar --- */
+.event-log {
+  margin-top: 8px;
+}
+
+.ach-list {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+}
+
+.ach {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  background: #2a2640;
+  border: 2px solid #4a4468;
+  border-radius: 3px;
+  padding: 6px 8px;
+}
+
+.ach.on {
+  border-color: var(--accent);
+}
+
+.ach.off {
+  opacity: 0.55;
+}
+
+.ach-icon {
+  font-size: 1.3rem;
+}
+
+.ach-name {
+  font-weight: 700;
 }

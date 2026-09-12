@@ -8,6 +8,7 @@ import { findPath } from '../world/Pathfinder';
 import type { TilePos } from '../world/TileWorld';
 import { Obj } from '../world/tiles';
 import type { Sim } from '../Sim';
+import { t } from '../../i18n';
 
 export interface AdoptionRecord {
   day: number;
@@ -44,6 +45,8 @@ export class AdoptionSystem {
     const level = sim.licenseLevel;
     let expected = B.dailyBase + sim.reputation / 50 + (level - 1) * 0.5;
     if (sim.clock.day <= 2) expected = Math.max(expected, 1);
+    expected *= sim.weatherSys.modifiers().adopters;
+    if (sim.flags.extraAdoptersDay === sim.clock.day) expected += 2;
     let n = Math.floor(expected);
     if (rng.chance(expected - n)) n++;
     n = Math.min(B.dailyMax, n);
@@ -142,7 +145,7 @@ export class AdoptionSystem {
     a.patienceLeft -= dtMin;
     if (a.patienceLeft <= 0) {
       sim.reputation = clamp100(sim.reputation - BALANCE.adoption.repLeaveUnserved);
-      sim.events.emit('message', `${a.name} beklemekten sıkılıp gitti (itibar -${BALANCE.adoption.repLeaveUnserved})`);
+      sim.events.emit('message', t('{name} beklemekten sıkılıp gitti (itibar -{n})', { name: a.name, n: BALANCE.adoption.repLeaveUnserved }));
       this.leave(a);
     }
   }
@@ -183,11 +186,11 @@ export class AdoptionSystem {
     const sim = this.sim;
     const a = sim.adopters.find((x) => x.id === adopterId);
     const dog = sim.dogById(dogId);
-    if (!a || !dog || a.state !== 'waiting') return { ok: false, message: 'Sahiplenici artık burada değil' };
+    if (!a || !dog || a.state !== 'waiting') return { ok: false, message: t('Sahiplenici artık burada değil') };
     const why = adoptable(dog);
-    if (why) return { ok: false, message: `${dog.name} sahiplendirilemez: ${why}` };
+    if (why) return { ok: false, message: t('{name} sahiplendirilemez: {why}', { name: dog.name, why }) };
     const score = matchScore(dog, a.request);
-    if (score <= 0) return { ok: false, message: `${a.name} bu köpeği istemiyor` };
+    if (score <= 0) return { ok: false, message: t('{name} bu köpeği istemiyor', { name: a.name }) };
     const B = BALANCE.adoption;
     let rep = score >= 70 ? B.repGood + Math.round((score - 70) / 10) : score >= 50 ? B.repOk : -B.repBad;
     sim.reputation = clamp100(sim.reputation + rep);
@@ -200,8 +203,8 @@ export class AdoptionSystem {
       sim.pendingReturns.push({ day: sim.clock.day + B.returnAfterDays, dog: saved, adopterName: a.name });
     }
     this.leave(a);
-    const repText = rep >= 0 ? `itibar +${rep}` : `itibar ${rep}`;
-    return { ok: true, message: `${dog.name}, ${a.name} ile yeni evine gitti (+${a.fee} ${BALANCE.economy.currency}, ${repText})` };
+    const repText = rep >= 0 ? t('itibar +{n}', { n: rep }) : t('itibar {n}', { n: rep });
+    return { ok: true, message: t('{dog}, {person} ile yeni evine gitti (+{fee} ₺, {rep})', { dog: dog.name, person: a.name, fee: a.fee, rep: repText }) };
   }
 
   decline(adopterId: number): boolean {
@@ -225,7 +228,7 @@ export class AdoptionSystem {
       back.skills = { ...dog.skills };
       back.needs.loyalty = Math.max(0, dog.needs.loyalty - 15);
       sim.reputation = clamp100(sim.reputation - BALANCE.adoption.repReturn);
-      sim.events.emit('message', `${r.adopterName} ${dog.name}'i geri getirdi: uyum sağlayamamış (itibar -${BALANCE.adoption.repReturn})`);
+      sim.events.emit('message', t("{person} {dog}'i geri getirdi: uyum sağlayamamış (itibar -{n})", { person: r.adopterName, dog: dog.name, n: BALANCE.adoption.repReturn }));
     }
   }
 }

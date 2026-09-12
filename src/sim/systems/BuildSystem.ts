@@ -12,6 +12,7 @@ import { type Building, buildingDef, canPlaceBuilding } from '../entities/Buildi
 import type { TilePos } from '../world/TileWorld';
 import { Biome, Ground, Obj, Zone } from '../world/tiles';
 import type { Sim } from '../Sim';
+import { t } from '../../i18n';
 
 export interface BuildResult {
   ok: boolean;
@@ -25,15 +26,15 @@ export interface BuildResult {
 /** Bina yerleştirme: para, yer, üstünde canlı var mı kontrolleri. */
 export function tryPlaceBuilding(sim: Sim, type: BuildingType, x: number, y: number): BuildResult {
   const def = BUILDING_DEFS[type];
-  if (!def || !def.buildable) return { ok: false, message: 'Bu bina inşa edilemez' };
-  if (sim.money < def.cost) return { ok: false, message: `Yeterli para yok (${def.cost} ${BALANCE.economy.currency})` };
-  if (!canPlaceBuilding(sim.world, type, x, y)) return { ok: false, message: 'Buraya sığmıyor' };
-  if (occupiedByCreature(sim, x, y, def.w, def.h)) return { ok: false, message: 'Üstünde biri var' };
+  if (!def || !def.buildable) return { ok: false, message: t('Bu bina inşa edilemez') };
+  if (sim.money < def.cost) return { ok: false, message: t('Yeterli para yok ({cost} ₺)', { cost: def.cost }) };
+  if (!canPlaceBuilding(sim.world, type, x, y)) return { ok: false, message: t('Buraya sığmıyor') };
+  if (occupiedByCreature(sim, x, y, def.w, def.h)) return { ok: false, message: t('Üstünde biri var') };
   const b = sim.placeBuilding(type, x, y, def.buildMinutes);
-  if (!b) return { ok: false, message: 'Yerleştirilemedi' };
-  sim.addExpense('building', def.cost, def.name);
+  if (!b) return { ok: false, message: t('Yerleştirilemedi') };
+  sim.addExpense('building', def.cost, t(def.name));
   sim.stats.built++;
-  return { ok: true, building: b, cost: def.cost, message: def.buildMinutes > 0 ? `${def.name} inşa ediliyor` : `${def.name} yerleştirildi` };
+  return { ok: true, building: b, cost: def.cost, message: def.buildMinutes > 0 ? t('{name} inşa ediliyor', { name: t(def.name) }) : t('{name} yerleştirildi', { name: t(def.name) }) };
 }
 
 function occupiedByCreature(sim: Sim, x: number, y: number, w: number, h: number): boolean {
@@ -63,9 +64,9 @@ export function tryPlaceTiles(sim: Sim, tool: TileTool, tiles: TilePos[]): Build
     }
     valid.push(t);
   }
-  if (valid.length === 0) return { ok: false, message: 'Uygun kare yok' };
+  if (valid.length === 0) return { ok: false, message: t('Uygun kare yok') };
   const affordable = Math.floor(sim.money / def.cost);
-  if (affordable <= 0) return { ok: false, message: 'Yeterli para yok' };
+  if (affordable <= 0) return { ok: false, message: t('Yeterli para yok') };
   const placed = valid.slice(0, affordable);
   for (const t of placed) {
     if (tool === 'path') w.setGround(t.x, t.y, Ground.Path);
@@ -73,8 +74,8 @@ export function tryPlaceTiles(sim: Sim, tool: TileTool, tiles: TilePos[]): Build
     else w.setObject(t.x, t.y, Obj.Fence);
   }
   const cost = placed.length * def.cost;
-  sim.addExpense('building', cost, `${placed.length} ${def.name.toLowerCase()}`);
-  return { ok: true, count: placed.length, cost, message: `${placed.length} ${def.name.toLowerCase()} (${cost} ${BALANCE.economy.currency})` };
+  sim.addExpense('building', cost, `${placed.length} ${t(def.name).toLowerCase()}`);
+  return { ok: true, count: placed.length, cost, message: t('{n} {name} ({cost} ₺)', { n: placed.length, name: t(def.name).toLowerCase(), cost }) };
 }
 
 /** Yıkım: karedeki bina, çit, kapı ya da yol kaldırılır; yarısı iade edilir. */
@@ -85,25 +86,25 @@ export function tryDemolish(sim: Sim, x: number, y: number): BuildResult {
     const b = sim.buildingById(bid);
     if (!b) return { ok: false };
     const def = buildingDef(b);
-    if (!def.buildable) return { ok: false, message: `${def.name} yıkılamaz` };
+    if (!def.buildable) return { ok: false, message: t('{name} yıkılamaz', { name: t(def.name) }) };
     const refund = Math.round(def.cost * REFUND_RATE);
     sim.removeBuilding(b.id);
-    sim.addIncome('refund', refund, def.name);
-    return { ok: true, message: `${def.name} yıkıldı (+${refund} ${BALANCE.economy.currency})` };
+    sim.addIncome('refund', refund, t(def.name));
+    return { ok: true, message: t('{name} yıkıldı (+{refund} ₺)', { name: t(def.name), refund }) };
   }
   const o = w.objectAt(x, y);
   if (o === Obj.Fence || o === Obj.Gate) {
     const refund = Math.round(TILE_TOOL_DEFS[o === Obj.Fence ? 'fence' : 'gate'].cost * REFUND_RATE);
     w.setObject(x, y, Obj.None);
-    sim.addIncome('refund', refund, 'Çit');
-    return { ok: true, message: `Kaldırıldı (+${refund} ${BALANCE.economy.currency})` };
+    sim.addIncome('refund', refund, t('Çit'));
+    return { ok: true, message: t('Kaldırıldı (+{refund} ₺)', { refund }) };
   }
   if (w.groundAt(x, y) === Ground.Path && w.inPlot(x, y)) {
     w.setGround(x, y, Ground.Plot);
-    sim.addIncome('refund', Math.round(TILE_TOOL_DEFS.path.cost * REFUND_RATE), 'Yol');
+    sim.addIncome('refund', Math.round(TILE_TOOL_DEFS.path.cost * REFUND_RATE), t('Yol'));
     return { ok: true };
   }
-  return { ok: false, message: 'Burada yıkılacak bir şey yok' };
+  return { ok: false, message: t('Burada yıkılacak bir şey yok') };
 }
 
 /** Bölge boyama: dikdörtgen içindeki uygun arsa kareleri (bina ve çit hariç). */
@@ -125,7 +126,7 @@ export function paintZone(sim: Sim, zone: Zone, x0: number, y0: number, x1: numb
       n++;
     }
   }
-  return { ok: n > 0, count: n, message: n > 0 ? undefined : 'Bölge değişmedi' };
+  return { ok: n > 0, count: n, message: n > 0 ? undefined : t('Bölge değişmedi') };
 }
 
 export type ExpandDir = 'east' | 'south';
@@ -136,9 +137,9 @@ export function tryExpandPlot(sim: Sim, dir: ExpandDir): BuildResult {
   const p = w.plot;
   const step = PLOT_EXPANSION_STEP;
   const next = dir === 'east' ? { x: p.x, y: p.y, w: p.w + step, h: p.h } : { x: p.x, y: p.y, w: p.w, h: p.h + step };
-  if (next.w > BALANCE.world.plotMaxW || next.h > BALANCE.world.plotMaxH) return { ok: false, message: 'Arsa bu yönde daha fazla büyüyemez' };
-  if (next.x + next.w >= w.width - 3 || next.y + next.h >= w.height - 3) return { ok: false, message: 'Harita kenarına dayandı' };
-  if (sim.money < PLOT_EXPANSION_COST) return { ok: false, message: `Yeterli para yok (${PLOT_EXPANSION_COST} ${BALANCE.economy.currency})` };
+  if (next.w > BALANCE.world.plotMaxW || next.h > BALANCE.world.plotMaxH) return { ok: false, message: t('Arsa bu yönde daha fazla büyüyemez') };
+  if (next.x + next.w >= w.width - 3 || next.y + next.h >= w.height - 3) return { ok: false, message: t('Harita kenarına dayandı') };
+  if (sim.money < PLOT_EXPANSION_COST) return { ok: false, message: t('Yeterli para yok ({cost} ₺)', { cost: PLOT_EXPANSION_COST }) };
 
   const oldRight = p.x + p.w - 1;
   const oldBottom = p.y + p.h - 1;
@@ -189,9 +190,9 @@ export function tryExpandPlot(sim: Sim, dir: ExpandDir): BuildResult {
     fenceAt(next.x, y);
     fenceAt(right, y);
   }
-  sim.addExpense('land', PLOT_EXPANSION_COST, 'Parsel');
+  sim.addExpense('land', PLOT_EXPANSION_COST, t('Parsel'));
   sim.stats.built++;
-  return { ok: true, cost: PLOT_EXPANSION_COST, message: dir === 'east' ? 'Arsa doğuya genişledi' : 'Arsa güneye genişledi' };
+  return { ok: true, cost: PLOT_EXPANSION_COST, message: dir === 'east' ? t('Arsa doğuya genişledi') : t('Arsa güneye genişledi') };
 }
 
 function clearFence(sim: Sim, x: number, y: number): void {
@@ -206,7 +207,7 @@ export function tickConstruction(sim: Sim, dtMin: number): void {
     b.buildLeft = Math.max(0, b.buildLeft - dtMin);
     if (b.buildLeft === 0) {
       sim.events.emit('buildingReady', b);
-      sim.events.emit('message', `${buildingDef(b).name} hazır`);
+      sim.events.emit('message', t('{name} hazır', { name: t(buildingDef(b).name) }));
     }
   }
 }

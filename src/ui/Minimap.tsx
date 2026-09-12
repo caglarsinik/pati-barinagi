@@ -2,6 +2,7 @@ import { useEffect, useRef } from 'preact/hooks';
 import { app } from '../app';
 import { BIOME_COLORS, type Biome, Obj } from '../sim/world/tiles';
 import { store } from './store';
+import { t } from '../i18n';
 
 /** Biyom renkleriyle çizilen taban; sis, yuva/in işaretleri ve oyuncu her güncellemede üstüne gelir. */
 export function Minimap() {
@@ -89,7 +90,7 @@ export function Minimap() {
 
   const size = app.sim?.world.width ?? 200;
   return (
-    <div class="hud minimap panel" title="Mini harita: sarı nokta dolu yuva, turuncu nokta sokak köpeği ini">
+    <div class="hud minimap panel" title={t('Mini harita: sarı nokta dolu yuva, turuncu nokta sokak köpeği ini')}>
       <canvas ref={canvasRef} width={size} height={size} />
     </div>
   );

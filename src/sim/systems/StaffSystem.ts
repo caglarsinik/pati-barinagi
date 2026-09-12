@@ -11,6 +11,7 @@ import type { Sim } from '../Sim';
 import { trainingZoneFactor } from './Interaction';
 import { cleanMess } from './MessSystem';
 import type { Task } from './TaskBoard';
+import { t } from '../../i18n';
 
 /** Personelin çalışma ritmi: vardiya, mola, görev seçimi, iş yapma. */
 export class StaffSystem {
@@ -36,8 +37,8 @@ export class StaffSystem {
   hire(candidateId: number): { ok: boolean; message?: string } {
     const sim = this.sim;
     const idx = sim.candidates.findIndex((c) => c.id === candidateId);
-    if (idx === -1) return { ok: false, message: 'Aday artık yok' };
-    if (sim.staff.length >= BALANCE.staff.maxStaff) return { ok: false, message: `En fazla ${BALANCE.staff.maxStaff} personel` };
+    if (idx === -1) return { ok: false, message: t('Aday artık yok') };
+    if (sim.staff.length >= BALANCE.staff.maxStaff) return { ok: false, message: t('En fazla {n} personel', { n: BALANCE.staff.maxStaff }) };
     const s = sim.candidates.splice(idx, 1)[0];
     const gate = this.gateTile();
     s.x = gate.x + 0.5;
@@ -47,7 +48,7 @@ export class StaffSystem {
     sim.staff.push(s);
     sim.stats.hired++;
     sim.events.emit('staffHired', s);
-    return { ok: true, message: `${s.name} işe alındı (${s.wage} ${BALANCE.economy.currency}/hafta)` };
+    return { ok: true, message: t('{name} işe alındı ({wage} ₺/hafta)', { name: s.name, wage: s.wage }) };
   }
 
   fire(staffId: number): { ok: boolean; message?: string } {
@@ -55,8 +56,8 @@ export class StaffSystem {
     const s = sim.staff.find((x) => x.id === staffId);
     if (!s) return { ok: false };
     const severance = s.wage;
-    sim.addExpense('wages', severance, `${s.name} tazminat`);
-    this.removeStaff(s, `${s.name} işten çıkarıldı (${severance} ${BALANCE.economy.currency} tazminat)`);
+    sim.addExpense('wages', severance, t('{name} tazminat', { name: s.name }));
+    this.removeStaff(s, t('{name} işten çıkarıldı ({n} ₺ tazminat)', { name: s.name, n: severance }));
     return { ok: true };
   }
 
@@ -80,9 +81,9 @@ export class StaffSystem {
       if (sim.money < 0) {
         s.unpaidWeeks++;
         if (s.unpaidWeeks >= BALANCE.staff.quitAfterUnpaidWeeks) {
-          this.removeStaff(s, `${s.name} maaşını alamadığı için istifa etti`);
+          this.removeStaff(s, t('{name} maaşını alamadığı için istifa etti', { name: s.name }));
         } else {
-          sim.events.emit('message', `${s.name} maaşını alamadı; bir hafta daha sabreder`);
+          sim.events.emit('message', t('{name} maaşını alamadı; bir hafta daha sabreder', { name: s.name }));
         }
       } else s.unpaidWeeks = 0;
     }
@@ -105,7 +106,7 @@ export class StaffSystem {
     if (p.autoOrderFood && sim.foodStock < p.foodThreshold) {
       const price = BALANCE.economy.foodBagPrice + BALANCE.economy.deliveryFee;
       if (sim.money >= price) {
-        sim.addExpense('food', price, 'Otomatik sipariş');
+        sim.addExpense('food', price, t('Otomatik sipariş'));
         sim.foodStock += BALANCE.economy.foodBagPortions;
         sim.stats.autoOrders++;
       }
@@ -276,7 +277,7 @@ export class StaffSystem {
           if (take > 0 && s.has('clumsy') && sim.rng.chance(0.15)) {
             sim.foodStock -= 1;
             take = Math.min(take, sim.foodStock);
-            sim.events.emit('message', `${s.name} bir porsiyon yem döktü`);
+            sim.events.emit('message', t('{name} bir porsiyon yem döktü', { name: s.name }));
           }
           if (take > 0) {
             bowl.food += take;
@@ -312,10 +313,10 @@ export class StaffSystem {
         if (dog) {
           const price = BALANCE.economy.treatmentPrice;
           if (sim.money >= price) {
-            sim.addExpense('treatment', price, `${dog.name} (${s.name})`);
+            sim.addExpense('treatment', price, t('{dog} ({staff})', { dog: dog.name, staff: s.name }));
             dog.needs.health = clamp100(dog.needs.health + BALANCE.dogs.treatHealthGain);
             sim.stats.treated++;
-          } else sim.events.emit('message', `${s.name}: ilaç için para yok`);
+          } else sim.events.emit('message', t('{name}: ilaç için para yok', { name: s.name }));
         }
         break;
       default:
@@ -340,7 +341,7 @@ export class StaffSystem {
     dog.needs.energy = clamp100(dog.needs.energy - BALANCE.dogs.trainEnergyCost);
     dog.needs.loyalty = clamp100(dog.needs.loyalty + (s.has('whisperer') ? 2 : 1));
     sim.stats.trained++;
-    if (before < 100 && dog.skills[skill] >= 100) sim.events.emit('message', `${dog.name} ${s.name} ile yeni bir beceri öğrendi`);
+    if (before < 100 && dog.skills[skill] >= 100) sim.events.emit('message', t('{dog} {staff} ile yeni bir beceri öğrendi', { dog: dog.name, staff: s.name }));
   }
 
   private dropTask(s: Staff): void {

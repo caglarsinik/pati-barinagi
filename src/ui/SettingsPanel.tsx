@@ -1,11 +1,13 @@
 import { useState } from 'preact/hooks';
 import { app } from '../app';
 import { audio } from '../audio/audio';
+import { getLang, t } from '../i18n';
 import { showToast, store } from './store';
 
-/** Ses ayarları ve kaydı JSON olarak dışa/içe aktarma. */
+/** Ses ve dil ayarları, kaydı JSON olarak dışa/içe aktarma. */
 export function SettingsPanel() {
   store.tick.value;
+  store.lang.value;
   const [, force] = useState(0);
   const [importText, setImportText] = useState('');
   const s = audio.settings;
@@ -22,24 +24,34 @@ export function SettingsPanel() {
     </label>
   );
   const exportText = app.exportSave();
+  const lang = getLang();
   return (
     <div class="overlay">
       <div class="menu-card panel wide settings">
         <div class="panel-head">
-          <h2>Ayarlar</h2>
+          <h2>{t('Ayarlar')}</h2>
           <button class="btn small close" onClick={() => (store.settingsOpen.value = false)}>
             ✕
           </button>
         </div>
-        <h4>Ses</h4>
+        <h4>{t('Dil')}</h4>
+        <div class="row">
+          <button class={'btn small' + (lang === 'tr' ? ' active' : '')} onClick={() => app.setLang('tr')}>
+            Türkçe
+          </button>
+          <button class={'btn small' + (lang === 'en' ? ' active' : '')} onClick={() => app.setLang('en')}>
+            English
+          </button>
+        </div>
+        <h4>{t('Ses')}</h4>
         <label class="setting">
           <input type="checkbox" checked={s.muted} onChange={(e) => set({ muted: (e.target as HTMLInputElement).checked })} />
-          <span>Sessiz</span>
+          <span>{t('Sessiz')}</span>
         </label>
-        {slider('Ana ses', 'master')}
-        {slider('Efektler', 'sfx')}
-        {slider('Müzik', 'music')}
-        <p class="muted small-text">Tüm sesler kodla üretilir; dosya yoktur. Efektleri denemek için: </p>
+        {slider(t('Ana ses'), 'master')}
+        {slider(t('Efektler'), 'sfx')}
+        {slider(t('Müzik'), 'music')}
+        <p class="muted small-text">{t('Tüm sesler kodla üretilir; dosya yoktur. Efektleri denemek için:')}</p>
         <div class="row">
           {(['bark', 'coin', 'adopt', 'hatch', 'build'] as const).map((n) => (
             <button key={n} class="btn small" onClick={() => audio.play(n)}>
@@ -47,35 +59,35 @@ export function SettingsPanel() {
             </button>
           ))}
         </div>
-        <h4>Rehber</h4>
+        <h4>{t('Rehber')}</h4>
         <label class="setting">
           <input type="checkbox" checked={!store.guideHidden.value} onChange={(e) => app.setGuideHidden(!(e.target as HTMLInputElement).checked)} />
-          <span>Başlangıç rehberini göster</span>
+          <span>{t('Başlangıç rehberini göster')}</span>
         </label>
         {app.sim && (
           <>
-            <h4>Kayıt</h4>
+            <h4>{t('Kayıt')}</h4>
             <div class="row">
               <button
                 class="btn small"
                 onClick={() => {
                   void navigator.clipboard?.writeText(exportText).then(
-                    () => showToast('Kayıt panoya kopyalandı'),
-                    () => showToast('Pano erişimi yok; metni elle seç'),
+                    () => showToast(t('Kayıt panoya kopyalandı')),
+                    () => showToast(t('Pano erişimi yok; metni elle seç')),
                   );
                 }}
               >
-                Kaydı panoya kopyala
+                {t('Kaydı panoya kopyala')}
               </button>
               <button class="btn small" onClick={() => app.downloadSave()}>
-                Dosya olarak indir
+                {t('Dosya olarak indir')}
               </button>
             </div>
             <textarea class="save-text" readOnly value={exportText} onFocus={(e) => (e.target as HTMLTextAreaElement).select()} />
             <div class="row">
               <textarea
                 class="save-text"
-                placeholder="İçe aktarmak için kayıt JSON'unu buraya yapıştır"
+                placeholder={t("İçe aktarmak için kayıt JSON'unu buraya yapıştır")}
                 value={importText}
                 onFocus={() => (store.inputFocused.value = true)}
                 onBlur={() => (store.inputFocused.value = false)}
@@ -84,10 +96,10 @@ export function SettingsPanel() {
             </div>
             <div class="row">
               <button class="btn small primary" disabled={importText.trim().length < 10} onClick={() => app.importSave(importText)}>
-                Yapıştırılan kaydı yükle
+                {t('Yapıştırılan kaydı yükle')}
               </button>
               <label class="btn small">
-                Dosyadan yükle
+                {t('Dosyadan yükle')}
                 <input
                   type="file"
                   accept="application/json,.json"
@@ -95,7 +107,7 @@ export function SettingsPanel() {
                   onChange={(e) => {
                     const f = (e.target as HTMLInputElement).files?.[0];
                     if (!f) return;
-                    void f.text().then((t) => app.importSave(t));
+                    void f.text().then((txt) => app.importSave(txt));
                   }}
                 />
               </label>

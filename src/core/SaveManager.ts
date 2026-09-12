@@ -42,6 +42,10 @@ export interface SaveData {
   candidates?: unknown[];
   candidatesDay?: number;
   policies?: unknown;
+  weather?: unknown;
+  eventLog?: unknown;
+  flags?: unknown;
+  achievements?: unknown;
 }
 
 export interface SaveSummary {

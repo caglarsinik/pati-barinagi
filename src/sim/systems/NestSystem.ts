@@ -54,7 +54,7 @@ export function harvestNest(sim: Sim, x: number, y: number): Egg | null {
   w.setObject(x, y, Obj.Nest);
   const base = BALANCE.eggs.nestRespawnDays;
   const extra = rarity === 'common' ? 0 : rarity === 'uncommon' ? 1 : 2;
-  sim.nestTimers.set(i, (base + extra + rng.float(0, 1.5)) * 24 * 60);
+  sim.nestTimers.set(i, (base + extra + rng.float(0, 1.5)) * 24 * 60 * sim.weatherSys.modifiers().nestRespawn);
   sim.stats.eggsFound++;
   return egg;
 }
@@ -65,7 +65,7 @@ export function harvestBerries(sim: Sim, x: number, y: number): number {
   if (w.objectAt(x, y) !== Obj.BerryBush) return 0;
   const room = BALANCE.eggs.treatsMax - sim.treats;
   if (room <= 0) return 0;
-  const gain = Math.min(room, BALANCE.eggs.treatsPerBush);
+  const gain = Math.min(room, BALANCE.eggs.treatsPerBush + sim.weatherSys.modifiers().berryBonus);
   sim.treats += gain;
   w.setObject(x, y, Obj.Bush);
   sim.bushTimers.set(w.idx(x, y), BALANCE.eggs.bushRegrowDays * 24 * 60);

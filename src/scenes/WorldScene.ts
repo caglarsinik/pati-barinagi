@@ -15,15 +15,18 @@ import { showToast, store, syncStore } from '../ui/store';
 import { audio } from '../audio/audio';
 import { resolveAction } from '../sim/systems/Interaction';
 import { drawLightDisc } from '../render/LightArt';
+import { Pixels, hex } from '../render/Pixels';
+import { SEASON_TINT } from '../sim/systems/WeatherSystem';
+import { t } from '../i18n';
 
 type KeyName =
   | 'W' | 'A' | 'S' | 'D' | 'UP' | 'DOWN' | 'LEFT' | 'RIGHT' | 'SHIFT' | 'E' | 'I' | 'B' | 'X' | 'Z' | 'O' | 'N' | 'P' | 'F' | 'TAB' | 'SPACE' | 'ESC'
-  | 'PLUS' | 'MINUS' | 'NUMPAD_ADD' | 'NUMPAD_SUBTRACT' | 'ONE' | 'TWO' | 'THREE' | 'FOUR' | 'FIVE';
+  | 'PLUS' | 'MINUS' | 'NUMPAD_ADD' | 'NUMPAD_SUBTRACT' | 'ONE' | 'TWO' | 'THREE' | 'FOUR' | 'FIVE' | 'H';
 type Keys = Record<KeyName, Phaser.Input.Keyboard.Key>;
 
 const KEY_LIST: KeyName[] = [
   'W', 'A', 'S', 'D', 'UP', 'DOWN', 'LEFT', 'RIGHT', 'SHIFT', 'E', 'I', 'B', 'X', 'Z', 'O', 'N', 'P', 'F', 'TAB', 'SPACE', 'ESC',
-  'PLUS', 'MINUS', 'NUMPAD_ADD', 'NUMPAD_SUBTRACT', 'ONE', 'TWO', 'THREE', 'FOUR', 'FIVE',
+  'PLUS', 'MINUS', 'NUMPAD_ADD', 'NUMPAD_SUBTRACT', 'ONE', 'TWO', 'THREE', 'FOUR', 'FIVE', 'H',
 ];
 
 const TOOL_KEYS: Array<[KeyName, Tool]> = [
@@ -69,6 +72,9 @@ export class WorldScene extends Phaser.Scene {
   private stepTimer = 0;
   private barkTimer = 4;
   private lightMap!: Phaser.GameObjects.RenderTexture;
+  private rain!: Phaser.GameObjects.Particles.ParticleEmitter;
+  private snow!: Phaser.GameObjects.Particles.ParticleEmitter;
+  private weatherZone = new Phaser.Geom.Rectangle(0, 0, 800, 4);
   private buildingImages = new Map<number, Phaser.GameObjects.Image>();
   private dogSprites = new Map<number, Phaser.GameObjects.Sprite>();
   private adopterSprites = new Map<number, Phaser.GameObjects.Sprite>();
@@ -149,7 +155,9 @@ export class WorldScene extends Phaser.Scene {
         store.report.value = w;
         this.sim.setSpeed(0);
       }),
-      this.sim.events.on('adopterArrived', (a) => showToast(`${a.name} kapıdan geldi: sahiplenmek istiyor`)),
+      this.sim.events.on('adopterArrived', (a) => showToast(t('{name} kapıdan geldi: sahiplenmek istiyor', { name: a.name }))),
+      this.sim.events.on('gameEvent', () => audio.play('alert')),
+      this.sim.events.on('achievement', () => audio.play('adopt')),
     );
 
     // --- Oyuncu ---
@@ -176,6 +184,37 @@ export class WorldScene extends Phaser.Scene {
       .setBlendMode(Phaser.BlendModes.MULTIPLY);
     if (!this.textures.exists('light')) this.textures.addCanvas('light', drawLightDisc(96).toCanvas());
     this.lightMap = this.add.renderTexture(0, 0, 1400, 800).setOrigin(0, 0).setDepth(8001).setBlendMode(Phaser.BlendModes.MULTIPLY).setVisible(false);
+    // Hava: yağmur damlası ve kar tanesi parçacıkları (kamera görüş alanının üst kenarından).
+    if (!this.textures.exists('drop')) {
+      const drop = new Pixels(2, 7);
+      drop.fillRect(0, 0, 2, 7, hex(0xbfe0f7, 200));
+      this.textures.addCanvas('drop', drop.toCanvas());
+      const flake = new Pixels(3, 3);
+      flake.fillRect(0, 0, 3, 3, hex(0xffffff, 230));
+      this.textures.addCanvas('flake', flake.toCanvas());
+    }
+    this.rain = this.add.particles(0, 0, 'drop', {
+      speedY: { min: 260, max: 340 },
+      speedX: { min: -35, max: -15 },
+      lifespan: 2600,
+      quantity: 3,
+      frequency: 28,
+      alpha: { start: 0.9, end: 0.4 },
+      emitZone: { type: 'random', source: this.weatherZone, quantity: 1 },
+      emitting: false,
+    });
+    this.rain.setDepth(7500);
+    this.snow = this.add.particles(0, 0, 'flake', {
+      speedY: { min: 22, max: 42 },
+      speedX: { min: -18, max: 18 },
+      lifespan: 16000,
+      quantity: 1,
+      frequency: 45,
+      alpha: { start: 0.95, end: 0.6 },
+      emitZone: { type: 'random', source: this.weatherZone, quantity: 1 },
+      emitting: false,
+    });
+    this.snow.setDepth(7500);
 
     // --- Girdi ---
     const kb = this.input.keyboard;
@@ -258,6 +297,7 @@ export class WorldScene extends Phaser.Scene {
     if (JustDown(k.N)) store.panel.value = store.panel.value === 'finance' ? 'none' : 'finance';
     if (JustDown(k.P)) store.panel.value = store.panel.value === 'staff' ? 'none' : 'staff';
     if (JustDown(k.F)) store.panel.value = store.panel.value === 'deployment' ? 'none' : 'deployment';
+    if (JustDown(k.H)) store.panel.value = store.panel.value === 'achievements' ? 'none' : 'achievements';
     if (JustDown(k.B)) this.game.events.emit('ui:build-toggle');
     if (this.sim.mode === 'manage') {
       if (JustDown(k.X)) store.build.value = store.build.value.kind === 'demolish' ? { kind: 'none' } : { kind: 'demolish' };
@@ -681,10 +721,17 @@ export class WorldScene extends Phaser.Scene {
   }
 
   private updateNight(): void {
-    const [r, g, b] = this.sim.clock.tint();
+    const [tr, tg, tb] = this.sim.clock.tint();
+    const [sr, sg, sb] = SEASON_TINT[this.sim.weatherSys.season];
+    const w = this.sim.weatherSys.weather;
+    const cloud = w === 'storm' ? 0.72 : w === 'rain' ? 0.84 : w === 'cloudy' || w === 'snow' ? 0.92 : 1;
+    const r = Math.min(1, tr * sr * cloud);
+    const g = Math.min(1, tg * sg * cloud);
+    const b = Math.min(1, tb * sb * (w === 'storm' || w === 'rain' ? 1 : cloud));
     const color = Phaser.Display.Color.GetColor(Math.round(r * 255), Math.round(g * 255), Math.round(b * 255));
     const v = this.cameras.main.worldView;
     const T = GAME.tile;
+    this.updateWeatherFx(v);
     const dark = r < 0.85;
     const lamps = dark ? this.sim.buildings.filter((b) => b.type === 'lamp' && isReady(b)) : [];
     if (lamps.length === 0 || v.width > 1400 || v.height > 800) {
@@ -707,6 +754,19 @@ export class WorldScene extends Phaser.Scene {
       const ly = (l.y + 0.3) * T - oy;
       this.lightMap.erase('light', lx - 48, ly - 48);
     }
+  }
+
+  /** Yağmur/kar parçacıkları görüş alanının üstünden düşer. */
+  private updateWeatherFx(v: Phaser.Geom.Rectangle): void {
+    const w = this.sim.weatherSys.weather;
+    const raining = (w === 'rain' || w === 'storm') && !this.sim.paused;
+    const snowing = w === 'snow' && !this.sim.paused;
+    this.weatherZone.width = v.width + 80;
+    this.rain.setPosition(v.x - 40, v.y - 12);
+    this.snow.setPosition(v.x - 40, v.y - 12);
+    this.rain.emitting = raining;
+    this.rain.frequency = w === 'storm' ? 10 : 28;
+    this.snow.emitting = snowing;
   }
 
   /** Adım sesleri ve arada bir havlama. */

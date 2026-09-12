@@ -1,5 +1,6 @@
 import { BALANCE } from '../../config/balance';
 import type { Rng } from '../../core/Rng';
+import { t } from '../../i18n';
 import {
   BODY_NAMES_TR,
   COAT_COLORS,
@@ -79,7 +80,7 @@ export function eggLook(egg: Egg): EggLook {
   if (g.energy >= 4) hints.push('Sıcacık: enerjisi yüksek olacak.');
   if (g.energy <= 2) hints.push('Serin: sakin tempolu bir köpek.');
   return {
-    sizeName: `${SIZE_NAMES_TR[g.size]} boy`,
+    sizeName: SIZE_NAMES_TR[g.size],
     shapeName: eggShapeName(g),
     colorName: COAT_COLORS[g.coat].name,
     patternName: PATTERN_NAMES_TR[g.pattern],
@@ -102,7 +103,14 @@ export function eggShapeName(g: DogGenome): string {
 
 export function eggDescription(egg: Egg): string {
   const l = eggLook(egg);
-  return `${l.sizeName}, ${l.shapeName.toLowerCase()} şekilli, ${l.colorName.toLowerCase()} ${l.patternName.toLowerCase()} yumurta · ${l.rarityName} · gövde ${BODY_NAMES_TR[egg.genome.body].toLowerCase()}`;
+  return t('{size}, {shape} şekilli, {color} {pattern} yumurta · {rarity} · gövde {body}', {
+    size: t('{size} boy', { size: t(l.sizeName) }),
+    shape: t(l.shapeName).toLowerCase(),
+    color: t(l.colorName).toLowerCase(),
+    pattern: t(l.patternName).toLowerCase(),
+    rarity: t(l.rarityName),
+    body: t(BODY_NAMES_TR[egg.genome.body]).toLowerCase(),
+  });
 }
 
 export function hatchMinutes(): number {

@@ -1,5 +1,6 @@
 import { app } from '../app';
 import { BALANCE, type Speed } from '../config/balance';
+import { t } from '../i18n';
 import { Minimap } from './Minimap';
 import { store } from './store';
 
@@ -10,20 +11,27 @@ export function formatMoney(v: number): string {
 }
 
 export function HUD() {
+  store.lang.value;
   const speed = store.speed.value;
   const mode = store.mode.value;
+  const panel = store.panel.value;
+  const tab = (id: typeof panel, label: string) => (
+    <button class={'btn small' + (panel === id ? ' active' : '')} onClick={() => app.togglePanel(id)}>
+      {label}
+    </button>
+  );
   return (
     <>
       <div class="hud hud-top-left panel">
         <div class="money">{formatMoney(store.money.value)}</div>
         <div class="muted small-text">
-          🐕 {store.dogCount.value}/{store.kennelCapacity.value} · 🥣 {store.foodStock.value} porsiyon
+          🐕 {store.dogCount.value}/{store.kennelCapacity.value} · 🥣 {store.foodStock.value} {t('porsiyon')}
         </div>
-        <div class="muted small-text" title="İtibar: sahiplenici sayısını ve isteklerini etkiler">
-          ⭐ İtibar {store.reputation.value} · Lisans {store.licenseLevel.value} · 👷 {store.staffCount.value}
-          {store.adoptersWaiting.value > 0 ? ` · 🧑 ${store.adoptersWaiting.value} bekliyor` : ''}
+        <div class="muted small-text" title={t('İtibar: sahiplenici sayısını ve isteklerini etkiler')}>
+          ⭐ {t('İtibar {rep} · Lisans {lvl}', { rep: store.reputation.value, lvl: store.licenseLevel.value })} · 👷 {store.staffCount.value}
+          {store.adoptersWaiting.value > 0 ? ` · 🧑 ${t('{n} bekliyor', { n: store.adoptersWaiting.value })}` : ''}
         </div>
-        <div class={'stamina' + (store.exhausted.value ? ' exhausted' : '')} title="Dayanıklılık">
+        <div class={'stamina' + (store.exhausted.value ? ' exhausted' : '')} title={t('Dayanıklılık')}>
           <div class="bar">
             <div class="fill" style={{ width: `${store.stamina.value}%` }} />
           </div>
@@ -36,6 +44,9 @@ export function HUD() {
           {store.timeText.value} · {store.weekText.value}
           {store.isNight.value ? ' · 🌙' : ''}
         </div>
+        <div class="muted small-text">
+          {store.season.value} · {store.weatherIcon.value} {store.weather.value}
+        </div>
       </div>
 
       <div class="hud hud-top-right panel">
@@ -44,7 +55,7 @@ export function HUD() {
             <button
               key={s}
               class={'btn small' + (speed === s ? ' active' : '')}
-              title={s === 0 ? 'Duraklat (Space)' : `${s}x hız`}
+              title={s === 0 ? t('Duraklat (Space)') : t('{s}x hız', { s })}
               onClick={() => app.setSpeed(s as Speed)}
             >
               {s === 0 ? '❚❚' : `${s}x`}
@@ -53,28 +64,19 @@ export function HUD() {
         </div>
         <div class="btn-row">
           <button class={'btn small' + (mode === 'manage' ? ' active' : '')} onClick={() => app.toggleMode()}>
-            {mode === 'avatar' ? 'Yönetim (Tab)' : 'Avatar (Tab)'}
+            {mode === 'avatar' ? t('Yönetim (Tab)') : t('Avatar (Tab)')}
           </button>
           <button class={'btn small' + (store.buildBar.value ? ' active' : '')} onClick={() => app.toggleBuildBar()}>
-            İnşa (B)
+            {t('İnşa (B)')}
           </button>
-          <button class={'btn small' + (store.panel.value === 'dogs' ? ' active' : '')} onClick={() => app.togglePanel('dogs')}>
-            Köpekler (I)
-          </button>
-          <button class={'btn small' + (store.panel.value === 'adoption' ? ' active' : '')} onClick={() => app.togglePanel('adoption')}>
-            Sahiplendirme (O)
-          </button>
-          <button class={'btn small' + (store.panel.value === 'finance' ? ' active' : '')} onClick={() => app.togglePanel('finance')}>
-            Finans (N)
-          </button>
-          <button class={'btn small' + (store.panel.value === 'staff' ? ' active' : '')} onClick={() => app.togglePanel('staff')}>
-            Personel (P)
-          </button>
-          <button class={'btn small' + (store.panel.value === 'deployment' ? ' active' : '')} onClick={() => app.togglePanel('deployment')}>
-            Görevlendirme (F)
-          </button>
+          {tab('dogs', t('Köpekler (I)'))}
+          {tab('adoption', t('Sahiplendirme (O)'))}
+          {tab('finance', t('Finans (N)'))}
+          {tab('staff', t('Personel (P)'))}
+          {tab('deployment', t('Görevlendirme (F)'))}
+          {tab('achievements', t('Başarımlar (H)'))}
           <button class="btn small" onClick={() => app.openPauseMenu()}>
-            Menü (Esc)
+            {t('Menü (Esc)')}
           </button>
         </div>
       </div>

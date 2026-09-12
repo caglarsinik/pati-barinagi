@@ -21,7 +21,7 @@ Tasarım dokümanı ve kilometre taşları: `docs/PLAN.md`
 | E | Baktığın şeye göre iş yap: köpeği sev/oyna/eğit/fırçala, yem kabını doldur, pisliği temizle, kileri aç | – |
 | 1-5 | Araç seç: Sev, Oyna, Eğit, Yem, Temizle | – |
 | Sol tık | Köpeği seç (panel açılır) | Köpeği seç |
-| I / O / N / P / F | Köpek listesi / Sahiplendirme / Finans / Personel / Görevlendirme | Aynı |
+| I / O / N / P / F / H | Köpek listesi / Sahiplendirme / Finans / Personel / Görevlendirme / Başarımlar | Aynı |
 | B | İnşa çubuğu (yönetim moduna geçer) | İnşa çubuğu |
 | X / Z | – | Yık aracı / Bölge boyama |
 | Tab | Yönetim moduna geç | Avatara dön |
@@ -84,6 +84,25 @@ oraya bir `Audio` nesnesi ya da `AudioBufferSourceNode` oynatan bir dal ekleyip 
 Ücretsiz kaynaklar: Kenney (kenney.nl, CC0 efekt paketleri), OpenGameArt (CC0/CC-BY), Kevin MacLeod (incompetech.com, CC-BY müzik).
 Lisans gerektirenleri README'de anmayı unutma.
 
+## Hava, mevsim ve olaylar
+
+- Her mevsim 2 hafta sürer (ilkbahar → yaz → sonbahar → kış). HUD'ın ortasında mevsim ve hava yazar; hava 6-14 saatte bir değişir.
+- Yaz: köpekler daha çabuk kirlenir, oyun bahçesi daha keyifli. Kış: daha çok acıkırlar, enerji hızlı düşer, **kulübesiz köpek gece üşür ve sağlık kaybeder**. İlkbahar: yuvalar daha hızlı dolar. Sonbahar: böğürtlen çalıları fazladan ödül maması verir.
+- Yağmur/fırtına köpekleri kirletir ve sahiplenici sayısını düşürür; kar enerjiyi tüketir. Yağmur ve kar ekranda görünür, mevsim renk tonunu değiştirir.
+- Rastgele olaylar (ofis panelindeki "Son olaylar" listesinde tutulur): gazete haberi (itibar +5, ertesi gün fazladan ziyaretçi), sürpriz denetim (temiz barınağa ödül, bakımsıza 200 ₺ ceza), hayırsever bağışı, yem toptancısı indirimi (o gün çuvallar yarı fiyat), gezici veteriner (ücretsiz muayene).
+- Sadakati 25'in altındaki köpek gece kaçabilir: arsa dışında bir yere saklanır (mini haritada turuncu). Böğürtlen ödülüyle geri getir; 3 gün içinde bulunmazsa gider ve itibar düşer.
+- 52 haftalık köpek **yaşlı** olur: gri burunlu çizilir, daha yavaş yürür, sağlığı daha kırılgandır, oyun ihtiyacı azdır. Sıradan sahiplenicilerde 10 puan kaybeder, "yaşlı dost" isteyen sahiplenici ise fazladan 100 ₺ öder.
+
+## Başarımlar
+
+H tuşu ya da ofis panelinden 21 başarımın listesi açılır (ilk yumurta, 10 sahiplendirme, 95+ eşleşme, 1,4 denetim çarpanı, 20.000 ₺, efsanevi köpek, bir yıl dayanmak...). Her başarım açıldığında itibar +1 verir; kayıtla korunur.
+
+## Dil
+
+Ana menüden ya da Ayarlar'dan Türkçe / English seçilir; seçim tarayıcıda kalır. Metinler `src/i18n/en.ts` içindeki sözlükten
+çevrilir (Türkçe kaynak metin → İngilizce). Yeni bir dil eklemek için aynı biçimde bir sözlük yazıp `src/i18n/index.ts` içine bağlaman yeterli;
+`tests/unit/i18n.test.ts` koddaki her metnin sözlükte olduğunu denetler.
+
 ## Kayıt aktarımı
 
 Ayarlar panelinden kaydı JSON olarak panoya kopyalayabilir, dosya olarak indirebilir ya da yapıştırıp/dosyadan yükleyebilirsin.
@@ -98,7 +117,7 @@ Bilgisayar değiştirirken ya da yedek almak için kullan.
 - [x] M4 Ekonomi ve sahiplendirme: sahiplenici akışı ve eşleşme, itibar, geri dönüş, defter, haftalık denetim ve yardım, bakım gideri, lisans, finans ve rapor ekranları
 - [x] M5 Personel ve görevlendirme: adaylar ve işe alma, görev tahtası, personel yapay zekâsı, vardiya çizelgesi, öncelikler, politikalar, maaş ve istifa
 - [x] M6 Ses ve cila: sentezlenen efektler ve üretken müzik, ayarlar, kayıt dışa/içe aktarma, başlangıç rehberi, lamba ışıkları, uzun koşu denge testi, tek dosya build
-- [ ] M7 İsteğe bağlı: hava/mevsim, olaylar, yaşlı köpek aşaması, başarımlar, İngilizce dil
+- [x] M7 Ekstralar: mevsimler ve hava (yağmur/kar efektleri, mevsim tonu, ihtiyaç çarpanları), rastgele olaylar (sürpriz denetim, bağış, indirim, gezici veteriner, gazete, kaçan köpek), yaşlı köpek aşaması, 21 başarım, İngilizce dil
 
 ## Geliştirme
 
@@ -113,6 +132,7 @@ Kod yapısı:
 ```
 src/config/     denge sayıları ve sabitler
 src/core/       Rng, EventBus, Clock, SaveManager
+src/i18n/       t() yardımcısı ve İngilizce sözlük
 src/sim/        Phaser'dan bağımsız oyun mantığı (dünya, varlıklar, sistemler)
 src/render/     kodla üretilen pixel-art ve doku kaydı
 src/scenes/     Phaser sahneleri (çizim ve girdi)

@@ -14,6 +14,7 @@ import {
 } from './DogGenome';
 import type { Facing } from './Player';
 import type { TilePos } from '../world/TileWorld';
+import { t } from '../../i18n';
 
 /** Sahiplenicinin isteği: zorunlu şartlar ve ağırlıklı tercihler. */
 export interface AdoptionRequest {
@@ -64,7 +65,7 @@ export interface AdopterSave {
 }
 
 const SIZES: SizeClass[] = ['S', 'M', 'L'];
-const STAGES: GrowthStage[] = ['puppy', 'young', 'adult'];
+const STAGES: GrowthStage[] = ['puppy', 'young', 'adult', 'senior'];
 const PATTERNS: CoatPattern[] = ['plain', 'spots', 'patches', 'stripes'];
 const TEMPERAMENTS: Temperament[] = ['calm', 'playful', 'shy', 'bold'];
 
@@ -73,7 +74,7 @@ export function randomRequest(rng: Rng, reputation: number): AdoptionRequest {
   const picky = 0.25 + reputation / 200; // 0.25 - 0.75
   const r: AdoptionRequest = {};
   if (rng.chance(0.5)) r.size = rng.pick(SIZES);
-  if (rng.chance(0.45)) r.stage = rng.weighted(STAGES, [4, 3, 3]);
+  if (rng.chance(0.45)) r.stage = rng.weighted(STAGES, [4, 3, 3, 1]);
   if (rng.chance(picky * 0.6)) r.coat = rng.int(0, 7);
   if (rng.chance(picky * 0.4)) r.pattern = rng.pick(PATTERNS);
   if (rng.chance(picky)) r.temperament = rng.pick(TEMPERAMENTS);
@@ -91,6 +92,7 @@ export function requestFee(rng: Rng, r: AdoptionRequest): number {
   fee += prefs * B.feePerPreference;
   if (r.minTraining) fee += r.minTraining * 60;
   if (r.pottyTrained) fee += 80;
+  if (r.stage === 'senior') fee += 100;
   fee = Math.round((fee * rng.float(0.9, 1.15)) / 10) * 10;
   return Math.min(B.feeMax, fee);
 }
@@ -103,30 +105,30 @@ interface Pref {
 
 function softPrefs(r: AdoptionRequest): Pref[] {
   const out: Pref[] = [];
-  if (r.coat !== undefined) out.push({ weight: 2, ok: (d) => d.genome.coat === r.coat, text: `${COAT_COLORS[r.coat].name.toLowerCase()} tüylü` });
-  if (r.pattern) out.push({ weight: 1, ok: (d) => d.genome.pattern === r.pattern, text: PATTERN_NAMES_TR[r.pattern].toLowerCase() });
-  if (r.temperament) out.push({ weight: 3, ok: (d) => d.genome.temperament === r.temperament, text: TEMPERAMENT_NAMES_TR[r.temperament].toLowerCase() });
-  if (r.minTraining) out.push({ weight: 3, ok: (d) => d.trainingLevel() >= r.minTraining!, text: `en az ${r.minTraining} beceri` });
-  if (r.pottyTrained) out.push({ weight: 3, ok: (d) => d.isPottyTrained(), text: 'tuvalet eğitimli' });
-  if (r.energy === 'high') out.push({ weight: 2, ok: (d) => d.genome.energy >= 4, text: 'enerjik' });
-  if (r.energy === 'low') out.push({ weight: 2, ok: (d) => d.genome.energy <= 2, text: 'sakin tempolu' });
+  if (r.coat !== undefined) out.push({ weight: 2, ok: (d) => d.genome.coat === r.coat, text: t('{color} tüylü', { color: t(COAT_COLORS[r.coat].name).toLowerCase() }) });
+  if (r.pattern) out.push({ weight: 1, ok: (d) => d.genome.pattern === r.pattern, text: t(PATTERN_NAMES_TR[r.pattern]).toLowerCase() });
+  if (r.temperament) out.push({ weight: 3, ok: (d) => d.genome.temperament === r.temperament, text: t(TEMPERAMENT_NAMES_TR[r.temperament]).toLowerCase() });
+  if (r.minTraining) out.push({ weight: 3, ok: (d) => d.trainingLevel() >= r.minTraining!, text: t('en az {n} beceri', { n: r.minTraining }) });
+  if (r.pottyTrained) out.push({ weight: 3, ok: (d) => d.isPottyTrained(), text: t('tuvalet eğitimli') });
+  if (r.energy === 'high') out.push({ weight: 2, ok: (d) => d.genome.energy >= 4, text: t('enerjik') });
+  if (r.energy === 'low') out.push({ weight: 2, ok: (d) => d.genome.energy <= 2, text: t('sakin tempolu') });
   return out;
 }
 
 export function hardMismatch(dog: Dog, r: AdoptionRequest): string | null {
-  if (r.size && dog.genome.size !== r.size) return `${SIZE_NAMES_TR[r.size].toLowerCase()} boy istiyor`;
-  if (r.stage && dog.stage !== r.stage) return `${STAGE_NAMES_TR[r.stage].toLowerCase()} istiyor`;
+  if (r.size && dog.genome.size !== r.size) return t('{size} boy istiyor', { size: t(SIZE_NAMES_TR[r.size]).toLowerCase() });
+  if (r.stage && dog.stage !== r.stage) return t('{stage} istiyor', { stage: t(STAGE_NAMES_TR[r.stage]).toLowerCase() });
   return null;
 }
 
 /** Köpek sahiplendirilebilir mi (sağlık, temizlik, güven). */
 export function adoptable(dog: Dog): string | null {
   const B = BALANCE.adoption;
-  if (dog.wild || dog.following) return 'barınakta değil';
-  if (dog.sick) return 'hasta';
-  if (dog.needs.health < B.minHealth) return 'sağlığı düşük';
-  if (dog.needs.hygiene < B.minHygiene) return 'kirli';
-  if (dog.needs.loyalty < B.minLoyalty) return 'insanlara güveni az';
+  if (dog.wild || dog.following) return t('barınakta değil');
+  if (dog.sick) return t('hasta');
+  if (dog.needs.health < B.minHealth) return t('sağlığı düşük');
+  if (dog.needs.hygiene < B.minHygiene) return t('kirli');
+  if (dog.needs.loyalty < B.minLoyalty) return t('insanlara güveni az');
   return null;
 }
 
@@ -134,7 +136,8 @@ export function adoptable(dog: Dog): string | null {
 export function matchScore(dog: Dog, r: AdoptionRequest): number {
   if (hardMismatch(dog, r)) return 0;
   const prefs = softPrefs(r);
-  if (prefs.length === 0) return 85 + Math.min(15, RARITY_ORDER[dog.genome.rarity] * 5);
+  const seniorPenalty = dog.stage === 'senior' && r.stage !== 'senior' ? 10 : 0;
+  if (prefs.length === 0) return Math.max(1, 85 + Math.min(15, RARITY_ORDER[dog.genome.rarity] * 5) - seniorPenalty);
   let total = 0;
   let got = 0;
   for (const p of prefs) {
@@ -142,18 +145,18 @@ export function matchScore(dog: Dog, r: AdoptionRequest): number {
     if (p.ok(dog)) got += p.weight;
   }
   const base = 40 + 60 * (got / total);
-  return Math.round(Math.min(100, base + RARITY_ORDER[dog.genome.rarity] * 3));
+  return Math.max(1, Math.round(Math.min(100, base + RARITY_ORDER[dog.genome.rarity] * 3) - seniorPenalty));
 }
 
 /** İstek kartı metni. */
 export function requestText(r: AdoptionRequest): string {
   const hard: string[] = [];
-  if (r.size) hard.push(`${SIZE_NAMES_TR[r.size].toLowerCase()} boy`);
-  if (r.stage) hard.push(STAGE_NAMES_TR[r.stage].toLowerCase());
+  if (r.size) hard.push(t('{size} boy', { size: t(SIZE_NAMES_TR[r.size]).toLowerCase() }));
+  if (r.stage) hard.push(r.stage === 'senior' ? t('yaşlı dost') : t(STAGE_NAMES_TR[r.stage]).toLowerCase());
   const soft = softPrefs(r).map((p) => p.text);
   const parts: string[] = [];
-  parts.push(hard.length ? `Şart: ${hard.join(', ')}` : 'Boyut ve yaş fark etmez');
-  if (soft.length) parts.push(`Tercih: ${soft.join(', ')}`);
+  parts.push(hard.length ? t('Şart: {list}', { list: hard.join(', ') }) : t('Boyut ve yaş fark etmez'));
+  if (soft.length) parts.push(t('Tercih: {list}', { list: soft.join(', ') }));
   return parts.join(' · ');
 }
 

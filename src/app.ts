@@ -1,5 +1,7 @@
 import Phaser from 'phaser';
 import { audio } from './audio/audio';
+import { GAME } from './config/game';
+import { type Lang, getLang, initLang, setLang, t } from './i18n';
 import type { Speed } from './config/balance';
 import type { Tool } from './sim/systems/Interaction';
 import type { BuildTool, Panel } from './ui/store';
@@ -27,6 +29,9 @@ class AppController {
   private pausedBeforeMenu = false;
 
   init(parent: string): void {
+    initLang();
+    store.lang.value = getLang();
+    document.title = t(GAME.name);
     this.game = new Phaser.Game({
       type: Phaser.AUTO,
       parent,
@@ -71,18 +76,18 @@ class AppController {
   newGame(seedInput: string): void {
     const seed = parseSeed(seedInput);
     this.start(Sim.create(seed));
-    showToast(`Yeni dünya · tohum ${seed}`);
+    showToast(t('Yeni dünya · tohum {seed}', { seed }));
   }
 
   continueGame(): boolean {
     const data = SaveManager.read(SLOT);
     if (!data) {
       store.hasSave.value = false;
-      showToast('Kayıt bulunamadı');
+      showToast(t('Kayıt bulunamadı'));
       return false;
     }
     this.start(Sim.fromJSON(data));
-    showToast('Kayıt yüklendi');
+    showToast(t('Kayıt yüklendi'));
     return true;
   }
 
@@ -131,7 +136,7 @@ class AppController {
     if (!this.sim) return false;
     const ok = SaveManager.write(SLOT, this.sim.toJSON());
     if (ok) store.hasSave.value = true;
-    if (!silent) showToast(ok ? 'Oyun kaydedildi' : 'Kayıt yazılamadı');
+    if (!silent) showToast(ok ? t('Oyun kaydedildi') : t('Kayıt yazılamadı'));
     return ok;
   }
 
@@ -221,6 +226,16 @@ class AppController {
     this.game?.events.emit('ui:focus-tile', { x, y });
   }
 
+  setLang(l: Lang): void {
+    setLang(l);
+    store.lang.value = l;
+    document.title = t(GAME.name);
+    if (this.sim) {
+      this.sim.alerts.refresh();
+      syncStore(this.sim);
+    }
+  }
+
   setGuideHidden(hidden: boolean): void {
     store.guideHidden.value = hidden;
     try {
@@ -247,7 +262,7 @@ class AppController {
       a.remove();
       setTimeout(() => URL.revokeObjectURL(url), 1000);
     } catch {
-      showToast('İndirme başlatılamadı; panoya kopyalamayı dene');
+      showToast(t('İndirme başlatılamadı; panoya kopyalamayı dene'));
     }
   }
 
@@ -260,7 +275,7 @@ class AppController {
       data = null;
     }
     if (!data) {
-      showToast('Kayıt okunamadı: geçerli bir JSON değil');
+      showToast(t('Kayıt okunamadı: geçerli bir JSON değil'));
       audio.play('error');
       return false;
     }
@@ -269,11 +284,11 @@ class AppController {
       SaveManager.write(SLOT, sim.toJSON());
       store.settingsOpen.value = false;
       this.start(sim);
-      showToast('Kayıt içe aktarıldı');
+      showToast(t('Kayıt içe aktarıldı'));
       return true;
     } catch (err) {
       console.warn(err);
-      showToast('Kayıt yüklenemedi');
+      showToast(t('Kayıt yüklenemedi'));
       audio.play('error');
       return false;
     }

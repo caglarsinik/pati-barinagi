@@ -1,6 +1,6 @@
 export const GAME = {
   name: 'Pati Barınağı',
-  version: '0.6.0',
+  version: '0.7.0',
   /** Kayıt formatı sürümü; değişince SaveManager migrasyon zinciri çalışır. */
   saveVersion: 1,
   saveKeyPrefix: 'pati-barinagi.save.',

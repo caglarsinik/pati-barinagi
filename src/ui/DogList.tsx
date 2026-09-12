@@ -1,4 +1,5 @@
 import { app } from '../app';
+import { t } from '../i18n';
 import { STAGE_NAMES_TR } from '../sim/entities/Dog';
 import { DogPortrait } from './DogPortrait';
 import { store } from './store';
@@ -12,25 +13,25 @@ export function DogList() {
     <div class="overlay">
       <div class="menu-card panel wide">
         <div class="panel-head">
-          <h2>Köpekler ({dogs.length} / kulübe {sim.kennelCapacity()})</h2>
+          <h2>{t('Köpekler ({n} / kulübe {cap})', { n: dogs.length, cap: sim.kennelCapacity() })}</h2>
           <button class="btn small close" onClick={() => (store.panel.value = 'none')}>
             ✕
           </button>
         </div>
-        {dogs.length === 0 && <p class="muted">Henüz köpek yok. Dünyada yumurta ara!</p>}
+        {dogs.length === 0 && <p class="muted">{t('Henüz köpek yok. Dünyada yumurta ara!')}</p>}
         <table class="dog-table">
           <thead>
             <tr>
               <th />
-              <th>Ad</th>
-              <th>Aşama</th>
-              <th>Keyif</th>
-              <th>Tokluk</th>
-              <th>Temizlik</th>
-              <th>Sağlık</th>
-              <th>Sadakat</th>
-              <th>Eğitim</th>
-              <th>Kulübe</th>
+              <th>{t('Ad')}</th>
+              <th>{t('Aşama')}</th>
+              <th>{t('Keyif')}</th>
+              <th>{t('Tokluk')}</th>
+              <th>{t('Temizlik')}</th>
+              <th>{t('Sağlık')}</th>
+              <th>{t('Sadakat')}</th>
+              <th>{t('Eğitim')}</th>
+              <th>{t('Kulübe')}</th>
             </tr>
           </thead>
           <tbody>
@@ -50,7 +51,7 @@ export function DogList() {
                   <b>{d.name}</b>
                   {d.sick ? ' 🤒' : ''}
                 </td>
-                <td>{STAGE_NAMES_TR[d.stage]}</td>
+                <td>{t(STAGE_NAMES_TR[d.stage])}</td>
                 <td>{d.mood()}</td>
                 <td class={100 - d.needs.hunger < 30 ? 'bad' : ''}>{Math.round(100 - d.needs.hunger)}</td>
                 <td class={d.needs.hygiene < 30 ? 'bad' : ''}>{Math.round(d.needs.hygiene)}</td>

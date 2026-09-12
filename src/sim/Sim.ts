@@ -51,9 +51,13 @@ import { NeedsSystem } from './systems/NeedsSystem';
 import { tickNests } from './systems/NestSystem';
 import { StaffSystem } from './systems/StaffSystem';
 import { TaskBoard } from './systems/TaskBoard';
+import { type AchievementDef, AchievementSystem } from './systems/Achievements';
+import { EventSystem, type GameEvent } from './systems/EventSystem';
+import { type Weather, WeatherSystem } from './systems/WeatherSystem';
 import type { TilePos, TileWorld } from './world/TileWorld';
 import { generateWorld } from './world/WorldGen';
 import { Biome, Ground, Obj, Zone } from './world/tiles';
+import { t } from '../i18n';
 
 export type Mode = 'avatar' | 'manage';
 
@@ -78,6 +82,9 @@ export interface SimEvents extends Record<string, unknown> {
   weekReport: WeekSummary;
   staffHired: Staff;
   staffRemoved: number;
+  weatherChanged: Weather;
+  gameEvent: GameEvent;
+  achievement: AchievementDef;
   /** Uyku / bayılma gibi zaman atlamaları (arayüz karartma yapar). */
   slept: { minutes: number; passedOut: boolean };
   /** Oyuncuya kısa bildirim. */
@@ -118,6 +125,13 @@ export interface Policies {
 
 export function defaultPolicies(): Policies {
   return { autoOrderFood: false, foodThreshold: 10, trainTarget: 6 };
+}
+
+export interface SimFlags {
+  /** Bu gün yem yarı fiyat. */
+  foodDiscountDay: number;
+  /** Bu gün fazladan sahiplenici gelir. */
+  extraAdoptersDay: number;
 }
 
 export interface SimStats {
@@ -181,6 +195,10 @@ export class Sim {
   readonly adoption: AdoptionSystem;
   readonly tasks: TaskBoard;
   readonly staffSystem: StaffSystem;
+  readonly weatherSys: WeatherSystem;
+  readonly eventSys: EventSystem;
+  readonly achievements: AchievementSystem;
+  flags: SimFlags = { foodDiscountDay: 0, extraAdoptersDay: 0 };
   speed: Speed = 1;
   mode: Mode = 'avatar';
   money: number;
@@ -228,7 +246,11 @@ export class Sim {
     this.adoption = new AdoptionSystem(this);
     this.tasks = new TaskBoard(this);
     this.staffSystem = new StaffSystem(this);
+    this.weatherSys = new WeatherSystem(this);
+    this.eventSys = new EventSystem(this);
+    this.achievements = new AchievementSystem(this);
     this.events.on('day', (d) => this.needs.onDay(d));
+    this.events.on('hour', (h) => this.eventSys.onHour(h));
     this.events.on('week', (w) => this.onWeek(w));
     this.events.on('hour', (h) => this.onHour(h));
   }
@@ -242,6 +264,7 @@ export class Sim {
     sim.revealPlayer(true);
     sim.staffSystem.refreshCandidates();
     sim.candidatesDay = 1;
+    sim.weatherSys.roll();
     sim.alerts.refresh();
     return sim;
   }
@@ -284,6 +307,7 @@ export class Sim {
 
   /** Oyun zamanını ilerletir (oyuncu hareketi hariç). Uyku gibi atlamalar bunu döngüde çağırır. */
   stepSim(dtMin: number): void {
+    this.weatherSys.update();
     const crossed = this.clock.advance(dtMin);
     for (const h of crossed.hours) this.events.emit('hour', h);
     for (const d of crossed.days) this.events.emit('day', d);
@@ -300,6 +324,7 @@ export class Sim {
       this.refreshCandidatesIfNewDay();
       this.tasks.refresh();
       this.alerts.refresh();
+      this.achievements.check();
     }
     this.staffSystem.update(dtMin);
   }
@@ -347,7 +372,7 @@ export class Sim {
       }
     }
     this.sleepUntilMorning(true);
-    this.events.emit('message', 'Gece dışarıda bayıldın; sabah ofiste uyandın.');
+    this.events.emit('message', t('Gece dışarıda bayıldın; sabah ofiste uyandın.'));
   }
 
   /** Hafta tiki: köpekler bir hafta yaşlanır, denetim ve yardım işlenir, haftalık rapor çıkar. */
@@ -356,7 +381,7 @@ export class Sim {
       const before = dog.stage;
       dog.ageWeeks++;
       if (dog.stage !== before && !dog.wild) {
-        this.events.emit('message', `${dog.name} artık ${STAGE_NAMES_TR[dog.stage].toLowerCase()}!`);
+        this.events.emit('message', t('{name} artık {stage}!', { name: dog.name, stage: t(STAGE_NAMES_TR[dog.stage]).toLowerCase() }));
       }
     }
     const summary = closeWeek(this, newWeek);
@@ -387,6 +412,12 @@ export class Sim {
 
   licenseCap(): number {
     return BALANCE.economy.licenseCaps[this.licenseLevel - 1];
+  }
+
+  /** Çuval fiyatı; indirim gününde yarı. */
+  foodBagPrice(): number {
+    const base = BALANCE.economy.foodBagPrice;
+    return this.flags.foodDiscountDay === this.clock.day ? Math.round(base / 2) : base;
   }
 
   /** Bu hafta biriken gelir/gider (defterden). */
@@ -424,11 +455,11 @@ export class Sim {
       }
       case 'orderFood': {
         const bags = Math.max(1, Math.floor(cmd.bags));
-        const cost = bags * BALANCE.economy.foodBagPrice;
-        if (this.money < cost) return { ok: false, message: 'Yeterli para yok' };
-        this.addExpense('food', cost, `${bags} çuval`);
+        const cost = bags * this.foodBagPrice();
+        if (this.money < cost) return { ok: false, message: t('Yeterli para yok') };
+        this.addExpense('food', cost, t('{n} çuval', { n: bags }));
         this.foodStock += bags * BALANCE.economy.foodBagPortions;
-        return { ok: true, message: `${bags} çuval yem geldi (${cost} ${BALANCE.economy.currency})` };
+        return { ok: true, message: t('{n} çuval yem geldi ({cost} ₺)', { n: bags, cost }) };
       }
       case 'setTrainingFocus': {
         const dog = this.dogById(cmd.id);
@@ -444,7 +475,7 @@ export class Sim {
           return { ok: true };
         }
         const kennel = this.buildingById(cmd.buildingId);
-        if (!kennel || !this.kennelHasRoom(kennel, dog)) return { ok: false, message: 'Kulübede yer yok' };
+        if (!kennel || !this.kennelHasRoom(kennel, dog)) return { ok: false, message: t('Kulübede yer yok') };
         this.assignKennel(dog, kennel);
         return { ok: true };
       }
@@ -480,7 +511,7 @@ export class Sim {
       }
       case 'sleep': {
         this.sleepUntilMorning(false);
-        return { ok: true, message: 'Günaydın! Yeni bir gün.' };
+        return { ok: true, message: t('Günaydın! Yeni bir gün.') };
       }
       case 'adopt':
         return this.adoption.adopt(cmd.adopterId, cmd.dogId);
@@ -517,11 +548,11 @@ export class Sim {
       }
       case 'upgradeLicense': {
         const cost = licenseUpgradeCost(this.licenseLevel);
-        if (cost === null) return { ok: false, message: 'Lisans en üst seviyede' };
-        if (this.money < cost) return { ok: false, message: `Yeterli para yok (${cost} ${BALANCE.economy.currency})` };
-        this.addExpense('license', cost, `Seviye ${this.licenseLevel + 1}`);
+        if (cost === null) return { ok: false, message: t('Lisans en üst seviyede') };
+        if (this.money < cost) return { ok: false, message: t('Yeterli para yok ({cost} ₺)', { cost }) };
+        this.addExpense('license', cost, t('Seviye {lvl}', { lvl: this.licenseLevel + 1 }));
         this.licenseLevel++;
-        return { ok: true, message: `Lisans seviye ${this.licenseLevel}: en fazla ${this.licenseCap()} köpek` };
+        return { ok: true, message: t('Lisans seviye {lvl}: en fazla {cap} köpek', { lvl: this.licenseLevel, cap: this.licenseCap() }) };
       }
       default:
         return { ok: false };
@@ -605,7 +636,7 @@ export class Sim {
     dog.state = 'idle';
     dog.stateTimer = 0;
     this.events.emit('dogTamed', dog);
-    this.events.emit('message', `${dog.name} sana güvendi, peşinden geliyor! Barınağa götür.`);
+    this.events.emit('message', t('{name} sana güvendi, peşinden geliyor! Barınağa götür.', { name: dog.name }));
   }
 
   /** Peşinden gelen köpek barınağa girince kayda alınır. */
@@ -617,8 +648,9 @@ export class Sim {
     dog.lastInteractionDay = this.clock.day;
     const kennel = this.freeKennelFor(dog);
     if (kennel) this.assignKennel(dog, kennel);
-    this.stats.strays++;
-    this.events.emit('message', `${dog.name} barınağa katıldı!`);
+    if (this.eventSys.escapes.some((e) => e.dogId === dog.id)) this.eventSys.onDogJoined(dog);
+    else this.stats.strays++;
+    this.events.emit('message', t('{name} barınağa katıldı!', { name: dog.name }));
   }
 
   private registerDog(dog: Dog): void {
@@ -880,6 +912,10 @@ export class Sim {
       candidates: this.candidates.map((s) => s.toJSON()),
       candidatesDay: this.candidatesDay,
       policies: { ...this.policies },
+      weather: this.weatherSys.toJSON(),
+      eventLog: this.eventSys.toJSON(),
+      flags: { ...this.flags },
+      achievements: this.achievements.toJSON(),
     };
   }
 
@@ -1088,6 +1124,14 @@ export class Sim {
       if (typeof p.autoOrderFood === 'boolean') sim.policies.autoOrderFood = p.autoOrderFood;
       if (typeof p.foodThreshold === 'number') sim.policies.foodThreshold = p.foodThreshold;
       if (typeof p.trainTarget === 'number') sim.policies.trainTarget = p.trainTarget;
+    }
+    sim.weatherSys.load(data.weather);
+    sim.eventSys.load(data.eventLog);
+    sim.achievements.load(data.achievements);
+    if (data.flags && typeof data.flags === 'object') {
+      const f = data.flags as Partial<SimFlags>;
+      if (typeof f.foodDiscountDay === 'number') sim.flags.foodDiscountDay = f.foodDiscountDay;
+      if (typeof f.extraAdoptersDay === 'number') sim.flags.extraAdoptersDay = f.extraAdoptersDay;
     }
     if (Array.isArray(data.adopters)) {
       for (const raw of data.adopters) {

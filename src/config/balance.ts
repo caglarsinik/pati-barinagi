@@ -102,11 +102,12 @@ export const BALANCE = {
     startBowlFood: 2,
   },
   dogs: {
-    growth: { youngAtWeek: 4, adultAtWeek: 12 },
+    growth: { youngAtWeek: 4, adultAtWeek: 12, seniorAtWeek: 52 },
+    senior: { healthDecayMul: 1.3, healthRegenMul: 0.5, playDecayMul: 0.7, speedMul: 0.8 },
     /** Kare / oyun dakikası. */
     baseSpeed: 1.1,
     portionBySize: { S: 1, M: 1.5, L: 2 } as const,
-    portionByStage: { puppy: 0.5, young: 0.8, adult: 1 } as const,
+    portionByStage: { puppy: 0.5, young: 0.8, adult: 1, senior: 0.9 } as const,
     sickBelowHealth: 40,
     needs: {
       hungerPerHour: 5,
@@ -175,6 +176,36 @@ export const BALANCE = {
   },
   exploration: {
     revealRadius: 9,
+  },
+  seasons: {
+    weeksPerSeason: 2,
+  },
+  weather: {
+    summerHygieneMul: 1.25,
+    winterHungerMul: 1.15,
+    winterEnergyMul: 1.15,
+    /** Kulübesiz köpeklere soğuk gecelerde saatlik sağlık kaybı. */
+    coldDamagePerHour: 2,
+    springNestMul: 0.7,
+    autumnBerryBonus: 1,
+    rainHygieneMul: 1.5,
+    stormHygieneMul: 1.8,
+    snowEnergyMul: 1.25,
+    rainAdopterMul: 0.6,
+    stormAdopterMul: 0.3,
+    snowAdopterMul: 0.7,
+  },
+  events: {
+    newspaperChance: 0.03,
+    inspectionChance: 0.08,
+    donationChance: 0.04,
+    discountChance: 0.06,
+    vetChance: 0.05,
+    escapeChancePerDog: 0.03,
+    escapeLoyaltyBelow: 25,
+    escapeDays: 3,
+    inspectionBonusPerDog: 60,
+    inspectionFine: 200,
   },
   camera: {
     avatarZoom: 3,

@@ -1,8 +1,9 @@
 import { BALANCE } from '../../config/balance';
 import { buildingDef, isReady } from '../entities/Building';
 import type { Sim } from '../Sim';
+import { t } from '../../i18n';
 
-export type LedgerCategory = 'aid' | 'adoption' | 'refund' | 'food' | 'building' | 'land' | 'treatment' | 'upkeep' | 'wages' | 'license';
+export type LedgerCategory = 'aid' | 'adoption' | 'refund' | 'food' | 'building' | 'land' | 'treatment' | 'upkeep' | 'wages' | 'license' | 'donation';
 
 export const LEDGER_NAMES_TR: Record<LedgerCategory, string> = {
   aid: 'Devlet yardımı',
@@ -15,6 +16,7 @@ export const LEDGER_NAMES_TR: Record<LedgerCategory, string> = {
   upkeep: 'Bakım gideri',
   wages: 'Maaşlar',
   license: 'Lisans',
+  donation: 'Bağış',
 };
 
 export interface LedgerEntry {
@@ -79,10 +81,10 @@ export function runInspection(sim: Sim): InspectionReport {
   const cap = sim.kennelCapacity();
   const over = Math.max(0, dogs.length - cap);
   add('Kulübe', `${dogs.length}/${cap}`, over === 0 ? 0.5 : -Math.min(1, over / 3), 2);
-  add('Yem stoğu', `${Math.floor(sim.foodStock)} porsiyon`, sim.foodStock <= 0 ? -1 : sim.foodStock < 10 ? -0.3 : 0.4, 1);
+  add('Yem stoğu', t('{n} porsiyon', { n: Math.floor(sim.foodStock) }), sim.foodStock <= 0 ? -1 : sim.foodStock < 10 ? -0.3 : 0.4, 1);
   const licenseCap = B.licenseCaps[sim.licenseLevel - 1];
   const overCap = Math.max(0, dogs.length - licenseCap);
-  if (overCap > 0) add('Lisans aşımı', `${overCap} köpek fazla`, -1, 3);
+  if (overCap > 0) add('Lisans aşımı', t('{n} köpek fazla', { n: overCap }), -1, 3);
   const norm = weight > 0 ? score / weight : 0; // -1..1
   const multiplier = Math.round(Math.max(B.aidMultiplierMin, Math.min(B.aidMultiplierMax, 0.95 + norm * 0.55)) * 100) / 100;
   const counted = Math.min(dogs.length, licenseCap);
@@ -106,11 +108,11 @@ export function closeWeek(sim: Sim, newWeek: number): WeekSummary {
   sim.lastInspection = report;
   const week = newWeek - 1;
   report.week = week;
-  if (report.aid > 0) sim.addIncome('aid', report.aid, `${report.dogsCounted} köpek × çarpan ${report.multiplier}`, week);
+  if (report.aid > 0) sim.addIncome('aid', report.aid, t('{n} köpek × çarpan {mult}', { n: report.dogsCounted, mult: report.multiplier }), week);
   const upkeep = weeklyUpkeep(sim);
-  if (upkeep > 0) sim.addExpense('upkeep', upkeep, 'Bina bakımı', week);
+  if (upkeep > 0) sim.addExpense('upkeep', upkeep, t('Bina bakımı'), week);
   const wages = sim.weeklyWages();
-  if (wages > 0) sim.addExpense('wages', wages, 'Personel maaşları', week);
+  if (wages > 0) sim.addExpense('wages', wages, t('Personel maaşları'), week);
 
   const summary: WeekSummary = { week, income: {}, expense: {}, net: 0, endMoney: sim.money, inspection: report };
   for (const e of sim.ledger) {

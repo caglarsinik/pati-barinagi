@@ -8,6 +8,7 @@ import type { Sim } from '../Sim';
 import { eggDescription } from '../entities/Egg';
 import { cleanMess } from './MessSystem';
 import { harvestBerries, harvestNest } from './NestSystem';
+import { t } from '../../i18n';
 
 export type Tool = 'pet' | 'play' | 'train' | 'feed' | 'clean';
 
@@ -85,17 +86,17 @@ export function resolveAction(sim: Sim): ResolvedAction {
 
   // Pislik her araçla temizlenir.
   const obj = w.objectAt(tile.x, tile.y);
-  if (obj === Obj.Mess) return { kind: 'clean', hint: 'E: pisliği temizle', tile };
+  if (obj === Obj.Mess) return { kind: 'clean', hint: t('E: pisliği temizle'), tile };
   if (obj === Obj.NestEggs) {
-    if (sim.backpack.length >= sim.backpackSlots()) return { kind: 'none', hint: `Çanta dolu (${sim.backpack.length}/${sim.backpackSlots()}): kuluçkaya boşalt`, tile };
-    return { kind: 'pickEgg', hint: 'E: yumurtayı al', tile };
+    if (sim.backpack.length >= sim.backpackSlots()) return { kind: 'none', hint: t('Çanta dolu ({n}/{max}): kuluçkaya boşalt', { n: sim.backpack.length, max: sim.backpackSlots() }), tile };
+    return { kind: 'pickEgg', hint: t('E: yumurtayı al'), tile };
   }
-  if (obj === Obj.Nest) return { kind: 'none', hint: 'Boş yuva: birkaç güne yeniden dolar', tile };
+  if (obj === Obj.Nest) return { kind: 'none', hint: t('Boş yuva: birkaç güne yeniden dolar'), tile };
   if (obj === Obj.BerryBush) {
-    if (sim.treats >= BALANCE.eggs.treatsMax) return { kind: 'none', hint: 'Ödül maması çantası dolu', tile };
-    return { kind: 'berries', hint: `E: böğürtlen topla (ödül maması +${BALANCE.eggs.treatsPerBush})`, tile };
+    if (sim.treats >= BALANCE.eggs.treatsMax) return { kind: 'none', hint: t('Ödül maması çantası dolu'), tile };
+    return { kind: 'berries', hint: t('E: böğürtlen topla (ödül maması +{n})', { n: BALANCE.eggs.treatsPerBush + sim.weatherSys.modifiers().berryBonus }), tile };
   }
-  if (obj === Obj.Den) return { kind: 'none', hint: 'Sokak köpeği ini', tile };
+  if (obj === Obj.Den) return { kind: 'none', hint: t('Sokak köpeği ini'), tile };
 
   // Bina.
   const bid = w.buildingIdAt(tile.x, tile.y);
@@ -104,69 +105,64 @@ export function resolveAction(sim: Sim): ResolvedAction {
     const def = buildingDef(building);
     if (!isReady(building)) {
       const pct = Math.round(100 * (1 - building.buildLeft / Math.max(1, def.buildMinutes)));
-      return { kind: 'none', hint: `${def.name} inşa ediliyor (%${pct})`, building };
+      return { kind: 'none', hint: t('{name} inşa ediliyor (%{pct})', { name: t(def.name), pct }), building };
     }
     if (building.type === 'bowl') {
       const cap = sim.bowlCapacity(building);
-      if (building.food >= cap - 0.01) return { kind: 'none', hint: 'Yem kabı dolu', building };
-      if (sim.foodStock <= 0) return { kind: 'none', hint: 'Kiler boş: kilerden yem sipariş et', building };
-      return { kind: 'fillBowl', hint: `E: yem kabını doldur (${Math.floor(building.food)}/${cap})`, building };
+      if (building.food >= cap - 0.01) return { kind: 'none', hint: t('Yem kabı dolu'), building };
+      if (sim.foodStock <= 0) return { kind: 'none', hint: t('Kiler boş: kilerden yem sipariş et'), building };
+      return { kind: 'fillBowl', hint: t('E: yem kabını doldur ({food}/{cap})', { food: Math.floor(building.food), cap }), building };
     }
     if (building.type === 'groomStation') {
       const near = nearestDogToBuilding(sim, building, BALANCE.dogs.stationRadius);
-      if (!near) return { kind: 'none', hint: 'Tımar: yakında köpek yok', building };
-      if (near.needs.hygiene >= 99) return { kind: 'none', hint: `${near.name} zaten tertemiz`, building };
-      return { kind: 'wash', hint: `E: ${near.name}'i yıka (temizlik ${Math.floor(near.needs.hygiene)}%)`, building, dog: near };
+      if (!near) return { kind: 'none', hint: t('Tımar: yakında köpek yok'), building };
+      if (near.needs.hygiene >= 99) return { kind: 'none', hint: t('{name} zaten tertemiz', { name: near.name }), building };
+      return { kind: 'wash', hint: t("E: {name}'i yıka (temizlik {h}%)", { name: near.name, h: Math.floor(near.needs.hygiene) }), building, dog: near };
     }
     if (building.type === 'vetClinic') {
       const near = nearestDogToBuilding(sim, building, BALANCE.dogs.stationRadius);
-      if (!near) return { kind: 'none', hint: 'Veteriner: yakında köpek yok', building };
-      if (near.needs.health >= 90) return { kind: 'none', hint: `${near.name} sağlıklı`, building };
-      return {
-        kind: 'treat',
-        hint: `E: ${near.name}'i tedavi et (${BALANCE.economy.treatmentPrice} ${BALANCE.economy.currency})`,
-        building,
-        dog: near,
-      };
+      if (!near) return { kind: 'none', hint: t('Veteriner: yakında köpek yok'), building };
+      if (near.needs.health >= 90) return { kind: 'none', hint: t('{name} sağlıklı', { name: near.name }), building };
+      return { kind: 'treat', hint: t("E: {name}'i tedavi et ({price} ₺)", { name: near.name, price: BALANCE.economy.treatmentPrice }), building, dog: near };
     }
-    if (building.type === 'shed') return { kind: 'shed', hint: `E: kiler (${Math.floor(sim.foodStock)} porsiyon)`, building };
+    if (building.type === 'shed') return { kind: 'shed', hint: t('E: kiler ({n} porsiyon)', { n: Math.floor(sim.foodStock) }), building };
     if (building.type === 'office') {
       const waiting = sim.adopters.filter((a) => a.state === 'waiting').length;
-      return { kind: 'office', hint: waiting > 0 ? `E: ofis (${waiting} sahiplenici bekliyor)` : 'E: ofis (lisans, uyku)', building };
+      return { kind: 'office', hint: waiting > 0 ? t('E: ofis ({n} sahiplenici bekliyor)', { n: waiting }) : t('E: ofis (lisans, uyku)'), building };
     }
     if (building.type === 'kennelSmall' || building.type === 'kennelLarge') {
       const names = building.occupants.map((id) => sim.dogById(id)?.name ?? '?').join(', ');
-      return { kind: 'kennel', hint: `E: ${def.name}${names ? ` (${names})` : ' (boş)'}`, building };
+      return { kind: 'kennel', hint: t('E: {name}{who}', { name: t(def.name), who: names ? ` (${names})` : t(' (boş)') }), building };
     }
-    if (building.type === 'incubator') return { kind: 'incubator', hint: 'E: kuluçka', building };
+    if (building.type === 'incubator') return { kind: 'incubator', hint: t('E: kuluçka'), building };
   }
 
   // Köpek.
   const dog = nearestDog(sim, fp.x, fp.y, 1.25);
   if (dog && dog.wild) {
-    if (dog.following) return { kind: 'none', hint: `${dog.name} peşinde: barınağa götür`, dog };
-    if (sim.treats <= 0) return { kind: 'none', hint: `${dog.name} ürkek: ödül maması lazım (böğürtlen çalısı)`, dog };
-    return { kind: 'treatWild', hint: `E: ${dog.name}'e ödül ver (güven ${dog.trust}/${BALANCE.eggs.tameTreats})`, dog };
+    if (dog.following) return { kind: 'none', hint: t('{name} peşinde: barınağa götür', { name: dog.name }), dog };
+    if (sim.treats <= 0) return { kind: 'none', hint: t('{name} ürkek: ödül maması lazım (böğürtlen çalısı)', { name: dog.name }), dog };
+    return { kind: 'treatWild', hint: t("E: {name}'e ödül ver (güven {trust}/{max})", { name: dog.name, trust: dog.trust, max: BALANCE.eggs.tameTreats }), dog };
   }
   if (dog) {
     const tool = sim.tool;
     if (tool === 'play') {
-      if (dog.isAsleep()) return { kind: 'none', hint: `${dog.name} uyuyor`, dog };
-      if (dog.needs.energy < BALANCE.dogs.playMinEnergy) return { kind: 'none', hint: `${dog.name} çok yorgun`, dog };
-      return { kind: 'play', hint: `E: ${dog.name} ile oyna`, dog };
+      if (dog.isAsleep()) return { kind: 'none', hint: t('{name} uyuyor', { name: dog.name }), dog };
+      if (dog.needs.energy < BALANCE.dogs.playMinEnergy) return { kind: 'none', hint: t('{name} çok yorgun', { name: dog.name }), dog };
+      return { kind: 'play', hint: t('E: {name} ile oyna', { name: dog.name }), dog };
     }
     if (tool === 'train') {
-      if (dog.isAsleep()) return { kind: 'none', hint: `${dog.name} uyuyor`, dog };
-      if (dog.needs.energy < BALANCE.dogs.trainMinEnergy) return { kind: 'none', hint: `${dog.name} eğitim için çok yorgun`, dog };
+      if (dog.isAsleep()) return { kind: 'none', hint: t('{name} uyuyor', { name: dog.name }), dog };
+      if (dog.needs.energy < BALANCE.dogs.trainMinEnergy) return { kind: 'none', hint: t('{name} eğitim için çok yorgun', { name: dog.name }), dog };
       const skill = trainingSkill(dog);
-      if (!skill) return { kind: 'none', hint: `${dog.name} her şeyi öğrendi`, dog };
-      return { kind: 'train', hint: `E: ${dog.name} eğit (${SKILL_NAMES_TR[skill]} ${Math.floor(dog.skills[skill])}%)`, dog };
+      if (!skill) return { kind: 'none', hint: t('{name} her şeyi öğrendi', { name: dog.name }), dog };
+      return { kind: 'train', hint: t('E: {name} eğit ({skill} {pct}%)', { name: dog.name, skill: t(SKILL_NAMES_TR[skill]), pct: Math.floor(dog.skills[skill]) }), dog };
     }
     if (tool === 'clean') {
-      if (dog.needs.hygiene >= 95) return { kind: 'none', hint: `${dog.name} zaten tertemiz`, dog };
-      return { kind: 'groom', hint: `E: ${dog.name}'i fırçala (temizlik ${Math.floor(dog.needs.hygiene)}%)`, dog };
+      if (dog.needs.hygiene >= 95) return { kind: 'none', hint: t('{name} zaten tertemiz', { name: dog.name }), dog };
+      return { kind: 'groom', hint: t("E: {name}'i fırçala (temizlik {h}%)", { name: dog.name, h: Math.floor(dog.needs.hygiene) }), dog };
     }
-    return { kind: 'pet', hint: `E: ${dog.name}'i sev`, dog };
+    return { kind: 'pet', hint: t("E: {name}'i sev", { name: dog.name }), dog };
   }
 
   return { kind: 'none', hint: '', tile };
@@ -215,18 +211,18 @@ export function performAction(sim: Sim): ActionOutcome {
       interactWith(sim, dog, B.washDurationMin);
       sim.stats.groomed++;
       p.setBusy(1.2, 'wash');
-      return { ok: true, message: `${dog.name} yıkandı` };
+      return { ok: true, message: t('{name} yıkandı', { name: dog.name }) };
     }
     case 'treat': {
       const dog = r.dog!;
       const price = BALANCE.economy.treatmentPrice;
-      if (sim.money < price) return { ok: false, message: 'İlaç için para yok' };
+      if (sim.money < price) return { ok: false, message: t('İlaç için para yok') };
       sim.addExpense('treatment', price, dog.name);
       dog.needs.health = clamp100(dog.needs.health + B.treatHealthGain);
       interactWith(sim, dog, B.treatDurationMin);
       sim.stats.treated++;
       p.setBusy(1.2, 'treat');
-      return { ok: true, message: `${dog.name} tedavi edildi` };
+      return { ok: true, message: t('{name} tedavi edildi', { name: dog.name }) };
     }
     case 'fillBowl': {
       const b = r.building!;
@@ -237,7 +233,7 @@ export function performAction(sim: Sim): ActionOutcome {
       sim.foodStock -= take;
       sim.stats.bowlsFilled++;
       p.setBusy(0.5, 'feed');
-      return { ok: true, message: `Kap dolduruldu (${Math.floor(b.food)}/${cap})` };
+      return { ok: true, message: t('Kap dolduruldu ({food}/{cap})', { food: Math.floor(b.food), cap }) };
     }
     case 'pet': {
       const dog = r.dog!;
@@ -259,7 +255,7 @@ export function performAction(sim: Sim): ActionOutcome {
       interactWith(sim, dog, B.playDurationMin);
       sim.stats.played++;
       p.setBusy(1.0, 'play');
-      return { ok: true, message: `${dog.name} çok eğlendi` };
+      return { ok: true, message: t('{name} çok eğlendi', { name: dog.name }) };
     }
     case 'train': {
       const dog = r.dog!;
@@ -276,7 +272,12 @@ export function performAction(sim: Sim): ActionOutcome {
       sim.stats.trained++;
       p.setBusy(1.2, 'train');
       const learned = before < 100 && dog.skills[skill] >= 100;
-      return { ok: true, message: learned ? `${dog.name} "${SKILL_NAMES_TR[skill]}" öğrendi!` : `${SKILL_NAMES_TR[skill]}: ${Math.floor(dog.skills[skill])}%` };
+      return {
+        ok: true,
+        message: learned
+          ? t('{name} "{skill}" öğrendi!', { name: dog.name, skill: t(SKILL_NAMES_TR[skill]) })
+          : t('{skill}: {pct}%', { skill: t(SKILL_NAMES_TR[skill]), pct: Math.floor(dog.skills[skill]) }),
+      };
     }
     case 'groom': {
       const dog = r.dog!;
@@ -285,20 +286,20 @@ export function performAction(sim: Sim): ActionOutcome {
       interactWith(sim, dog, B.groomDurationMin);
       sim.stats.groomed++;
       p.setBusy(0.9, 'groom');
-      return { ok: true, message: `${dog.name} fırçalandı` };
+      return { ok: true, message: t('{name} fırçalandı', { name: dog.name }) };
     }
     case 'pickEgg': {
       const egg = r.tile ? harvestNest(sim, r.tile.x, r.tile.y) : null;
       if (!egg) return { ok: false };
       sim.backpack.push(egg);
       p.setBusy(0.7, 'pick');
-      return { ok: true, message: `Yumurta bulundu: ${eggDescription(egg)}` };
+      return { ok: true, message: t('Yumurta bulundu: {desc}', { desc: eggDescription(egg) }) };
     }
     case 'berries': {
       const got = r.tile ? harvestBerries(sim, r.tile.x, r.tile.y) : 0;
       if (got <= 0) return { ok: false };
       p.setBusy(0.6, 'pick');
-      return { ok: true, message: `+${got} ödül maması (${sim.treats})` };
+      return { ok: true, message: t('+{n} ödül maması ({total})', { n: got, total: sim.treats }) };
     }
     case 'treatWild': {
       const dog = r.dog!;
@@ -311,7 +312,7 @@ export function performAction(sim: Sim): ActionOutcome {
         sim.tameDog(dog);
         return { ok: true };
       }
-      return { ok: true, message: `${dog.name} ödülü aldı (güven ${dog.trust}/${BALANCE.eggs.tameTreats})` };
+      return { ok: true, message: t('{name} ödülü aldı (güven {trust}/{max})', { name: dog.name, trust: dog.trust, max: BALANCE.eggs.tameTreats }) };
     }
     case 'sleep':
       return sim.command({ type: 'sleep' });

@@ -17,7 +17,7 @@ export const DOG_FRAME_LIE = 4;
 export const DOG_FRAME_EAT = 5;
 
 const SIZE_SCALE = { S: 0.8, M: 1, L: 1.25 } as const;
-const STAGE_SCALE = { puppy: 0.55, young: 0.8, adult: 1 } as const;
+const STAGE_SCALE = { puppy: 0.55, young: 0.8, adult: 1, senior: 1 } as const;
 
 export function dogTextureKey(g: DogGenome, stage: GrowthStage): string {
   return `dog-${genomeKey(g)}-${stage}`;
@@ -35,6 +35,9 @@ interface Dims {
   light: RGBA;
   secondary: RGBA;
   rng: Rng;
+  /** Yaşlı: gri burun ve kaş. */
+  senior: boolean;
+  muzzle: RGBA;
 }
 
 function dims(g: DogGenome, stage: GrowthStage): Dims {
@@ -55,7 +58,10 @@ function dims(g: DogGenome, stage: GrowthStage): Dims {
   } else if (stage === 'young') headR *= 1.15;
   const coat = COAT_COLORS[g.coat];
   const sec = COAT_COLORS[g.secondary];
+  const senior = stage === 'senior';
   return {
+    senior,
+    muzzle: senior ? hex(0xdcdcdc) : hex(coat.light),
     s,
     bodyLen: Math.max(5, Math.round(bodyLen)),
     bodyH: Math.max(3, Math.round(bodyH)),
@@ -175,8 +181,9 @@ function drawHeadSide(p: Pixels, g: DogGenome, d: Dims, hx: number, hy: number):
   // Burun
   const mx = hx - r * 0.75;
   const my = hy + r * 0.3;
-  p.ellipse(mx, my, Math.max(1, r * 0.6), Math.max(0.8, r * 0.45), d.light);
+  p.ellipse(mx, my, Math.max(1, r * 0.6), Math.max(0.8, r * 0.45), d.muzzle);
   p.set(Math.round(mx - r * 0.55), Math.round(my - 0.5), P.outline);
+  if (d.senior) p.set(Math.round(hx - r * 0.35), Math.round(hy - r * 0.55), d.muzzle);
   // Göz
   const eyeSize = r >= 5 ? 2 : 1;
   p.fillRect(Math.round(hx - r * 0.35), Math.round(hy - r * 0.25), eyeSize, eyeSize, P.eye);
@@ -314,7 +321,11 @@ function drawFront(g: DogGenome, stage: GrowthStage, frame: number, back: boolea
   }
   p.ellipse(cx, hy, r, r, d.base);
   if (!back) {
-    p.ellipse(cx, hy + r * 0.4, Math.max(1, r * 0.55), Math.max(0.8, r * 0.4), d.light);
+    p.ellipse(cx, hy + r * 0.4, Math.max(1, r * 0.55), Math.max(0.8, r * 0.4), d.muzzle);
+    if (d.senior) {
+      p.set(Math.round(cx - r * 0.5), Math.round(hy - r * 0.5), d.muzzle);
+      p.set(Math.round(cx + r * 0.5), Math.round(hy - r * 0.5), d.muzzle);
+    }
     p.fillRect(Math.round(cx - 0.5), Math.round(hy + r * 0.2), r >= 5 ? 2 : 1, 1, P.outline);
     const eyeSize = r >= 5 ? 2 : 1;
     p.fillRect(Math.round(cx - r * 0.5 - eyeSize / 2), Math.round(hy - r * 0.2), eyeSize, eyeSize, P.eye);
