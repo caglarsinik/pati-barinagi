@@ -153,9 +153,10 @@ describe('Uyku ve keşif', () => {
     const office = sim.buildings.find((b) => b.type === 'office')!;
     sim.clock.totalMinutes = 21 * 60;
     face(sim, office.x + 1, office.y + 2);
-    expect(resolveAction(sim).kind).toBe('sleep');
+    expect(resolveAction(sim).kind).toBe('office');
+    expect(performAction(sim).open).toBe('office');
     const h0 = sim.dogs[0].needs.hunger;
-    expect(performAction(sim).ok).toBe(true);
+    expect(sim.command({ type: 'sleep' }).ok).toBe(true);
     expect(sim.clock.hour).toBe(6);
     expect(sim.clock.day).toBe(2);
     expect(sim.dogs[0].needs.hunger).toBeGreaterThan(h0);

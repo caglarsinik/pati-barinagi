@@ -19,6 +19,10 @@ export function HUD() {
         <div class="muted small-text">
           🐕 {store.dogCount.value}/{store.kennelCapacity.value} · 🥣 {store.foodStock.value} porsiyon
         </div>
+        <div class="muted small-text" title="İtibar: sahiplenici sayısını ve isteklerini etkiler">
+          ⭐ İtibar {store.reputation.value} · Lisans {store.licenseLevel.value}
+          {store.adoptersWaiting.value > 0 ? ` · 🧑 ${store.adoptersWaiting.value} bekliyor` : ''}
+        </div>
         <div class={'stamina' + (store.exhausted.value ? ' exhausted' : '')} title="Dayanıklılık">
           <div class="bar">
             <div class="fill" style={{ width: `${store.stamina.value}%` }} />
@@ -56,6 +60,12 @@ export function HUD() {
           </button>
           <button class={'btn small' + (store.panel.value === 'dogs' ? ' active' : '')} onClick={() => app.togglePanel('dogs')}>
             Köpekler (I)
+          </button>
+          <button class={'btn small' + (store.panel.value === 'adoption' ? ' active' : '')} onClick={() => app.togglePanel('adoption')}>
+            Sahiplendirme (O)
+          </button>
+          <button class={'btn small' + (store.panel.value === 'finance' ? ' active' : '')} onClick={() => app.togglePanel('finance')}>
+            Finans (N)
           </button>
           <button class="btn small" onClick={() => app.openPauseMenu()}>
             Menü (Esc)

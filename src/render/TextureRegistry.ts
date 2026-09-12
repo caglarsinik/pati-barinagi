@@ -4,7 +4,7 @@ import type { GrowthStage } from '../sim/entities/Dog';
 import type { DogGenome } from '../sim/entities/DogGenome';
 import { drawBuilding } from './BuildingArt';
 import { DOG_DIRS, DOG_FRAME, DOG_FRAMES, buildDogSheet, dogTextureKey } from './DogPainter';
-import { HUMAN_DIRS, HUMAN_FRAMES, HUMAN_H, HUMAN_W, PLAYER_STYLE, buildHumanSheet } from './HumanPainter';
+import { HUMAN_DIRS, HUMAN_FRAMES, HUMAN_H, HUMAN_W, PLAYER_STYLE, buildHumanSheet, humanStyleFromSeed } from './HumanPainter';
 import { buildTileset } from './TileArt';
 
 export const TEX = {
@@ -49,6 +49,26 @@ export function registerAnimations(scene: Phaser.Scene): void {
       repeat: -1,
     });
   }
+}
+
+/** Sahiplenici / personel dokusu: görünüş tohumu başına bir kez. */
+export function ensureHumanTexture(scene: Phaser.Scene, look: number): string {
+  const key = `human-${look}`;
+  if (scene.textures.exists(key)) return key;
+  const sheet = buildHumanSheet(humanStyleFromSeed(look));
+  const tex = scene.textures.addCanvas(key, sheet.toCanvas());
+  if (!tex) return key;
+  for (let i = 0; i < HUMAN_DIRS * HUMAN_FRAMES; i++) tex.add(i, 0, i * HUMAN_W, 0, HUMAN_W, HUMAN_H);
+  for (let dir = 0; dir < HUMAN_DIRS; dir++) {
+    const base = dir * HUMAN_FRAMES;
+    scene.anims.create({
+      key: `${key}-walk-${dir}`,
+      frames: scene.anims.generateFrameNumbers(key, { frames: [base + 1, base, base + 2, base] }),
+      frameRate: 8,
+      repeat: -1,
+    });
+  }
+  return key;
 }
 
 /** Köpek dokusunu gerekiyorsa üretir (genom + aşama başına bir kez) ve anahtarını döndürür. */

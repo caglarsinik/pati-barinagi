@@ -1,4 +1,4 @@
-import { Pixels, type RGBA } from './Pixels';
+import { Pixels, type RGBA, hex, shade } from './Pixels';
 import { P } from './palette';
 
 export interface HumanStyle {
@@ -21,6 +21,23 @@ export const PLAYER_STYLE: HumanStyle = {
   shoes: P.shoes,
   hat: null,
 };
+
+const SKINS = [0xf1c9a1, 0xd9a877, 0xb07a4c, 0x8a5a36];
+const HAIRS = [0x5c3b22, 0x1f1a1a, 0xc98a3a, 0x8a3a2a, 0x9a9aa8];
+const SHIRTS = [0x3f82dc, 0xe4514f, 0x4fb36b, 0xf6d55c, 0xa66bd6, 0xf28fb8, 0x8fd9b6, 0xe08c55];
+const PANTS = [0x3b4664, 0x5b3a2a, 0x2c2535, 0x6b6f7a];
+const HATS = [0xe4514f, 0x3b4664, 0xf6d55c, 0x2f7f5c];
+
+/** Tohumdan tutarlı bir kıyafet: sahiplenici ve personel çeşitliliği. */
+export function humanStyleFromSeed(seed: number): HumanStyle {
+  const s = seed >>> 0;
+  const skin = hex(SKINS[s % SKINS.length]);
+  const hair = hex(HAIRS[(s >> 3) % HAIRS.length]);
+  const shirt = hex(SHIRTS[(s >> 6) % SHIRTS.length]);
+  const pants = hex(PANTS[(s >> 9) % PANTS.length]);
+  const hat = (s >> 12) % 5 === 0 ? hex(HATS[(s >> 14) % HATS.length]) : null;
+  return { skin, hair, shirt, shirtDark: shade(shirt, 0.75), pants, shoes: P.shoes, hat };
+}
 
 export const HUMAN_W = 16;
 export const HUMAN_H = 24;

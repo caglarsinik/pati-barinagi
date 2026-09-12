@@ -21,7 +21,7 @@ Tasarım dokümanı ve kilometre taşları: `docs/PLAN.md`
 | E | Baktığın şeye göre iş yap: köpeği sev/oyna/eğit/fırçala, yem kabını doldur, pisliği temizle, kileri aç | – |
 | 1-5 | Araç seç: Sev, Oyna, Eğit, Yem, Temizle | – |
 | Sol tık | Köpeği seç (panel açılır) | Köpeği seç |
-| I | Köpek listesi | Köpek listesi |
+| I / O / N | Köpek listesi / Sahiplendirme masası / Finans | Aynı |
 | B | İnşa çubuğu (yönetim moduna geçer) | İnşa çubuğu |
 | X / Z | – | Yık aracı / Bölge boyama |
 | Tab | Yönetim moduna geç | Avatara dön |
@@ -58,13 +58,20 @@ Alt çubuk her an E ile ne yapacağını yazar. Sağ üstteki uyarılara tıklay
 - Uzaktaki inlerde (turuncu nokta) sokak köpekleri yaşar. Böğürtlen çalısından ödül maması topla, köpeğe 3 kez ver; peşine takılır, barınağa girince katılır.
 - Gece 20:00'den sonra ofisin önünde E ile sabaha kadar uyursun. Dışarıda 02:00'ye kadar kalırsan bayılıp ofiste uyanırsın.
 
+## Ekonomi ve sahiplendirme
+
+- Sahiplenici 10:00-16:00 arasında kapıdan gelir, ofisin önünde yaklaşık 2,5 saat bekler. O tuşu ya da ofiste E ile masayı aç; istek kartına göre en uygun köpeği puanla gör ve sahiplendir. Zayıf eşleşme (puan < 50) itibar düşürür, köpek geri gelebilir.
+- Köpek sahiplendirilebilmek için sağlıklı, temiz ve sana güvenir olmalı (sadakat 30+).
+- Her Pazartesi 06:00 hafta raporu: denetim (temizlik, sağlık, keyif, pislik, kulübe, yem) yardım çarpanını (0,4-1,5) belirler; köpek başına 150 ₺ × çarpan devlet yardımı yatar, bina bakım gideri düşer.
+- Lisans seviyesi yardım alınan köpek sayısını sınırlar (8/20/45); ofisten yükseltilir. Finans (N) kasa hareketlerini ve geçmiş haftaları gösterir.
+
 ## Durum
 
 - [x] M0 İskelet: dünya üretimi, avatar, kamera, gün/gece, HUD, hız, mini harita, kayıt
 - [x] M1 Köpekler ve ihtiyaçlar: genom ve modüler sprite, ihtiyaçlar, davranış, başlangıç barınağı, bakım araçları, köpek paneli/listesi, uyarılar
 - [x] M2 İnşa: inşa çubuğu, hayalet önizleme, çit/kapı/yol, bölgeler, yıkım, inşaat süresi, arsa genişletme, yeni binalar
 - [x] M3 Yumurta ve büyüme: yuvalar, yumurta genetiği ve ipuçları, kuluçka, haftalık büyüme, sokak köpekleri ve evcilleştirme, keşif sisi, uyku/bayılma
-- [ ] M4 Ekonomi ve sahiplendirme
+- [x] M4 Ekonomi ve sahiplendirme: sahiplenici akışı ve eşleşme, itibar, geri dönüş, defter, haftalık denetim ve yardım, bakım gideri, lisans, finans ve rapor ekranları
 - [ ] M5 Personel ve görevlendirme
 - [ ] M6 Ses ve cila
 

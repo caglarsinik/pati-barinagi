@@ -42,6 +42,17 @@ export class AlertSystem {
     const emptyBowls = sim.buildings.filter((b) => b.type === 'bowl' && b.food <= 0).length;
     if (emptyBowls > 0 && sim.shelterDogs().length > 0) out.push({ id: 'bowls', text: emptyBowls === 1 ? 'Bir yem kabı boş' : `${emptyBowls} yem kabı boş`, severity: 'info' });
     if (sim.money < 0) out.push({ id: 'debt', text: 'Kasa eksiye düştü', severity: 'danger' });
+    const waiting = sim.adopters.filter((a) => a.state === 'waiting');
+    if (waiting.length > 0) {
+      const soonest = Math.min(...waiting.map((a) => a.patienceLeft));
+      out.push({
+        id: 'adopters',
+        text: waiting.length === 1 ? `${waiting[0].name} sahiplenmek istiyor (${Math.round(soonest)} dk)` : `${waiting.length} sahiplenici bekliyor`,
+        severity: soonest < 40 ? 'warn' : 'info',
+      });
+    }
+    const cap = BALANCE.economy.licenseCaps[sim.licenseLevel - 1];
+    if (sim.shelterDogs().length > cap) out.push({ id: 'license', text: `Lisans aşıldı (${sim.shelterDogs().length}/${cap}): yardım kesilir`, severity: 'danger' });
 
     const order: Record<AlertSeverity, number> = { danger: 0, warn: 1, info: 2 };
     out.sort((a, b) => order[a.severity] - order[b.severity]);

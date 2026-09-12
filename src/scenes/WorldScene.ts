@@ -3,7 +3,7 @@ import { BALANCE } from '../config/balance';
 import { GAME } from '../config/game';
 import { BUILDING_DEFS } from '../content/buildings';
 import { DOG_FRAMES, DOG_FRAME_EAT, DOG_FRAME_IDLE, DOG_FRAME_LIE, DOG_FRAME_SIT } from '../render/DogPainter';
-import { TEX, buildingTextureKey, ensureDogTexture } from '../render/TextureRegistry';
+import { TEX, buildingTextureKey, ensureDogTexture, ensureHumanTexture } from '../render/TextureRegistry';
 import { type Building, buildingDef, canPlaceBuilding, isReady } from '../sim/entities/Building';
 import type { Dog } from '../sim/entities/Dog';
 import type { PlayerInput } from '../sim/entities/Player';
@@ -14,12 +14,12 @@ import { OBJ_INFO, Obj, ZONE_COLORS, ZONE_TILE_BASE, Zone, objTileIndex } from '
 import { showToast, store, syncStore } from '../ui/store';
 
 type KeyName =
-  | 'W' | 'A' | 'S' | 'D' | 'UP' | 'DOWN' | 'LEFT' | 'RIGHT' | 'SHIFT' | 'E' | 'I' | 'B' | 'X' | 'Z' | 'TAB' | 'SPACE' | 'ESC'
+  | 'W' | 'A' | 'S' | 'D' | 'UP' | 'DOWN' | 'LEFT' | 'RIGHT' | 'SHIFT' | 'E' | 'I' | 'B' | 'X' | 'Z' | 'O' | 'N' | 'TAB' | 'SPACE' | 'ESC'
   | 'PLUS' | 'MINUS' | 'NUMPAD_ADD' | 'NUMPAD_SUBTRACT' | 'ONE' | 'TWO' | 'THREE' | 'FOUR' | 'FIVE';
 type Keys = Record<KeyName, Phaser.Input.Keyboard.Key>;
 
 const KEY_LIST: KeyName[] = [
-  'W', 'A', 'S', 'D', 'UP', 'DOWN', 'LEFT', 'RIGHT', 'SHIFT', 'E', 'I', 'B', 'X', 'Z', 'TAB', 'SPACE', 'ESC',
+  'W', 'A', 'S', 'D', 'UP', 'DOWN', 'LEFT', 'RIGHT', 'SHIFT', 'E', 'I', 'B', 'X', 'Z', 'O', 'N', 'TAB', 'SPACE', 'ESC',
   'PLUS', 'MINUS', 'NUMPAD_ADD', 'NUMPAD_SUBTRACT', 'ONE', 'TWO', 'THREE', 'FOUR', 'FIVE',
 ];
 
@@ -65,6 +65,7 @@ export class WorldScene extends Phaser.Scene {
   private unsub: Array<() => void> = [];
   private buildingImages = new Map<number, Phaser.GameObjects.Image>();
   private dogSprites = new Map<number, Phaser.GameObjects.Sprite>();
+  private adopterSprites = new Map<number, Phaser.GameObjects.Sprite>();
 
   constructor() {
     super('World');
@@ -137,6 +138,11 @@ export class WorldScene extends Phaser.Scene {
         store.selectedDogId.value = d.id;
         store.panel.value = 'dog';
       }),
+      this.sim.events.on('weekReport', (w) => {
+        store.report.value = w;
+        this.sim.setSpeed(0);
+      }),
+      this.sim.events.on('adopterArrived', (a) => showToast(`${a.name} kapıdan geldi: sahiplenmek istiyor`)),
     );
 
     // --- Oyuncu ---
@@ -186,6 +192,7 @@ export class WorldScene extends Phaser.Scene {
       this.game.events.off('ui:focus-tile', this.focusTile, this);
       this.buildingImages.clear();
       this.dogSprites.clear();
+      this.adopterSprites.clear();
     });
 
     syncStore(this.sim);
@@ -198,6 +205,7 @@ export class WorldScene extends Phaser.Scene {
     this.sim.update(dt, input);
     this.syncPlayerSprite();
     this.syncDogs();
+    this.syncAdopters();
     this.syncBuildings();
     this.syncSelection();
     this.syncGhost();
@@ -231,6 +239,8 @@ export class WorldScene extends Phaser.Scene {
     if (JustDown(k.PLUS) || JustDown(k.NUMPAD_ADD)) this.sim.changeSpeed(1);
     if (JustDown(k.MINUS) || JustDown(k.NUMPAD_SUBTRACT)) this.sim.changeSpeed(-1);
     if (JustDown(k.I)) store.panel.value = store.panel.value === 'dogs' ? 'none' : 'dogs';
+    if (JustDown(k.O)) store.panel.value = store.panel.value === 'adoption' ? 'none' : 'adoption';
+    if (JustDown(k.N)) store.panel.value = store.panel.value === 'finance' ? 'none' : 'finance';
     if (JustDown(k.B)) this.game.events.emit('ui:build-toggle');
     if (this.sim.mode === 'manage') {
       if (JustDown(k.X)) store.build.value = store.build.value.kind === 'demolish' ? { kind: 'none' } : { kind: 'demolish' };
@@ -252,6 +262,9 @@ export class WorldScene extends Phaser.Scene {
     } else if (r.open === 'incubator' && r.building) {
       store.panelBuildingId.value = r.building.id;
       store.panel.value = 'incubator';
+    } else if (r.open === 'office' && r.building) {
+      store.panelBuildingId.value = r.building.id;
+      store.panel.value = 'office';
     }
   }
 
@@ -482,6 +495,37 @@ export class WorldScene extends Phaser.Scene {
       if (!seen.has(id)) {
         s.destroy();
         this.dogSprites.delete(id);
+      }
+    }
+  }
+
+  private syncAdopters(): void {
+    const T = GAME.tile;
+    const seen = new Set<number>();
+    for (const a of this.sim.adopters) {
+      seen.add(a.id);
+      const key = ensureHumanTexture(this, a.look);
+      let s = this.adopterSprites.get(a.id);
+      if (!s) {
+        s = this.add.sprite(0, 0, key, 0).setOrigin(0.5, 1);
+        this.adopterSprites.set(a.id, s);
+      }
+      const px = Math.round(a.x * T);
+      const py = Math.round(a.y * T + 6);
+      s.setPosition(px, py);
+      s.setDepth(100 + py);
+      if (a.moving && !this.sim.paused) {
+        s.anims.play(`${key}-walk-${a.facing}`, true);
+        s.anims.timeScale = Math.max(0.6, Math.min(3, this.sim.speed * 0.9));
+      } else {
+        s.anims.stop();
+        s.setFrame(a.facing * 3);
+      }
+    }
+    for (const [id, s] of this.adopterSprites) {
+      if (!seen.has(id)) {
+        s.destroy();
+        this.adopterSprites.delete(id);
       }
     }
   }

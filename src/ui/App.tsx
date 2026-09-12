@@ -2,6 +2,7 @@ import { BuildBar } from './BuildBar';
 import { DogList } from './DogList';
 import { DogPanel } from './DogPanel';
 import { Backpack, EggPanel, IncubatorPanel } from './EggPanels';
+import { AdoptionDesk, FinancePanel, OfficePanel, WeeklyReport } from './EconomyPanels';
 import { HUD } from './HUD';
 import { MainMenu } from './MainMenu';
 import { AlertsPanel, KennelPanel, ShedPanel } from './Panels';
@@ -29,6 +30,10 @@ export function App() {
           {panel === 'kennel' && <KennelPanel />}
           {panel === 'incubator' && <IncubatorPanel />}
           {panel === 'egg' && <EggPanel />}
+          {panel === 'office' && <OfficePanel />}
+          {panel === 'adoption' && <AdoptionDesk />}
+          {panel === 'finance' && <FinancePanel />}
+          {store.report.value && <WeeklyReport />}
           {store.pauseMenu.value && <PauseMenu />}
         </>
       )}

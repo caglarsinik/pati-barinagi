@@ -17,10 +17,12 @@ import {
   stampBuilding,
   unstampBuilding,
 } from './entities/Building';
+import { type Adopter, adopterFromJSON } from './entities/Adopter';
 import { Dog, type DogOrigin, SKILL_KEYS, STAGE_NAMES_TR, type SkillKey, defaultNeeds } from './entities/Dog';
 import { type DogGenome, randomGenome } from './entities/DogGenome';
 import { type Egg, eggFromJSON } from './entities/Egg';
 import { IDLE_INPUT, Player, type PlayerInput } from './entities/Player';
+import { type AdoptionRecord, AdoptionSystem, type PendingReturn } from './systems/AdoptionSystem';
 import { AlertSystem } from './systems/AlertSystem';
 import {
   type ExpandDir,
@@ -32,6 +34,14 @@ import {
   tryPlaceTiles,
 } from './systems/BuildSystem';
 import { DogBrain } from './systems/DogBrain';
+import {
+  type InspectionReport,
+  type LedgerCategory,
+  type LedgerEntry,
+  type WeekSummary,
+  closeWeek,
+  licenseUpgradeCost,
+} from './systems/EconomySystem';
 import { packExplored, revealAround, unpackExplored } from './systems/Exploration';
 import { placeEgg, takeEgg, tickIncubators } from './systems/IncubatorSystem';
 import { type ActionOutcome, TOOL_DEFS, type Tool, performAction } from './systems/Interaction';
@@ -61,6 +71,8 @@ export interface SimEvents extends Record<string, unknown> {
   buildingAdded: Building;
   buildingRemoved: number;
   buildingReady: Building;
+  adopterArrived: Adopter;
+  weekReport: WeekSummary;
   /** Uyku / bayılma gibi zaman atlamaları (arayüz karartma yapar). */
   slept: { minutes: number; passedOut: boolean };
   /** Oyuncuya kısa bildirim. */
@@ -81,7 +93,10 @@ export type Command =
   | { type: 'expandPlot'; dir: ExpandDir }
   | { type: 'placeEgg'; buildingId: number; eggId: number }
   | { type: 'takeEgg'; buildingId: number; eggId: number }
-  | { type: 'sleep' };
+  | { type: 'sleep' }
+  | { type: 'adopt'; adopterId: number; dogId: number }
+  | { type: 'declineAdopter'; adopterId: number }
+  | { type: 'upgradeLicense' };
 
 export interface SimStats {
   cleaned: number;
@@ -96,10 +111,25 @@ export interface SimStats {
   eggsFound: number;
   hatched: number;
   strays: number;
+  adopted: number;
 }
 
 function emptyStats(): SimStats {
-  return { cleaned: 0, fed: 0, played: 0, petted: 0, trained: 0, groomed: 0, treated: 0, messes: 0, built: 0, eggsFound: 0, hatched: 0, strays: 0 };
+  return {
+    cleaned: 0,
+    fed: 0,
+    played: 0,
+    petted: 0,
+    trained: 0,
+    groomed: 0,
+    treated: 0,
+    messes: 0,
+    built: 0,
+    eggsFound: 0,
+    hatched: 0,
+    strays: 0,
+    adopted: 0,
+  };
 }
 
 /**
@@ -116,6 +146,7 @@ export class Sim {
   readonly needs: NeedsSystem;
   readonly brain: DogBrain;
   readonly alerts: AlertSystem;
+  readonly adoption: AdoptionSystem;
   speed: Speed = 1;
   mode: Mode = 'avatar';
   money: number;
@@ -130,6 +161,14 @@ export class Sim {
   nestHarvests = new Map<number, number>();
   bushTimers = new Map<number, number>();
   exploredCount = 0;
+  reputation: number = BALANCE.economy.startReputation;
+  licenseLevel = 1;
+  adopters: Adopter[] = [];
+  ledger: LedgerEntry[] = [];
+  weeks: WeekSummary[] = [];
+  adoptions: AdoptionRecord[] = [];
+  pendingReturns: PendingReturn[] = [];
+  lastInspection: InspectionReport | null = null;
   stats: SimStats = emptyStats();
   nextId = 1;
   private lastRunningSpeed: Speed = 1;
@@ -148,8 +187,9 @@ export class Sim {
     this.needs = new NeedsSystem(this);
     this.brain = new DogBrain(this);
     this.alerts = new AlertSystem(this);
+    this.adoption = new AdoptionSystem(this);
     this.events.on('day', (d) => this.needs.onDay(d));
-    this.events.on('week', () => this.onWeek());
+    this.events.on('week', (w) => this.onWeek(w));
     this.events.on('hour', (h) => this.onHour(h));
   }
 
@@ -203,6 +243,7 @@ export class Sim {
     tickConstruction(this, dtMin);
     tickNests(this, dtMin);
     tickIncubators(this, dtMin);
+    this.adoption.update(dtMin);
     this.minuteAcc += dtMin;
     if (this.minuteAcc >= 1) {
       this.minuteAcc %= 1;
@@ -255,8 +296,8 @@ export class Sim {
     this.events.emit('message', 'Gece dışarıda bayıldın; sabah ofiste uyandın.');
   }
 
-  /** Hafta tiki: köpekler bir hafta yaşlanır, aşama atlayanlar duyurulur. */
-  private onWeek(): void {
+  /** Hafta tiki: köpekler bir hafta yaşlanır, denetim ve yardım işlenir, haftalık rapor çıkar. */
+  private onWeek(newWeek: number): void {
     for (const dog of this.dogs) {
       const before = dog.stage;
       dog.ageWeeks++;
@@ -264,6 +305,45 @@ export class Sim {
         this.events.emit('message', `${dog.name} artık ${STAGE_NAMES_TR[dog.stage].toLowerCase()}!`);
       }
     }
+    const summary = closeWeek(this, newWeek);
+    this.events.emit('weekReport', summary);
+  }
+
+  // ---------------------------------------------------------------------------
+  // Para
+  // ---------------------------------------------------------------------------
+
+  addIncome(category: LedgerCategory, amount: number, note = '', week = this.clock.week): void {
+    if (amount <= 0) return;
+    this.money += amount;
+    this.ledger.push({ week, day: this.clock.day, category, amount, note });
+  }
+
+  addExpense(category: LedgerCategory, amount: number, note = '', week = this.clock.week): void {
+    if (amount <= 0) return;
+    this.money -= amount;
+    this.ledger.push({ week, day: this.clock.day, category, amount: -amount, note });
+  }
+
+  /** Personel maaşları (M5'te dolar). */
+  weeklyWages(): number {
+    return 0;
+  }
+
+  licenseCap(): number {
+    return BALANCE.economy.licenseCaps[this.licenseLevel - 1];
+  }
+
+  /** Bu hafta biriken gelir/gider (defterden). */
+  weekTotals(): { income: number; expense: number } {
+    let income = 0;
+    let expense = 0;
+    for (const e of this.ledger) {
+      if (e.week !== this.clock.week) continue;
+      if (e.amount >= 0) income += e.amount;
+      else expense -= e.amount;
+    }
+    return { income, expense };
   }
 
   // ---------------------------------------------------------------------------
@@ -291,7 +371,7 @@ export class Sim {
         const bags = Math.max(1, Math.floor(cmd.bags));
         const cost = bags * BALANCE.economy.foodBagPrice;
         if (this.money < cost) return { ok: false, message: 'Yeterli para yok' };
-        this.money -= cost;
+        this.addExpense('food', cost, `${bags} çuval`);
         this.foodStock += bags * BALANCE.economy.foodBagPortions;
         return { ok: true, message: `${bags} çuval yem geldi (${cost} ${BALANCE.economy.currency})` };
       }
@@ -346,6 +426,18 @@ export class Sim {
       case 'sleep': {
         this.sleepUntilMorning(false);
         return { ok: true, message: 'Günaydın! Yeni bir gün.' };
+      }
+      case 'adopt':
+        return this.adoption.adopt(cmd.adopterId, cmd.dogId);
+      case 'declineAdopter':
+        return { ok: this.adoption.decline(cmd.adopterId) };
+      case 'upgradeLicense': {
+        const cost = licenseUpgradeCost(this.licenseLevel);
+        if (cost === null) return { ok: false, message: 'Lisans en üst seviyede' };
+        if (this.money < cost) return { ok: false, message: `Yeterli para yok (${cost} ${BALANCE.economy.currency})` };
+        this.addExpense('license', cost, `Seviye ${this.licenseLevel + 1}`);
+        this.licenseLevel++;
+        return { ok: true, message: `Lisans seviye ${this.licenseLevel}: en fazla ${this.licenseCap()} köpek` };
       }
       default:
         return { ok: false };
@@ -677,6 +769,25 @@ export class Sim {
       nestHarvests: flat(this.nestHarvests),
       bushTimers: flat(this.bushTimers),
       explored: packExplored(this.world.explored),
+      reputation: this.reputation,
+      licenseLevel: this.licenseLevel,
+      adopters: this.adopters.map((a) => ({
+        id: a.id,
+        name: a.name,
+        request: { ...a.request },
+        fee: a.fee,
+        patienceLeft: a.patienceLeft,
+        state: a.state,
+        x: a.x,
+        y: a.y,
+        look: a.look,
+        queueSlot: a.queueSlot,
+      })),
+      ledger: this.ledger.map((e) => ({ ...e })),
+      weeks: this.weeks.map((w) => ({ ...w })),
+      adoptions: this.adoptions.map((a) => ({ ...a })),
+      pendingReturns: this.pendingReturns.map((r) => ({ ...r })),
+      lastInspection: this.lastInspection,
     };
   }
 
@@ -770,6 +881,20 @@ export class Sim {
     sim.nestHarvests = readMap(data.nestHarvests);
     sim.bushTimers = readMap(data.bushTimers);
     if (typeof data.explored === 'string') sim.exploredCount = unpackExplored(data.explored, world.explored);
+    sim.reputation = Math.min(100, numOr(data.reputation, BALANCE.economy.startReputation, 0));
+    const lvl = Math.floor(numOr(data.licenseLevel, 1, 1));
+    sim.licenseLevel = Math.min(BALANCE.economy.licenseCaps.length, Math.max(1, lvl));
+    if (Array.isArray(data.ledger)) {
+      for (const e of data.ledger as Partial<LedgerEntry>[]) {
+        if (e && typeof e.week === 'number' && typeof e.amount === 'number' && typeof e.category === 'string') {
+          sim.ledger.push({ week: e.week, day: typeof e.day === 'number' ? e.day : 1, category: e.category, amount: e.amount, note: typeof e.note === 'string' ? e.note : '' });
+        }
+      }
+    }
+    if (Array.isArray(data.weeks)) sim.weeks = (data.weeks as WeekSummary[]).filter((w) => w && typeof w.week === 'number');
+    if (Array.isArray(data.adoptions)) sim.adoptions = (data.adoptions as AdoptionRecord[]).filter((a) => a && typeof a.day === 'number');
+    if (Array.isArray(data.pendingReturns)) sim.pendingReturns = (data.pendingReturns as PendingReturn[]).filter((r) => r && typeof r.day === 'number' && r.dog);
+    if (data.lastInspection && typeof data.lastInspection === 'object') sim.lastInspection = data.lastInspection as InspectionReport;
 
     // Binalar
     let maxId = 0;
@@ -842,6 +967,20 @@ export class Sim {
           dog.x = t.x + 0.5;
           dog.y = t.y + 0.5;
         }
+      }
+    }
+    if (Array.isArray(data.adopters)) {
+      for (const raw of data.adopters) {
+        const a = adopterFromJSON(raw);
+        if (!a) continue;
+        if (world.isSolid(Math.floor(a.x), Math.floor(a.y))) continue;
+        sim.adopters.push(a);
+        maxId = Math.max(maxId, a.id);
+      }
+      // Yükleme sonrası yürüyenler/ayrılanlar yollarını yeniden bulur.
+      for (const a of sim.adopters) {
+        if (a.state === 'walking') a.state = 'waiting';
+        else if (a.state === 'leaving') sim.adoption.leave(a);
       }
     }
     sim.nextId = Math.max(typeof data.nextId === 'number' ? data.nextId : 1, maxId + 1);

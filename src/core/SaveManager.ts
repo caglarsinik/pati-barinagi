@@ -30,6 +30,14 @@ export interface SaveData {
   bushTimers?: number[];
   /** Keşfedilen kareler, bit paketli base64. */
   explored?: string;
+  reputation?: number;
+  licenseLevel?: number;
+  adopters?: unknown[];
+  ledger?: unknown[];
+  weeks?: unknown[];
+  adoptions?: unknown[];
+  pendingReturns?: unknown[];
+  lastInspection?: unknown;
 }
 
 export interface SaveSummary {

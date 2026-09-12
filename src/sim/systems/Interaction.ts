@@ -43,6 +43,7 @@ export type ActionKind =
   | 'berries'
   | 'treatWild'
   | 'sleep'
+  | 'office'
   | 'none';
 
 export interface ResolvedAction {
@@ -130,9 +131,8 @@ export function resolveAction(sim: Sim): ResolvedAction {
     }
     if (building.type === 'shed') return { kind: 'shed', hint: `E: kiler (${Math.floor(sim.foodStock)} porsiyon)`, building };
     if (building.type === 'office') {
-      const h = sim.clock.hour;
-      if (h >= BALANCE.time.sleepFromHour || h < BALANCE.time.nightEndHour) return { kind: 'sleep', hint: 'E: sabaha kadar uyu', building };
-      return { kind: 'none', hint: `Ofis: gece (${BALANCE.time.sleepFromHour}:00'den sonra) uyumak için gel`, building };
+      const waiting = sim.adopters.filter((a) => a.state === 'waiting').length;
+      return { kind: 'office', hint: waiting > 0 ? `E: ofis (${waiting} sahiplenici bekliyor)` : 'E: ofis (lisans, uyku)', building };
     }
     if (building.type === 'kennelSmall' || building.type === 'kennelLarge') {
       const names = building.occupants.map((id) => sim.dogById(id)?.name ?? '?').join(', ');
@@ -191,7 +191,7 @@ export interface ActionOutcome {
   ok: boolean;
   message?: string;
   /** UI'nın açması gereken panel. */
-  open?: 'shed' | 'kennel' | 'incubator';
+  open?: 'shed' | 'kennel' | 'incubator' | 'office';
   building?: Building;
   dog?: Dog;
 }
@@ -221,7 +221,7 @@ export function performAction(sim: Sim): ActionOutcome {
       const dog = r.dog!;
       const price = BALANCE.economy.treatmentPrice;
       if (sim.money < price) return { ok: false, message: 'İlaç için para yok' };
-      sim.money -= price;
+      sim.addExpense('treatment', price, dog.name);
       dog.needs.health = clamp100(dog.needs.health + B.treatHealthGain);
       interactWith(sim, dog, B.treatDurationMin);
       sim.stats.treated++;
@@ -314,6 +314,8 @@ export function performAction(sim: Sim): ActionOutcome {
     }
     case 'sleep':
       return sim.command({ type: 'sleep' });
+    case 'office':
+      return { ok: true, open: 'office', building: r.building };
     case 'shed':
       return { ok: true, open: 'shed', building: r.building };
     case 'kennel':
