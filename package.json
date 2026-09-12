@@ -1,0 +1,26 @@
+{
+  "name": "pati-barinagi",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Pati Barınağı: 2D köpek barınağı yönetim ve açık dünya keşif oyunu",
+  "type": "module",
+  "scripts": {
+    "dev": "vite --open",
+    "build": "vite build",
+    "preview": "vite preview",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@preact/signals": "^2.11.2",
+    "phaser": "3.90.0",
+    "preact": "^10.29.8"
+  },
+  "devDependencies": {
+    "typescript": "^5.9.3",
+    "vite": "^7.3.6",
+    "vite-plugin-singlefile": "^2.3.3",
+    "vitest": "^4.1.11"
+  }
+}

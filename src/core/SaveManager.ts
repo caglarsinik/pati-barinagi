@@ -1,0 +1,106 @@
+import { GAME } from '../config/game';
+
+/** Kayıt dosyasının kökü. Alt alanların doğrulaması ilgili sınıfların fromJSON'unda yapılır. */
+export interface SaveData {
+  version: number;
+  savedAt: number;
+  seed: number;
+  clock: unknown;
+  player: unknown;
+  speed: number;
+  mode: string;
+  money: number;
+}
+
+export interface SaveSummary {
+  slot: number;
+  savedAt: number;
+  day: number;
+  money: number;
+}
+
+type Migration = (data: Record<string, unknown>) => Record<string, unknown>;
+
+/** Sürüm N'den N+1'e geçiren fonksiyonlar; yeni sürümde buraya eklenir. */
+const MIGRATIONS: Record<number, Migration> = {};
+
+function storage(): Storage | null {
+  try {
+    if (typeof localStorage === 'undefined') return null;
+    return localStorage;
+  } catch {
+    return null;
+  }
+}
+
+export const SaveManager = {
+  key(slot: number): string {
+    return `${GAME.saveKeyPrefix}${slot}`;
+  },
+
+  has(slot: number): boolean {
+    const s = storage();
+    return !!s && s.getItem(this.key(slot)) !== null;
+  },
+
+  /** Asla fırlatmaz: yoksa ya da bozuksa null döner. */
+  read(slot: number): SaveData | null {
+    const s = storage();
+    if (!s) return null;
+    try {
+      const raw = s.getItem(this.key(slot));
+      if (!raw) return null;
+      return this.parse(raw);
+    } catch (err) {
+      console.warn('Kayıt okunamadı:', err);
+      return null;
+    }
+  },
+
+  parse(raw: string): SaveData | null {
+    let data = JSON.parse(raw) as Record<string, unknown>;
+    if (!data || typeof data !== 'object') return null;
+    let version = typeof data.version === 'number' ? data.version : 0;
+    while (version < GAME.saveVersion) {
+      const m = MIGRATIONS[version];
+      if (!m) {
+        console.warn(`Kayıt sürümü ${version} için migrasyon yok.`);
+        return null;
+      }
+      data = m(data);
+      version++;
+      data.version = version;
+    }
+    if (typeof data.seed !== 'number') return null;
+    return data as unknown as SaveData;
+  },
+
+  write(slot: number, data: SaveData): boolean {
+    const s = storage();
+    if (!s) return false;
+    try {
+      s.setItem(this.key(slot), JSON.stringify(data));
+      return true;
+    } catch (err) {
+      console.warn('Kayıt yazılamadı:', err);
+      return false;
+    }
+  },
+
+  remove(slot: number): void {
+    storage()?.removeItem(this.key(slot));
+  },
+
+  summary(slot: number): SaveSummary | null {
+    const d = this.read(slot);
+    if (!d) return null;
+    const clock = d.clock as { totalMinutes?: number } | null;
+    const minutes = typeof clock?.totalMinutes === 'number' ? clock.totalMinutes : 0;
+    return { slot, savedAt: d.savedAt, day: Math.floor(minutes / 1440) + 1, money: d.money };
+  },
+
+  /** Kullanıcının indirmesi için JSON metni. */
+  exportText(data: SaveData): string {
+    return JSON.stringify(data, null, 2);
+  },
+};
