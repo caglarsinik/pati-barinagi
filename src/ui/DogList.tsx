@@ -7,7 +7,7 @@ export function DogList() {
   store.tick.value;
   const sim = app.sim;
   if (!sim) return null;
-  const dogs = [...sim.dogs].sort((a, b) => a.mood() - b.mood());
+  const dogs = sim.shelterDogs().sort((a, b) => a.mood() - b.mood());
   return (
     <div class="overlay">
       <div class="menu-card panel wide">

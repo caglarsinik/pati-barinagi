@@ -1,14 +1,15 @@
 import { useEffect, useRef } from 'preact/hooks';
 import { app } from '../app';
-import { BIOME_COLORS, type Biome } from '../sim/world/tiles';
+import { BIOME_COLORS, type Biome, Obj } from '../sim/world/tiles';
 import { store } from './store';
 
-/** Biyom renkleriyle tek seferlik çizilen taban + her karede oyuncu işareti. */
+/** Biyom renkleriyle çizilen taban; sis, yuva/in işaretleri ve oyuncu her güncellemede üstüne gelir. */
 export function Minimap() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const baseRef = useRef<HTMLCanvasElement | null>(null);
   const version = store.version.value;
   const tile = store.playerTile.value;
+  const tick = store.tick.value;
 
   useEffect(() => {
     const sim = app.sim;
@@ -35,20 +36,60 @@ export function Minimap() {
   useEffect(() => {
     const c = canvasRef.current;
     const base = baseRef.current;
-    if (!c || !base) return;
+    const sim = app.sim;
+    if (!c || !base || !sim) return;
     const ctx = c.getContext('2d');
     if (!ctx) return;
+    const w = sim.world.width;
+    const h = sim.world.height;
     ctx.clearRect(0, 0, c.width, c.height);
     ctx.drawImage(base, 0, 0);
+    // Sis: keşfedilmemiş kareler koyu.
+    const fog = ctx.createImageData(w, h);
+    const explored = sim.world.explored;
+    for (let i = 0; i < w * h; i++) {
+      if (explored[i]) continue;
+      fog.data[i * 4] = 12;
+      fog.data[i * 4 + 1] = 10;
+      fog.data[i * 4 + 2] = 22;
+      fog.data[i * 4 + 3] = 215;
+    }
+    const fogCanvas = document.createElement('canvas');
+    fogCanvas.width = w;
+    fogCanvas.height = h;
+    fogCanvas.getContext('2d')?.putImageData(fog, 0, 0);
+    ctx.drawImage(fogCanvas, 0, 0);
+    // Arsa çerçevesi
+    const p = sim.world.plot;
+    ctx.strokeStyle = '#f6d55c';
+    ctx.lineWidth = 1;
+    ctx.strokeRect(p.x + 0.5, p.y + 0.5, p.w - 1, p.h - 1);
+    // Keşfedilmiş yuvalar ve inler
+    for (const n of sim.world.nests) {
+      const i = sim.world.idx(n.x, n.y);
+      if (!explored[i]) continue;
+      ctx.fillStyle = sim.world.object[i] === Obj.NestEggs ? '#fff2a8' : '#8f8f98';
+      ctx.fillRect(n.x - 1, n.y - 1, 3, 3);
+    }
+    for (const d of sim.world.dens) {
+      if (!explored[sim.world.idx(d.x, d.y)]) continue;
+      ctx.fillStyle = '#ff9a3c';
+      ctx.fillRect(d.x - 1, d.y - 1, 3, 3);
+    }
+    for (const dog of sim.dogs) {
+      if (!dog.wild || !dog.following) continue;
+      ctx.fillStyle = '#ff9a3c';
+      ctx.fillRect(dog.tileX, dog.tileY, 2, 2);
+    }
     ctx.fillStyle = '#ffffff';
     ctx.fillRect(tile.x - 1, tile.y - 1, 3, 3);
     ctx.fillStyle = '#e4514f';
     ctx.fillRect(tile.x, tile.y, 1, 1);
-  }, [tile, version]);
+  }, [tile, version, Math.floor(tick / 5)]);
 
   const size = app.sim?.world.width ?? 200;
   return (
-    <div class="hud minimap panel" title="Mini harita">
+    <div class="hud minimap panel" title="Mini harita: sarı nokta dolu yuva, turuncu nokta sokak köpeği ini">
       <canvas ref={canvasRef} width={size} height={size} />
     </div>
   );

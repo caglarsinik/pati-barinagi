@@ -40,7 +40,7 @@ describe('Başlangıç barınağı', () => {
   const sim = Sim.create(11);
 
   it('bir köpek, kulübesi ve binalar var', () => {
-    expect(sim.dogs.length).toBe(1);
+    expect(sim.shelterDogs().length).toBe(1);
     const dog = sim.dogs[0];
     expect(dog.kennelId).not.toBeNull();
     expect(sim.buildings.some((b) => b.type === 'bowl')).toBe(true);
@@ -191,7 +191,7 @@ describe('Kayıt', () => {
     sim.command({ type: 'renameDog', id: dog.id, name: 'Test' });
     const raw = JSON.stringify(sim.toJSON());
     const back = Sim.fromJSON(SaveManager.parse(raw)!);
-    expect(back.dogs.length).toBe(1);
+    expect(back.shelterDogs().length).toBe(1);
     expect(back.dogs[0].name).toBe('Test');
     expect(back.dogs[0].skills.sit).toBe(55);
     expect(back.dogs[0].kennelId).toBe(dog.kennelId);

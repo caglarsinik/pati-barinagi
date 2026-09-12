@@ -13,6 +13,8 @@ export const BALANCE = {
     nightStartHour: 22,
     nightEndHour: 6,
     passOutHour: 2,
+    /** Ofiste bu saatten sonra uyunabilir. */
+    sleepFromHour: 20,
     mealHours: [8, 18] as const,
     mealWindowMinutes: 60,
     weekTickHour: 6,
@@ -109,6 +111,23 @@ export const BALANCE = {
     trainingZoneBonus: 1.25,
     obstacleBonus: 0.05,
     stationRadius: 2.6,
+  },
+  eggs: {
+    hatchDays: 3,
+    nestRespawnDays: 2,
+    treatsPerBush: 2,
+    treatsMax: 10,
+    bushRegrowDays: 1.5,
+    /** Sokak köpeğini evcilleştirmek için gereken ödül sayısı. */
+    tameTreats: 3,
+    strayDens: 6,
+    strayMinDistFromPlot: 28,
+    strayMinDistBetween: 30,
+    /** Peşinden gelen köpek bu kadar uzak kalırsa oyuncunun yanına ışınlanır. */
+    followCatchUpDistance: 10,
+  },
+  exploration: {
+    revealRadius: 9,
   },
   camera: {
     avatarZoom: 3,

@@ -1,5 +1,6 @@
 import { BUILDING_DEFS, type BuildingDef, type BuildingType } from '../../content/buildings';
 import type { TileWorld } from '../world/TileWorld';
+import type { Egg, EggSave } from './Egg';
 
 export interface Building {
   id: number;
@@ -13,6 +14,8 @@ export interface Building {
   occupants: number[];
   /** Kalan inşaat süresi (oyun dakikası); 0 ise hazır. */
   buildLeft: number;
+  /** Kuluçka: içindeki yumurtalar. */
+  eggs: Egg[];
 }
 
 export interface BuildingSave {
@@ -23,6 +26,7 @@ export interface BuildingSave {
   food?: number;
   occupants?: number[];
   buildLeft?: number;
+  eggs?: EggSave[];
 }
 
 export function buildingDef(b: Building | BuildingType): BuildingDef {

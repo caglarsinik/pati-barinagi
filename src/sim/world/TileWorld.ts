@@ -30,6 +30,10 @@ export class TileWorld {
   readonly buildingSolid: Uint8Array;
   plot: Rect;
   nests: TilePos[] = [];
+  /** Sokak köpeği yuvaları. */
+  dens: TilePos[] = [];
+  /** Keşfedilen kareler (sis). */
+  readonly explored: Uint8Array;
   spawn: { x: number; y: number } = { x: 0, y: 0 };
   dirty: number[] = [];
   /** Üretimden sonra değişen nesne kareleri (kayıt için): kare indeksi → nesne. */
@@ -47,6 +51,7 @@ export class TileWorld {
     this.zone = new Uint8Array(n);
     this.buildingIndex = new Int32Array(n).fill(-1);
     this.buildingSolid = new Uint8Array(n);
+    this.explored = new Uint8Array(n);
     this.plot = { ...plot };
   }
 

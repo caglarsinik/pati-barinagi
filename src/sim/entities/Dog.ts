@@ -65,6 +65,10 @@ export interface DogSave {
   lastInteractionDay: number;
   trainingFocus: SkillKey | null;
   petsToday: number;
+  wild?: boolean;
+  trust?: number;
+  den?: TilePos | null;
+  following?: boolean;
 }
 
 export function defaultNeeds(origin: DogOrigin): DogNeeds {
@@ -100,6 +104,13 @@ export class Dog {
   lastInteractionDay = 1;
   trainingFocus: SkillKey | null = null;
   petsToday = 0;
+  /** Dünyada serbest dolaşan sokak köpeği (henüz barınağa katılmadı). */
+  wild = false;
+  /** Verilen ödül sayısı; yeterince olunca oyuncuya güvenir. */
+  trust = 0;
+  den: TilePos | null = null;
+  /** Evcilleşti, oyuncunun peşinden barınağa geliyor. */
+  following = false;
 
   // Davranış durumu (kayda yazılmaz; yüklemede boşta başlar)
   state: DogState = 'idle';
@@ -185,6 +196,10 @@ export class Dog {
       lastInteractionDay: this.lastInteractionDay,
       trainingFocus: this.trainingFocus,
       petsToday: this.petsToday,
+      wild: this.wild,
+      trust: this.trust,
+      den: this.den,
+      following: this.following,
     };
   }
 
@@ -210,6 +225,10 @@ export class Dog {
     dog.lastInteractionDay = typeof d.lastInteractionDay === 'number' ? d.lastInteractionDay : 1;
     dog.trainingFocus = SKILL_KEYS.includes(d.trainingFocus as SkillKey) ? (d.trainingFocus as SkillKey) : null;
     dog.petsToday = typeof d.petsToday === 'number' ? d.petsToday : 0;
+    dog.wild = d.wild === true;
+    dog.trust = typeof d.trust === 'number' ? Math.max(0, Math.floor(d.trust)) : 0;
+    dog.den = d.den && typeof d.den.x === 'number' && typeof d.den.y === 'number' ? { x: d.den.x, y: d.den.y } : null;
+    dog.following = d.following === true;
     return dog;
   }
 }

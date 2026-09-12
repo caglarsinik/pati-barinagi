@@ -1,6 +1,7 @@
 import { Rng, hash2 } from '../core/Rng';
 import {
   FENCE_TILE_BASE,
+  DEN_TILE,
   GATE_TILE,
   Ground,
   MESS_TILE,
@@ -12,7 +13,7 @@ import {
   Zone,
   objTileIndex,
 } from '../sim/world/tiles';
-import { Pixels, type RGBA } from './Pixels';
+import { Pixels, type RGBA, hex } from './Pixels';
 import { P } from './palette';
 
 export const TILE = 16;
@@ -37,6 +38,7 @@ export function buildTileset(frame: 0 | 1): Pixels {
   for (let mask = 0; mask < 16; mask++) put(FENCE_TILE_BASE + mask, drawFence(mask));
   put(GATE_TILE, drawGate());
   put(MESS_TILE, drawMess());
+  put(DEN_TILE, drawDen());
   for (let z = 1; z < Zone.COUNT; z++) put(ZONE_TILE_BASE + z, drawZoneOverlay(ZONE_COLORS[z] ?? 0xffffff));
   return sheet;
 }
@@ -79,6 +81,21 @@ export function drawGate(): Pixels {
   p.fillRect(3, 10, 10, 1, P.trunkLight);
   p.fillRect(1, 1, 3, 1, P.trunkLight);
   p.fillRect(12, 1, 3, 1, P.trunkLight);
+  p.outline(P.outline);
+  return p;
+}
+
+/** Sokak köpeği ini: toprak tümsek, karanlık giriş ve saman. */
+export function drawDen(): Pixels {
+  const p = new Pixels(TILE, TILE);
+  p.ellipse(8, 10, 7, 4.5, P.dirt);
+  p.ellipse(8, 9, 6, 3.5, P.dirtDark);
+  p.ellipse(8, 10.5, 3.5, 2.5, P.outline);
+  p.ellipse(8, 10, 2.5, 1.5, hex(0x0d0b16));
+  p.set(3, 12, P.twigLight);
+  p.set(12, 12, P.twigLight);
+  p.set(5, 13, P.twig);
+  p.set(11, 13, P.twig);
   p.outline(P.outline);
   return p;
 }

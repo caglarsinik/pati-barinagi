@@ -22,6 +22,10 @@ export class DogBrain {
   private updateDog(dog: Dog, dtMin: number): void {
     dog.stateTimer -= dtMin;
     dog.moving = false;
+    if (dog.wild) {
+      this.updateWild(dog, dtMin);
+      return;
+    }
     switch (dog.state) {
       case 'toBowl':
       case 'toToilet':
@@ -59,6 +63,99 @@ export class DogBrain {
         if (dog.stateTimer <= 0) this.decide(dog);
         break;
     }
+  }
+
+  // ---------------------------------------------------------------------------
+  // Vahşi köpek: ininin çevresinde oyalanır, evcilleşince oyuncuyu izler
+  // ---------------------------------------------------------------------------
+
+  private updateWild(dog: Dog, dtMin: number): void {
+    if (dog.following) {
+      this.followPlayer(dog, dtMin);
+      return;
+    }
+    if (dog.state === 'wander') {
+      this.followPath(dog, dtMin);
+      if (dog.path.length === 0 || dog.stateTimer <= 0) this.setState(dog, 'sit', this.sim.rng.int(3, 10));
+      return;
+    }
+    if (dog.stateTimer > 0) return;
+    const p = this.sim.player;
+    const den = dog.den ?? { x: dog.tileX, y: dog.tileY };
+    const nearPlayer = Math.hypot(p.x - dog.x, p.y - dog.y) < 5;
+    if (nearPlayer) {
+      // Oyuncuya dön ve merakla bekle.
+      const dx = p.x - dog.x;
+      const dy = p.y - dog.y;
+      dog.facing = Math.abs(dx) >= Math.abs(dy) ? (dx < 0 ? 1 : 2) : dy < 0 ? 3 : 0;
+      this.setState(dog, 'sit', 2);
+      return;
+    }
+    const r = this.sim.rng.next();
+    if (r < 0.45) {
+      const w = this.sim.world;
+      for (let tries = 0; tries < 6; tries++) {
+        const tx = den.x + this.sim.rng.int(-3, 3);
+        const ty = den.y + this.sim.rng.int(-3, 3);
+        if (!w.inBounds(tx, ty) || w.isSolid(tx, ty)) continue;
+        const path = findPath(w, { x: dog.tileX, y: dog.tileY }, { x: tx, y: ty }, {
+          region: { x: den.x - 6, y: den.y - 6, w: 13, h: 13 },
+          maxNodes: 400,
+        });
+        if (!path) continue;
+        dog.path = path;
+        this.setState(dog, 'wander', 20);
+        return;
+      }
+      this.setState(dog, 'sit', this.sim.rng.int(4, 12));
+    } else if (r < 0.75) this.setState(dog, 'sit', this.sim.rng.int(5, 15));
+    else this.setState(dog, 'lie', this.sim.rng.int(8, 25));
+  }
+
+  private followPlayer(dog: Dog, dtMin: number): void {
+    const sim = this.sim;
+    const p = sim.player;
+    const w = sim.world;
+    if (w.inPlotInterior(dog.tileX, dog.tileY)) {
+      sim.joinShelter(dog);
+      this.setIdle(dog, 1);
+      return;
+    }
+    const dist = Math.hypot(p.x - dog.x, p.y - 0.3 - dog.y);
+    if (dist > BALANCE.eggs.followCatchUpDistance) {
+      // Çok geride kaldı: oyuncunun yanına ışınla.
+      const spot = this.freeTileNear(p.tileX, p.tileY) ?? { x: p.tileX, y: p.tileY };
+      dog.x = spot.x + 0.5;
+      dog.y = spot.y + 0.5;
+      dog.path = [];
+      return;
+    }
+    if (dist > 1.6) {
+      if (dog.path.length === 0 || dog.stateTimer <= 0) {
+        const path = findPath(w, { x: dog.tileX, y: dog.tileY }, { x: p.tileX, y: p.tileY }, { maxNodes: 2500, adjacentOk: true });
+        dog.path = path ?? [];
+        dog.stateTimer = 1.5;
+      }
+      if (dog.path.length > 0) this.followPath(dog, dtMin);
+      return;
+    }
+    dog.path = [];
+    const dx = p.x - dog.x;
+    const dy = p.y - dog.y;
+    dog.facing = Math.abs(dx) >= Math.abs(dy) ? (dx < 0 ? 1 : 2) : dy < 0 ? 3 : 0;
+  }
+
+  private freeTileNear(x: number, y: number): TilePos | null {
+    const w = this.sim.world;
+    for (let r = 1; r <= 3; r++) {
+      for (let dy = -r; dy <= r; dy++) {
+        for (let dx = -r; dx <= r; dx++) {
+          if (Math.max(Math.abs(dx), Math.abs(dy)) !== r) continue;
+          if (!w.isSolid(x + dx, y + dy)) return { x: x + dx, y: y + dy };
+        }
+      }
+    }
+    return null;
   }
 
   // ---------------------------------------------------------------------------

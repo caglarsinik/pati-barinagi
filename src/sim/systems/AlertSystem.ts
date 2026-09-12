@@ -22,6 +22,7 @@ export class AlertSystem {
     const out: Alert[] = [];
     const sim = this.sim;
     for (const dog of sim.dogs) {
+      if (dog.wild) continue;
       const n = dog.needs;
       if (dog.sick) out.push({ id: `sick-${dog.id}`, text: `${dog.name} hasta`, severity: 'danger', dogId: dog.id });
       if (n.hunger >= 80) out.push({ id: `hunger-${dog.id}`, text: `${dog.name} çok aç`, severity: n.hunger >= 95 ? 'danger' : 'warn', dogId: dog.id });
@@ -39,7 +40,7 @@ export class AlertSystem {
     if (sim.foodStock <= 0) out.push({ id: 'nofood', text: 'Kiler boş: yem sipariş et', severity: 'danger' });
     else if (sim.foodStock < BALANCE.economy.foodBagPortions / 2) out.push({ id: 'lowfood', text: 'Yem azalıyor', severity: 'info' });
     const emptyBowls = sim.buildings.filter((b) => b.type === 'bowl' && b.food <= 0).length;
-    if (emptyBowls > 0 && sim.dogs.length > 0) out.push({ id: 'bowls', text: emptyBowls === 1 ? 'Bir yem kabı boş' : `${emptyBowls} yem kabı boş`, severity: 'info' });
+    if (emptyBowls > 0 && sim.shelterDogs().length > 0) out.push({ id: 'bowls', text: emptyBowls === 1 ? 'Bir yem kabı boş' : `${emptyBowls} yem kabı boş`, severity: 'info' });
     if (sim.money < 0) out.push({ id: 'debt', text: 'Kasa eksiye düştü', severity: 'danger' });
 
     const order: Record<AlertSeverity, number> = { danger: 0, warn: 1, info: 2 };

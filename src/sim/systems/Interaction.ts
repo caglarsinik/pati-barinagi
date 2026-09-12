@@ -5,7 +5,9 @@ import { FACING_DELTA } from '../entities/Player';
 import type { TilePos } from '../world/TileWorld';
 import { Obj, Zone } from '../world/tiles';
 import type { Sim } from '../Sim';
+import { eggDescription } from '../entities/Egg';
 import { cleanMess } from './MessSystem';
+import { harvestBerries, harvestNest } from './NestSystem';
 
 export type Tool = 'pet' | 'play' | 'train' | 'feed' | 'clean';
 
@@ -37,6 +39,10 @@ export type ActionKind =
   | 'shed'
   | 'kennel'
   | 'incubator'
+  | 'pickEgg'
+  | 'berries'
+  | 'treatWild'
+  | 'sleep'
   | 'none';
 
 export interface ResolvedAction {
@@ -77,7 +83,18 @@ export function resolveAction(sim: Sim): ResolvedAction {
   const w = sim.world;
 
   // Pislik her araçla temizlenir.
-  if (w.objectAt(tile.x, tile.y) === Obj.Mess) return { kind: 'clean', hint: 'E: pisliği temizle', tile };
+  const obj = w.objectAt(tile.x, tile.y);
+  if (obj === Obj.Mess) return { kind: 'clean', hint: 'E: pisliği temizle', tile };
+  if (obj === Obj.NestEggs) {
+    if (sim.backpack.length >= sim.backpackSlots()) return { kind: 'none', hint: `Çanta dolu (${sim.backpack.length}/${sim.backpackSlots()}): kuluçkaya boşalt`, tile };
+    return { kind: 'pickEgg', hint: 'E: yumurtayı al', tile };
+  }
+  if (obj === Obj.Nest) return { kind: 'none', hint: 'Boş yuva: birkaç güne yeniden dolar', tile };
+  if (obj === Obj.BerryBush) {
+    if (sim.treats >= BALANCE.eggs.treatsMax) return { kind: 'none', hint: 'Ödül maması çantası dolu', tile };
+    return { kind: 'berries', hint: `E: böğürtlen topla (ödül maması +${BALANCE.eggs.treatsPerBush})`, tile };
+  }
+  if (obj === Obj.Den) return { kind: 'none', hint: 'Sokak köpeği ini', tile };
 
   // Bina.
   const bid = w.buildingIdAt(tile.x, tile.y);
@@ -112,6 +129,11 @@ export function resolveAction(sim: Sim): ResolvedAction {
       };
     }
     if (building.type === 'shed') return { kind: 'shed', hint: `E: kiler (${Math.floor(sim.foodStock)} porsiyon)`, building };
+    if (building.type === 'office') {
+      const h = sim.clock.hour;
+      if (h >= BALANCE.time.sleepFromHour || h < BALANCE.time.nightEndHour) return { kind: 'sleep', hint: 'E: sabaha kadar uyu', building };
+      return { kind: 'none', hint: `Ofis: gece (${BALANCE.time.sleepFromHour}:00'den sonra) uyumak için gel`, building };
+    }
     if (building.type === 'kennelSmall' || building.type === 'kennelLarge') {
       const names = building.occupants.map((id) => sim.dogById(id)?.name ?? '?').join(', ');
       return { kind: 'kennel', hint: `E: ${def.name}${names ? ` (${names})` : ' (boş)'}`, building };
@@ -121,6 +143,11 @@ export function resolveAction(sim: Sim): ResolvedAction {
 
   // Köpek.
   const dog = nearestDog(sim, fp.x, fp.y, 1.25);
+  if (dog && dog.wild) {
+    if (dog.following) return { kind: 'none', hint: `${dog.name} peşinde: barınağa götür`, dog };
+    if (sim.treats <= 0) return { kind: 'none', hint: `${dog.name} ürkek: ödül maması lazım (böğürtlen çalısı)`, dog };
+    return { kind: 'treatWild', hint: `E: ${dog.name}'e ödül ver (güven ${dog.trust}/${BALANCE.eggs.tameTreats})`, dog };
+  }
   if (dog) {
     const tool = sim.tool;
     if (tool === 'play') {
@@ -259,6 +286,34 @@ export function performAction(sim: Sim): ActionOutcome {
       p.setBusy(0.9, 'groom');
       return { ok: true, message: `${dog.name} fırçalandı` };
     }
+    case 'pickEgg': {
+      const egg = r.tile ? harvestNest(sim, r.tile.x, r.tile.y) : null;
+      if (!egg) return { ok: false };
+      sim.backpack.push(egg);
+      p.setBusy(0.7, 'pick');
+      return { ok: true, message: `Yumurta bulundu: ${eggDescription(egg)}` };
+    }
+    case 'berries': {
+      const got = r.tile ? harvestBerries(sim, r.tile.x, r.tile.y) : 0;
+      if (got <= 0) return { ok: false };
+      p.setBusy(0.6, 'pick');
+      return { ok: true, message: `+${got} ödül maması (${sim.treats})` };
+    }
+    case 'treatWild': {
+      const dog = r.dog!;
+      sim.treats--;
+      dog.trust++;
+      dog.needs.loyalty = clamp100(dog.needs.loyalty + 5);
+      interactWith(sim, dog, 3);
+      p.setBusy(0.7, 'treat');
+      if (dog.trust >= BALANCE.eggs.tameTreats) {
+        sim.tameDog(dog);
+        return { ok: true };
+      }
+      return { ok: true, message: `${dog.name} ödülü aldı (güven ${dog.trust}/${BALANCE.eggs.tameTreats})` };
+    }
+    case 'sleep':
+      return sim.command({ type: 'sleep' });
     case 'shed':
       return { ok: true, open: 'shed', building: r.building };
     case 'kennel':

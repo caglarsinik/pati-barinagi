@@ -39,13 +39,15 @@ export enum Obj {
   Fence = 13,
   Gate = 14,
   Mess = 15,
-  COUNT = 16,
+  Den = 16,
+  COUNT = 17,
 }
 
 export const OBJ_TILE_OFFSET = 32;
 export const FENCE_TILE_BASE = 48;
 export const GATE_TILE = 64;
 export const MESS_TILE = 65;
+export const DEN_TILE = 66;
 export const ZONE_TILE_BASE = 80;
 export const TILESET_COLUMNS = 16;
 export const TILESET_ROWS = 6;
@@ -61,6 +63,8 @@ export function objTileIndex(o: Obj, fenceMask = 0): number {
       return GATE_TILE;
     case Obj.Mess:
       return MESS_TILE;
+    case Obj.Den:
+      return DEN_TILE;
     default:
       return OBJ_TILE_OFFSET + o;
   }
@@ -152,6 +156,7 @@ export const OBJ_INFO: Readonly<Record<number, ObjInfo>> = {
   [Obj.Fence]: { solid: true, above: false },
   [Obj.Gate]: { solid: false, above: false },
   [Obj.Mess]: { solid: false, above: false },
+  [Obj.Den]: { solid: false, above: false },
 };
 
 /** Mini harita ve hata ayıklama için biyom renkleri (hex). */

@@ -9,7 +9,7 @@ export class NeedsSystem {
 
   update(dtMin: number): void {
     const dtH = dtMin / 60;
-    for (const dog of this.sim.dogs) this.updateDog(dog, dtH);
+    for (const dog of this.sim.dogs) if (!dog.wild) this.updateDog(dog, dtH);
   }
 
   private updateDog(dog: Dog, dtH: number): void {
@@ -42,6 +42,7 @@ export class NeedsSystem {
   /** Gün değişince: ilgisiz kalan köpeklerin sadakati düşer, sevme sayacı sıfırlanır. */
   onDay(day: number): void {
     for (const dog of this.sim.dogs) {
+      if (dog.wild) continue;
       dog.petsToday = 0;
       if (day - dog.lastInteractionDay >= 2) dog.needs.loyalty = clamp100(dog.needs.loyalty - BALANCE.dogs.needs.loyaltyDecayPerDay);
     }

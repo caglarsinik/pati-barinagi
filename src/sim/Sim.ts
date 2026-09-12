@@ -2,7 +2,7 @@ import { BALANCE, type Speed } from '../config/balance';
 import { BUILDING_DEFS, type BuildingType, type TileTool } from '../content/buildings';
 import { DOG_NAMES } from '../content/names';
 import { GAME } from '../config/game';
-import { Clock } from '../core/Clock';
+import { Clock, MINUTES_PER_DAY } from '../core/Clock';
 import { EventBus } from '../core/EventBus';
 import { Rng, hash2 } from '../core/Rng';
 import type { SaveData } from '../core/SaveManager';
@@ -10,14 +10,16 @@ import {
   type Building,
   type BuildingSave,
   buildingDef,
+  buildingDoorTile,
   canPlaceBuilding,
   isReady,
   kennelRestTile,
   stampBuilding,
   unstampBuilding,
 } from './entities/Building';
-import { Dog, type DogOrigin, type SkillKey, SKILL_KEYS } from './entities/Dog';
+import { Dog, type DogOrigin, SKILL_KEYS, STAGE_NAMES_TR, type SkillKey, defaultNeeds } from './entities/Dog';
 import { type DogGenome, randomGenome } from './entities/DogGenome';
+import { type Egg, eggFromJSON } from './entities/Egg';
 import { IDLE_INPUT, Player, type PlayerInput } from './entities/Player';
 import { AlertSystem } from './systems/AlertSystem';
 import {
@@ -30,9 +32,12 @@ import {
   tryPlaceTiles,
 } from './systems/BuildSystem';
 import { DogBrain } from './systems/DogBrain';
+import { packExplored, revealAround, unpackExplored } from './systems/Exploration';
+import { placeEgg, takeEgg, tickIncubators } from './systems/IncubatorSystem';
 import { type ActionOutcome, TOOL_DEFS, type Tool, performAction } from './systems/Interaction';
 import { rebuildMessSet } from './systems/MessSystem';
 import { NeedsSystem } from './systems/NeedsSystem';
+import { tickNests } from './systems/NestSystem';
 import type { TilePos, TileWorld } from './world/TileWorld';
 import { generateWorld } from './world/WorldGen';
 import { Biome, Ground, Obj, Zone } from './world/tiles';
@@ -51,9 +56,13 @@ export interface SimEvents extends Record<string, unknown> {
   toolChanged: Tool;
   dogAdded: Dog;
   dogRemoved: number;
+  dogHatched: Dog;
+  dogTamed: Dog;
   buildingAdded: Building;
   buildingRemoved: number;
   buildingReady: Building;
+  /** Uyku / bayılma gibi zaman atlamaları (arayüz karartma yapar). */
+  slept: { minutes: number; passedOut: boolean };
   /** Oyuncuya kısa bildirim. */
   message: string;
 }
@@ -69,7 +78,10 @@ export type Command =
   | { type: 'placeTiles'; tool: TileTool; tiles: TilePos[] }
   | { type: 'demolish'; x: number; y: number }
   | { type: 'paintZone'; zone: Zone; x0: number; y0: number; x1: number; y1: number }
-  | { type: 'expandPlot'; dir: ExpandDir };
+  | { type: 'expandPlot'; dir: ExpandDir }
+  | { type: 'placeEgg'; buildingId: number; eggId: number }
+  | { type: 'takeEgg'; buildingId: number; eggId: number }
+  | { type: 'sleep' };
 
 export interface SimStats {
   cleaned: number;
@@ -81,6 +93,13 @@ export interface SimStats {
   treated: number;
   messes: number;
   built: number;
+  eggsFound: number;
+  hatched: number;
+  strays: number;
+}
+
+function emptyStats(): SimStats {
+  return { cleaned: 0, fed: 0, played: 0, petted: 0, trained: 0, groomed: 0, treated: 0, messes: 0, built: 0, eggsFound: 0, hatched: 0, strays: 0 };
 }
 
 /**
@@ -104,11 +123,18 @@ export class Sim {
   dogs: Dog[] = [];
   buildings: Building[] = [];
   foodStock = 0;
+  treats = 0;
+  backpack: Egg[] = [];
   messTiles = new Set<number>();
-  stats: SimStats = { cleaned: 0, fed: 0, played: 0, petted: 0, trained: 0, groomed: 0, treated: 0, messes: 0, built: 0 };
+  nestTimers = new Map<number, number>();
+  nestHarvests = new Map<number, number>();
+  bushTimers = new Map<number, number>();
+  exploredCount = 0;
+  stats: SimStats = emptyStats();
   nextId = 1;
   private lastRunningSpeed: Speed = 1;
   private minuteAcc = 0;
+  private lastRevealTile = -1;
   private dogMap = new Map<number, Dog>();
   private buildingMap = new Map<number, Building>();
 
@@ -124,6 +150,7 @@ export class Sim {
     this.alerts = new AlertSystem(this);
     this.events.on('day', (d) => this.needs.onDay(d));
     this.events.on('week', () => this.onWeek());
+    this.events.on('hour', (h) => this.onHour(h));
   }
 
   static create(seed: number): Sim {
@@ -131,12 +158,23 @@ export class Sim {
     const player = new Player(world.spawn.x, world.spawn.y);
     const sim = new Sim(seed, world, new Clock(), player, BALANCE.economy.startMoney);
     sim.setupStarterShelter();
+    sim.spawnStrays();
+    sim.revealPlayer(true);
     sim.alerts.refresh();
     return sim;
   }
 
   get paused(): boolean {
     return this.speed === 0;
+  }
+
+  /** Barınaktaki köpekler (dünyadaki vahşiler hariç). */
+  shelterDogs(): Dog[] {
+    return this.dogs.filter((d) => !d.wild);
+  }
+
+  backpackSlots(): number {
+    return BALANCE.player.backpackSlots;
   }
 
   // ---------------------------------------------------------------------------
@@ -147,6 +185,15 @@ export class Sim {
   update(dtSec: number, input: PlayerInput = IDLE_INPUT): void {
     if (this.paused || dtSec <= 0) return;
     const dtMin = dtSec * BALANCE.time.minutesPerRealSecond * this.speed;
+    this.stepSim(dtMin);
+    if (this.mode === 'avatar') {
+      this.player.update(dtSec, input, this.world);
+      this.revealPlayer(false);
+    }
+  }
+
+  /** Oyun zamanını ilerletir (oyuncu hareketi hariç). Uyku gibi atlamalar bunu döngüde çağırır. */
+  stepSim(dtMin: number): void {
     const crossed = this.clock.advance(dtMin);
     for (const h of crossed.hours) this.events.emit('hour', h);
     for (const d of crossed.days) this.events.emit('day', d);
@@ -154,7 +201,8 @@ export class Sim {
     this.needs.update(dtMin);
     this.brain.update(dtMin);
     tickConstruction(this, dtMin);
-    if (this.mode === 'avatar') this.player.update(dtSec, input, this.world);
+    tickNests(this, dtMin);
+    tickIncubators(this, dtMin);
     this.minuteAcc += dtMin;
     if (this.minuteAcc >= 1) {
       this.minuteAcc %= 1;
@@ -162,9 +210,60 @@ export class Sim {
     }
   }
 
-  /** Hafta tiki: köpekler bir hafta yaşlanır (aşama atlayabilir). */
+  private revealPlayer(force: boolean): void {
+    const i = this.world.idx(this.player.tileX, this.player.tileY);
+    if (!force && i === this.lastRevealTile) return;
+    this.lastRevealTile = i;
+    revealAround(this, this.player.tileX, this.player.tileY);
+  }
+
+  /** Sabah 06:00'ya kadar zamanı hızlıca geçirir; köpekler ve inşaatlar normal işler. */
+  sleepUntilMorning(passedOut = false): void {
+    const c = this.clock;
+    const morning = BALANCE.time.nightEndHour * 60;
+    let target = c.dayIndex * MINUTES_PER_DAY + morning;
+    if (c.minuteOfDay >= morning) target += MINUTES_PER_DAY;
+    const total = target - c.totalMinutes;
+    while (this.clock.totalMinutes < target) {
+      this.stepSim(Math.min(5, target - this.clock.totalMinutes));
+    }
+    this.player.stamina = BALANCE.player.staminaMax;
+    this.player.exhausted = false;
+    this.events.emit('slept', { minutes: total, passedOut });
+  }
+
+  private onHour(h: number): void {
+    if (h === BALANCE.time.passOutHour && this.mode === 'avatar' && !this.world.inPlot(this.player.tileX, this.player.tileY)) {
+      this.passOut();
+    }
+  }
+
+  private passOut(): void {
+    const office = this.buildings.find((b) => b.type === 'office');
+    const door = office ? buildingDoorTile(office) : { x: Math.floor(this.world.spawn.x), y: Math.floor(this.world.spawn.y) };
+    this.player.x = door.x + 0.5;
+    this.player.y = door.y + 0.9;
+    this.player.busy = 0;
+    for (const dog of this.dogs) {
+      if (dog.following) {
+        dog.x = this.player.x + 1;
+        dog.y = this.player.y;
+        dog.path = [];
+      }
+    }
+    this.sleepUntilMorning(true);
+    this.events.emit('message', 'Gece dışarıda bayıldın; sabah ofiste uyandın.');
+  }
+
+  /** Hafta tiki: köpekler bir hafta yaşlanır, aşama atlayanlar duyurulur. */
   private onWeek(): void {
-    for (const dog of this.dogs) dog.ageWeeks++;
+    for (const dog of this.dogs) {
+      const before = dog.stage;
+      dog.ageWeeks++;
+      if (dog.stage !== before && !dog.wild) {
+        this.events.emit('message', `${dog.name} artık ${STAGE_NAMES_TR[dog.stage].toLowerCase()}!`);
+      }
+    }
   }
 
   // ---------------------------------------------------------------------------
@@ -204,7 +303,7 @@ export class Sim {
       }
       case 'assignKennel': {
         const dog = this.dogById(cmd.dogId);
-        if (!dog) return { ok: false };
+        if (!dog || dog.wild) return { ok: false };
         if (cmd.buildingId === null) {
           this.assignKennel(dog, null);
           return { ok: true };
@@ -233,6 +332,20 @@ export class Sim {
       case 'expandPlot': {
         const r = tryExpandPlot(this, cmd.dir);
         return { ok: r.ok, message: r.message };
+      }
+      case 'placeEgg': {
+        const b = this.buildingById(cmd.buildingId);
+        if (!b) return { ok: false };
+        return placeEgg(this, b, cmd.eggId);
+      }
+      case 'takeEgg': {
+        const b = this.buildingById(cmd.buildingId);
+        if (!b) return { ok: false };
+        return takeEgg(this, b, cmd.eggId);
+      }
+      case 'sleep': {
+        this.sleepUntilMorning(false);
+        return { ok: true, message: 'Günaydın! Yeni bir gün.' };
       }
       default:
         return { ok: false };
@@ -283,6 +396,49 @@ export class Sim {
     if (kennel) this.assignKennel(dog, kennel);
     this.events.emit('dogAdded', dog);
     return dog;
+  }
+
+  /** Dünyada bir inin yanında yaşayan sokak köpeği. */
+  addWildDog(genome: DogGenome, ageWeeks: number, den: TilePos, name?: string): Dog {
+    const dog = new Dog(this.nextId++, name ?? this.pickName(), genome, 'stray', ageWeeks, den.x + 0.5, den.y + 1.5);
+    dog.wild = true;
+    dog.den = { ...den };
+    dog.needs.loyalty = 0;
+    this.registerDog(dog);
+    this.events.emit('dogAdded', dog);
+    return dog;
+  }
+
+  private spawnStrays(): void {
+    const rng = this.rng.fork(77);
+    for (const den of this.world.dens) {
+      const rarity = rng.weighted(['common', 'uncommon', 'rare'] as const, [40, 45, 15]);
+      const genome = randomGenome(rng, rarity);
+      this.addWildDog(genome, rng.int(24, 90), den);
+    }
+  }
+
+  /** Ödül vererek güvenini kazanınca çağrılır: köpek oyuncunun peşine takılır. */
+  tameDog(dog: Dog): void {
+    dog.following = true;
+    dog.path = [];
+    dog.state = 'idle';
+    dog.stateTimer = 0;
+    this.events.emit('dogTamed', dog);
+    this.events.emit('message', `${dog.name} sana güvendi, peşinden geliyor! Barınağa götür.`);
+  }
+
+  /** Peşinden gelen köpek barınağa girince kayda alınır. */
+  joinShelter(dog: Dog): void {
+    dog.wild = false;
+    dog.following = false;
+    dog.den = null;
+    dog.needs = { ...defaultNeeds('stray'), loyalty: 10 };
+    dog.lastInteractionDay = this.clock.day;
+    const kennel = this.freeKennelFor(dog);
+    if (kennel) this.assignKennel(dog, kennel);
+    this.stats.strays++;
+    this.events.emit('message', `${dog.name} barınağa katıldı!`);
   }
 
   private registerDog(dog: Dog): void {
@@ -363,7 +519,7 @@ export class Sim {
 
   placeBuilding(type: BuildingType, x: number, y: number, buildMinutes = 0): Building | null {
     if (!canPlaceBuilding(this.world, type, x, y)) return null;
-    const b: Building = { id: this.nextId++, type, x, y, food: 0, occupants: [], buildLeft: Math.max(0, buildMinutes) };
+    const b: Building = { id: this.nextId++, type, x, y, food: 0, occupants: [], buildLeft: Math.max(0, buildMinutes), eggs: [] };
     this.buildings.push(b);
     this.buildingMap.set(b.id, b);
     stampBuilding(this.world, b);
@@ -378,6 +534,12 @@ export class Sim {
       const dog = this.dogMap.get(dogId);
       if (dog) this.assignKennel(dog, null);
     }
+    // Kuluçkadaki yumurtalar kaybolmasın: çantaya döner.
+    for (const egg of b.eggs) {
+      egg.hatchLeft = -1;
+      this.backpack.push(egg);
+    }
+    b.eggs = [];
     unstampBuilding(this.world, b);
     this.buildings = this.buildings.filter((x) => x.id !== id);
     this.buildingMap.delete(id);
@@ -412,7 +574,6 @@ export class Sim {
       w.setObject(gx, gy, Obj.Gate);
       w.setGround(gx, gy, Ground.Path);
     }
-    // Kapıdan ofise kısa yol
     for (let y = y1 - 1; y > y0 + 6; y--) {
       w.setGround(gateX, y, Ground.Path);
       w.setGround(gateX + 1, y, Ground.Path);
@@ -440,6 +601,14 @@ export class Sim {
     const genome = randomGenome(this.rng.fork(1), 'common');
     genome.size = genome.size === 'L' ? 'M' : genome.size;
     this.addDog(genome, 'egg', 20, x0 + 10.5, y0 + 11.5);
+
+    // Öğretici: kapının hemen dışında bir yumurta yuvası.
+    const nestX = gateX + 4;
+    const nestY = y1 + 4;
+    if (w.objectAt(nestX, nestY) === Obj.None && !w.isSolid(nestX, nestY) && w.biomeAt(nestX, nestY) !== Biome.Road) {
+      w.setObject(nestX, nestY, Obj.NestEggs);
+      w.nests.push({ x: nestX, y: nestY });
+    }
     w.dirty = [];
   }
 
@@ -467,6 +636,12 @@ export class Sim {
       if (this.world.inPlot(x, y)) continue;
       objectChanges.push(i, o);
     }
+    const flat = (m: Map<number, number>): number[] => {
+      const out: number[] = [];
+      for (const [k, v] of m) out.push(k, v);
+      return out;
+    };
+    const eggSave = (e: Egg): Egg => ({ ...e, genome: { ...e.genome } });
     return {
       version: GAME.saveVersion,
       savedAt: Date.now(),
@@ -479,14 +654,29 @@ export class Sim {
       money: this.money,
       tool: this.tool,
       foodStock: this.foodStock,
+      treats: this.treats,
       nextId: this.nextId,
       stats: { ...this.stats },
       plot: { ...p },
       plotObjects,
       plotZones,
       plotGround,
-      buildings: this.buildings.map((b) => ({ id: b.id, type: b.type, x: b.x, y: b.y, food: b.food, occupants: [...b.occupants], buildLeft: b.buildLeft })),
+      buildings: this.buildings.map((b) => ({
+        id: b.id,
+        type: b.type,
+        x: b.x,
+        y: b.y,
+        food: b.food,
+        occupants: [...b.occupants],
+        buildLeft: b.buildLeft,
+        eggs: b.eggs.map(eggSave),
+      })),
       dogs: this.dogs.map((d) => d.toJSON()),
+      backpack: this.backpack.map(eggSave),
+      nestTimers: flat(this.nestTimers),
+      nestHarvests: flat(this.nestHarvests),
+      bushTimers: flat(this.bushTimers),
+      explored: packExplored(this.world.explored),
     };
   }
 
@@ -502,7 +692,8 @@ export class Sim {
     sim.lastRunningSpeed = sim.speed;
     sim.mode = data.mode === 'manage' ? 'manage' : 'avatar';
     sim.tool = TOOL_DEFS.some((t) => t.id === data.tool) ? (data.tool as Tool) : 'pet';
-    sim.foodStock = typeof data.foodStock === 'number' && Number.isFinite(data.foodStock) ? Math.max(0, data.foodStock) : 0;
+    sim.foodStock = numOr(data.foodStock, 0, 0);
+    sim.treats = Math.floor(numOr(data.treats, 0, 0));
     if (data.stats && typeof data.stats === 'object') {
       for (const k of Object.keys(sim.stats) as Array<keyof SimStats>) {
         const v = (data.stats as Record<string, unknown>)[k];
@@ -534,7 +725,10 @@ export class Sim {
         const i = oc[k];
         const o = oc[k + 1];
         if (typeof i !== 'number' || typeof o !== 'number' || i < 0 || i >= world.object.length || o < 0 || o >= Obj.COUNT) continue;
-        world.setObject(i % world.width, Math.floor(i / world.width), o as Obj);
+        const x = i % world.width;
+        const y = Math.floor(i / world.width);
+        world.setObject(x, y, o as Obj);
+        if ((o === Obj.NestEggs || o === Obj.Nest) && !world.nests.some((nn) => nn.x === x && nn.y === y)) world.nests.push({ x, y });
       }
     }
     const p = world.plot;
@@ -562,6 +756,20 @@ export class Sim {
       }
     }
     rebuildMessSet(sim);
+    const readMap = (arr: unknown): Map<number, number> => {
+      const m = new Map<number, number>();
+      if (!Array.isArray(arr)) return m;
+      for (let k = 0; k + 1 < arr.length; k += 2) {
+        const a = arr[k];
+        const b = arr[k + 1];
+        if (typeof a === 'number' && typeof b === 'number' && Number.isFinite(a) && Number.isFinite(b)) m.set(a, b);
+      }
+      return m;
+    };
+    sim.nestTimers = readMap(data.nestTimers);
+    sim.nestHarvests = readMap(data.nestHarvests);
+    sim.bushTimers = readMap(data.bushTimers);
+    if (typeof data.explored === 'string') sim.exploredCount = unpackExplored(data.explored, world.explored);
 
     // Binalar
     let maxId = 0;
@@ -570,19 +778,38 @@ export class Sim {
         if (!raw || typeof raw.id !== 'number' || typeof raw.type !== 'string' || !(raw.type in BUILDING_DEFS)) continue;
         if (typeof raw.x !== 'number' || typeof raw.y !== 'number') continue;
         if (!canPlaceBuilding(world, raw.type, raw.x, raw.y)) continue;
+        const eggs: Egg[] = [];
+        if (Array.isArray(raw.eggs)) {
+          for (const e of raw.eggs) {
+            const egg = eggFromJSON(e);
+            if (egg) eggs.push(egg);
+          }
+        }
         const b: Building = {
           id: raw.id,
           type: raw.type,
           x: raw.x,
           y: raw.y,
-          food: typeof raw.food === 'number' && Number.isFinite(raw.food) ? Math.max(0, raw.food) : 0,
+          food: numOr(raw.food, 0, 0),
           occupants: [],
-          buildLeft: typeof raw.buildLeft === 'number' && Number.isFinite(raw.buildLeft) ? Math.max(0, raw.buildLeft) : 0,
+          buildLeft: numOr(raw.buildLeft, 0, 0),
+          eggs: eggs.slice(0, BUILDING_DEFS[raw.type].eggSlots ?? 0),
         };
         sim.buildings.push(b);
         sim.buildingMap.set(b.id, b);
         stampBuilding(world, b);
         maxId = Math.max(maxId, b.id);
+        for (const e of b.eggs) maxId = Math.max(maxId, e.id);
+      }
+    }
+    if (Array.isArray(data.backpack)) {
+      for (const e of data.backpack) {
+        const egg = eggFromJSON(e);
+        if (egg && sim.backpack.length < sim.backpackSlots()) {
+          egg.hatchLeft = -1;
+          sim.backpack.push(egg);
+          maxId = Math.max(maxId, egg.id);
+        }
       }
     }
 
@@ -593,6 +820,15 @@ export class Sim {
         if (!dog || sim.dogMap.has(dog.id)) continue;
         sim.registerDog(dog);
         maxId = Math.max(maxId, dog.id);
+        if (dog.wild) {
+          dog.kennelId = null;
+          if (world.isSolid(dog.tileX, dog.tileY)) {
+            const den = dog.den ?? { x: Math.floor(world.spawn.x), y: Math.floor(world.spawn.y) };
+            dog.x = den.x + 0.5;
+            dog.y = den.y + 1.5;
+          }
+          continue;
+        }
         const kennel = dog.kennelId !== null ? sim.buildingMap.get(dog.kennelId) : undefined;
         dog.kennelId = null;
         if (kennel && sim.kennelHasRoom(kennel, dog)) sim.assignKennel(dog, kennel);
@@ -615,7 +851,12 @@ export class Sim {
       player.y = world.spawn.y;
     }
     world.dirty = [];
+    sim.revealPlayer(true);
     sim.alerts.refresh();
     return sim;
   }
+}
+
+function numOr(v: unknown, fallback: number, min: number): number {
+  return typeof v === 'number' && Number.isFinite(v) ? Math.max(min, v) : fallback;
 }

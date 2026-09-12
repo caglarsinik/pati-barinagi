@@ -132,6 +132,11 @@ export class WorldScene extends Phaser.Scene {
       }),
       this.sim.events.on('modeChanged', (m) => this.applyMode(m)),
       this.sim.events.on('message', (m) => showToast(m)),
+      this.sim.events.on('slept', () => this.cameras.main.flash(600, 10, 8, 20)),
+      this.sim.events.on('dogHatched', (d) => {
+        store.selectedDogId.value = d.id;
+        store.panel.value = 'dog';
+      }),
     );
 
     // --- Oyuncu ---
@@ -244,8 +249,9 @@ export class WorldScene extends Phaser.Scene {
     } else if (r.open === 'kennel' && r.building) {
       store.panelBuildingId.value = r.building.id;
       store.panel.value = 'kennel';
-    } else if (r.open === 'incubator') {
-      showToast('Kuluçka: yumurtalar bir sonraki sürümde');
+    } else if (r.open === 'incubator' && r.building) {
+      store.panelBuildingId.value = r.building.id;
+      store.panel.value = 'incubator';
     }
   }
 

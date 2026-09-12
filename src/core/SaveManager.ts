@@ -23,6 +23,13 @@ export interface SaveData {
   objectChanges?: number[];
   buildings?: unknown[];
   dogs?: unknown[];
+  treats?: number;
+  backpack?: unknown[];
+  nestTimers?: number[];
+  nestHarvests?: number[];
+  bushTimers?: number[];
+  /** Keşfedilen kareler, bit paketli base64. */
+  explored?: string;
 }
 
 export interface SaveSummary {

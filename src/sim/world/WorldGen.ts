@@ -143,8 +143,9 @@ export function generateWorld(seed: number): TileWorld {
     }
   }
 
-  // 6) Yuvalar
+  // 6) Yuvalar ve sokak köpeği inleri
   placeNests(world, rng.fork(5));
+  placeDens(world, rng.fork(6));
 
   // 7) Doğuş noktası ve geçilmezlik
   world.spawn = { x: plot.x + plot.w / 2, y: plot.y + plot.h - 3 };
@@ -276,6 +277,37 @@ function placeObject(world: TileWorld, rng: Rng, x: number, y: number, b: Biome)
       break;
     default:
       break;
+  }
+}
+
+function placeDens(world: TileWorld, rng: Rng): void {
+  const p = world.plot;
+  const cx = p.x + p.w / 2;
+  const cy = p.y + p.h / 2;
+  const minPlot = BALANCE.eggs.strayMinDistFromPlot;
+  const minBetween = BALANCE.eggs.strayMinDistBetween;
+  const candidates: number[] = [];
+  for (let y = 4; y < world.height - 4; y++) {
+    for (let x = 4; x < world.width - 4; x++) {
+      const b = world.biome[world.idx(x, y)] as Biome;
+      if (b !== Biome.Meadow && b !== Biome.Forest && b !== Biome.Hills && b !== Biome.Flowers) continue;
+      if (world.object[world.idx(x, y)] !== Obj.None) continue;
+      if (Math.hypot(x - cx, y - cy) < minPlot) continue;
+      // Çevresinde yürünecek yer olsun.
+      let free = 0;
+      for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) if (world.object[world.idx(x + dx, y + dy)] === Obj.None) free++;
+      if (free < 7) continue;
+      candidates.push(world.idx(x, y));
+    }
+  }
+  rng.shuffle(candidates);
+  for (const i of candidates) {
+    if (world.dens.length >= BALANCE.eggs.strayDens) break;
+    const x = i % world.width;
+    const y = Math.floor(i / world.width);
+    if (world.dens.some((d) => Math.hypot(d.x - x, d.y - y) < minBetween)) continue;
+    world.object[i] = Obj.Den;
+    world.dens.push({ x, y });
   }
 }
 

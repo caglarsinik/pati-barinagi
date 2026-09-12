@@ -615,3 +615,113 @@ select,
   font-size: 0.75rem;
   opacity: 0.85;
 }
+
+/* --- Çanta ve yumurtalar --- */
+.backpack {
+  top: 96px;
+  left: 12px;
+  padding: 6px 8px;
+}
+
+.backpack-row {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+}
+
+.egg-slot {
+  pointer-events: auto;
+  width: 40px;
+  height: 40px;
+  background: #2a2640;
+  border: 2px solid #4a4468;
+  border-radius: 3px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: default;
+  padding: 0;
+}
+
+.egg-slot.full {
+  border-color: var(--border);
+  cursor: pointer;
+}
+
+.egg-slot.full:hover {
+  background: #3f3860;
+}
+
+.egg-icon,
+.inc-slot canvas {
+  image-rendering: pixelated;
+}
+
+.treats {
+  margin-left: 6px;
+  font-weight: 700;
+  font-size: 0.9rem;
+}
+
+.egg-head {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.hints {
+  margin: 8px 0 0;
+  padding-left: 18px;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.rarity-uncommon {
+  color: #7ccc5a;
+}
+
+.rarity-rare {
+  color: #7aa6f0;
+}
+
+.rarity-legendary {
+  color: var(--accent);
+}
+
+.incubator-slots {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.inc-slot {
+  flex: 1;
+  min-width: 160px;
+  background: #2a2640;
+  border: 2px solid #4a4468;
+  border-radius: 3px;
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  align-items: flex-start;
+}
+
+.inc-slot.empty {
+  align-items: center;
+  justify-content: center;
+  min-height: 90px;
+}
+
+.inc-info {
+  width: 100%;
+}
+
+.backpack-list .row span {
+  flex: 1;
+}
+
+.menu-card h4 {
+  margin: 12px 0 4px;
+  color: var(--accent);
+}

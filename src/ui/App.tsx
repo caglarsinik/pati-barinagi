@@ -1,6 +1,7 @@
 import { BuildBar } from './BuildBar';
 import { DogList } from './DogList';
 import { DogPanel } from './DogPanel';
+import { Backpack, EggPanel, IncubatorPanel } from './EggPanels';
 import { HUD } from './HUD';
 import { MainMenu } from './MainMenu';
 import { AlertsPanel, KennelPanel, ShedPanel } from './Panels';
@@ -19,12 +20,15 @@ export function App() {
         <>
           <HUD />
           <Toolbar />
+          <Backpack />
           <BuildBar />
           <AlertsPanel />
           {panel === 'dog' && <DogPanel />}
           {panel === 'dogs' && <DogList />}
           {panel === 'shed' && <ShedPanel />}
           {panel === 'kennel' && <KennelPanel />}
+          {panel === 'incubator' && <IncubatorPanel />}
+          {panel === 'egg' && <EggPanel />}
           {store.pauseMenu.value && <PauseMenu />}
         </>
       )}

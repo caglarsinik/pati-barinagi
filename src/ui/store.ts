@@ -6,7 +6,7 @@ import type { Alert } from '../sim/systems/AlertSystem';
 import { type Tool, resolveAction } from '../sim/systems/Interaction';
 
 export type Screen = 'menu' | 'game';
-export type Panel = 'none' | 'dog' | 'dogs' | 'shed' | 'kennel';
+export type Panel = 'none' | 'dog' | 'dogs' | 'shed' | 'kennel' | 'incubator' | 'egg';
 
 export type BuildTool =
   | { kind: 'none' }
@@ -29,6 +29,9 @@ export const store = {
   inputFocused: signal(false),
   panel: signal<Panel>('none'),
   panelBuildingId: signal<number | null>(null),
+  panelEggId: signal<number | null>(null),
+  treats: signal(0),
+  backpackCount: signal(0),
   buildBar: signal(false),
   build: signal<BuildTool>({ kind: 'none' }),
   selectedDogId: signal<number | null>(null),
@@ -79,7 +82,9 @@ export function syncStore(sim: Sim): void {
   store.stamina.value = Math.round(sim.player.stamina);
   store.exhausted.value = sim.player.exhausted;
   store.isNight.value = sim.clock.isNight();
-  store.dogCount.value = sim.dogs.length;
+  store.dogCount.value = sim.shelterDogs().length;
+  store.treats.value = sim.treats;
+  store.backpackCount.value = sim.backpack.length;
   store.kennelCapacity.value = sim.kennelCapacity();
   store.foodStock.value = Math.floor(sim.foodStock);
   if (store.alerts.value !== sim.alerts.alerts) store.alerts.value = sim.alerts.alerts;
