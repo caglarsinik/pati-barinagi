@@ -10,6 +10,8 @@ export interface Building {
   y: number;
   /** Kap: porsiyon. */
   food: number;
+  /** Yalak: su (0-troughCapacity). */
+  water: number;
   /** Kulübe: barınan köpek id'leri. */
   occupants: number[];
   /** Kalan inşaat süresi (oyun dakikası); 0 ise hazır. */
@@ -24,6 +26,7 @@ export interface BuildingSave {
   x: number;
   y: number;
   food?: number;
+  water?: number;
   occupants?: number[];
   buildLeft?: number;
   eggs?: EggSave[];

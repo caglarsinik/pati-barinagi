@@ -15,6 +15,8 @@ export function stageForAge(weeks: number): GrowthStage {
 /** Hepsi 0-100. hunger ve bladder yüksekken kötü, diğerleri yüksekken iyi. */
 export interface DogNeeds {
   hunger: number;
+  /** Susuzluk: yüksekken kötü. */
+  thirst: number;
   play: number;
   bladder: number;
   hygiene: number;
@@ -42,6 +44,8 @@ export type DogState =
   | 'sleep'
   | 'toBowl'
   | 'eat'
+  | 'toTrough'
+  | 'drink'
   | 'toToilet'
   | 'toilet'
   | 'toKennel'
@@ -75,6 +79,7 @@ export interface DogSave {
 export function defaultNeeds(origin: DogOrigin): DogNeeds {
   return {
     hunger: 30,
+    thirst: 30,
     play: 70,
     bladder: 20,
     hygiene: origin === 'stray' ? 45 : 80,
@@ -174,7 +179,7 @@ export class Dog {
   /** Genel keyif, 0-100. */
   mood(): number {
     const n = this.needs;
-    return Math.round((100 - n.hunger) * 0.25 + n.play * 0.2 + (100 - n.bladder) * 0.1 + n.hygiene * 0.15 + n.health * 0.2 + n.energy * 0.1);
+    return Math.round((100 - n.hunger) * 0.22 + (100 - n.thirst) * 0.08 + n.play * 0.2 + (100 - n.bladder) * 0.1 + n.hygiene * 0.15 + n.health * 0.15 + n.energy * 0.1);
   }
 
   isAsleep(): boolean {

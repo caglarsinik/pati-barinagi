@@ -32,7 +32,7 @@ export function registerTextures(scene: Phaser.Scene): void {
   }
 
   for (const type of Object.keys(BUILDING_DEFS) as BuildingType[]) {
-    const variants = type === 'bowl' ? 3 : 1;
+    const variants = type === 'bowl' || type === 'trough' ? 3 : 1;
     for (let v = 0; v < variants; v++) t.addCanvas(buildingTextureKey(type, v), drawBuilding(type, v).toCanvas());
   }
 }

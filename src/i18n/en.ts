@@ -359,7 +359,7 @@ export const EN: Record<string, string> = {
   'Yem çuvalları burada durur. Yanına gelip E ile sipariş verilir.': 'Food bags are stored here. Stand next to it and press E to order.',
   'Yem kapları iki kat porsiyon alır; personel yemi daha hızlı hazırlar.': 'Bowls hold twice the portions; staff prepare food faster.',
   '4 porsiyon alır (mutfak varsa 8). Kilerden yem taşınarak doldurulur.': 'Holds 4 portions (8 with a kitchen). Filled with food from the pantry.',
-  'Köpekler susuz kalmasın.': 'Keeps the dogs watered.',
+  'Köpekler susayınca buradan içer. Önünde E ile doldur (ücretsiz); mutfak varsa kendiliğinden dolar.': 'Keeps the dogs watered.',
   'Yakındaki köpeği yıkar: temizlik 100. Önünde E.': 'Washes a nearby dog: hygiene 100. Press E in front of it.',
   'Yakındaki hasta köpeği tedavi eder (ilaç masrafı). Önünde E.': 'Treats a nearby sick dog (medicine cost). Press E in front of it.',
   'Yumurtalar 3 günde çıkar. 3 yuva.': 'Eggs hatch in 3 days. 3 slots.',
@@ -675,4 +675,16 @@ export const EN: Record<string, string> = {
   '{n}/{total} açıldı': '{n}/{total} unlocked',
   Açıldı: 'Unlocked',
   Kilitli: 'Locked',
+
+  // M8: su yalağı
+  Su: 'Water',
+  'Yalak dolu': 'Trough is full',
+  'E: yalağı doldur (%{w})': 'E: fill the trough ({w}%)',
+  'Yalak dolduruldu': 'Trough filled',
+  'Yalak yok': 'No trough',
+  '{name} çok susuz': '{name} is very thirsty',
+  'Su yalağı boş': 'Water trough is empty',
+  '{n} su yalağı boş': '{n} water troughs are empty',
+  'Yalağa gidiyor': 'Going to the trough',
+  'Su içiyor': 'Drinking',
 };

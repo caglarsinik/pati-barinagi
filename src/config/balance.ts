@@ -63,7 +63,7 @@ export const BALANCE = {
     /** Kare / oyun dakikası. */
     baseSpeed: 1.4,
     decisionIntervalMin: 2,
-    taskMinutes: { feed: 15, clean: 12, play: 25, train: 40, groom: 25, treat: 35 } as const,
+    taskMinutes: { feed: 15, water: 10, clean: 12, play: 25, train: 40, groom: 25, treat: 35 } as const,
     playBelow: 45,
     groomBelow: 45,
     treatBelow: 65,
@@ -100,6 +100,10 @@ export const BALANCE = {
   shelter: {
     startFoodPortions: 30,
     startBowlFood: 2,
+    /** Yalak su kapasitesi (birim); köpek başına içim 10. */
+    troughCapacity: 100,
+    /** Mutfak varsa yalaklar saatte bu kadar kendiliğinden dolar. */
+    kitchenWaterPerHour: 15,
   },
   dogs: {
     growth: { youngAtWeek: 4, adultAtWeek: 12, seniorAtWeek: 52 },
@@ -113,6 +117,10 @@ export const BALANCE = {
       hungerPerHour: 5,
       hungerPerHourPuppy: 7,
       hungerPerHourLarge: 5.5,
+      thirstPerHour: 8,
+      thirstAfterPlay: 10,
+      thirstHarmAbove: 85,
+      thirstHarmPerHour: 2,
       playDecayPerHour: 4,
       playYardGainPerHour: 2,
       bladderPerHour: 7,
@@ -129,6 +137,10 @@ export const BALANCE = {
     eatAboveHunger: 55,
     eatDurationMin: 10,
     mealHungerRelief: 60,
+    drinkAboveThirst: 55,
+    drinkDurationMin: 3,
+    drinkRelief: 70,
+    drinkWaterUse: 10,
     bladderAfterMeal: 15,
     toiletAboveBladder: 85,
     toiletDurationMin: 2,
@@ -182,6 +194,7 @@ export const BALANCE = {
   },
   weather: {
     summerHygieneMul: 1.25,
+    summerThirstMul: 1.5,
     winterHungerMul: 1.15,
     winterEnergyMul: 1.15,
     /** Kulübesiz köpeklere soğuk gecelerde saatlik sağlık kaybı. */

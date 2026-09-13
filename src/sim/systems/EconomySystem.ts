@@ -82,6 +82,14 @@ export function runInspection(sim: Sim): InspectionReport {
   const over = Math.max(0, dogs.length - cap);
   add('Kulübe', `${dogs.length}/${cap}`, over === 0 ? 0.5 : -Math.min(1, over / 3), 2);
   add('Yem stoğu', t('{n} porsiyon', { n: Math.floor(sim.foodStock) }), sim.foodStock <= 0 ? -1 : sim.foodStock < 10 ? -0.3 : 0.4, 1);
+  if (dogs.length > 0) {
+    const troughs = sim.buildings.filter((b) => b.type === 'trough' && isReady(b));
+    if (troughs.length === 0) add('Su', t('Yalak yok'), -0.6, 1);
+    else {
+      const avgW = troughs.reduce((s, b) => s + b.water, 0) / troughs.length / sim.troughCapacity();
+      add('Su', `%${Math.round(avgW * 100)}`, avgW < 0.2 ? -0.6 : avgW < 0.5 ? 0 : 0.4, 1);
+    }
+  }
   const licenseCap = B.licenseCaps[sim.licenseLevel - 1];
   const overCap = Math.max(0, dogs.length - licenseCap);
   if (overCap > 0) add('Lisans aşımı', t('{n} köpek fazla', { n: overCap }), -1, 3);

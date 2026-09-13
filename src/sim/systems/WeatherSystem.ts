@@ -50,6 +50,7 @@ const WEATHER_TABLE: Record<Season, Array<[Weather, number]>> = {
 
 export interface WeatherModifiers {
   hunger: number;
+  thirst: number;
   hygiene: number;
   energy: number;
   /** Kulübesiz köpeklere gece saatte sağlık kaybı. */
@@ -93,9 +94,10 @@ export class WeatherSystem {
     const W = BALANCE.weather;
     const s = this.season;
     const w = this.weather;
-    const m: WeatherModifiers = { hunger: 1, hygiene: 1, energy: 1, cold: 0, adopters: 1, nestRespawn: 1, berryBonus: 0, playYard: 1 };
+    const m: WeatherModifiers = { hunger: 1, thirst: 1, hygiene: 1, energy: 1, cold: 0, adopters: 1, nestRespawn: 1, berryBonus: 0, playYard: 1 };
     if (s === 'summer') {
       m.hygiene *= W.summerHygieneMul;
+      m.thirst *= W.summerThirstMul;
       m.playYard *= 1.2;
     }
     if (s === 'winter') {

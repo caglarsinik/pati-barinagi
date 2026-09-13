@@ -21,7 +21,7 @@ function hireRole(sim: Sim, role: 'caretaker' | 'trainer' | 'vet') {
     // Rolü zorla
     c = sim.candidates[0];
     c.role = role;
-    c.priorities = { feed: 4, clean: 4, play: 3, groom: 2, train: role === 'trainer' ? 5 : 0, treat: role === 'vet' ? 5 : 0 };
+    c.priorities = { feed: 4, water: 4, clean: 4, play: 3, groom: 2, train: role === 'trainer' ? 5 : 0, treat: role === 'vet' ? 5 : 0 };
   }
   const r = sim.command({ type: 'hire', candidateId: c.id });
   expect(r.ok).toBe(true);

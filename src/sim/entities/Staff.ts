@@ -7,10 +7,11 @@ export type StaffRole = 'caretaker' | 'trainer' | 'vet';
 export const STAFF_ROLES: StaffRole[] = ['caretaker', 'trainer', 'vet'];
 export const ROLE_NAMES_TR: Record<StaffRole, string> = { caretaker: 'Bakıcı', trainer: 'Eğitmen', vet: 'Veteriner' };
 
-export type TaskType = 'feed' | 'clean' | 'play' | 'train' | 'groom' | 'treat';
-export const TASK_TYPES: TaskType[] = ['feed', 'clean', 'play', 'train', 'groom', 'treat'];
+export type TaskType = 'feed' | 'water' | 'clean' | 'play' | 'train' | 'groom' | 'treat';
+export const TASK_TYPES: TaskType[] = ['feed', 'water', 'clean', 'play', 'train', 'groom', 'treat'];
 export const TASK_NAMES_TR: Record<TaskType, string> = {
   feed: 'Yem',
+  water: 'Su',
   clean: 'Temizlik',
   play: 'Oyun',
   train: 'Eğitim',
@@ -20,15 +21,15 @@ export const TASK_NAMES_TR: Record<TaskType, string> = {
 
 /** Rolün görev türündeki verimi; 0 ise yapamaz. */
 export const ROLE_EFFICIENCY: Record<StaffRole, Record<TaskType, number>> = {
-  caretaker: { feed: 1, clean: 1, play: 0.9, groom: 0.8, train: 0.3, treat: 0 },
-  trainer: { feed: 0.6, clean: 0.5, play: 1, groom: 0.5, train: 1, treat: 0 },
-  vet: { feed: 0.5, clean: 0.5, play: 0.5, groom: 1, train: 0.2, treat: 1 },
+  caretaker: { feed: 1, water: 1, clean: 1, play: 0.9, groom: 0.8, train: 0.3, treat: 0 },
+  trainer: { feed: 0.6, water: 0.6, clean: 0.5, play: 1, groom: 0.5, train: 1, treat: 0 },
+  vet: { feed: 0.5, water: 0.6, clean: 0.5, play: 0.5, groom: 1, train: 0.2, treat: 1 },
 };
 
 export const DEFAULT_PRIORITIES: Record<StaffRole, Record<TaskType, number>> = {
-  caretaker: { feed: 4, clean: 4, play: 3, groom: 2, train: 0, treat: 0 },
-  trainer: { feed: 2, clean: 1, play: 4, groom: 1, train: 5, treat: 0 },
-  vet: { feed: 1, clean: 1, play: 1, groom: 4, train: 0, treat: 5 },
+  caretaker: { feed: 4, water: 4, clean: 4, play: 3, groom: 2, train: 0, treat: 0 },
+  trainer: { feed: 2, water: 2, clean: 1, play: 4, groom: 1, train: 5, treat: 0 },
+  vet: { feed: 1, water: 1, clean: 1, play: 1, groom: 4, train: 0, treat: 5 },
 };
 
 export type StaffTrait = 'whisperer' | 'meticulous' | 'lazy' | 'nightOwl' | 'clumsy';

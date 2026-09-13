@@ -24,6 +24,7 @@ export class NeedsSystem {
 
     const hungerRate = (dog.stage === 'puppy' ? B.hungerPerHourPuppy : dog.genome.size === 'L' ? B.hungerPerHourLarge : B.hungerPerHour) * wm.hunger;
     n.hunger = clamp100(n.hunger + hungerRate * (asleep ? 0.5 : 1) * dtH);
+    n.thirst = clamp100(n.thirst + B.thirstPerHour * wm.thirst * (asleep ? 0.4 : 1) * dtH);
 
     let playRate = dog.genome.temperament === 'playful' ? B.playDecayPerHour * 1.3 : dog.genome.temperament === 'calm' ? B.playDecayPerHour * 0.75 : B.playDecayPerHour;
     if (senior) playRate *= S.playDecayMul;
@@ -40,9 +41,10 @@ export class NeedsSystem {
 
     if (n.hunger > B.healthDropHungerAbove || n.hygiene < B.healthDropHygieneBelow) {
       n.health = clamp100(n.health - B.healthDropPerHour * (senior ? S.healthDecayMul : 1) * dtH);
-    } else if (n.hunger < 60 && n.hygiene > 50 && n.play > 30) {
+    } else if (n.hunger < 60 && n.thirst < 70 && n.hygiene > 50 && n.play > 30) {
       n.health = clamp100(n.health + B.healthRegenPerHour * (senior ? S.healthRegenMul : 1) * dtH);
     }
+    if (n.thirst > B.thirstHarmAbove) n.health = clamp100(n.health - B.thirstHarmPerHour * dtH);
     // Soğuk: kulübesiz köpek gece üşür.
     if (wm.cold > 0 && night && dog.kennelId === null) n.health = clamp100(n.health - wm.cold * dtH);
   }

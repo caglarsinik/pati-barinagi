@@ -16,7 +16,7 @@ describe('Uzun koşu', () => {
     // Başlangıç: bakıcı al, tam gün çalışsın, yem otomatik gelsin.
     const c = sim.candidates.find((x) => x.role === 'caretaker') ?? sim.candidates[0];
     c.role = 'caretaker';
-    c.priorities = { feed: 5, clean: 5, play: 3, groom: 3, train: 0, treat: 0 };
+    c.priorities = { feed: 5, water: 5, clean: 5, play: 3, groom: 3, train: 0, treat: 0 };
     expect(sim.command({ type: 'hire', candidateId: c.id }).ok).toBe(true);
     const staff = sim.staff[0];
     staff.schedule = new Array(24).fill(1) as typeof staff.schedule;
@@ -41,6 +41,7 @@ describe('Uzun koşu', () => {
     for (const d of dogs) {
       expect(d.needs.health).toBeGreaterThan(40);
       expect(d.needs.hunger).toBeLessThan(90);
+      expect(d.needs.thirst).toBeLessThan(90);
     }
     // Personel çalıştı, görevler yaptı, istifa etmedi.
     expect(sim.staff.length).toBe(1);

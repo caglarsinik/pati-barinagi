@@ -29,6 +29,7 @@ export class AlertSystem {
       if (dog.sick) out.push({ id: `sick-${dog.id}`, text: t('{name} hasta', { name }), severity: 'danger', dogId: dog.id });
       if (n.hunger >= 80) out.push({ id: `hunger-${dog.id}`, text: t('{name} çok aç', { name }), severity: n.hunger >= 95 ? 'danger' : 'warn', dogId: dog.id });
       else if (n.hunger >= 60 && sim.clock.isMealTime()) out.push({ id: `meal-${dog.id}`, text: t('{name} yemek bekliyor', { name }), severity: 'info', dogId: dog.id });
+      if (n.thirst >= 85) out.push({ id: `thirst-${dog.id}`, text: t('{name} çok susuz', { name }), severity: 'danger', dogId: dog.id });
       if (n.hygiene < 30) out.push({ id: `dirty-${dog.id}`, text: t('{name} kirli', { name }), severity: 'warn', dogId: dog.id });
       if (n.play < 25) out.push({ id: `bored-${dog.id}`, text: t('{name} sıkıldı', { name }), severity: 'info', dogId: dog.id });
       if (dog.kennelId === null) out.push({ id: `nokennel-${dog.id}`, text: t('{name} kulübesiz', { name }), severity: 'warn', dogId: dog.id });
@@ -43,6 +44,8 @@ export class AlertSystem {
     else if (sim.foodStock < BALANCE.economy.foodBagPortions / 2) out.push({ id: 'lowfood', text: t('Yem azalıyor'), severity: 'info' });
     const emptyBowls = sim.buildings.filter((b) => b.type === 'bowl' && b.food <= 0).length;
     if (emptyBowls > 0 && sim.shelterDogs().length > 0) out.push({ id: 'bowls', text: emptyBowls === 1 ? t('Bir yem kabı boş') : t('{n} yem kabı boş', { n: emptyBowls }), severity: 'info' });
+    const emptyTroughs = sim.buildings.filter((b) => b.type === 'trough' && b.water <= 0).length;
+    if (emptyTroughs > 0 && sim.shelterDogs().length > 0) out.push({ id: 'troughs', text: emptyTroughs === 1 ? t('Su yalağı boş') : t('{n} su yalağı boş', { n: emptyTroughs }), severity: 'warn' });
     if (sim.money < 0) out.push({ id: 'debt', text: t('Kasa eksiye düştü'), severity: 'danger' });
     const waiting = sim.adopters.filter((a) => a.state === 'waiting');
     if (waiting.length > 0) {

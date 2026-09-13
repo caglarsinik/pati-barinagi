@@ -45,6 +45,14 @@ export class TaskBoard {
       const urgency = Math.min(1, 0.45 + (meal ? 0.35 : 0) + hungry * 0.06 + (b.food <= 0 ? 0.1 : 0));
       wanted.set(`feed:${b.id}`, { type: 'feed', targetId: b.id, tile: { x: b.x, y: b.y }, urgency, key: `feed:${b.id}` });
     }
+    const thirsty = dogs.filter((d) => d.needs.thirst >= BALANCE.dogs.drinkAboveThirst).length;
+    for (const b of sim.buildings) {
+      if (b.type !== 'trough' || !isReady(b)) continue;
+      const cap = sim.troughCapacity();
+      if (b.water >= cap * 0.4) continue;
+      const urgency = Math.min(1, 0.4 + thirsty * 0.06 + (b.water <= 0 ? 0.15 : 0));
+      wanted.set(`water:${b.id}`, { type: 'water', targetId: b.id, tile: { x: b.x, y: b.y }, urgency, key: `water:${b.id}` });
+    }
     const messCount = sim.messTiles.size;
     for (const i of sim.messTiles) {
       const x = i % sim.world.width;

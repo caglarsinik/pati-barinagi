@@ -319,6 +319,7 @@ export class WorldScene extends Phaser.Scene {
         groom: 'groom',
         wash: 'groom',
         fillBowl: 'feed',
+        fillTrough: 'feed',
         clean: 'clean',
         pickEgg: 'pick',
         berries: 'berries',
@@ -658,6 +659,10 @@ export class WorldScene extends Phaser.Scene {
   }
 
   private buildingVariant(b: Building): number {
+    if (b.type === 'trough') {
+      if (b.water <= 0.01) return 0;
+      return b.water >= this.sim.troughCapacity() * 0.5 ? 2 : 1;
+    }
     if (b.type !== 'bowl') return 0;
     const cap = this.sim.bowlCapacity(b);
     if (b.food <= 0.01) return 0;
@@ -668,7 +673,7 @@ export class WorldScene extends Phaser.Scene {
     for (const b of this.sim.buildings) {
       const img = this.buildingImages.get(b.id);
       if (!img) continue;
-      if (b.type === 'bowl') {
+      if (b.type === 'bowl' || b.type === 'trough') {
         const key = buildingTextureKey(b.type, this.buildingVariant(b));
         if (img.texture.key !== key) img.setTexture(key);
       }

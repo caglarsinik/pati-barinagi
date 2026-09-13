@@ -27,6 +27,7 @@ export function DogList() {
               <th>{t('Aşama')}</th>
               <th>{t('Keyif')}</th>
               <th>{t('Tokluk')}</th>
+              <th>{t('Su')}</th>
               <th>{t('Temizlik')}</th>
               <th>{t('Sağlık')}</th>
               <th>{t('Sadakat')}</th>
@@ -54,6 +55,7 @@ export function DogList() {
                 <td>{t(STAGE_NAMES_TR[d.stage])}</td>
                 <td>{d.mood()}</td>
                 <td class={100 - d.needs.hunger < 30 ? 'bad' : ''}>{Math.round(100 - d.needs.hunger)}</td>
+                <td class={100 - d.needs.thirst < 30 ? 'bad' : ''}>{Math.round(100 - d.needs.thirst)}</td>
                 <td class={d.needs.hygiene < 30 ? 'bad' : ''}>{Math.round(d.needs.hygiene)}</td>
                 <td class={d.needs.health < 40 ? 'bad' : ''}>{Math.round(d.needs.health)}</td>
                 <td>{Math.round(d.needs.loyalty)}</td>

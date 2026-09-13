@@ -142,7 +142,7 @@ export const BUILDING_DEFS: Record<BuildingType, BuildingDef> = {
     cost: 120,
     category: 'besleme',
     solidRows: 0,
-    desc: 'Köpekler susuz kalmasın.',
+    desc: 'Köpekler susayınca buradan içer. Önünde E ile doldur (ücretsiz); mutfak varsa kendiliğinden dolar.',
     buildMinutes: 0,
     buildable: true,
   },

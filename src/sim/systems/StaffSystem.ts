@@ -226,7 +226,7 @@ export class StaffSystem {
   private arriveAtTask(s: Staff, task: Task): void {
     const sim = this.sim;
     // Hedef köpek uzaklaştıysa peşine git (birkaç deneme).
-    if (task.targetId !== null && task.type !== 'feed') {
+    if (task.targetId !== null && task.type !== 'feed' && task.type !== 'water') {
       const dog = sim.dogById(task.targetId);
       if (!dog) {
         this.dropTask(s);
@@ -286,6 +286,14 @@ export class StaffSystem {
         }
         break;
       }
+      case 'water': {
+        const trough = task.targetId !== null ? sim.buildingById(task.targetId) : undefined;
+        if (trough && trough.type === 'trough') {
+          trough.water = sim.troughCapacity();
+          sim.stats.watered++;
+        }
+        break;
+      }
       case 'clean':
         if (cleanMess(sim, task.tile.x, task.tile.y) && s.has('meticulous')) {
           // Titiz: yakındaki köpeklerin hijyeni de biraz düzelir.
@@ -297,6 +305,7 @@ export class StaffSystem {
           dog.needs.play = clamp100(dog.needs.play + BALANCE.dogs.playGain * empathy);
           dog.needs.loyalty = clamp100(dog.needs.loyalty + (s.has('whisperer') ? 2 : 1));
           dog.needs.energy = clamp100(dog.needs.energy - BALANCE.dogs.playEnergyCost);
+          dog.needs.thirst = clamp100(dog.needs.thirst + BALANCE.dogs.needs.thirstAfterPlay);
         }
         break;
       case 'train':

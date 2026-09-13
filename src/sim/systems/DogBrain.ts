@@ -28,6 +28,7 @@ export class DogBrain {
     }
     switch (dog.state) {
       case 'toBowl':
+      case 'toTrough':
       case 'toToilet':
       case 'toKennel':
       case 'toToy':
@@ -39,6 +40,9 @@ export class DogBrain {
       case 'eat':
         if (dog.stateTimer <= 0) this.finishEat(dog);
         break;
+      case 'drink':
+        if (dog.stateTimer <= 0) this.finishDrink(dog);
+        break;
       case 'toilet':
         if (dog.stateTimer <= 0) this.finishToilet(dog);
         break;
@@ -47,6 +51,7 @@ export class DogBrain {
           const toy = dog.targetBuildingId !== null ? this.sim.buildingById(dog.targetBuildingId) : null;
           const gain = toy ? (buildingDef(toy).playGain ?? BALANCE.dogs.selfPlayGain) : BALANCE.dogs.selfPlayGain;
           dog.needs.play = clamp100(dog.needs.play + gain);
+          dog.needs.thirst = clamp100(dog.needs.thirst + BALANCE.dogs.needs.thirstAfterPlay * 0.5);
           this.setIdle(dog, 5);
         }
         break;
@@ -185,6 +190,12 @@ export class DogBrain {
       return;
     }
 
+    // Susuzluk: dolu bir yalak bul (açlıktan önce; su daha çabuk zarar verir).
+    if (n.thirst >= B.drinkAboveThirst) {
+      const trough = this.findTrough(dog);
+      if (trough && this.goTo(dog, { x: trough.x, y: trough.y }, 'toTrough', trough.id)) return;
+    }
+
     // Açlık: dolu bir kap bul.
     if (n.hunger >= B.eatAboveHunger) {
       const bowl = this.findBowl(dog);
@@ -237,6 +248,14 @@ export class DogBrain {
         } else this.setIdle(dog, 2);
         break;
       }
+      case 'toTrough': {
+        const trough = dog.targetBuildingId !== null ? this.sim.buildingById(dog.targetBuildingId) : null;
+        if (trough && trough.water > 0) {
+          this.setState(dog, 'drink', B.drinkDurationMin);
+          dog.facing = 0;
+        } else this.setIdle(dog, 2);
+        break;
+      }
       case 'toToilet':
         this.setState(dog, 'toilet', B.toiletDurationMin);
         break;
@@ -268,6 +287,19 @@ export class DogBrain {
     this.setIdle(dog, 3);
   }
 
+  private finishDrink(dog: Dog): void {
+    const trough = dog.targetBuildingId !== null ? this.sim.buildingById(dog.targetBuildingId) : null;
+    if (trough && trough.water > 0) {
+      const B = BALANCE.dogs;
+      const use = Math.min(B.drinkWaterUse, trough.water);
+      trough.water = Math.max(0, trough.water - use);
+      dog.needs.thirst = clamp100(dog.needs.thirst - B.drinkRelief * (use / B.drinkWaterUse));
+      this.sim.stats.drinks++;
+    }
+    dog.targetBuildingId = null;
+    this.setIdle(dog, 2);
+  }
+
   private finishToilet(dog: Dog): void {
     dog.needs.bladder = 0;
     const inToiletZone = this.sim.world.zoneAt(dog.tileX, dog.tileY) === Zone.Toilet;
@@ -283,6 +315,7 @@ export class DogBrain {
     if (dog.needs.energy >= 100 && !clock.isNight()) return true;
     if (!clock.isNight() && dog.needs.energy > 60) return true;
     if (dog.needs.hunger > 90 && dog.needs.energy > 30) return true;
+    if (dog.needs.thirst > 90 && dog.needs.energy > 30) return true;
     return false;
   }
 
@@ -345,7 +378,7 @@ export class DogBrain {
   private setState(dog: Dog, state: Dog['state'], minutes: number): void {
     dog.state = state;
     dog.stateTimer = minutes;
-    if (state !== 'toBowl' && state !== 'toToilet' && state !== 'toKennel' && state !== 'toToy' && state !== 'wander') dog.path = [];
+    if (state !== 'toBowl' && state !== 'toTrough' && state !== 'toToilet' && state !== 'toKennel' && state !== 'toToy' && state !== 'wander') dog.path = [];
   }
 
   private setIdle(dog: Dog, minutes: number): void {
@@ -381,6 +414,21 @@ export class DogBrain {
     let bestD = Infinity;
     for (const b of this.sim.buildings) {
       if (b.type !== 'bowl' || b.food <= 0 || !isReady(b)) continue;
+      const d = Math.hypot(b.x + 0.5 - dog.x, b.y + 0.5 - dog.y);
+      if (d < bestD) {
+        bestD = d;
+        best = b;
+      }
+    }
+    return best;
+  }
+
+  /** En yakın sulu ve hazır yalak. */
+  private findTrough(dog: Dog): Building | null {
+    let best: Building | null = null;
+    let bestD = Infinity;
+    for (const b of this.sim.buildings) {
+      if (b.type !== 'trough' || b.water <= 0 || !isReady(b)) continue;
       const d = Math.hypot(b.x + 0.5 - dog.x, b.y + 0.5 - dog.y);
       if (d < bestD) {
         bestD = d;

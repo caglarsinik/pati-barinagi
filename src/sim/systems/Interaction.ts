@@ -34,6 +34,7 @@ export type ActionKind =
   | 'train'
   | 'groom'
   | 'fillBowl'
+  | 'fillTrough'
   | 'clean'
   | 'wash'
   | 'treat'
@@ -112,6 +113,11 @@ export function resolveAction(sim: Sim): ResolvedAction {
       if (building.food >= cap - 0.01) return { kind: 'none', hint: t('Yem kabı dolu'), building };
       if (sim.foodStock <= 0) return { kind: 'none', hint: t('Kiler boş: kilerden yem sipariş et'), building };
       return { kind: 'fillBowl', hint: t('E: yem kabını doldur ({food}/{cap})', { food: Math.floor(building.food), cap }), building };
+    }
+    if (building.type === 'trough') {
+      const cap = sim.troughCapacity();
+      if (building.water >= cap - 0.01) return { kind: 'none', hint: t('Yalak dolu'), building };
+      return { kind: 'fillTrough', hint: t('E: yalağı doldur (%{w})', { w: Math.floor((100 * building.water) / cap) }), building };
     }
     if (building.type === 'groomStation') {
       const near = nearestDogToBuilding(sim, building, BALANCE.dogs.stationRadius);
@@ -235,6 +241,13 @@ export function performAction(sim: Sim): ActionOutcome {
       p.setBusy(0.5, 'feed');
       return { ok: true, message: t('Kap dolduruldu ({food}/{cap})', { food: Math.floor(b.food), cap }) };
     }
+    case 'fillTrough': {
+      const b = r.building!;
+      b.water = sim.troughCapacity();
+      sim.stats.watered++;
+      p.setBusy(0.5, 'feed');
+      return { ok: true, message: t('Yalak dolduruldu') };
+    }
     case 'pet': {
       const dog = r.dog!;
       const gain = dog.petsToday < B.petsFullGainPerDay ? B.petLoyaltyGain : B.petLoyaltyGainDiminished;
@@ -252,6 +265,7 @@ export function performAction(sim: Sim): ActionOutcome {
       dog.needs.loyalty = clamp100(dog.needs.loyalty + B.playLoyaltyGain);
       dog.needs.energy = clamp100(dog.needs.energy - B.playEnergyCost);
       dog.needs.bladder = clamp100(dog.needs.bladder + 5);
+      dog.needs.thirst = clamp100(dog.needs.thirst + B.needs.thirstAfterPlay);
       interactWith(sim, dog, B.playDurationMin);
       sim.stats.played++;
       p.setBusy(1.0, 'play');

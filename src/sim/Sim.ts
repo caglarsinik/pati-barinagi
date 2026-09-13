@@ -151,6 +151,10 @@ export interface SimStats {
   staffTasks: number;
   autoOrders: number;
   bowlsFilled: number;
+  /** Yalak dolumu (oyuncu + personel). */
+  watered: number;
+  /** Köpek içimi. */
+  drinks: number;
   hired: number;
   slept: number;
 }
@@ -173,6 +177,8 @@ function emptyStats(): SimStats {
     staffTasks: 0,
     autoOrders: 0,
     bowlsFilled: 0,
+    watered: 0,
+    drinks: 0,
     hired: 0,
     slept: 0,
   };
@@ -353,6 +359,11 @@ export class Sim {
   }
 
   private onHour(h: number): void {
+    // Mutfak: yalaklar kendiliğinden dolar.
+    if (this.hasReady('kitchen')) {
+      const cap = BALANCE.shelter.troughCapacity;
+      for (const b of this.buildings) if (b.type === 'trough' && isReady(b)) b.water = Math.min(cap, b.water + BALANCE.shelter.kitchenWaterPerHour);
+    }
     if (h === BALANCE.time.passOutHour && this.mode === 'avatar' && !this.world.inPlot(this.player.tileX, this.player.tileY)) {
       this.passOut();
     }
@@ -715,6 +726,10 @@ export class Sim {
     return this.buildings.some((b) => b.type === type && isReady(b));
   }
 
+  troughCapacity(): number {
+    return BALANCE.shelter.troughCapacity;
+  }
+
   /** Kap kapasitesi: mutfak varsa iki kat. */
   bowlCapacity(b: Building): number {
     const base = buildingDef(b).foodCapacity ?? 4;
@@ -731,7 +746,17 @@ export class Sim {
 
   placeBuilding(type: BuildingType, x: number, y: number, buildMinutes = 0): Building | null {
     if (!canPlaceBuilding(this.world, type, x, y)) return null;
-    const b: Building = { id: this.nextId++, type, x, y, food: 0, occupants: [], buildLeft: Math.max(0, buildMinutes), eggs: [] };
+    const b: Building = {
+      id: this.nextId++,
+      type,
+      x,
+      y,
+      food: 0,
+      water: type === 'trough' ? BALANCE.shelter.troughCapacity : 0,
+      occupants: [],
+      buildLeft: Math.max(0, buildMinutes),
+      eggs: [],
+    };
     this.buildings.push(b);
     this.buildingMap.set(b.id, b);
     stampBuilding(this.world, b);
@@ -879,6 +904,7 @@ export class Sim {
         x: b.x,
         y: b.y,
         food: b.food,
+        water: b.water,
         occupants: [...b.occupants],
         buildLeft: b.buildLeft,
         eggs: b.eggs.map(eggSave),
@@ -1044,6 +1070,7 @@ export class Sim {
           x: raw.x,
           y: raw.y,
           food: numOr(raw.food, 0, 0),
+          water: Math.min(BALANCE.shelter.troughCapacity, numOr(raw.water, raw.type === 'trough' ? BALANCE.shelter.troughCapacity : 0, 0)),
           occupants: [],
           buildLeft: numOr(raw.buildLeft, 0, 0),
           eggs: eggs.slice(0, BUILDING_DEFS[raw.type].eggSlots ?? 0),

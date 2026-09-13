@@ -38,6 +38,8 @@ const STATE_TR: Record<string, string> = {
   sleep: 'Uyuyor',
   toBowl: 'Yem kabına gidiyor',
   eat: 'Yiyor',
+  toTrough: 'Yalağa gidiyor',
+  drink: 'Su içiyor',
   toToilet: 'Tuvalete gidiyor',
   toilet: 'Tuvaletini yapıyor',
   toKennel: 'Kulübeye gidiyor',
@@ -122,6 +124,7 @@ export function DogPanel() {
 
       <h4>{t('İhtiyaçlar · keyif {mood}', { mood: dog.mood() })}</h4>
       <Bar label={t('Tokluk')} value={100 - n.hunger} />
+      <Bar label={t('Su')} value={100 - n.thirst} />
       <Bar label={t('Keyif')} value={n.play} />
       <Bar label={t('Rahatlık')} value={100 - n.bladder} danger={20} />
       <Bar label={t('Temizlik')} value={n.hygiene} />

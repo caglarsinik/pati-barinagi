@@ -58,7 +58,11 @@ export interface SaveSummary {
 type Migration = (data: Record<string, unknown>) => Record<string, unknown>;
 
 /** Sürüm N'den N+1'e geçiren fonksiyonlar; yeni sürümde buraya eklenir. */
-const MIGRATIONS: Record<number, Migration> = {};
+const MIGRATIONS: Record<number, Migration> = {
+  // v1 → v2 (M8): susuzluk, yalak suyu, dostluk, hastalık, gezdirme ve karantina politikası eklendi.
+  // Yeni alanlar yükleyicilerde varsayılanla dolduğu için veri olduğu gibi geçer.
+  1: (d) => d,
+};
 
 function storage(): Storage | null {
   try {

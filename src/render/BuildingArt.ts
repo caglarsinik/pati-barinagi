@@ -112,10 +112,16 @@ export function drawBuilding(type: BuildingType, variant = 0): Pixels {
       break;
     }
     case 'trough':
+      // variant 0 boş, 1 yarım, 2 dolu
       p.fillRect(1, y0 + 6, 14, 7, C.woodWallDark);
-      p.fillRect(2, y0 + 7, 12, 4, P.water);
-      p.set(4, y0 + 8, P.waterLight);
-      p.set(9, y0 + 9, P.waterLight);
+      if (variant >= 2) {
+        p.fillRect(2, y0 + 7, 12, 4, P.water);
+        p.set(4, y0 + 8, P.waterLight);
+        p.set(9, y0 + 9, P.waterLight);
+      } else if (variant === 1) {
+        p.fillRect(2, y0 + 9, 12, 2, P.water);
+        p.set(5, y0 + 9, P.waterLight);
+      }
       p.fillRect(1, y0 + 5, 14, 1, C.woodWall);
       break;
     case 'groomStation':
