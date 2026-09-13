@@ -75,6 +75,8 @@ export const BALANCE = {
     restRegenRoom: 25,
     restRegenOutside: 10,
     quitAfterUnpaidWeeks: 2,
+    /** Mutfak hazırsa yem/su görev süresi çarpanı. */
+    kitchenPrepMul: 0.6,
   },
   adoption: {
     dailyBase: 0.6,
@@ -96,6 +98,17 @@ export const BALANCE = {
     repReturn: 3,
     returnChanceBadMatch: 0.2,
     returnAfterDays: 3,
+  },
+  /** Dekor puanı: çiçek/bank/tabela/lamba toplamı (tavanlı); sahiplenici sabrı, geliş sıklığı ve denetime etki eder. */
+  decor: {
+    points: { flower: 1, bench: 3, sign: 5, lamp: 0.5 } as const,
+    /** Sadece bir tabela sayılır. */
+    maxSigns: 1,
+    max: 20,
+    /** Puan başına sahiplenici sabrı (dakika). */
+    patiencePerPoint: 2,
+    /** Puan başına günlük beklenen sahiplenici artışı. */
+    adoptersPerPoint: 1 / 40,
   },
   shelter: {
     startFoodPortions: 30,

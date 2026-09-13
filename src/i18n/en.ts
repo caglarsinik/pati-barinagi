@@ -357,7 +357,7 @@ export const EN: Record<string, string> = {
   '1 köpek barındırır (küçük ya da orta boy).': 'Houses 1 dog (small or medium).',
   '2 köpek barındırır, büyük köpeklere uygun.': 'Houses 2 dogs, fits large dogs.',
   'Yem çuvalları burada durur. Yanına gelip E ile sipariş verilir.': 'Food bags are stored here. Stand next to it and press E to order.',
-  'Yem kapları iki kat porsiyon alır; personel yemi daha hızlı hazırlar.': 'Bowls hold twice the portions; staff prepare food faster.',
+  'Yem kapları iki kat porsiyon alır, yalaklar kendiliğinden dolar, personel yem/su işini %40 hızlı yapar.': 'Bowls hold twice the portions, troughs refill themselves, staff do feed/water jobs 40% faster.',
   '4 porsiyon alır (mutfak varsa 8). Kilerden yem taşınarak doldurulur.': 'Holds 4 portions (8 with a kitchen). Filled with food from the pantry.',
   'Köpekler susayınca buradan içer. Önünde E ile doldur (ücretsiz); mutfak varsa kendiliğinden dolar.': 'Keeps the dogs watered.',
   'Yakındaki köpeği yıkar: temizlik 100. Önünde E.': 'Washes a nearby dog: hygiene 100. Press E in front of it.',
@@ -368,11 +368,11 @@ export const EN: Record<string, string> = {
   'Koşup geçilen tünel: en eğlenceli oyuncak.': 'A tunnel to run through: the most fun toy.',
   'Eğitim alanına konursa eğitim daha hızlı ilerler (en fazla 3 engel sayılır).': 'Speeds up training when placed in a training area (up to 3 count).',
   'Personel burada mola verir, dayanıklılığını toplar.': 'Staff rest here and recover stamina.',
-  'Gece çevresini aydınlatır.': 'Lights up its surroundings at night.',
+  'Gece çevresini aydınlatır. Dekor +0,5.': 'Lights up its surroundings at night.',
   'Toplanan pislikler buraya atılır.': 'Collected messes go here.',
-  'Ziyaretçiler hoşlanır.': 'Visitors like it.',
-  'Sahiplenicilerin dinlendiği bank.': 'A bench for adopters to rest on.',
-  'Barınağın adını duyurur, itibara küçük katkı.': 'Announces the shelter; a small reputation boost.',
+  'Dekor +1: sahiplenici sabrı ve denetimdeki "Çevre" kalemi artar.': 'Decor +1: adopter patience and the "Surroundings" inspection item improve.',
+  'Dekor +3: sahiplenici daha uzun bekler, denetimde "Çevre" artar.': 'Decor +3: adopters wait longer, "Surroundings" improves in inspections.',
+  'Dekor +5 (bir tabela sayılır): daha çok sahiplenici gelir, denetimde "Çevre" artar.': 'Decor +5 (only one sign counts): more adopters come, "Surroundings" improves in inspections.',
 
   // Yumurta
   Yumurta: 'Egg',
@@ -687,4 +687,7 @@ export const EN: Record<string, string> = {
   '{n} su yalağı boş': '{n} water troughs are empty',
   'Yalağa gidiyor': 'Going to the trough',
   'Su içiyor': 'Drinking',
+
+  // M8: dekor
+  Çevre: 'Surroundings',
 };

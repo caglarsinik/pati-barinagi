@@ -260,7 +260,8 @@ export class StaffSystem {
   }
 
   private duration(s: Staff, type: TaskType): number {
-    const base = BALANCE.staff.taskMinutes[type];
+    let base: number = BALANCE.staff.taskMinutes[type];
+    if ((type === 'feed' || type === 'water') && this.sim.hasReady('kitchen')) base *= BALANCE.staff.kitchenPrepMul;
     return Math.max(3, Math.round(base / Math.max(0.2, s.efficiency(type))));
   }
 

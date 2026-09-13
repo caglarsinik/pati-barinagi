@@ -730,6 +730,24 @@ export class Sim {
     return BALANCE.shelter.troughCapacity;
   }
 
+  /** Dekor puanı 0-max: hazır çiçek/bank/tabela/lamba. Sahiplenici sabrı, geliş sıklığı ve denetim "Çevre" kalemi bundan okur. */
+  decorScore(): number {
+    const D = BALANCE.decor;
+    let score = 0;
+    let signs = 0;
+    for (const b of this.buildings) {
+      if (!isReady(b)) continue;
+      const pts = (D.points as Record<string, number>)[b.type];
+      if (pts === undefined) continue;
+      if (b.type === 'sign') {
+        if (signs >= D.maxSigns) continue;
+        signs++;
+      }
+      score += pts;
+    }
+    return Math.min(D.max, score);
+  }
+
   /** Kap kapasitesi: mutfak varsa iki kat. */
   bowlCapacity(b: Building): number {
     const base = buildingDef(b).foodCapacity ?? 4;

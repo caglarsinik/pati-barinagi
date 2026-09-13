@@ -43,7 +43,7 @@ export class AdoptionSystem {
     const B = BALANCE.adoption;
     const rng = sim.rng;
     const level = sim.licenseLevel;
-    let expected = B.dailyBase + sim.reputation / 50 + (level - 1) * 0.5;
+    let expected = B.dailyBase + sim.reputation / 50 + (level - 1) * 0.5 + sim.decorScore() * BALANCE.decor.adoptersPerPoint;
     if (sim.clock.day <= 2) expected = Math.max(expected, 1);
     expected *= sim.weatherSys.modifiers().adopters;
     if (sim.flags.extraAdoptersDay === sim.clock.day) expected += 2;
@@ -82,7 +82,7 @@ export class AdoptionSystem {
       name: rng.pick(PERSON_NAMES),
       request,
       fee: requestFee(rng, request),
-      patienceLeft: BALANCE.adoption.patienceMinutes,
+      patienceLeft: BALANCE.adoption.patienceMinutes + sim.decorScore() * BALANCE.decor.patiencePerPoint,
       state: 'walking',
       x: gate.x + 0.5,
       y: gate.y + 0.5,

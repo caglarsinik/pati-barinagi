@@ -90,6 +90,8 @@ export function runInspection(sim: Sim): InspectionReport {
       add('Su', `%${Math.round(avgW * 100)}`, avgW < 0.2 ? -0.6 : avgW < 0.5 ? 0 : 0.4, 1);
     }
   }
+  const decor = sim.decorScore();
+  add('Çevre', `${Math.round(decor)}/${BALANCE.decor.max}`, (decor / BALANCE.decor.max) * 0.8 - 0.1, 1);
   const licenseCap = B.licenseCaps[sim.licenseLevel - 1];
   const overCap = Math.max(0, dogs.length - licenseCap);
   if (overCap > 0) add('Lisans aşımı', t('{n} köpek fazla', { n: overCap }), -1, 3);
