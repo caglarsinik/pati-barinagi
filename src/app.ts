@@ -9,6 +9,7 @@ import { parseSeed } from './core/Rng';
 import { SaveManager } from './core/SaveManager';
 import { BootScene } from './scenes/BootScene';
 import { WorldScene } from './scenes/WorldScene';
+import { OverlayScene } from './scenes/OverlayScene';
 import { Sim } from './sim/Sim';
 import { showToast, store, syncStore } from './ui/store';
 
@@ -42,7 +43,7 @@ class AppController {
       // Pencere boyutunu kendimiz yönetiyoruz: ebeveyn ölçümüne güvenmek 0x0 tuval üretebiliyor.
       scale: { mode: Phaser.Scale.NONE, width: Math.max(320, viewport().w), height: Math.max(240, viewport().h) },
       render: { antialias: false, powerPreference: 'high-performance' },
-      scene: [BootScene, WorldScene],
+      scene: [BootScene, WorldScene, OverlayScene],
     });
     // Gömülü tarayıcılar ilk anda 0 boyut bildirebiliyor; hem resize olayında hem periyodik kontrol et.
     const syncSize = (): void => {
@@ -56,6 +57,10 @@ class AppController {
     window.setInterval(syncSize, 500);
     this.game.events.on('ui:escape', () => this.togglePauseMenu());
     this.game.events.on('ui:build-toggle', () => this.toggleBuildBar());
+    this.game.events.on('ui:labels-toggle', () => {
+      this.setLabels(!store.labels.value);
+      showToast(store.labels.value ? t('İsim etiketleri açık (L)') : t('İsim etiketleri kapalı (L)'));
+    });
     store.hasSave.value = SaveManager.has(SLOT);
     window.addEventListener('beforeunload', () => this.save(true));
     // Ses: ilk kullanıcı hareketinde açılır; arayüz düğmeleri tık sesi verir.
@@ -68,6 +73,17 @@ class AppController {
     });
     try {
       store.guideHidden.value = localStorage.getItem(`${SaveManager.key(0)}.guideHidden`) === '1';
+      store.labels.value = localStorage.getItem(`${SaveManager.key(0)}.labels`) !== '0';
+    } catch {
+      /* yoksay */
+    }
+  }
+
+  /** Dünya üstü isim etiketleri; tercih tarayıcıda kalır. */
+  setLabels(on: boolean): void {
+    store.labels.value = on;
+    try {
+      localStorage.setItem(`${SaveManager.key(0)}.labels`, on ? '1' : '0');
     } catch {
       /* yoksay */
     }

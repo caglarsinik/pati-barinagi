@@ -690,4 +690,9 @@ export const EN: Record<string, string> = {
 
   // M8: dekor
   Çevre: 'Surroundings',
+
+  // M8: dünya üstü göstergeler
+  'İsim etiketleri açık (L)': 'Name labels on (L)',
+  'İsim etiketleri kapalı (L)': 'Name labels off (L)',
+  'Köpek ve kişi isimlerini dünyada göster (L)': 'Show dog and people names in the world (L)',
 };

@@ -53,6 +53,7 @@ import { StaffSystem } from './systems/StaffSystem';
 import { TaskBoard } from './systems/TaskBoard';
 import { type AchievementDef, AchievementSystem } from './systems/Achievements';
 import { EventSystem, type GameEvent } from './systems/EventSystem';
+import type { EmoteEvent } from './systems/Emotes';
 import { type Weather, WeatherSystem } from './systems/WeatherSystem';
 import type { TilePos, TileWorld } from './world/TileWorld';
 import { generateWorld } from './world/WorldGen';
@@ -89,6 +90,8 @@ export interface SimEvents extends Record<string, unknown> {
   slept: { minutes: number; passedOut: boolean };
   /** Oyuncuya kısa bildirim. */
   message: string;
+  /** Dünya üstü geçici balon (sev → kalp gibi); render katmanı dinler. */
+  emote: EmoteEvent;
 }
 
 export type Command =

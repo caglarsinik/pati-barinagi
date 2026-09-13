@@ -57,6 +57,8 @@ export const store = {
   report: signal<WeekSummary | null>(null),
   settingsOpen: signal(false),
   guideHidden: signal(false),
+  /** Dünya üstü isim etiketleri (L). */
+  labels: signal(true),
   season: signal(''),
   weather: signal(''),
   weatherIcon: signal(''),

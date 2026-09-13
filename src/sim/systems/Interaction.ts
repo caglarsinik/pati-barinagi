@@ -256,6 +256,7 @@ export function performAction(sim: Sim): ActionOutcome {
       dog.petsToday++;
       interactWith(sim, dog, B.petDurationMin);
       sim.stats.petted++;
+      sim.events.emit('emote', { kind: 'dog', id: dog.id, emote: 'heart', seconds: 1.5 });
       p.setBusy(0.45, 'pet');
       return { ok: true };
     }
@@ -268,6 +269,7 @@ export function performAction(sim: Sim): ActionOutcome {
       dog.needs.thirst = clamp100(dog.needs.thirst + B.needs.thirstAfterPlay);
       interactWith(sim, dog, B.playDurationMin);
       sim.stats.played++;
+      sim.events.emit('emote', { kind: 'dog', id: dog.id, emote: 'heart', seconds: 2 });
       p.setBusy(1.0, 'play');
       return { ok: true, message: t('{name} çok eğlendi', { name: dog.name }) };
     }

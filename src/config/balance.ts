@@ -233,6 +233,13 @@ export const BALANCE = {
     inspectionBonusPerDog: 60,
     inspectionFine: 200,
   },
+  /** Dünya üstü balonların eşikleri (Emotes.ts). */
+  emotes: {
+    hungerAbove: 70,
+    thirstAbove: 70,
+    bladderAbove: 85,
+    playBelow: 30,
+  },
   camera: {
     avatarZoom: 3,
     manageZoom: 1.5,

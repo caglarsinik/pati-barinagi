@@ -21,12 +21,12 @@ import { t } from '../i18n';
 
 type KeyName =
   | 'W' | 'A' | 'S' | 'D' | 'UP' | 'DOWN' | 'LEFT' | 'RIGHT' | 'SHIFT' | 'E' | 'I' | 'B' | 'X' | 'Z' | 'O' | 'N' | 'P' | 'F' | 'TAB' | 'SPACE' | 'ESC'
-  | 'PLUS' | 'MINUS' | 'NUMPAD_ADD' | 'NUMPAD_SUBTRACT' | 'ONE' | 'TWO' | 'THREE' | 'FOUR' | 'FIVE' | 'H';
+  | 'PLUS' | 'MINUS' | 'NUMPAD_ADD' | 'NUMPAD_SUBTRACT' | 'ONE' | 'TWO' | 'THREE' | 'FOUR' | 'FIVE' | 'H' | 'L';
 type Keys = Record<KeyName, Phaser.Input.Keyboard.Key>;
 
 const KEY_LIST: KeyName[] = [
   'W', 'A', 'S', 'D', 'UP', 'DOWN', 'LEFT', 'RIGHT', 'SHIFT', 'E', 'I', 'B', 'X', 'Z', 'O', 'N', 'P', 'F', 'TAB', 'SPACE', 'ESC',
-  'PLUS', 'MINUS', 'NUMPAD_ADD', 'NUMPAD_SUBTRACT', 'ONE', 'TWO', 'THREE', 'FOUR', 'FIVE', 'H',
+  'PLUS', 'MINUS', 'NUMPAD_ADD', 'NUMPAD_SUBTRACT', 'ONE', 'TWO', 'THREE', 'FOUR', 'FIVE', 'H', 'L',
 ];
 
 const TOOL_KEYS: Array<[KeyName, Tool]> = [
@@ -232,8 +232,11 @@ export class WorldScene extends Phaser.Scene {
 
     this.game.events.on('ui:focus-tile', this.focusTile, this);
     this.applyMode(this.sim.mode);
+    // Dünya üstü göstergeler ayrı sahnede (kamerayı kopyalar).
+    this.scene.launch('Overlay', { sim: this.sim });
 
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
+      this.scene.stop('Overlay');
       for (const u of this.unsub) u();
       this.unsub = [];
       this.dragLast = null;
@@ -299,6 +302,7 @@ export class WorldScene extends Phaser.Scene {
     if (JustDown(k.F)) store.panel.value = store.panel.value === 'deployment' ? 'none' : 'deployment';
     if (JustDown(k.H)) store.panel.value = store.panel.value === 'achievements' ? 'none' : 'achievements';
     if (JustDown(k.B)) this.game.events.emit('ui:build-toggle');
+    if (JustDown(k.L)) this.game.events.emit('ui:labels-toggle');
     if (this.sim.mode === 'manage') {
       if (JustDown(k.X)) store.build.value = store.build.value.kind === 'demolish' ? { kind: 'none' } : { kind: 'demolish' };
       if (JustDown(k.Z)) store.build.value = store.build.value.kind === 'zone' ? { kind: 'none' } : { kind: 'zone', zone: Zone.Toilet };

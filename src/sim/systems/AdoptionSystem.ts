@@ -197,6 +197,7 @@ export class AdoptionSystem {
     sim.addIncome('adoption', a.fee, `${dog.name} → ${a.name}`);
     sim.adoptions.push({ day: sim.clock.day, dogName: dog.name, adopterName: a.name, fee: a.fee, score });
     sim.stats.adopted++;
+    sim.events.emit('emote', { kind: 'adopter', id: a.id, emote: 'heart', seconds: 3 });
     const saved = dog.toJSON();
     sim.removeDog(dog.id);
     if (score < 50 && sim.rng.chance(B.returnChanceBadMatch)) {

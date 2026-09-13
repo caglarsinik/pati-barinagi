@@ -1,5 +1,7 @@
 import { describe, expect, it } from 'vitest';
+import { EMOTE_SIZE, buildEmoteSheet, drawEmote } from '../../src/render/EmoteArt';
 import { HUMAN_DIRS, HUMAN_FRAMES, HUMAN_H, HUMAN_W, PLAYER_STYLE, buildHumanSheet } from '../../src/render/HumanPainter';
+import { EMOTE_KEYS } from '../../src/sim/systems/Emotes';
 import { Pixels, hex } from '../../src/render/Pixels';
 import { TILE, buildTileset } from '../../src/render/TileArt';
 import { FENCE_TILE_BASE, Ground, Obj, TILESET_COLUMNS, TILESET_ROWS, objTileIndex } from '../../src/sim/world/tiles';
@@ -66,6 +68,23 @@ describe('TileArt', () => {
     expect(a.crop(waterX, 0, TILE, TILE).data).not.toEqual(b.crop(waterX, 0, TILE, TILE).data);
     const grassX = (Ground.Grass0 % TILESET_COLUMNS) * TILE;
     expect(a.crop(grassX, 0, TILE, TILE).data).toEqual(b.crop(grassX, 0, TILE, TILE).data);
+  });
+});
+
+describe('EmoteArt', () => {
+  it('her balon 12x12, zemin dolu, ikon zeminden farklı renkte', () => {
+    const sheet = buildEmoteSheet();
+    expect(sheet.w).toBe(EMOTE_SIZE * EMOTE_KEYS.length);
+    expect(sheet.h).toBe(EMOTE_SIZE);
+    for (const k of EMOTE_KEYS) {
+      const p = drawEmote(k);
+      expect(opaqueCount(p, 0, 0, EMOTE_SIZE, EMOTE_SIZE), k).toBeGreaterThan(110);
+      let icon = 0;
+      for (let y = 2; y < 10; y++) for (let x = 2; x < 10; x++) if (p.isOpaque(x, y) && p.get(x, y)[0] !== 0xf8) icon++;
+      expect(icon, k).toBeGreaterThan(8);
+      expect(p.get(0, 0)[3], k).toBe(0); // köşe dışı saydam
+      expect(p.get(0, 5)[3], k).toBe(255); // dış çizgi
+    }
   });
 });
 

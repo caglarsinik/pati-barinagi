@@ -16,8 +16,8 @@ export const DOG_FRAME_SIT = 3;
 export const DOG_FRAME_LIE = 4;
 export const DOG_FRAME_EAT = 5;
 
-const SIZE_SCALE = { S: 0.8, M: 1, L: 1.25 } as const;
-const STAGE_SCALE = { puppy: 0.55, young: 0.8, adult: 1, senior: 1 } as const;
+export const SIZE_SCALE = { S: 0.8, M: 1, L: 1.25 } as const;
+export const STAGE_SCALE = { puppy: 0.55, young: 0.8, adult: 1, senior: 1 } as const;
 
 export function dogTextureKey(g: DogGenome, stage: GrowthStage): string {
   return `dog-${genomeKey(g)}-${stage}`;

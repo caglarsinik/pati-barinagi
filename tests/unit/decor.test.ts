@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { BALANCE } from '../../src/config/balance';
 import { type BuildingType } from '../../src/content/buildings';
 import { canPlaceBuilding } from '../../src/sim/entities/Building';
+import type { Staff } from '../../src/sim/entities/Staff';
 import { Sim } from '../../src/sim/Sim';
 import { runInspection } from '../../src/sim/systems/EconomySystem';
 
@@ -75,7 +76,7 @@ describe('Dekor', () => {
     const withKitchen = Math.max(3, Math.round((base * BALANCE.staff.kitchenPrepMul) / Math.max(0.2, s.efficiency('feed'))));
     expect(withKitchen).toBeLessThan(noKitchen);
     // Gerçek sistemden: mutfak kurulunca görev süresi kısalır
-    const dur = (sim.staffSystem as unknown as { duration: (s: typeof s, t: 'feed') => number }).duration.bind(sim.staffSystem);
+    const dur = (sim.staffSystem as unknown as { duration: (st: Staff, t: 'feed') => number }).duration.bind(sim.staffSystem);
     expect(dur(s, 'feed')).toBe(noKitchen);
     put(sim, 'kitchen');
     expect(dur(s, 'feed')).toBe(withKitchen);

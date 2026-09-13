@@ -3,6 +3,8 @@ import { BUILDING_DEFS, type BuildingType } from '../content/buildings';
 import type { GrowthStage } from '../sim/entities/Dog';
 import type { DogGenome } from '../sim/entities/DogGenome';
 import { drawBuilding } from './BuildingArt';
+import { EMOTE_SIZE, EMOTE_TEX, buildEmoteSheet } from './EmoteArt';
+import { EMOTE_KEYS } from '../sim/systems/Emotes';
 import { DOG_DIRS, DOG_FRAME, DOG_FRAMES, buildDogSheet, dogTextureKey } from './DogPainter';
 import { HUMAN_DIRS, HUMAN_FRAMES, HUMAN_H, HUMAN_W, PLAYER_STYLE, buildHumanSheet, humanStyleFromSeed } from './HumanPainter';
 import { hex, shade } from './Pixels';
@@ -30,6 +32,9 @@ export function registerTextures(scene: Phaser.Scene): void {
   if (tex) {
     for (let i = 0; i < HUMAN_DIRS * HUMAN_FRAMES; i++) tex.add(i, 0, i * HUMAN_W, 0, HUMAN_W, HUMAN_H);
   }
+
+  const emotes = t.addCanvas(EMOTE_TEX, buildEmoteSheet().toCanvas());
+  if (emotes) for (let i = 0; i < EMOTE_KEYS.length; i++) emotes.add(i, 0, i * EMOTE_SIZE, 0, EMOTE_SIZE, EMOTE_SIZE);
 
   for (const type of Object.keys(BUILDING_DEFS) as BuildingType[]) {
     const variants = type === 'bowl' || type === 'trough' ? 3 : 1;
