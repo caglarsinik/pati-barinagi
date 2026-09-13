@@ -6,17 +6,7 @@ import { Clock, MINUTES_PER_DAY } from '../core/Clock';
 import { EventBus } from '../core/EventBus';
 import { Rng, hash2 } from '../core/Rng';
 import type { SaveData } from '../core/SaveManager';
-import {
-  type Building,
-  type BuildingSave,
-  buildingDef,
-  buildingDoorTile,
-  canPlaceBuilding,
-  isReady,
-  kennelRestTile,
-  stampBuilding,
-  unstampBuilding,
-} from './entities/Building';
+import { type Building, type BuildingSave, buildingDef, buildingDoorTile, canPlaceBuilding, isReady, kennelRestTile, stampBuilding, unstampBuilding, normalizeRot, type Rotation } from './entities/Building';
 import { type Adopter, adopterFromJSON } from './entities/Adopter';
 import { Dog, type DogOrigin, SKILL_KEYS, STAGE_NAMES_TR, type SkillKey, clamp100, defaultNeeds } from './entities/Dog';
 import { type DogGenome, randomGenome } from './entities/DogGenome';
@@ -120,7 +110,7 @@ export type Command =
   | { type: 'orderFood'; bags: number }
   | { type: 'setTrainingFocus'; id: number; skill: SkillKey | null }
   | { type: 'assignKennel'; dogId: number; buildingId: number | null }
-  | { type: 'placeBuilding'; building: BuildingType; x: number; y: number }
+  | { type: 'placeBuilding'; building: BuildingType; x: number; y: number; rot?: Rotation }
   | { type: 'placeTiles'; tool: TileTool; tiles: TilePos[] }
   | { type: 'demolish'; x: number; y: number }
   | { type: 'paintZone'; zone: Zone; x0: number; y0: number; x1: number; y1: number }
@@ -600,7 +590,7 @@ export class Sim {
         return { ok: true };
       }
       case 'placeBuilding': {
-        const r = tryPlaceBuilding(this, cmd.building, cmd.x, cmd.y);
+        const r = tryPlaceBuilding(this, cmd.building, cmd.x, cmd.y, cmd.rot ?? 0);
         return { ok: r.ok, message: r.message, building: r.building };
       }
       case 'placeTiles': {
@@ -957,13 +947,15 @@ export class Sim {
     return this.buildingMap.get(id);
   }
 
-  placeBuilding(type: BuildingType, x: number, y: number, buildMinutes = 0): Building | null {
-    if (!canPlaceBuilding(this.world, type, x, y)) return null;
+  placeBuilding(type: BuildingType, x: number, y: number, buildMinutes = 0, rotIn: Rotation = 0): Building | null {
+    const rot = normalizeRot(type, rotIn);
+    if (!canPlaceBuilding(this.world, type, x, y, rot)) return null;
     const b: Building = {
       id: this.nextId++,
       type,
       x,
       y,
+      rot,
       food: 0,
       water: type === 'trough' ? BALANCE.shelter.troughCapacity : 0,
       occupants: [],
@@ -1120,6 +1112,7 @@ export class Sim {
         type: b.type,
         x: b.x,
         y: b.y,
+        rot: b.rot,
         food: b.food,
         water: b.water,
         occupants: [...b.occupants],
@@ -1279,7 +1272,8 @@ export class Sim {
       for (const raw of data.buildings as Partial<BuildingSave>[]) {
         if (!raw || typeof raw.id !== 'number' || typeof raw.type !== 'string' || !(raw.type in BUILDING_DEFS)) continue;
         if (typeof raw.x !== 'number' || typeof raw.y !== 'number') continue;
-        if (!canPlaceBuilding(world, raw.type, raw.x, raw.y)) continue;
+        const rot = normalizeRot(raw.type, raw.rot);
+        if (!canPlaceBuilding(world, raw.type, raw.x, raw.y, rot)) continue;
         const eggs: Egg[] = [];
         if (Array.isArray(raw.eggs)) {
           for (const e of raw.eggs) {
@@ -1292,6 +1286,7 @@ export class Sim {
           type: raw.type,
           x: raw.x,
           y: raw.y,
+          rot,
           food: numOr(raw.food, 0, 0),
           water: Math.min(BALANCE.shelter.troughCapacity, numOr(raw.water, raw.type === 'trough' ? BALANCE.shelter.troughCapacity : 0, 0)),
           occupants: [],

@@ -26,6 +26,7 @@ Tasarım dokümanı ve kilometre taşları: `docs/PLAN.md`
 | Alt menü çubuğu | Barınak {Köpekler, Sahiplendirme} · Yönetim {Finans, Personel, Görevlendirme} · İnşa · Başarımlar · Menü {Kontroller, Ayarlar, Kaydet, Duraklat, Ana menü}; açılır listelerde tuşlar yazar | Aynı |
 | B | İnşa çubuğu (yönetim moduna geçer) | İnşa çubuğu |
 | X / Z | – | Yık aracı / Bölge boyama |
+| R | – | Seçili binayı döndür (kare olmayan binalar; dokunmatikte Döndür çipi) |
 | Tab | Yönetim moduna geç | Avatara dön |
 | Space | Duraklat / devam | Duraklat / devam |
 | + / - | Hız artır / azalt | Hız artır / azalt |

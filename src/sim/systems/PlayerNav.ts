@@ -1,5 +1,5 @@
 import { BALANCE } from '../../config/balance';
-import { buildingDef } from '../entities/Building';
+import { buildingDef, buildingDoorTile } from '../entities/Building';
 import { IDLE_INPUT, type PlayerInput } from '../entities/Player';
 import { findPath } from '../world/Pathfinder';
 import type { TilePos } from '../world/TileWorld';
@@ -76,7 +76,7 @@ export class PlayerNav {
       const def = buildingDef(b);
       if (def.solidRows === 'all' || def.solidRows > 0) {
         // Katı bina: kapı önü (alt orta karenin altı); yukarı bakınca binaya bakar.
-        const door = { x: b.x + Math.floor(def.w / 2), y: b.y + def.h };
+        const door = buildingDoorTile(b);
         return { tile: door, face: { x: door.x + 0.5, y: door.y - 0.5 } };
       }
       anchor = { x: b.x, y: b.y };

@@ -8,7 +8,7 @@ import {
   TILE_TOOL_DEFS,
   type TileTool,
 } from '../../content/buildings';
-import { type Building, buildingDef, canPlaceBuilding } from '../entities/Building';
+import { type Building, buildingDef, canPlaceBuilding, buildingSize, normalizeRot, type Rotation } from '../entities/Building';
 import type { TilePos } from '../world/TileWorld';
 import { Biome, Ground, Obj, Zone } from '../world/tiles';
 import type { Sim } from '../Sim';
@@ -24,13 +24,15 @@ export interface BuildResult {
 }
 
 /** Bina yerleştirme: para, yer, üstünde canlı var mı kontrolleri. */
-export function tryPlaceBuilding(sim: Sim, type: BuildingType, x: number, y: number): BuildResult {
+export function tryPlaceBuilding(sim: Sim, type: BuildingType, x: number, y: number, rotIn: Rotation = 0): BuildResult {
   const def = BUILDING_DEFS[type];
   if (!def || !def.buildable) return { ok: false, message: t('Bu bina inşa edilemez') };
+  const rot = normalizeRot(type, rotIn);
+  const size = buildingSize(def, rot);
   if (sim.money < def.cost) return { ok: false, message: t('Yeterli para yok ({cost} ₺)', { cost: def.cost }) };
-  if (!canPlaceBuilding(sim.world, type, x, y)) return { ok: false, message: t('Buraya sığmıyor') };
-  if (occupiedByCreature(sim, x, y, def.w, def.h)) return { ok: false, message: t('Üstünde biri var') };
-  const b = sim.placeBuilding(type, x, y, def.buildMinutes);
+  if (!canPlaceBuilding(sim.world, type, x, y, rot)) return { ok: false, message: t('Buraya sığmıyor') };
+  if (occupiedByCreature(sim, x, y, size.w, size.h)) return { ok: false, message: t('Üstünde biri var') };
+  const b = sim.placeBuilding(type, x, y, def.buildMinutes, rot);
   if (!b) return { ok: false, message: t('Yerleştirilemedi') };
   sim.addExpense('building', def.cost, t(def.name));
   sim.stats.built++;

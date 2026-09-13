@@ -5,14 +5,14 @@ import { BUILDING_DEFS } from '../content/buildings';
 import { DOG_FRAMES, DOG_FRAME_EAT, DOG_FRAME_IDLE, DOG_FRAME_LIE, DOG_FRAME_SIT } from '../render/DogPainter';
 import { TEX, buildingTextureKey, ensureDogTexture, ensureHumanTexture, releaseDogTextures } from '../render/TextureRegistry';
 import { type DogGenome, genomeKey } from '../sim/entities/DogGenome';
-import { type Building, buildingDef, canPlaceBuilding, isReady } from '../sim/entities/Building';
+import { type Building, buildingDef, canPlaceBuilding, isReady, buildingSize, solidRowsFor } from '../sim/entities/Building';
 import type { Dog } from '../sim/entities/Dog';
 import type { PlayerInput } from '../sim/entities/Player';
 import type { Mode, Sim } from '../sim/Sim';
 import type { ActionKind, ActionOutcome, Tool } from '../sim/systems/Interaction';
 import type { TilePos } from '../sim/world/TileWorld';
 import { GATE_OPEN_TILE, OBJ_INFO, Obj, TOILET_TILE, ZONE_COLORS, ZONE_TILE_BASE, Zone, objTileIndex } from '../sim/world/tiles';
-import { showToast, store, syncStore } from '../ui/store';
+import { showToast, store, syncStore, rotateBuildTool } from '../ui/store';
 import { audio } from '../audio/audio';
 import { resolveAction } from '../sim/systems/Interaction';
 import { drawLightDisc } from '../render/LightArt';
@@ -23,12 +23,12 @@ import { t } from '../i18n';
 
 type KeyName =
   | 'W' | 'A' | 'S' | 'D' | 'UP' | 'DOWN' | 'LEFT' | 'RIGHT' | 'SHIFT' | 'E' | 'I' | 'B' | 'X' | 'Z' | 'O' | 'N' | 'P' | 'F' | 'TAB' | 'SPACE' | 'ESC'
-  | 'PLUS' | 'MINUS' | 'NUMPAD_ADD' | 'NUMPAD_SUBTRACT' | 'ONE' | 'TWO' | 'THREE' | 'FOUR' | 'FIVE' | 'SIX' | 'H' | 'L';
+  | 'PLUS' | 'MINUS' | 'NUMPAD_ADD' | 'NUMPAD_SUBTRACT' | 'ONE' | 'TWO' | 'THREE' | 'FOUR' | 'FIVE' | 'SIX' | 'H' | 'L' | 'R';
 type Keys = Record<KeyName, Phaser.Input.Keyboard.Key>;
 
 const KEY_LIST: KeyName[] = [
   'W', 'A', 'S', 'D', 'UP', 'DOWN', 'LEFT', 'RIGHT', 'SHIFT', 'E', 'I', 'B', 'X', 'Z', 'O', 'N', 'P', 'F', 'TAB', 'SPACE', 'ESC',
-  'PLUS', 'MINUS', 'NUMPAD_ADD', 'NUMPAD_SUBTRACT', 'ONE', 'TWO', 'THREE', 'FOUR', 'FIVE', 'SIX', 'H', 'L',
+  'PLUS', 'MINUS', 'NUMPAD_ADD', 'NUMPAD_SUBTRACT', 'ONE', 'TWO', 'THREE', 'FOUR', 'FIVE', 'SIX', 'H', 'L', 'R',
 ];
 
 const TOOL_KEYS: Array<[KeyName, Tool]> = [
@@ -361,6 +361,9 @@ export class WorldScene extends Phaser.Scene {
     if (this.sim.mode === 'manage') {
       if (JustDown(k.X)) store.build.value = store.build.value.kind === 'demolish' ? { kind: 'none' } : { kind: 'demolish' };
       if (JustDown(k.Z)) store.build.value = store.build.value.kind === 'zone' ? { kind: 'none' } : { kind: 'zone', zone: Zone.Toilet };
+      if (JustDown(k.R) && store.build.value.kind === 'building') {
+        if (rotateBuildTool()) audio.play('click');
+      }
     }
     for (const [key, tool] of TOOL_KEYS) if (JustDown(k[key])) this.sim.command({ type: 'setTool', tool });
     if (JustDown(k.E) && this.sim.mode === 'avatar' && !this.sim.paused) this.interact();
@@ -560,7 +563,7 @@ export class WorldScene extends Phaser.Scene {
     };
     switch (tool.kind) {
       case 'building':
-        done(this.sim.command({ type: 'placeBuilding', building: tool.type, x: end.x, y: end.y }));
+        done(this.sim.command({ type: 'placeBuilding', building: tool.type, x: end.x, y: end.y, rot: tool.rot ?? 0 }));
         break;
       case 'demolish':
         done(this.sim.command({ type: 'demolish', x: end.x, y: end.y }));
@@ -663,13 +666,15 @@ export class WorldScene extends Phaser.Scene {
     const start = this.dragStartTile ?? t;
     if (tool.kind === 'building') {
       const def = BUILDING_DEFS[tool.type];
-      const ok = this.sim.money >= def.cost && canPlaceBuilding(this.sim.world, tool.type, t.x, t.y);
+      const rot = tool.rot ?? 0;
+      const size = buildingSize(def, rot);
+      const ok = this.sim.money >= def.cost && canPlaceBuilding(this.sim.world, tool.type, t.x, t.y, rot);
       this.ghostImage
-        .setTexture(buildingTextureKey(tool.type, tool.type === 'bowl' ? 2 : 0))
-        .setPosition(t.x * T, (t.y + def.h) * T)
+        .setTexture(buildingTextureKey(tool.type, tool.type === 'bowl' ? 2 : 0, rot))
+        .setPosition(t.x * T, (t.y + size.h) * T)
         .setTint(ok ? GHOST_OK : GHOST_BAD)
         .setVisible(true);
-      this.ghostGfx.lineStyle(1, ok ? GHOST_OK : GHOST_BAD, 0.9).strokeRect(t.x * T + 0.5, t.y * T + 0.5, def.w * T - 1, def.h * T - 1);
+      this.ghostGfx.lineStyle(1, ok ? GHOST_OK : GHOST_BAD, 0.9).strokeRect(t.x * T + 0.5, t.y * T + 0.5, size.w * T - 1, size.h * T - 1);
       return;
     }
     this.ghostImage.setVisible(false);
@@ -828,8 +833,10 @@ export class WorldScene extends Phaser.Scene {
   private addBuildingImage(b: Building): void {
     const T = GAME.tile;
     const def = buildingDef(b);
-    const img = this.add.image(b.x * T, (b.y + def.h) * T, buildingTextureKey(b.type, this.buildingVariant(b))).setOrigin(0, 1);
-    const solidRows = def.solidRows === 'all' ? def.h : Math.max(def.solidRows, 0.5);
+    const size = buildingSize(def, b.rot);
+    const img = this.add.image(b.x * T, (b.y + size.h) * T, buildingTextureKey(b.type, this.buildingVariant(b), b.rot)).setOrigin(0, 1);
+    const sr = solidRowsFor(def, b.rot);
+    const solidRows = sr === 'all' ? size.h : Math.max(sr, 0.5);
     img.setDepth(100 + (b.y + solidRows) * T);
     if (!isReady(b)) img.setAlpha(0.45);
     this.buildingImages.set(b.id, img);
@@ -851,7 +858,7 @@ export class WorldScene extends Phaser.Scene {
       const img = this.buildingImages.get(b.id);
       if (!img) continue;
       if (b.type === 'bowl' || b.type === 'trough') {
-        const key = buildingTextureKey(b.type, this.buildingVariant(b));
+        const key = buildingTextureKey(b.type, this.buildingVariant(b), b.rot);
         if (img.texture.key !== key) img.setTexture(key);
       }
       if (!isReady(b)) {

@@ -83,7 +83,7 @@ export function BuildBar() {
               >
                 <span class="bi-name">{t(d.name)}</span>
                 <span class="bi-cost">
-                  {d.w}×{d.h} · {formatMoney(d.cost)}
+                  {tool.kind === 'building' && tool.type === d.type && tool.rot === 1 ? `${d.h}×${d.w}` : `${d.w}×${d.h}`} · {formatMoney(d.cost)}
                 </span>
               </button>
             ))}

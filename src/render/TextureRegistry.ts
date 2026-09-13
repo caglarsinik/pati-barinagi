@@ -1,3 +1,4 @@
+import { canRotate } from '../sim/entities/Building';
 import Phaser from 'phaser';
 import { BUILDING_DEFS, type BuildingType } from '../content/buildings';
 import type { GrowthStage } from '../sim/entities/Dog';
@@ -16,8 +17,9 @@ export const TEX = {
   player: 'player',
 } as const;
 
-export function buildingTextureKey(type: BuildingType, variant = 0): string {
-  return variant > 0 ? `bld-${type}-${variant}` : `bld-${type}`;
+export function buildingTextureKey(type: BuildingType, variant = 0, rot: 0 | 1 = 0): string {
+  const base = variant > 0 ? `bld-${type}-${variant}` : `bld-${type}`;
+  return rot === 1 ? `${base}-r1` : base;
 }
 
 /** Tüm sabit dokuları kodla üretip Phaser'a kaydeder. Bir kez çağrılır (Boot sahnesi). */
@@ -39,6 +41,7 @@ export function registerTextures(scene: Phaser.Scene): void {
   for (const type of Object.keys(BUILDING_DEFS) as BuildingType[]) {
     const variants = type === 'bowl' || type === 'trough' ? 3 : 1;
     for (let v = 0; v < variants; v++) t.addCanvas(buildingTextureKey(type, v), drawBuilding(type, v).toCanvas());
+    if (canRotate(type)) t.addCanvas(buildingTextureKey(type, 0, 1), drawBuilding(type, 0, 1).toCanvas());
   }
 }
 

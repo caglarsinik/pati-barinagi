@@ -13,6 +13,7 @@ const ROWS: Array<[string, string, string]> = [
   ['Tab', 'Yönetim moduna geç', 'Avatara dön'],
   ['B', 'İnşa çubuğu (yönetim moduna geçer)', 'İnşa çubuğu'],
   ['X / Z', '–', 'Yık aracı / Bölge boyama'],
+  ['R', '–', 'Seçili binayı döndür (kare olmayan binalar)'],
   ['I / O / N / P / F / H', 'Köpekler / Sahiplendirme / Finans / Personel / Görevlendirme / Başarımlar', 'Aynı'],
   ['L', 'İsim etiketlerini aç/kapa', 'Aynı'],
   ['Space', 'Duraklat / devam', 'Aynı'],

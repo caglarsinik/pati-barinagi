@@ -1,3 +1,4 @@
+import { canRotate } from '../sim/entities/Building';
 import { DogPanel } from './DogPanel';
 import { Backpack } from './EggPanels';
 import { Guide } from './Guide';
@@ -10,7 +11,7 @@ import { TopBar } from './TopBar';
 import { TouchControls } from './TouchControls';
 import { app } from '../app';
 import { t } from '../i18n';
-import { store } from './store';
+import { store, rotateBuildTool } from './store';
 
 export { formatMoney } from './format';
 
@@ -36,6 +37,11 @@ export function HUD() {
       <BuildBar />
       <div class="hud hud-bottom panel hint">
         {store.hint.value}
+        {store.touch.value && store.build.value.kind === 'building' && canRotate(store.build.value.type) && (
+          <button class="chip-btn hint-cancel" onClick={() => rotateBuildTool()}>
+            {t('Döndür')}
+          </button>
+        )}
         {store.touch.value && store.build.value.kind !== 'none' && (
           <button class="chip-btn hint-cancel" onClick={() => app.setBuildTool({ kind: 'none' })}>
             {t('İptal')}

@@ -1,3 +1,4 @@
+import { canRotate, type Rotation } from '../sim/entities/Building';
 import { signal } from '@preact/signals';
 import { BUILDING_DEFS, type BuildingType, TILE_TOOL_DEFS, type TileTool } from '../content/buildings';
 import { type Mode, type Sim, type GameOverInfo } from '../sim/Sim';
@@ -34,7 +35,7 @@ export type Panel =
 
 export type BuildTool =
   | { kind: 'none' }
-  | { kind: 'building'; type: BuildingType }
+  | { kind: 'building'; type: BuildingType; rot?: Rotation }
   | { kind: 'tile'; tool: TileTool }
   | { kind: 'demolish' }
   | { kind: 'zone'; zone: Zone };
@@ -161,10 +162,23 @@ export function syncStore(sim: Sim): void {
   store.hint.value = hintFor(sim);
 }
 
+/** Seçili inşa binasını 90° döndürür; kare binada uyarı verir. Döndüyse true. */
+export function rotateBuildTool(): boolean {
+  const tool = store.build.value;
+  if (tool.kind !== 'building') return false;
+  if (!canRotate(tool.type)) {
+    showToast(t('Bu bina döndürülemez'));
+    return false;
+  }
+  store.build.value = { kind: 'building', type: tool.type, rot: tool.rot === 1 ? 0 : 1 };
+  return true;
+}
+
 export function buildToolHint(tool: BuildTool): string {
   switch (tool.kind) {
     case 'building': {
       const d = BUILDING_DEFS[tool.type];
+      if (canRotate(tool.type)) return t('{name} ({cost} ₺) · tıkla: yerleştir · R: döndür · sağ tık/Esc: iptal', { name: t(d.name), cost: d.cost });
       return t('{name} ({cost} ₺) · tıkla: yerleştir · sağ tık/Esc: iptal', { name: t(d.name), cost: d.cost });
     }
     case 'tile': {

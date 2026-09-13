@@ -1,5 +1,5 @@
 import { BALANCE } from '../../config/balance';
-import { type Building, buildingDef, isReady } from '../entities/Building';
+import { type Building, buildingDef, isReady, buildingFootprint } from '../entities/Building';
 import { type Dog, SKILL_KEYS, SKILL_NAMES_TR, type SkillKey, clamp100 } from '../entities/Dog';
 import { FACING_DELTA } from '../entities/Player';
 import type { TilePos } from '../world/TileWorld';
@@ -385,11 +385,11 @@ export function performAction(sim: Sim): ActionOutcome {
 }
 
 function nearestDogToBuilding(sim: Sim, b: Building, radius: number): Dog | null {
-  const def = buildingDef(b);
-  const cx = b.x + def.w / 2;
-  const cy = b.y + def.h / 2;
+  const fp = buildingFootprint(b);
+  const cx = b.x + fp.w / 2;
+  const cy = b.y + fp.h / 2;
   let best: Dog | null = null;
-  let bestD = radius + Math.max(def.w, def.h) / 2;
+  let bestD = radius + Math.max(fp.w, fp.h) / 2;
   for (const dog of sim.dogs) {
     const d = Math.hypot(dog.x - cx, dog.y - cy);
     if (d < bestD) {

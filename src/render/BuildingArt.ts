@@ -46,37 +46,38 @@ const C = {
   potDark: hex(0x8f4527),
 };
 
-/** Bina görseli: w*16 x (h*16 + overhang). Kökeni sol alt. */
-export function drawBuilding(type: BuildingType, variant = 0): Pixels {
+/** Bina görseli: w*16 x (h*16 + overhang). Kökeni sol alt. rot 1: genişlik/yükseklik takas, ön yüz yine altta. */
+export function drawBuilding(type: BuildingType, variant = 0, rot: 0 | 1 = 0): Pixels {
   const def = BUILDING_DEFS[type];
-  const W = def.w * T;
-  const H = def.h * T + BUILDING_OVERHANG;
+  const size = rot === 1 ? { w: def.h, h: def.w } : { w: def.w, h: def.h };
+  const W = size.w * T;
+  const H = size.h * T + BUILDING_OVERHANG;
   const p = new Pixels(W, H);
   const y0 = BUILDING_OVERHANG; // bina tabanı bu satırdan başlar
-  const bottom = y0 + def.h * T; // taban alt kenarı (dışlayıcı)
+  const bottom = y0 + size.h * T; // taban alt kenarı (dışlayıcı)
   switch (type) {
     case 'office':
-      drawHouse(p, 0, y0, W, def.h * T, C.wall, C.wallDark, C.roof, C.roofDark, C.roofLight, true);
+      drawHouse(p, 0, y0, W, size.h * T, C.wall, C.wallDark, C.roof, C.roofDark, C.roofLight, true);
       p.fillRect(Math.floor(W / 2) - 7, y0 + 10, 14, 5, C.sign);
       p.fillRect(Math.floor(W / 2) - 6, y0 + 12, 12, 1, P.outline);
       break;
     case 'kennelSmall':
     case 'kennelLarge': {
-      const houseH = T;
+      const houseH = (size.h - 1) * T;
       drawHouse(p, 0, y0, W, houseH, C.woodWall, C.woodWallDark, C.roof, C.roofDark, C.roofLight, false);
       const doors = type === 'kennelLarge' ? 2 : 1;
       for (let i = 0; i < doors; i++) {
         const dx = Math.floor(((i + 0.5) * W) / doors);
         p.ellipse(dx, y0 + houseH - 2, 3.5, 5, C.door);
       }
-      for (let i = 0; i < def.w; i++) {
+      for (let i = 0; i < size.w; i++) {
         p.fillRect(i * T + 2, y0 + houseH + 4, T - 4, T - 6, C.mat);
         p.fillRect(i * T + 3, y0 + houseH + 5, T - 6, T - 8, C.matDark);
       }
       break;
     }
     case 'shed':
-      drawHouse(p, 0, y0, W, def.h * T, C.metal, C.metalDark, C.roofBlue, C.roofBlueDark, C.roofBlue, false);
+      drawHouse(p, 0, y0, W, size.h * T, C.metal, C.metalDark, C.roofBlue, C.roofBlueDark, C.roofBlue, false);
       p.fillRect(Math.floor(W / 2) - 4, bottom - 11, 8, 11, C.door);
       p.line(Math.floor(W / 2) - 4, bottom - 11, Math.floor(W / 2) + 3, bottom - 1, C.woodWall);
       p.line(Math.floor(W / 2) + 3, bottom - 11, Math.floor(W / 2) - 4, bottom - 1, C.woodWall);
@@ -84,7 +85,7 @@ export function drawBuilding(type: BuildingType, variant = 0): Pixels {
       p.ellipse(W - 6, bottom - 3, 3, 2.5, C.kibble);
       break;
     case 'kitchen':
-      drawHouse(p, 0, y0, W, def.h * T, C.wall, C.wallDark, C.roofGreen, C.roofGreenDark, C.roofGreen, false);
+      drawHouse(p, 0, y0, W, size.h * T, C.wall, C.wallDark, C.roofGreen, C.roofGreenDark, C.roofGreen, false);
       // Baca
       p.fillRect(W - 10, y0 - 9, 4, 9, C.metalDark);
       p.fillRect(W - 10, y0 - 10, 4, 1, C.metalLight);
@@ -138,7 +139,7 @@ export function drawBuilding(type: BuildingType, variant = 0): Pixels {
       p.fillRect(14, y0 + 1, 3, 3, C.sign);
       break;
     case 'vetClinic':
-      drawHouse(p, 0, y0, W, def.h * T, C.white, C.wallDark, C.roofBlue, C.roofBlueDark, C.roofBlue, true);
+      drawHouse(p, 0, y0, W, size.h * T, C.white, C.wallDark, C.roofBlue, C.roofBlueDark, C.roofBlue, true);
       // Kırmızı haç
       p.fillRect(Math.floor(W / 2) - 1, y0 + 8, 3, 9, C.cross);
       p.fillRect(Math.floor(W / 2) - 4, y0 + 11, 9, 3, C.cross);
@@ -165,6 +166,16 @@ export function drawBuilding(type: BuildingType, variant = 0): Pixels {
       p.fillRect(12, y0 + 12, 2, 2, C.ropeDark);
       break;
     case 'toyTunnel':
+      if (rot === 1) {
+        // Dikey boru: delikler üstte ve altta.
+        const len = bottom - y0;
+        p.fillRect(3, y0, 10, len, C.tunnel);
+        p.fillRect(11, y0, 2, len, C.tunnelDark);
+        for (let y = y0 + 6; y < bottom - 2; y += 8) p.fillRect(3, y, 10, 1, C.tunnelDark);
+        p.ellipse(8, y0 + 3, 4.5, 2.5, C.tunnelInner);
+        p.ellipse(8, bottom - 4, 4.5, 2.5, C.tunnelInner);
+        break;
+      }
       p.fillRect(0, y0 + 4, W, 10, C.tunnel);
       p.fillRect(0, y0 + 12, W, 2, C.tunnelDark);
       for (let x = 6; x < W; x += 8) p.fillRect(x, y0 + 4, 1, 10, C.tunnelDark);
@@ -179,7 +190,7 @@ export function drawBuilding(type: BuildingType, variant = 0): Pixels {
       p.fillRect(8, y0 + 7, 3, 2, C.cross);
       break;
     case 'staffRoom':
-      drawHouse(p, 0, y0, W, def.h * T, C.wall, C.wallDark, C.roofGreen, C.roofGreenDark, C.roofGreen, true);
+      drawHouse(p, 0, y0, W, size.h * T, C.wall, C.wallDark, C.roofGreen, C.roofGreenDark, C.roofGreen, true);
       // Kahve fincanı tabelası
       p.fillRect(W - 12, y0 + 3, 8, 6, C.sign);
       p.fillRect(W - 10, y0 + 4, 4, 3, C.woodWallDark);
@@ -215,6 +226,18 @@ export function drawBuilding(type: BuildingType, variant = 0): Pixels {
       p.set(12, y0 + 6, P.flowerRed);
       break;
     case 'bench':
+      if (rot === 1) {
+        // Dikey bank: çıtalar yukarıdan aşağı, ayaklar sağda.
+        const len = bottom - y0;
+        p.fillRect(6, y0 + 2, 3, len - 4, C.woodWall);
+        p.fillRect(10, y0 + 2, 3, len - 4, C.woodWall);
+        p.fillRect(12, y0 + 2, 1, len - 4, C.woodWallDark);
+        p.fillRect(13, y0 + 4, 3, 2, C.metalDark);
+        p.fillRect(13, bottom - 6, 3, 2, C.metalDark);
+        p.fillRect(9, y0 + 4, 1, 2, C.metalDark);
+        p.fillRect(9, bottom - 6, 1, 2, C.metalDark);
+        break;
+      }
       p.fillRect(2, y0 + 6, W - 4, 3, C.woodWall);
       p.fillRect(2, y0 + 10, W - 4, 3, C.woodWall);
       p.fillRect(2, y0 + 12, W - 4, 1, C.woodWallDark);
@@ -231,7 +254,7 @@ export function drawBuilding(type: BuildingType, variant = 0): Pixels {
       p.fillRect(4, y0 + 2, 6, 1, C.sign);
       break;
     default:
-      p.fillRect(0, y0, W, def.h * T, C.wall);
+      p.fillRect(0, y0, W, size.h * T, C.wall);
   }
   p.outline(P.outline);
   return p;

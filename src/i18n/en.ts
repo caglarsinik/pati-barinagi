@@ -893,4 +893,11 @@ export const EN: Record<string, string> = {
   'Kasa {n} hafta üst üste maaşları karşılayamayacak kadar eksideydi. Barınak kapatıldı.': 'Cash stayed too far below zero to cover wages for {n} weeks in a row. The shelter has been closed.',
   '{week}. hafta · {dogs} köpek · {adopted} sahiplendirme · kasa {money}': 'Week {week} · {dogs} dogs · {adopted} adoptions · cash {money}',
   'Ana menüye dön': 'Back to main menu',
+
+  // M10: bina döndürme
+  '{name} ({cost} ₺) · tıkla: yerleştir · R: döndür · sağ tık/Esc: iptal': '{name} ({cost} ₺) · click: place · R: rotate · right click/Esc: cancel',
+  'Bu bina döndürülemez': 'This building cannot be rotated',
+  'Döndür': 'Rotate',
+  'R': 'R',
+  'Seçili binayı döndür (kare olmayan binalar)': 'Rotate the selected building (non-square buildings)',
 };
