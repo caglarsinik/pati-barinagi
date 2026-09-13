@@ -46,6 +46,14 @@ export class Player {
     return Math.floor(this.y - 0.2);
   }
 
+  /** Verilen noktaya (kare biriminde) dön: baskın eksen. */
+  faceToward(x: number, y: number): void {
+    const dx = x - this.x;
+    const dy = y - (this.y - 0.2);
+    if (Math.abs(dx) >= Math.abs(dy)) this.facing = dx < 0 ? 1 : 2;
+    else this.facing = dy < 0 ? 3 : 0;
+  }
+
   /** Baktığı kare. */
   facingTile(): { x: number; y: number } {
     const d = FACING_DELTA[this.facing];

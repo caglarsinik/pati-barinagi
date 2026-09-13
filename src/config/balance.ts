@@ -311,6 +311,18 @@ export const BALANCE = {
     inspectionBonusPerDog: 60,
     inspectionFine: 200,
   },
+  /** Dokun-git: oyuncu yol takibi (PlayerNav). */
+  nav: {
+    plotMaxNodes: 4000,
+    maxNodes: 30000,
+    /** Sıradaki kareye bu kadar yaklaşınca geçildi sayılır. */
+    arriveDist: 0.22,
+    axisDead: 0.08,
+    /** Köpek hedefte bundan uzaksa yeniden yaklaşılır. */
+    reachDist: 1.7,
+    stuckSeconds: 0.6,
+    maxReplans: 2,
+  },
   /** Dünya üstü balonların eşikleri (Emotes.ts). */
   emotes: {
     hungerAbove: 70,

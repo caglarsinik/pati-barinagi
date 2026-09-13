@@ -9,7 +9,7 @@ import { type Building, buildingDef, canPlaceBuilding, isReady } from '../sim/en
 import type { Dog } from '../sim/entities/Dog';
 import type { PlayerInput } from '../sim/entities/Player';
 import type { Mode, Sim } from '../sim/Sim';
-import type { Tool } from '../sim/systems/Interaction';
+import type { ActionKind, ActionOutcome, Tool } from '../sim/systems/Interaction';
 import type { TilePos } from '../sim/world/TileWorld';
 import { OBJ_INFO, Obj, ZONE_COLORS, ZONE_TILE_BASE, Zone, objTileIndex } from '../sim/world/tiles';
 import { showToast, store, syncStore } from '../ui/store';
@@ -78,6 +78,10 @@ export class WorldScene extends Phaser.Scene {
   private barkTimer = 4;
   /** Havlama durumuna girdiği görülen köpekler (bir kez ses için). */
   private barkSeen = new Set<number>();
+  /** Dokunmatik uzun basış: köpek seçimi. */
+  private longPressTimer: Phaser.Time.TimerEvent | null = null;
+  private longPressed = false;
+  private touchTipShown = false;
   private lightMap!: Phaser.GameObjects.RenderTexture;
   private rain!: Phaser.GameObjects.Particles.ParticleEmitter;
   private snow!: Phaser.GameObjects.Particles.ParticleEmitter;
@@ -180,6 +184,7 @@ export class WorldScene extends Phaser.Scene {
       this.sim.events.on('adopterArrived', (a) => showToast(t('{name} kapıdan geldi: sahiplenmek istiyor', { name: a.name }))),
       this.sim.events.on('gameEvent', () => audio.play('alert')),
       this.sim.events.on('achievement', () => audio.play('adopt')),
+      this.sim.events.on('interacted', (e) => this.afterInteract(e.kind, e.result)),
     );
 
     // --- Oyuncu ---
@@ -261,6 +266,7 @@ export class WorldScene extends Phaser.Scene {
     this.input.on('pointerup', (ptr: Phaser.Input.Pointer) => this.onPointerUp(ptr));
 
     this.game.events.on('ui:focus-tile', this.focusTile, this);
+    this.game.events.on('ui:interact', this.onUiInteract, this);
     this.applyMode(this.sim.mode);
     // Dünya üstü göstergeler ayrı sahnede (kamerayı kopyalar).
     this.scene.launch('Overlay', { sim: this.sim });
@@ -273,6 +279,9 @@ export class WorldScene extends Phaser.Scene {
       this.scale.off(Phaser.Scale.Events.RESIZE, this.onResize, this);
       this.dogGenomes.clear();
       this.game.events.off('ui:focus-tile', this.focusTile, this);
+      this.game.events.off('ui:interact', this.onUiInteract, this);
+      this.longPressTimer?.remove(false);
+      this.longPressTimer = null;
       this.buildingImages.clear();
       this.dogSprites.clear();
       this.adopterSprites.clear();
@@ -343,9 +352,19 @@ export class WorldScene extends Phaser.Scene {
     if (JustDown(k.E) && this.sim.mode === 'avatar' && !this.sim.paused) this.interact();
   }
 
+  /** Ekrandaki E düğmesi (dokunmatik). */
+  private onUiInteract(): void {
+    if (this.sim.mode === 'avatar' && !this.sim.paused && !store.pauseMenu.value) this.interact();
+  }
+
   private interact(): void {
     const kind = resolveAction(this.sim).kind;
     const r = this.sim.command({ type: 'interact' });
+    this.afterInteract(kind, r);
+  }
+
+  /** E sonrası: mesaj, ses ve panel açma (klavye, ekran düğmesi ve dokun-git varışı ortak). */
+  private afterInteract(kind: ActionKind, r: ActionOutcome): void {
     if (r.message) showToast(r.message);
     if (r.ok) {
       const sfx: Partial<Record<typeof kind, Parameters<typeof audio.play>[0]>> = {
@@ -392,7 +411,7 @@ export class WorldScene extends Phaser.Scene {
     const right = k.D.isDown || k.RIGHT.isDown;
     const up = k.W.isDown || k.UP.isDown;
     const down = k.S.isDown || k.DOWN.isDown;
-    return { dx: (right ? 1 : 0) - (left ? 1 : 0), dy: (down ? 1 : 0) - (up ? 1 : 0), run: k.SHIFT.isDown };
+    return { dx: (right ? 1 : 0) - (left ? 1 : 0), dy: (down ? 1 : 0) - (up ? 1 : 0), run: k.SHIFT.isDown || store.touchRun.value };
   }
 
   // ---------------------------------------------------------------------------
@@ -443,6 +462,21 @@ export class WorldScene extends Phaser.Scene {
     this.dragMoved = false;
     this.dragButton = ptr.button;
     this.hoverTile = this.tileAt(ptr);
+    // Dokunmatik uzun basış: köpeği seç (kısa dokunuş dokun-git).
+    this.longPressed = false;
+    this.longPressTimer?.remove(false);
+    this.longPressTimer = null;
+    if (ptr.wasTouch && this.sim.mode === 'avatar') {
+      const T = GAME.tile;
+      const wx = ptr.worldX / T;
+      const wy = ptr.worldY / T;
+      this.longPressTimer = this.time.delayedCall(450, () => {
+        this.longPressTimer = null;
+        if (this.dragMoved || !this.dragLast) return;
+        this.longPressed = true;
+        this.selectDogAt(wx, wy);
+      });
+    }
     const tool = store.build.value;
     if (ptr.button === 2) {
       // Sağ tık: inşa aracını bırak (sürükleme kaydırma olarak devam eder).
@@ -478,6 +512,8 @@ export class WorldScene extends Phaser.Scene {
   }
 
   private onPointerUp(ptr: Phaser.Input.Pointer): void {
+    this.longPressTimer?.remove(false);
+    this.longPressTimer = null;
     if (this.pinch) {
       const p1 = this.input.pointer1;
       const p2 = this.input.pointer2;
@@ -529,11 +565,50 @@ export class WorldScene extends Phaser.Scene {
     if (r.message) showToast(r.message);
   }
 
-  /** Tıklama: köpek seç; boşluğa tıklayınca seçimi kaldır. */
+  /** Tıklama: fare köpek seçer; dokunma avatar modunda dokun-git (uzun basış seçim). */
   private onClick(ptr: Phaser.Input.Pointer): void {
     const T = GAME.tile;
     const wx = ptr.worldX / T;
     const wy = ptr.worldY / T;
+    if (ptr.wasTouch && this.sim.mode === 'avatar') {
+      if (!this.longPressed) this.touchTap(wx, wy);
+      return;
+    }
+    this.selectDogAt(wx, wy);
+  }
+
+  /** Dokunma: köpek → yanına gidip işini yap; bina/yuva/çalı/pislik → yanına git ve E; boş kare → yürü. */
+  private touchTap(wx: number, wy: number): void {
+    const sim = this.sim;
+    let best: Dog | null = null;
+    let bestD = 1.1;
+    for (const dog of sim.dogs) {
+      const d = Math.hypot(dog.x - wx, dog.y - 0.2 - wy);
+      if (d < bestD) {
+        bestD = d;
+        best = dog;
+      }
+    }
+    const tx = Math.floor(wx);
+    const ty = Math.floor(wy);
+    const w = sim.world;
+    if (!w.inBounds(tx, ty)) return;
+    if (best) sim.command({ type: 'goInteract', goal: { kind: 'dog', id: best.id } });
+    else {
+      const bid = w.buildingIdAt(tx, ty);
+      const o = w.objectAt(tx, ty);
+      if (bid >= 0) sim.command({ type: 'goInteract', goal: { kind: 'building', id: bid } });
+      else if (o === Obj.NestEggs || o === Obj.Nest || o === Obj.BerryBush || o === Obj.Mess || o === Obj.Den) sim.command({ type: 'goInteract', goal: { kind: 'object', tile: { x: tx, y: ty } } });
+      else sim.command({ type: 'goTo', x: tx, y: ty });
+    }
+    if (!this.touchTipShown) {
+      this.touchTipShown = true;
+      showToast(t('Dokun: yürü · köpeğe/binaya dokun: yanına git ve işini yap · uzun bas: köpeği seç'), 5000);
+    }
+  }
+
+  /** Köpek seç; boşluğa tıklayınca seçimi kaldır. */
+  private selectDogAt(wx: number, wy: number): void {
     let best: Dog | null = null;
     let bestD = 1.1;
     for (const dog of this.sim.dogs) {

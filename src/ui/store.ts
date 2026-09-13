@@ -75,6 +75,8 @@ export const store = {
   layout: signal<Layout>('desktop'),
   touch: signal(false),
   touchMode: signal<TouchMode>('auto'),
+  /** Dokunmatik Koş anahtarı (readInput ile birleşir). */
+  touchRun: signal(false),
   season: signal(''),
   weather: signal(''),
   weatherIcon: signal(''),

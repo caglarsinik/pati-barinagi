@@ -7,6 +7,7 @@ import { Minimap } from './Minimap';
 import { AlertsPanel } from './Panels';
 import { Toolbar } from './Toolbar';
 import { TopBar } from './TopBar';
+import { TouchControls } from './TouchControls';
 import { app } from '../app';
 import { t } from '../i18n';
 import { store } from './store';
@@ -42,6 +43,7 @@ export function HUD() {
         )}
       </div>
       <BottomNav />
+      <TouchControls />
       <Minimap />
     </>
   );

@@ -20,6 +20,17 @@ const ROWS: Array<[string, string, string]> = [
   ['Esc', 'Paneli kapat / menü', 'Aracı bırak / paneli kapat / menü'],
 ];
 
+/** [hareket, ne yapar] */
+const TOUCH_ROWS: Array<[string, string]> = [
+  ['Dokun', 'Avatar oraya yürür (yol bulur)'],
+  ['Köpeğe / binaya / yuvaya dokun', 'Yanına gidip işini yapar: sev, kabı doldur, yumurta al, temizle'],
+  ['Uzun bas', 'Köpeği seç (panel açılır)'],
+  ['E düğmesi', 'Baktığın işi yap (düğme işi yazar)'],
+  ['Koş düğmesi', 'Koşarak yürü (dayanıklılık harcar)'],
+  ['İki parmak', 'Yakınlaştır · yönetim modunda kaydır'],
+  ['Sürükle (yönetim)', 'Kamerayı kaydır · araç seçiliyse çit/yol/bölge çiz'],
+];
+
 /** Kontroller sayfası: klavye ve fare tablosu. Alt menü → Menü → Kontroller ya da duraklatma menüsünden açılır. */
 export function HelpSheet() {
   store.lang.value;
@@ -48,6 +59,19 @@ export function HelpSheet() {
                   <td>{k}</td>
                   <td>{t(a)}</td>
                   <td>{t(m)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        <h4>{t('Dokunmatik')}</h4>
+        <div class="table-scroll">
+          <table class="help-table">
+            <tbody>
+              {TOUCH_ROWS.map(([k, v]) => (
+                <tr key={k}>
+                  <td>{t(k)}</td>
+                  <td>{t(v)}</td>
                 </tr>
               ))}
             </tbody>

@@ -46,7 +46,8 @@ import {
 import { packExplored, revealAround, unpackExplored } from './systems/Exploration';
 import { placeEgg, takeEgg, tickIncubators } from './systems/IncubatorSystem';
 import { IllnessSystem } from './systems/IllnessSystem';
-import { type ActionOutcome, TOOL_DEFS, type Tool, performAction } from './systems/Interaction';
+import { type ActionKind, type ActionOutcome, TOOL_DEFS, type Tool, performAction } from './systems/Interaction';
+import { type NavGoal, PlayerNav } from './systems/PlayerNav';
 import { rebuildMessSet } from './systems/MessSystem';
 import { NeedsSystem } from './systems/NeedsSystem';
 import { tickNests } from './systems/NestSystem';
@@ -93,6 +94,8 @@ export interface SimEvents extends Record<string, unknown> {
   message: string;
   /** Dünya üstü geçici balon (sev → kalp gibi); render katmanı dinler. */
   emote: EmoteEvent;
+  /** Dokun-git varışında yapılan E eylemi (ses ve panel açma için). */
+  interacted: { kind: ActionKind; result: ActionOutcome };
 }
 
 export type Command =
@@ -121,7 +124,10 @@ export type Command =
   | { type: 'setPolicy'; policy: Partial<Policies> }
   | { type: 'walkDog'; dogId: number }
   | { type: 'endWalk' }
-  | { type: 'setKeep'; dogId: number; keep: boolean };
+  | { type: 'setKeep'; dogId: number; keep: boolean }
+  | { type: 'goTo'; x: number; y: number }
+  | { type: 'goInteract'; goal: NavGoal }
+  | { type: 'cancelNav' };
 
 export interface Policies {
   autoOrderFood: boolean;
@@ -235,6 +241,7 @@ export class Sim {
   readonly eventSys: EventSystem;
   readonly achievements: AchievementSystem;
   readonly illness: IllnessSystem;
+  readonly nav: PlayerNav;
   flags: SimFlags = { foodDiscountDay: 0, extraAdoptersDay: 0, growlUntil: 0, growlA: '', growlB: '' };
   speed: Speed = 1;
   mode: Mode = 'avatar';
@@ -287,6 +294,7 @@ export class Sim {
     this.eventSys = new EventSystem(this);
     this.achievements = new AchievementSystem(this);
     this.illness = new IllnessSystem(this);
+    this.nav = new PlayerNav(this);
     this.events.on('day', (d) => this.needs.onDay(d));
     this.events.on('day', () => this.illness.onDay());
     this.events.on('hour', () => this.illness.onHour());
@@ -340,7 +348,11 @@ export class Sim {
     const dtMin = dtSec * BALANCE.time.minutesPerRealSecond * this.speed;
     this.stepSim(dtMin);
     if (this.mode === 'avatar') {
-      this.player.update(dtSec, input, this.world);
+      // Klavye girişi dokun-git yolunu iptal eder; girdi yoksa yol takibi girdiyi üretir.
+      const manual = input.dx !== 0 || input.dy !== 0;
+      if (manual && this.nav.active) this.nav.cancel();
+      const inp = !manual && this.nav.active ? this.nav.inputFor(dtSec, input.run) : input;
+      this.player.update(dtSec, inp, this.world);
       this.revealPlayer(false);
       this.brain.updateNearPlayer(dtSec);
     }
@@ -379,6 +391,7 @@ export class Sim {
 
   /** Sabah 06:00'ya kadar zamanı hızlıca geçirir; köpekler ve inşaatlar normal işler. */
   sleepUntilMorning(passedOut = false): void {
+    this.nav.cancel();
     const c = this.clock;
     const morning = BALANCE.time.nightEndHour * 60;
     let target = c.dayIndex * MINUTES_PER_DAY + morning;
@@ -624,6 +637,17 @@ export class Sim {
         this.brain.endWalk(dog);
         return { ok: true };
       }
+      case 'goTo': {
+        if (this.mode !== 'avatar') return { ok: false };
+        return { ok: this.nav.goTo({ x: Math.floor(cmd.x), y: Math.floor(cmd.y) }) };
+      }
+      case 'goInteract': {
+        if (this.mode !== 'avatar') return { ok: false };
+        return { ok: this.nav.goInteract(cmd.goal) };
+      }
+      case 'cancelNav':
+        this.nav.cancel();
+        return { ok: true };
       case 'upgradeLicense': {
         const cost = licenseUpgradeCost(this.licenseLevel);
         if (cost === null) return { ok: false, message: t('Lisans en üst seviyede') };
@@ -659,6 +683,7 @@ export class Sim {
   setMode(mode: Mode): void {
     if (mode === this.mode) return;
     this.mode = mode;
+    if (mode === 'manage') this.nav.cancel();
     this.events.emit('modeChanged', mode);
   }
 
