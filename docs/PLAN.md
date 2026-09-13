@@ -112,7 +112,7 @@ ve ihtiyaç hızları değişir, sahiplendirilebilirlik kuralları değişir (ya
 
 **Eğitim:** 6 beceri, her biri 0–100 ilerleme; 100 olunca öğrenilmiş sayılır: otur, bekle, gel, tasma, tuvalet eğitimi, sosyallik.
 Eğitim seviyesi = öğrenilmiş beceri sayısı (0–6). Seans başarısı: eğitmen becerisi × zekâ × sadakat × mod.
-Tuvalet eğitimi alan köpek tuvalet bölgesine gider, pislik üretmez.
+Tuvalet eğitimi kademeli: beceri yüzdesi kadar olasılıkla tuvalet alanına gider; alandaki pislik kapsanır (M10).
 
 **Davranış (durum makinesi):** uyu / boşta dolaş / yem kabına git / tuvalete git / oyna / eğitim al / kulübeye dön /
 havla (ihtiyaç kritik). Köpekler kulübeye atanır (otomatik ya da elle), kulübe kapasitesi aşılırsa stres.
@@ -388,6 +388,11 @@ Her taşın sonunda oyun çalışır hâlde olur, testler yeşildir, commit atı
   ve köpek başına keep; cihaz sınıfı (desktop/tablet/phone) + dokunmatik algılama, responsive.css; görevlendirme ızgarası
   pointer ile, öncelik adımlayıcıları; DPR'lı canvas, iki işaretçi (pinch/pan); PlayerNav dokun-git + E düğmesi;
   telefon sayfaları (uyarı/çanta/harita) ve çevir ekranı.
+- **M10 Kapı, Tuvalet ve Zorluk (2026-09-13, tamamlandı):** otomatik çit kapısı (TileWorld.gateOpen, GateSystem, Pathfinder
+  throughGates, gates.ts giriş noktası, açık kapı karesi + gıcırtı); tuvalet alanı her modda görünür (toiletLayer), kademeli
+  tuvalet eğitimi, kapsanan pislik (MessSystem kapasite/etkin sayı/aciliyet, "Tuvalet alanı doldu"), çöp kutusu bonusu,
+  gece tuvaleti ve gezintide rahatlama; zorluk seviyesi (BALANCE.difficulty, Sim.difficulty); kredi ve iflas
+  (loan/negativeWeeks/gameOver, GameOverPanel); bina döndürme (Building.rot, buildingSize/solidRowsFor, -r1 dokular, R / Döndür).
 
 ## 5. Doğrulama
 
@@ -400,28 +405,26 @@ Her taşın sonunda oyun çalışır hâlde olur, testler yeşildir, commit atı
 - **Build:** `npm run build` → `dist/index.html` çift tıkla açılıyor mu, kayıt localStorage'da kalıyor mu.
 - **Kod kalitesi:** `tsc --noEmit` temiz, eslint temel kurallar.
 
-## 7. Yol haritası (M10–M13, 2026-09-13 kararı; M9 Arayüz ve Dokunmatik tamamlandı)
+## 7. Yol haritası (M11–M14, 2026-09-13 kararı; M10 Kapı, Tuvalet ve Zorluk tamamlandı)
 
 Ayrıntılı tasarım notları plan dosyasında; burada özet. Sırası değiştirilebilir, her paket tek başına oynanabilir sürüm verir.
 
-- **M10 Yaşayan Dünya:** sokak köpeği inleri mevsimlik yeniden dolar; terk edilmiş ev POI'si; harita kenarında köy
+- **M11 Yaşayan Dünya:** sokak köpeği inleri mevsimlik yeniden dolar; terk edilmiş ev POI'si; harita kenarında köy
   (yem toptancısı, oyuncak/ilaç dükkânı, pazar günü); köylülerden görevler; keşfedilmiş yol tabelaları arası hızlı seyahat,
   bisiklet yükseltmesi; taş/odun toplama → inşa indirimi; tam ekran harita (M); dışarıda hava etkisi.
-- **M11 İlerleme ve Son Oyun:** yükseltme ağacı (kuluçka Sv2 6 yuva/2 gün, sırt çantası 6, ofis Sv2/Sv3 binası, otomatik yem
+- **M12 İlerleme ve Son Oyun:** yükseltme ağacı (kuluçka Sv2 6 yuva/2 gün, sırt çantası 6, ofis Sv2/Sv3 binası, otomatik yem
   makinesi); personel XP/moral/eğitim kursu/gönüllü; 50 sahiplendirme + itibar 90 → "Yılın Barınağı" zafer ekranı;
-  **zorluk seviyesi** (Kolay/Normal/Zor: başlangıç parası 9.000/6.000/4.000, yardım ×1,3/1/0,8, ihtiyaç hızı ×0,8/1/1,2);
-  **iflas** (kasa 3 hafta üst üste −(maaş toplamı + 1.000) altındaysa oyun sonu ekranı) ve ofisten 5.000 ₺ kredi (%5 haftalık faiz);
-  **bina döndürme R** (`Building.rot`, tünel/bank dikey varyant); finans 8 haftalık grafik + nakit projeksiyonu; 3 kayıt yuvası.
-- **M12 Sahiplendirme Hikâyeleri:** 100+ isim ve 6 kişilik tipi, tekrar gelen sahiplenici; sahiplendirme sonrası mektup/fotoğraf;
+  finans 8 haftalık grafik + nakit projeksiyonu; 3 kayıt yuvası. (Zorluk seviyesi, iflas/kredi ve bina döndürme M10'da yapıldı.)
+- **M13 Sahiplendirme Hikâyeleri:** 100+ isim ve 6 kişilik tipi, tekrar gelen sahiplenici; sahiplendirme sonrası mektup/fotoğraf;
   "Mezunlar" albümü; sahiplendirme günü etkinliği; bağış kampanyası; ikili (bonded pair) sahiplendirme (M8 dostluk puanı).
-- **M13 Soy (üreme/kalıtım):** `inheritGenome(a, b, rng)` (alanlar %50/50, %10 mutasyon, nadirlik ebeveynlerin en yükseği, %15 bir
+- **M14 Soy (üreme/kalıtım):** `inheritGenome(a, b, rng)` (alanlar %50/50, %10 mutasyon, nadirlik ebeveynlerin en yükseği, %15 bir
   kademe üstü); "Yuva evi" 3×3 2.500 ₺: dostluğu ≥ 60 iki yetişkin köpek → 5 günde yumurta → kuluçka; köpek başına 4 hafta bekleme;
   panelde soy ağacı; "İlk soy" / "Efsanevi soy" başarımları.
 
 ## 6. Varsayımlar ve açık noktalar
 
-- Tek oyunculu, çevrimdışı, klavye + fare. Mobil/dokunmatik kapsam dışı.
+- Tek oyunculu, çevrimdışı; klavye + fare ve dokunmatik (M9).
 - Sayılar (para, hızlar, eşikler) ilk tahmindir; hepsi `balance.ts` içinde ve M6'da simülasyonla ayarlanır.
-- Kaybetme durumu yok; istenirse iflas ekranı eklenir.
+- Kaybetme durumu: iflas ekranı (M10); zafer ekranı M12'de.
 - Gerçek ses dosyaları istenirse M6'da `SoundSource` üzerinden dosya yükleme eklenir; lisans uyarıları README'de.
 - Git deposu projede başlatılır ve her kilometre taşında commit atılır (uzak depo yok, istenirse GitHub'a bağlanır).

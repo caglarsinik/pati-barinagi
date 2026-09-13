@@ -48,7 +48,7 @@ kendiliğinden açılır; Ayarlar → Dokunmatik kontroller ile Otomatik / Açı
   yumurta al, temizle). **Uzun bas:** köpeği seçer. Klavye girişi ya da yönetim modu yolu iptal eder.
 - **E düğmesi** (sağ alt) baktığın işi yazar ve yapar; **Koş** anahtarı koşarak yürütür.
 - **İki parmak:** yakınlaştırır, yönetim modunda kaydırır. **Sürükle (yönetim):** kamerayı kaydırır; araç seçiliyken çit/yol/bölge çizer;
-  aracı bırakmak için ipucu satırındaki İptal.
+  aracı bırakmak için ipucu satırındaki İptal, kare olmayan binayı döndürmek için Döndür.
 - Paneller telefonda tam ekran sayfa olur; görevlendirme ızgarası parmakla boyanır, öncelikler +/− adımlayıcıdır;
   telefonda üst şeritteki 🥚 çanta, 🔔 uyarı ve 🗺️ harita çipleri ilgili sayfayı açar.
 - Yüksek çözünürlüklü ekranlarda piksel sanatı tam ölçekte (cihaz piksel oranı 2'ye kadar) çizilir.
@@ -58,7 +58,12 @@ kendiliğinden açılır; Ayarlar → Dokunmatik kontroller ile Otomatik / Açı
 - Köpeklerin ihtiyaçları: tokluk, su, keyif, rahatlık (tuvalet), temizlik, sağlık, sadakat, enerji. Köpeğin üstünde en acil ihtiyacın balonu görünür (🍖 aç, 💧 susuz, 💩 tuvalet, 🎵 sıkıldı, 🤒 hasta, ❗ kaçma riski, zzz uyuyor); sevince kalp çıkar.
 - Su yalağı: köpek susayınca gidip içer, yalak azalır. Yalağın önünde E ile ücretsiz doldur; mutfak varsa yalaklar kendiliğinden dolar. Personel için ayrı "Su" görevi vardır.
 - Yem kabını kilerden doldur (kabın önünde E). Köpekler acıkınca dolu kaba kendileri gider. Kiler bitince kilerin önünde E ile çuval sipariş et.
-- Tuvalet eğitimi olmayan köpek olduğu yere yapar; pisliği fırça ile temizle. Eğitimli köpek tuvalet alanına gider.
+- **Tuvalet alanı:** arsanın sağ altındaki kum alan (Z ile başka yere de boyanır) her modda görünür. Köpek, tuvalet eğitimi
+  yüzdesi kadar olasılıkla oraya gider (eğitimsiz olduğu yere yapar, eğitim tamamsa hep alana). Alandaki pislik "kapsanır":
+  köpekleri kirletmez, mide bozukluğu ve denetimde çeyrek sayılır; alan dolunca (6 pislik, yakında çöp kutusu varsa 10)
+  "Tuvalet alanı doldu" uyarısı çıkar ve hepsi tam sayılır. Personel alanı düşük öncelikle, serbest pisliği hemen temizler;
+  sen fırça ile temizlersin. Çöp kutusu 6 kare içindeki pisliklerin temizliğini %30 hızlandırır. Dolu mesaneyle köpek gece
+  de kalkıp alana gider; gezintide tuvaletini dışarıda yapar, pislik bırakmaz.
 - Sevmek sadakati, oynamak keyfi, fırçalamak temizliği artırır. Eğitim aracıyla köpek panelinden seçtiğin beceriyi çalıştırırsın.
 - Gece köpekler kulübelerinde uyur; kulübesi olmayan köpek dışarıda kötü uyur.
 - **Dostluk:** sıkılan iki köpek 8 kare içinde buluşup birlikte oynar (oyun bahçesi varsa orada); ikisinin de keyfi, dostluk puanı ve "sosyallik" becerisi artar, üstlerinde 🐾 çıkar. İki cesur köpek arada hırlaşır (dostluk düşer, bir saatlik uyarı); sosyalliği tam köpekler hırlaşmaz. Köpek paneli en yakın dostu gösterir; kulübe ataması dostun kulübesini tercih eder. Sıkılan ya da aç kalan köpek havlar.
@@ -69,8 +74,8 @@ kendiliğinden açılır; Ayarlar → Dokunmatik kontroller ile Otomatik / Açı
 
 ## İnşa
 
-- Yönetim modunda B ile inşa çubuğu açılır: kategori → bina. Hayalet yeşilse yerleşir, kırmızıysa sığmıyor ya da para yetmiyor.
-- Çit ve yol sürükleyerek düz çizgi halinde çekilir; kapı çitin üstüne konur. Bölgeler (tuvalet, oyun bahçesi, eğitim, karantina, personel) dikdörtgen sürükleyerek boyanır.
+- Yönetim modunda B ile inşa çubuğu açılır: kategori → bina. Hayalet yeşilse yerleşir, kırmızıysa sığmıyor ya da para yetmiyor. R ile kare olmayan binalar (büyük kulübe, mutfak, personel odası, tünel, bank) 90° döner; ön yüz ve kapı hep güneyde kalır.
+- Çit ve yol sürükleyerek düz çizgi halinde çekilir; kapı çitin üstüne konur. **Kapı kapalıyken geçilmez:** sen, personel, sahiplenici ve tasmalı köpek yaklaşınca kendiliğinden açılır, geçince kapanır; serbest köpekler kapıdan çıkamaz (gece kaçış yine çitten atlamadır). Bölgeler (tuvalet, oyun bahçesi, eğitim, karantina, personel) dikdörtgen sürükleyerek boyanır.
 - Büyük binalar inşaat süresi boyunca yarı saydamdır ve kullanılamaz. Yıkım bedelin yarısını iade eder.
 - Arsa sekmesinden doğuya/güneye 16 kare genişletilir (2.500 ₺); alan temizlenir, çit ve yol kapıları yeniden kurulur.
 - Tımar istasyonu yakındaki köpeği yıkar, veteriner odası tedavi eder, mutfak kapların kapasitesini ikiye katlar, yalakları kendiliğinden doldurur ve personelin yem/su işini %40 hızlandırır; oyuncaklar köpeklerin kendi kendine oynamasını sağlar.
@@ -90,6 +95,11 @@ kendiliğinden açılır; Ayarlar → Dokunmatik kontroller ile Otomatik / Açı
 - Köpek sahiplendirilebilmek için sağlıklı, temiz ve sana güvenir olmalı (sadakat 30+).
 - Her Pazartesi 06:00 hafta raporu: denetim (temizlik, sağlık, keyif, pislik, kulübe, yem) yardım çarpanını (0,4-1,5) belirler; köpek başına 150 ₺ × çarpan devlet yardımı yatar, bina bakım gideri düşer.
 - Lisans seviyesi yardım alınan köpek sayısını sınırlar (8/20/45); ofisten yükseltilir. Finans (N) kasa hareketlerini ve geçmiş haftaları gösterir.
+- **Zorluk:** yeni oyunda Kolay / Normal / Zor seçilir (başlangıç 9.000 / 6.000 / 4.000 ₺, yardım ×1,3 / 1 / 0,8, ihtiyaç hızı
+  ×0,8 / 1 / 1,2); kayıtta korunur, Finans başlığında görünür.
+- **Kredi:** ofisten tek seferde 5.000 ₺ kredi alınır; her hafta %5 faiz (250 ₺) kasadan düşer, anapara ofisten "Krediyi öde"
+  ile kapatılır (kasa yetmezse kısmen). **İflas:** kasa üst üste 3 hafta −(haftalık maaş + 1.000 ₺) altındaysa oyun biter; uyarı
+  sütunu "İflas riski: n/3 hafta" diye sayar, iflas ekranından ana menüye dönülür (kayıt korunur, "Devam et" yine iflas ekranını açar).
 - **Sahiplendirmeyi kapatmak:** ofisteki ya da masadaki "Sahiplendirmeye açık" anahtarı kapalıyken sahiplenici gelmez,
   bekleyenler itibar kaybı olmadan uğurlanır (üst şeritte 🚫 çipi, alt menüde rozet). **Bu köpeği tut:** köpek panelindeki
   kutu o köpeği sahiplendirme listesinden çıkarır (listede 🔒, "Tutulan" filtresi).
@@ -150,7 +160,8 @@ Bilgisayar değiştirirken ya da yedek almak için kullan.
 - [x] M7 Ekstralar: mevsimler ve hava (yağmur/kar efektleri, mevsim tonu, ihtiyaç çarpanları), rastgele olaylar (sürpriz denetim, bağış, indirim, gezici veteriner, gazete, kaçan köpek), yaşlı köpek aşaması, 21 başarım, İngilizce dil
 - [x] M8 Canlı barınak: susuzluk ve su yalağı, dekor/mutfak etkisi, dünya üstü emote balonları ve isim etiketleri (OverlayScene), köpek-köpek dostluk/oyun/hırlaşma/havlama, huy ve becerilerin davranışa bağlanması (Çağır aracı, otur, bekle, gezdirme), hastalık ve karantina, köpek listesi sıralama/filtre, teknik borç (ışık haritası, doku sızıntısı, toast kuyruğu), kayıt sürümü 2
 - [x] M9 Arayüz ve dokunmatik: üst durum şeridi + kategorili alt menü çubuğu, sütunlu HUD (çakışma yok), Kontroller sayfası, sahiplendirme anahtarı ve "bu köpeği tut", duyarlı CSS (tablet/telefon, 44 px dokunma hedefleri, tam ekran sayfalar), görevlendirme ızgarası parmakla boyanır, DPR'lı canvas + pinch, dokun-git + E düğmesi, telefon sayfaları ve çevir ekranı
-- [ ] Sonraki paketler (`docs/PLAN.md` §7): M10 Yaşayan Dünya, M11 İlerleme ve Son Oyun, M12 Sahiplendirme Hikâyeleri, M13 Soy
+- [x] M10 Kapı, tuvalet ve zorluk: otomatik çit kapısı (kapalıyken geçilmez, yaklaşınca açılır, NPC'ler kapı dışında belirir), her modda görünür tuvalet alanı + kademeli tuvalet eğitimi + kapsanan pislik/kapasite/uyarı, işe yarayan çöp kutusu, gece tuvaleti ve gezintide rahatlama, zorluk seviyesi, kredi ve iflas ekranı, bina döndürme (R)
+- [ ] Sonraki paketler (`docs/PLAN.md` §7): M11 Yaşayan Dünya, M12 İlerleme ve Son Oyun, M13 Sahiplendirme Hikâyeleri, M14 Soy
 
 ## Geliştirme
 
