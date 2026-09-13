@@ -10,6 +10,7 @@ export interface SaveData {
   speed: number;
   mode: string;
   money: number;
+  difficulty?: string;
   tool?: string;
   foodStock?: number;
   nextId?: number;

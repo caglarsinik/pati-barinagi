@@ -38,6 +38,12 @@ export const BALANCE = {
     /** Çarpışma kutusu (kare biriminde), ayak merkezine göre. */
     hitbox: { w: 0.6, h: 0.4 },
   },
+  /** Zorluk seviyeleri: başlangıç parası, haftalık yardım çarpanı, ihtiyaç artış çarpanı. */
+  difficulty: {
+    easy: { startMoney: 9000, aidMul: 1.3, needsMul: 0.8 },
+    normal: { startMoney: 6000, aidMul: 1, needsMul: 1 },
+    hard: { startMoney: 4000, aidMul: 0.8, needsMul: 1.2 },
+  },
   economy: {
     startMoney: 6000,
     currency: '₺',

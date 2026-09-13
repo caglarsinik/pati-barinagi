@@ -23,20 +23,22 @@ export class NeedsSystem {
     const n = dog.needs;
     const asleep = dog.isAsleep();
     const night = this.sim.clock.isNight();
+    const mul = this.sim.needsMul();
 
-    const hungerRate = (dog.stage === 'puppy' ? B.hungerPerHourPuppy : dog.genome.size === 'L' ? B.hungerPerHourLarge : B.hungerPerHour) * wm.hunger;
+    const hungerRate = (dog.stage === 'puppy' ? B.hungerPerHourPuppy : dog.genome.size === 'L' ? B.hungerPerHourLarge : B.hungerPerHour) * wm.hunger * mul;
     n.hunger = clamp100(n.hunger + hungerRate * (asleep ? 0.5 : 1) * dtH);
-    n.thirst = clamp100(n.thirst + B.thirstPerHour * wm.thirst * (asleep ? 0.4 : 1) * dtH);
+    n.thirst = clamp100(n.thirst + B.thirstPerHour * wm.thirst * mul * (asleep ? 0.4 : 1) * dtH);
 
     let playRate = dog.genome.temperament === 'playful' ? B.playDecayPerHour * 1.3 : dog.genome.temperament === 'calm' ? B.playDecayPerHour * 0.75 : B.playDecayPerHour;
     if (senior) playRate *= S.playDecayMul;
+    playRate *= mul;
     if (!asleep) {
       const inYard = this.sim.world.zoneAt(dog.tileX, dog.tileY) === Zone.Play;
       n.play = clamp100(n.play - playRate * dtH + (inYard ? B.playYardGainPerHour * wm.playYard * dtH : 0));
     }
 
-    n.bladder = clamp100(n.bladder + (B.bladderPerHour * (asleep ? 0.4 : 1) + (ill === 'stomach' ? I.stomachBladderPerHour : 0)) * dtH);
-    n.hygiene = clamp100(n.hygiene - (B.hygieneDecayPerHour * (asleep ? 1 : wm.hygiene) + (ill === 'flea' ? I.fleaHygienePerHour : 0)) * dtH);
+    n.bladder = clamp100(n.bladder + (B.bladderPerHour * mul * (asleep ? 0.4 : 1) + (ill === 'stomach' ? I.stomachBladderPerHour : 0)) * dtH);
+    n.hygiene = clamp100(n.hygiene - (B.hygieneDecayPerHour * mul * (asleep ? 1 : wm.hygiene) + (ill === 'flea' ? I.fleaHygienePerHour : 0)) * dtH);
 
     if (asleep) n.energy = clamp100(n.energy + B.energyRegenPerHour * (dog.kennelId === null ? 0.5 : 1) * dtH);
     else n.energy = clamp100(n.energy - (night ? B.energyDecayPerHour * 2 : B.energyDecayPerHour) * wm.energy * (ill === 'cold' ? I.coldEnergyDrainMul : 1) * dtH);

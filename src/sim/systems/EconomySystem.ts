@@ -101,7 +101,7 @@ export function runInspection(sim: Sim): InspectionReport {
   const norm = weight > 0 ? score / weight : 0; // -1..1
   const multiplier = Math.round(Math.max(B.aidMultiplierMin, Math.min(B.aidMultiplierMax, 0.95 + norm * 0.55)) * 100) / 100;
   const counted = Math.min(dogs.length, licenseCap);
-  const aid = Math.round(counted * B.aidPerDogPerWeek * multiplier);
+  const aid = Math.round(counted * B.aidPerDogPerWeek * multiplier * sim.aidMul());
   return { week: sim.clock.week, items, multiplier, dogsCounted: counted, dogsOverCap: overCap, aid };
 }
 

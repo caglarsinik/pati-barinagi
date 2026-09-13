@@ -11,7 +11,7 @@ import { SaveManager } from './core/SaveManager';
 import { BootScene } from './scenes/BootScene';
 import { WorldScene } from './scenes/WorldScene';
 import { OverlayScene } from './scenes/OverlayScene';
-import { Sim } from './sim/Sim';
+import { Sim, DIFFICULTIES, type Difficulty } from './sim/Sim';
 import { showToast, store, syncStore } from './ui/store';
 
 const SLOT = 0;
@@ -133,6 +133,17 @@ class AppController {
     for (const l of ['desktop', 'tablet', 'phone'] as Layout[]) cl.toggle(`layout-${l}`, l === layout);
   }
 
+  /** Son seçilen zorluk (tarayıcıda kalır). */
+  lastDifficulty(): Difficulty {
+    try {
+      const v = localStorage.getItem(`${SaveManager.key(0)}.difficulty`);
+      if (v && (DIFFICULTIES as readonly string[]).includes(v)) return v as Difficulty;
+    } catch {
+      /* yoksay */
+    }
+    return 'normal';
+  }
+
   setTouchMode(mode: TouchMode): void {
     store.touchMode.value = mode;
     try {
@@ -163,9 +174,14 @@ class AppController {
     }
   }
 
-  newGame(seedInput: string): void {
+  newGame(seedInput: string, difficulty: Difficulty = 'normal'): void {
     const seed = parseSeed(seedInput);
-    this.start(Sim.create(seed));
+    try {
+      localStorage.setItem(`${SaveManager.key(0)}.difficulty`, difficulty);
+    } catch {
+      /* yoksay */
+    }
+    this.start(Sim.create(seed, difficulty));
     showToast(t('Yeni dünya · tohum {seed}', { seed }));
   }
 

@@ -1,12 +1,17 @@
 import { useState } from 'preact/hooks';
 import { app } from '../app';
 import { GAME } from '../config/game';
+import { BALANCE } from '../config/balance';
 import { getLang, t } from '../i18n';
+import { DIFFICULTIES, DIFFICULTY_NAMES_TR, type Difficulty } from '../sim/Sim';
+import { formatMoney } from './format';
 import { store } from './store';
 
 export function MainMenu() {
   store.lang.value;
   const [seed, setSeed] = useState('');
+  const [difficulty, setDifficulty] = useState<Difficulty>(() => app.lastDifficulty());
+  const D = BALANCE.difficulty[difficulty];
   const booted = store.booted.value;
   const lang = getLang();
   return (
@@ -28,11 +33,24 @@ export function MainMenu() {
             onFocus={() => (store.inputFocused.value = true)}
             onBlur={() => (store.inputFocused.value = false)}
             onKeyDown={(e) => {
-              if (e.key === 'Enter' && booted) app.newGame(seed);
+              if (e.key === 'Enter' && booted) app.newGame(seed, difficulty);
             }}
           />
         </label>
-        <button class="btn" disabled={!booted} onClick={() => app.newGame(seed)}>
+        <label class="field">
+          <span>{t('Zorluk')}</span>
+          <select value={difficulty} onChange={(e) => setDifficulty((e.target as HTMLSelectElement).value as Difficulty)}>
+            {DIFFICULTIES.map((d) => (
+              <option key={d} value={d}>
+                {t(DIFFICULTY_NAMES_TR[d])}
+              </option>
+            ))}
+          </select>
+          <span class="muted small-text">
+            {t('Başlangıç {money} · yardım ×{aid} · ihtiyaç hızı ×{needs}', { money: formatMoney(D.startMoney), aid: D.aidMul, needs: D.needsMul })}
+          </span>
+        </label>
+        <button class="btn" disabled={!booted} onClick={() => app.newGame(seed, difficulty)}>
           {t('Yeni oyun')}
         </button>
         <div class="row">

@@ -65,6 +65,10 @@ import { t } from '../i18n';
 
 export type Mode = 'avatar' | 'manage';
 
+export type Difficulty = 'easy' | 'normal' | 'hard';
+export const DIFFICULTIES: readonly Difficulty[] = ['easy', 'normal', 'hard'];
+export const DIFFICULTY_NAMES_TR: Record<Difficulty, string> = { easy: 'Kolay', normal: 'Normal', hard: 'Zor' };
+
 export interface SimEvents extends Record<string, unknown> {
   /** Saat başı geçildi (0-23). */
   hour: number;
@@ -249,6 +253,7 @@ export class Sim {
   flags: SimFlags = { foodDiscountDay: 0, extraAdoptersDay: 0, growlUntil: 0, growlA: '', growlB: '' };
   speed: Speed = 1;
   mode: Mode = 'avatar';
+  difficulty: Difficulty = 'normal';
   money: number;
   tool: Tool = 'pet';
   dogs: Dog[] = [];
@@ -308,10 +313,11 @@ export class Sim {
     this.events.on('hour', (h) => this.onHour(h));
   }
 
-  static create(seed: number): Sim {
+  static create(seed: number, difficulty: Difficulty = 'normal'): Sim {
     const world = generateWorld(seed);
     const player = new Player(world.spawn.x, world.spawn.y);
-    const sim = new Sim(seed, world, new Clock(), player, BALANCE.economy.startMoney);
+    const sim = new Sim(seed, world, new Clock(), player, BALANCE.difficulty[difficulty].startMoney);
+    sim.difficulty = difficulty;
     sim.setupStarterShelter();
     sim.spawnStrays();
     sim.revealPlayer(true);
@@ -472,6 +478,16 @@ export class Sim {
   }
 
   /** Haftalık personel maaşı toplamı. */
+  /** Zorluğa göre haftalık yardım çarpanı. */
+  aidMul(): number {
+    return BALANCE.difficulty[this.difficulty].aidMul;
+  }
+
+  /** Zorluğa göre ihtiyaç artış çarpanı (açlık, susuzluk, oyun, mesane, hijyen). */
+  needsMul(): number {
+    return BALANCE.difficulty[this.difficulty].needsMul;
+  }
+
   weeklyWages(): number {
     return this.staffSystem.totalWages();
   }
@@ -1033,6 +1049,7 @@ export class Sim {
       speed: this.speed,
       mode: this.mode,
       money: this.money,
+      difficulty: this.difficulty,
       tool: this.tool,
       foodStock: this.foodStock,
       treats: this.treats,
@@ -1094,8 +1111,10 @@ export class Sim {
     const world = generateWorld(data.seed >>> 0);
     const clock = Clock.fromJSON(data.clock);
     const player = Player.fromJSON(data.player, world.spawn);
-    const money = typeof data.money === 'number' && Number.isFinite(data.money) ? data.money : BALANCE.economy.startMoney;
+    const difficulty: Difficulty = DIFFICULTIES.includes(data.difficulty as Difficulty) ? (data.difficulty as Difficulty) : 'normal';
+    const money = typeof data.money === 'number' && Number.isFinite(data.money) ? data.money : BALANCE.difficulty[difficulty].startMoney;
     const sim = new Sim(data.seed >>> 0, world, clock, player, money);
+    sim.difficulty = difficulty;
     const speeds = BALANCE.time.speeds as readonly number[];
     sim.speed = speeds.includes(data.speed) && data.speed !== 0 ? (data.speed as Speed) : 1;
     sim.lastRunningSpeed = sim.speed;

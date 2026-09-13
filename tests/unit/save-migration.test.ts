@@ -19,6 +19,7 @@ function asV1(sim: Sim): Loose {
   delete d.stats.watered;
   delete d.stats.drinks;
   delete d.policies.quarantineSick;
+  delete d.difficulty;
   return d;
 }
 
@@ -37,6 +38,7 @@ describe('Kayıt migrasyonu', () => {
     expect(back.stats.drinks).toBe(0);
     expect(back.policies.adoptionsOpen).toBe(true);
     expect(back.dogs[0].keep).toBe(false);
+    expect(back.difficulty).toBe('normal');
     expect(back.buildings.length).toBe(sim.buildings.length);
     expect(back.dogs.length).toBe(sim.dogs.length);
     expect(back.toJSON().version).toBe(GAME.saveVersion);

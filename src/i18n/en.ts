@@ -494,7 +494,7 @@ export const EN: Record<string, string> = {
   '{n} porsiyon': '{n} portions',
   'Lisans aşımı': 'License exceeded',
   '{n} köpek fazla': '{n} dogs over',
-  'Devlet yardımı: {n} köpek × {aid} × {mult} = {total}': 'Government aid: {n} dogs × {aid} × {mult} = {total}',
+  'Devlet yardımı: {n} köpek × {aid} × {mult}{diff} = {total}': 'Government aid: {n} dogs × {aid} × {mult} {diff} = {total}',
   ' ({n} köpek lisans dışı, yardım almadı)': ' ({n} dogs beyond the license received no aid)',
   Gelir: 'Income',
   '{n} köpek × çarpan {mult}': '{n} dogs × multiplier {mult}',
@@ -861,4 +861,11 @@ export const EN: Record<string, string> = {
 
   // M10: tuvalet alanı
   'Tuvalet alanı doldu: temizlet': 'Toilet area is full: have it cleaned',
+
+  // M10: zorluk
+  'Zorluk': 'Difficulty',
+  'Kolay': 'Easy',
+  'Normal': 'Normal',
+  'Zor': 'Hard',
+  'Başlangıç {money} · yardım ×{aid} · ihtiyaç hızı ×{needs}': 'Start {money} · aid ×{aid} · need rate ×{needs}',
 };

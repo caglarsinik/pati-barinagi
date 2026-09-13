@@ -5,6 +5,7 @@ import { BALANCE } from '../config/balance';
 import { t } from '../i18n';
 import { adoptable, hardMismatch, matchScore, requestText } from '../sim/entities/Adopter';
 import { STAGE_NAMES_TR } from '../sim/entities/Dog';
+import { DIFFICULTY_NAMES_TR } from '../sim/Sim';
 import { LEDGER_NAMES_TR, type LedgerCategory, licenseUpgradeCost } from '../sim/systems/EconomySystem';
 import { DogPortrait } from './DogPortrait';
 import { formatMoney } from './HUD';
@@ -217,7 +218,7 @@ export function FinancePanel() {
         </div>
         <div class="fin-summary">
           <div>
-            {t('Kasa')} <b>{formatMoney(sim.money)}</b>
+            {t('Kasa')} <b>{formatMoney(sim.money)}</b> · {t('Zorluk')} <b>{t(DIFFICULTY_NAMES_TR[sim.difficulty])}</b>
           </div>
           <div>
             {t('Bu hafta gelir')} <b class="good">+{formatMoney(tot.income)}</b> · {t('gider')} <b class="bad">-{formatMoney(tot.expense)}</b>
@@ -314,10 +315,11 @@ export function WeeklyReport() {
               ))}
             </div>
             <p>
-              {t('Devlet yardımı: {n} köpek × {aid} × {mult} = {total}', {
+              {t('Devlet yardımı: {n} köpek × {aid} × {mult}{diff} = {total}', {
                 n: insp.dogsCounted,
                 aid: formatMoney(BALANCE.economy.aidPerDogPerWeek),
                 mult: insp.multiplier,
+                diff: sim.aidMul() !== 1 ? ` × ${sim.aidMul()}` : '',
                 total: formatMoney(insp.aid),
               })}
               {insp.dogsOverCap > 0 ? t(' ({n} köpek lisans dışı, yardım almadı)', { n: insp.dogsOverCap }) : ''}
