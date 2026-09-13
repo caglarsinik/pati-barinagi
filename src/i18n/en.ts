@@ -827,4 +827,5 @@ export const EN: Record<string, string> = {
   'Şu an: açık': 'Currently: on',
   'Şu an: kapalı': 'Currently: off',
   'Rehber {n}/{total}': 'Guide {n}/{total}',
+  'İptal': 'Cancel',
 };

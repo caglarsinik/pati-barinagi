@@ -210,6 +210,10 @@
   z-index: var(--z-bar);
 }
 
+.hint-cancel {
+  margin-left: 8px;
+}
+
 .build-bar {
   left: 50%;
   bottom: calc(var(--safe-b) + var(--nav-h) + 48px);

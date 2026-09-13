@@ -7,6 +7,8 @@ import { Minimap } from './Minimap';
 import { AlertsPanel } from './Panels';
 import { Toolbar } from './Toolbar';
 import { TopBar } from './TopBar';
+import { app } from '../app';
+import { t } from '../i18n';
 import { store } from './store';
 
 export { formatMoney } from './format';
@@ -31,7 +33,14 @@ export function HUD() {
       </div>
       <Toolbar />
       <BuildBar />
-      <div class="hud hud-bottom panel hint">{store.hint.value}</div>
+      <div class="hud hud-bottom panel hint">
+        {store.hint.value}
+        {store.touch.value && store.build.value.kind !== 'none' && (
+          <button class="chip-btn hint-cancel" onClick={() => app.setBuildTool({ kind: 'none' })}>
+            {t('İptal')}
+          </button>
+        )}
+      </div>
       <BottomNav />
       <Minimap />
     </>

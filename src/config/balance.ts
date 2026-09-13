@@ -321,6 +321,8 @@ export const BALANCE = {
   camera: {
     avatarZoom: 3,
     manageZoom: 1.5,
+    /** Yatay telefon: daha geniş görüş. */
+    phone: { avatarZoom: 2.5, manageZoom: 1.25 },
     minZoom: 1,
     maxZoom: 4,
     panSpeed: 600, // ekran pikseli / saniye (zoom'a bölünür)

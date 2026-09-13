@@ -3,6 +3,7 @@ import { GAME } from '../config/game';
 import { SIZE_SCALE, STAGE_SCALE } from '../render/DogPainter';
 import { EMOTE_TEX, emoteFrame } from '../render/EmoteArt';
 import { HUMAN_H } from '../render/HumanPainter';
+import { DPR } from '../render/dpr';
 import type { Sim } from '../sim/Sim';
 import { type Emote, adopterEmote, dogEmote, staffEmote } from '../sim/systems/Emotes';
 import { store } from '../ui/store';
@@ -70,7 +71,7 @@ export class OverlayScene extends Phaser.Scene {
     const my = this.cameras.main;
     my.setZoom(cam.zoom);
     my.setScroll(cam.scrollX, cam.scrollY);
-    const res = Math.min(4, Math.max(1, Math.ceil(cam.zoom)));
+    const res = Math.min(4 * DPR, Math.max(1, Math.ceil(cam.zoom)));
     if (res !== this.textRes) {
       this.textRes = res;
       for (const e of this.used.values()) e.label.setResolution(res);
@@ -81,7 +82,7 @@ export class OverlayScene extends Phaser.Scene {
     const v = cam.worldView;
     const margin = 2 * T;
     const inView = (x: number, y: number): boolean => x >= v.x - margin && x <= v.right + margin && y >= v.y - margin && y <= v.bottom + margin;
-    const labelsOn = store.labels.value && cam.zoom >= OverlayScene.LABEL_ZOOM;
+    const labelsOn = store.labels.value && cam.zoom >= OverlayScene.LABEL_ZOOM * DPR;
     const selected = store.selectedDogId.value;
     const now = this.time.now;
     const seen = new Set<string>();

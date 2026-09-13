@@ -6,6 +6,7 @@ import type { Speed } from './config/balance';
 import type { Tool } from './sim/systems/Interaction';
 import type { BuildTool, Layout, Panel, TouchMode } from './ui/store';
 import { parseSeed } from './core/Rng';
+import { DPR } from './render/dpr';
 import { SaveManager } from './core/SaveManager';
 import { BootScene } from './scenes/BootScene';
 import { WorldScene } from './scenes/WorldScene';
@@ -43,8 +44,11 @@ class AppController {
       roundPixels: true,
       disableContextMenu: true,
       // Pencere boyutunu kendimiz yönetiyoruz: ebeveyn ölçümüne güvenmek 0x0 tuval üretebiliyor.
-      scale: { mode: Phaser.Scale.NONE, width: Math.max(320, viewport().w), height: Math.max(240, viewport().h) },
+      // Arka tampon pencere × DPR, CSS boyutu pencere: yüksek DPR'da piksel sanatı net kalır (zoom 1/DPR).
+      scale: { mode: Phaser.Scale.NONE, width: Math.max(320, viewport().w) * DPR, height: Math.max(240, viewport().h) * DPR, zoom: 1 / DPR },
       render: { antialias: false, powerPreference: 'high-performance' },
+      // İki işaretçi: pinch yakınlaştırma ve iki parmakla kaydırma.
+      input: { activePointers: 2 },
       scene: [BootScene, WorldScene, OverlayScene],
     });
     // Gömülü tarayıcılar ilk anda 0 boyut bildirebiliyor; hem resize olayında hem periyodik kontrol et.
@@ -53,7 +57,9 @@ class AppController {
       if (!s) return;
       const { w, h } = viewport();
       if (w < 64 || h < 64) return; // pencere gizli: son geçerli boyutu koru
-      if (s.width !== w || s.height !== h) s.resize(w, h);
+      const bw = w * DPR;
+      const bh = h * DPR;
+      if (s.width !== bw || s.height !== bh) s.resize(bw, bh);
       this.applyDevice();
     };
     window.addEventListener(

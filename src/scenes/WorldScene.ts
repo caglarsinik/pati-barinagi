@@ -16,6 +16,7 @@ import { showToast, store, syncStore } from '../ui/store';
 import { audio } from '../audio/audio';
 import { resolveAction } from '../sim/systems/Interaction';
 import { drawLightDisc } from '../render/LightArt';
+import { DPR } from '../render/dpr';
 import { Pixels, hex } from '../render/Pixels';
 import { SEASON_TINT } from '../sim/systems/WeatherSystem';
 import { t } from '../i18n';
@@ -61,7 +62,9 @@ export class WorldScene extends Phaser.Scene {
   private ghostImage!: Phaser.GameObjects.Image;
   private ghostGfx!: Phaser.GameObjects.Graphics;
   private keys!: Keys;
-  private zoomTarget: number = BALANCE.camera.avatarZoom;
+  private zoomTarget: number = BALANCE.camera.avatarZoom * DPR;
+  /** İki parmak: başlangıç mesafesi/zoomu ve orta nokta. */
+  private pinch: { dist: number; zoom: number; mid: { x: number; y: number } } | null = null;
   private waterTimer = 0;
   private waterFrame: 0 | 1 = 0;
   private syncTimer = 0;
@@ -193,7 +196,7 @@ export class WorldScene extends Phaser.Scene {
     const cam = this.cameras.main;
     cam.setBounds(0, 0, world.width * T, world.height * T);
     cam.roundPixels = true;
-    cam.setZoom(this.sim.mode === 'avatar' ? BALANCE.camera.avatarZoom : BALANCE.camera.manageZoom);
+    cam.setZoom(this.zoomFor(this.sim.mode));
 
     // --- Gece örtüsü ve lamba ışıkları ---
     this.nightRect = this.add
@@ -251,7 +254,7 @@ export class WorldScene extends Phaser.Scene {
 
     this.input.on('wheel', (_p: Phaser.Input.Pointer, _o: unknown, _dx: number, dy: number) => {
       const f = dy > 0 ? 1 / 1.15 : 1.15;
-      this.zoomTarget = clamp(this.zoomTarget * f, BALANCE.camera.minZoom, BALANCE.camera.maxZoom);
+      this.setZoomTarget(this.zoomTarget * f);
     });
     this.input.on('pointerdown', (ptr: Phaser.Input.Pointer) => this.onPointerDown(ptr));
     this.input.on('pointermove', (ptr: Phaser.Input.Pointer) => this.onPointerMove(ptr));
@@ -401,7 +404,41 @@ export class WorldScene extends Phaser.Scene {
     return { x: Math.floor(ptr.worldX / T), y: Math.floor(ptr.worldY / T) };
   }
 
+  /** Kamera zoom hedefi (arka tampon ölçeğinde; sınırlar BALANCE.camera × DPR). */
+  setZoomTarget(z: number): void {
+    this.zoomTarget = clamp(z, BALANCE.camera.minZoom * DPR, BALANCE.camera.maxZoom * DPR);
+  }
+
+  /** Mod ve cihaz sınıfına göre varsayılan zoom (telefonda daha geniş görüş). */
+  private zoomFor(mode: Mode): number {
+    const C = BALANCE.camera;
+    const phone = store.layout.value === 'phone';
+    const z = mode === 'avatar' ? (phone ? C.phone.avatarZoom : C.avatarZoom) : phone ? C.phone.manageZoom : C.manageZoom;
+    return z * DPR;
+  }
+
+  /** İki parmak: mesafe oranı zoom, orta nokta kayması yönetim modunda pan. */
+  private handlePinch(p1: Phaser.Input.Pointer, p2: Phaser.Input.Pointer): void {
+    const dist = Math.max(1, Phaser.Math.Distance.Between(p1.x, p1.y, p2.x, p2.y));
+    const mid = { x: (p1.x + p2.x) / 2, y: (p1.y + p2.y) / 2 };
+    if (!this.pinch) {
+      this.pinch = { dist, zoom: this.zoomTarget, mid };
+      this.dragStartTile = null;
+      this.dragLast = null;
+      this.dragMoved = true;
+      return;
+    }
+    this.setZoomTarget(this.pinch.zoom * (dist / this.pinch.dist));
+    if (this.sim.mode === 'manage') {
+      const cam = this.cameras.main;
+      cam.scrollX -= (mid.x - this.pinch.mid.x) / cam.zoom;
+      cam.scrollY -= (mid.y - this.pinch.mid.y) / cam.zoom;
+    }
+    this.pinch.mid = mid;
+  }
+
   private onPointerDown(ptr: Phaser.Input.Pointer): void {
+    if (this.pinch) return;
     this.dragLast = { x: ptr.x, y: ptr.y };
     this.dragMoved = false;
     this.dragButton = ptr.button;
@@ -417,11 +454,19 @@ export class WorldScene extends Phaser.Scene {
   }
 
   private onPointerMove(ptr: Phaser.Input.Pointer): void {
+    const p1 = this.input.pointer1;
+    const p2 = this.input.pointer2;
+    if (p1 && p2 && p1.isDown && p2.isDown) {
+      this.handlePinch(p1, p2);
+      return;
+    }
+    if (this.pinch) return; // ikinci parmak kalkana kadar tek parmak hareketi yok sayılır
     this.hoverTile = this.tileAt(ptr);
     if (!this.dragLast || !ptr.isDown) return;
     const dx = ptr.x - this.dragLast.x;
     const dy = ptr.y - this.dragLast.y;
-    if (Math.abs(dx) + Math.abs(dy) > 3) this.dragMoved = true;
+    // Parmakla dokunuş titrer: dokunmatikte daha geniş eşik.
+    if (Math.abs(dx) + Math.abs(dy) > (ptr.wasTouch ? 8 * DPR : 3)) this.dragMoved = true;
     const painting = this.dragStartTile !== null && this.dragButton === 0;
     const panAllowed = this.sim.mode === 'manage' && (this.dragButton === 2 || (this.dragButton === 0 && store.build.value.kind === 'none'));
     if (!painting && panAllowed) {
@@ -433,6 +478,14 @@ export class WorldScene extends Phaser.Scene {
   }
 
   private onPointerUp(ptr: Phaser.Input.Pointer): void {
+    if (this.pinch) {
+      const p1 = this.input.pointer1;
+      const p2 = this.input.pointer2;
+      if (!(p1 && p1.isDown) && !(p2 && p2.isDown)) this.pinch = null;
+      this.dragLast = null;
+      this.dragStartTile = null;
+      return;
+    }
     const tool = store.build.value;
     const start = this.dragStartTile;
     this.dragStartTile = null;
@@ -892,10 +945,10 @@ export class WorldScene extends Phaser.Scene {
     const cam = this.cameras.main;
     if (mode === 'manage') {
       cam.stopFollow();
-      this.zoomTarget = BALANCE.camera.manageZoom;
+      this.zoomTarget = this.zoomFor('manage');
     } else {
       cam.startFollow(this.playerSprite, true, 0.2, 0.2);
-      this.zoomTarget = BALANCE.camera.avatarZoom;
+      this.zoomTarget = this.zoomFor('avatar');
       store.build.value = { kind: 'none' };
       store.buildBar.value = false;
     }
