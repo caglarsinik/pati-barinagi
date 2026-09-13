@@ -19,9 +19,10 @@ Tasarım dokümanı ve kilometre taşları: `docs/PLAN.md`
 | WASD / ok tuşları | Yürü | Kamerayı kaydır |
 | Shift | Koş (dayanıklılık harcar) | – |
 | E | Baktığın şeye göre iş yap: köpeği sev/oyna/eğit/fırçala, yem kabını doldur, pisliği temizle, kileri aç | – |
-| 1-5 | Araç seç: Sev, Oyna, Eğit, Yem, Temizle | – |
+| 1-6 | Araç seç: Sev, Oyna, Eğit, Yem, Temizle, Çağır ("Gel" bilen köpekler 12 kare içinden gelir) | – |
 | Sol tık | Köpeği seç (panel açılır) | Köpeği seç |
 | I / O / N / P / F / H | Köpek listesi / Sahiplendirme / Finans / Personel / Görevlendirme / Başarımlar | Aynı |
+| L | Dünya üstü isim etiketlerini aç/kapa (seçili köpekte her zaman görünür) | Aynı |
 | B | İnşa çubuğu (yönetim moduna geçer) | İnşa çubuğu |
 | X / Z | – | Yık aracı / Bölge boyama |
 | Tab | Yönetim moduna geç | Avatara dön |
@@ -36,11 +37,17 @@ Alt çubuk her an E ile ne yapacağını yazar. Sağ üstteki uyarılara tıklay
 
 ## Köpek bakımı
 
-- Köpeklerin ihtiyaçları: tokluk, keyif, rahatlık (tuvalet), temizlik, sağlık, sadakat, enerji.
+- Köpeklerin ihtiyaçları: tokluk, su, keyif, rahatlık (tuvalet), temizlik, sağlık, sadakat, enerji. Köpeğin üstünde en acil ihtiyacın balonu görünür (🍖 aç, 💧 susuz, 💩 tuvalet, 🎵 sıkıldı, 🤒 hasta, ❗ kaçma riski, zzz uyuyor); sevince kalp çıkar.
+- Su yalağı: köpek susayınca gidip içer, yalak azalır. Yalağın önünde E ile ücretsiz doldur; mutfak varsa yalaklar kendiliğinden dolar. Personel için ayrı "Su" görevi vardır.
 - Yem kabını kilerden doldur (kabın önünde E). Köpekler acıkınca dolu kaba kendileri gider. Kiler bitince kilerin önünde E ile çuval sipariş et.
 - Tuvalet eğitimi olmayan köpek olduğu yere yapar; pisliği fırça ile temizle. Eğitimli köpek tuvalet alanına gider.
 - Sevmek sadakati, oynamak keyfi, fırçalamak temizliği artırır. Eğitim aracıyla köpek panelinden seçtiğin beceriyi çalıştırırsın.
 - Gece köpekler kulübelerinde uyur; kulübesi olmayan köpek dışarıda kötü uyur.
+- **Dostluk:** sıkılan iki köpek 8 kare içinde buluşup birlikte oynar (oyun bahçesi varsa orada); ikisinin de keyfi, dostluk puanı ve "sosyallik" becerisi artar, üstlerinde 🐾 çıkar. İki cesur köpek arada hırlaşır (dostluk düşer, bir saatlik uyarı); sosyalliği tam köpekler hırlaşmaz. Köpek paneli en yakın dostu gösterir; kulübe ataması dostun kulübesini tercih eder. Sıkılan ya da aç kalan köpek havlar.
+- **Huy:** Çekingen köpek güvenmeden (sadakat 40 altı) sevmeden az etkilenir, güvenince çok bağlanır; sadakati 50 altındayken yaklaşan insandan kaçar. Cesur köpek daha kolay kaçar (x1,5), 2 ödülle evcilleşir, daha geniş dolaşır. Oyuncu huylu köpek daha erken oyuncak arar. Sakin köpek daha çok yatar, hırlaşmaz.
+- **Beceriler işe yarar:** Gel → 6 numaralı Çağır aracı; Otur → oyuncu 2 sn bitişik durunca oturur, eşleşmede +3; Bekle → gece kaçmaz; Tasma → köpek panelinden "Gezdir": köpek peşine takılır, arsadan çıkıp dönünce keyif +40, sadakat +5 (biraz kirlenir, yorulur); HUD'daki Bırak ile dışarıda bırakılan köpek kendi başına eve döner. İstekten fazla her öğrenilmiş beceri eşleşme puanına +2 (en çok +6) verir.
+- **Hastalık ve karantina:** Kirli köpek pire kapar, kulübesiz köpek soğuk/yağışlı havada üşütür, arsada 3'ten çok pislik varsa mide bozulur. Hasta köpek sahiplendirilemez; hastalık 2 kare içindeki köpeklere bulaşır, tedavi edilmezse 7 günde kendiliğinden geçer. Tedavi (veteriner odası, veteriner personeli, gezici veteriner) hastalığı siler. Görevlendirme → Politikalar'daki "karantinada kalsın" seçeneği (varsayılan açık) hasta köpeği Z ile boyadığın Karantina alanına yollar; karantina bulaşmayı iki yönde keser.
+- Köpek listesi (I) sütun başlığına tıklayınca sıralanır; Hasta / Kulübesiz / Sahiplendirilebilir / Susuz / Dostsuz filtreleri vardır.
 
 ## İnşa
 
@@ -48,14 +55,15 @@ Alt çubuk her an E ile ne yapacağını yazar. Sağ üstteki uyarılara tıklay
 - Çit ve yol sürükleyerek düz çizgi halinde çekilir; kapı çitin üstüne konur. Bölgeler (tuvalet, oyun bahçesi, eğitim, karantina, personel) dikdörtgen sürükleyerek boyanır.
 - Büyük binalar inşaat süresi boyunca yarı saydamdır ve kullanılamaz. Yıkım bedelin yarısını iade eder.
 - Arsa sekmesinden doğuya/güneye 16 kare genişletilir (2.500 ₺); alan temizlenir, çit ve yol kapıları yeniden kurulur.
-- Tımar istasyonu yakındaki köpeği yıkar, veteriner odası tedavi eder, mutfak kapların kapasitesini ikiye katlar, oyuncaklar köpeklerin kendi kendine oynamasını sağlar.
+- Tımar istasyonu yakındaki köpeği yıkar, veteriner odası tedavi eder, mutfak kapların kapasitesini ikiye katlar, yalakları kendiliğinden doldurur ve personelin yem/su işini %40 hızlandırır; oyuncaklar köpeklerin kendi kendine oynamasını sağlar.
+- Dekor puanı: çiçek 1, bank 3, tabela 5 (bir tabela sayılır), lamba 0,5; en çok 20. Puan sahiplenicilerin sabrını uzatır, günlük sahiplenici sayısını biraz artırır ve haftalık denetimde "Çevre" kalemi olarak sayılır.
 
 ## Yumurtalar ve keşif
 
 - Dünyadaki yuvalarda (mini haritada sarı nokta) yumurta bulunur; önünde E ile çantaya alınır (3 yuva). Yuva birkaç günde yeniden dolar.
 - Yumurtanın boyu köpeğin boyutunu, şekli gövde tipini, rengi ve deseni tüyünü belirler; huy ve zekâ sadece ipucu olarak sezilir.
 - Kuluçkanın önünde E: yumurtayı yerleştir, 3 günde yavru doğar. Yavru 4 haftada genç, 12 haftada yetişkin olur.
-- Uzaktaki inlerde (turuncu nokta) sokak köpekleri yaşar. Böğürtlen çalısından ödül maması topla, köpeğe 3 kez ver; peşine takılır, barınağa girince katılır.
+- Uzaktaki inlerde (turuncu nokta) sokak köpekleri yaşar. Böğürtlen çalısından ödül maması topla, köpeğe 3 kez ver (cesur huyluya 2); peşine takılır, barınağa girince katılır.
 - Gece 20:00'den sonra ofisin önünde E ile sabaha kadar uyursun. Dışarıda 02:00'ye kadar kalırsan bayılıp ofiste uyanırsın.
 
 ## Ekonomi ve sahiplendirme
@@ -68,8 +76,8 @@ Alt çubuk her an E ile ne yapacağını yazar. Sağ üstteki uyarılara tıklay
 ## Personel ve görevlendirme
 
 - Ofisten ya da P tuşuyla personel paneli: her sabah 3 aday (bakıcı, eğitmen, veteriner) gelir; nitelikleri (hız, çalışkanlık, şefkat, dayanıklılık, beceri) ve huyları farklıdır. Maaşlar her Pazartesi ödenir; kasa iki hafta eksideyse personel istifa eder.
-- F tuşu görevlendirme ekranı: **Vardiya** sekmesinde 24 saatlik çizelgeyi boyarsın (çalış/mola/izin), **Öncelikler** sekmesinde her personel için görev türlerine 0-5 öncelik verirsin (bakıcı tedavi yapamaz, veteriner en iyi tedaviyi yapar), **Politikalar** sekmesinde otomatik yem siparişi ve eğitim hedefi vardır.
-- Görev tahtası barınağın ihtiyaçlarından otomatik dolar: boş yem kabı, pislik, sıkılan/kirli/hasta köpek, eğitim. Personel aciliyet, verim, öncelik ve mesafeye göre iş seçer; oyuncu işi yaparsa görev düşer. Görevler saatlerce beklerse darboğaz uyarısı çıkar.
+- F tuşu görevlendirme ekranı: **Vardiya** sekmesinde 24 saatlik çizelgeyi boyarsın (çalış/mola/izin), **Öncelikler** sekmesinde her personel için görev türlerine 0-5 öncelik verirsin (bakıcı tedavi yapamaz, veteriner en iyi tedaviyi yapar), **Politikalar** sekmesinde otomatik yem siparişi, eğitim hedefi ve hasta köpeği karantinada tutma seçeneği vardır.
+- Görev tahtası barınağın ihtiyaçlarından otomatik dolar: boş yem kabı, boş su yalağı, pislik, sıkılan/kirli/hasta köpek, eğitim. Personel aciliyet, verim, öncelik ve mesafeye göre iş seçer; oyuncu işi yaparsa görev düşer. Görevler saatlerce beklerse darboğaz uyarısı çıkar.
 - Personel enerjisi bitince personel odasında (yoksa personel bölgesinde ya da ofis önünde) mola verir.
 
 ## Ses
@@ -90,12 +98,13 @@ Lisans gerektirenleri README'de anmayı unutma.
 - Yaz: köpekler daha çabuk kirlenir, oyun bahçesi daha keyifli. Kış: daha çok acıkırlar, enerji hızlı düşer, **kulübesiz köpek gece üşür ve sağlık kaybeder**. İlkbahar: yuvalar daha hızlı dolar. Sonbahar: böğürtlen çalıları fazladan ödül maması verir.
 - Yağmur/fırtına köpekleri kirletir ve sahiplenici sayısını düşürür; kar enerjiyi tüketir. Yağmur ve kar ekranda görünür, mevsim renk tonunu değiştirir.
 - Rastgele olaylar (ofis panelindeki "Son olaylar" listesinde tutulur): gazete haberi (itibar +5, ertesi gün fazladan ziyaretçi), sürpriz denetim (temiz barınağa ödül, bakımsıza 200 ₺ ceza), hayırsever bağışı, yem toptancısı indirimi (o gün çuvallar yarı fiyat), gezici veteriner (ücretsiz muayene).
-- Sadakati 25'in altındaki köpek gece kaçabilir: arsa dışında bir yere saklanır (mini haritada turuncu). Böğürtlen ödülüyle geri getir; 3 gün içinde bulunmazsa gider ve itibar düşer.
+- Hastalıklar (pire, soğuk algınlığı, mide bozukluğu) bakımsızlıkla başlar ve bulaşır; ayrıntı "Köpek bakımı" bölümünde.
+- Sadakati 25'in altındaki köpek gece kaçabilir ("Bekle" bilen köpek kaçmaz, cesur köpek daha kolay kaçar): arsa dışında bir yere saklanır (mini haritada turuncu). Böğürtlen ödülüyle geri getir; 3 gün içinde bulunmazsa gider ve itibar düşer.
 - 52 haftalık köpek **yaşlı** olur: gri burunlu çizilir, daha yavaş yürür, sağlığı daha kırılgandır, oyun ihtiyacı azdır. Sıradan sahiplenicilerde 10 puan kaybeder, "yaşlı dost" isteyen sahiplenici ise fazladan 100 ₺ öder.
 
 ## Başarımlar
 
-H tuşu ya da ofis panelinden 21 başarımın listesi açılır (ilk yumurta, 10 sahiplendirme, 95+ eşleşme, 1,4 denetim çarpanı, 20.000 ₺, efsanevi köpek, bir yıl dayanmak...). Her başarım açıldığında itibar +1 verir; kayıtla korunur.
+H tuşu ya da ofis panelinden 24 başarımın listesi açılır (ilk yumurta, 10 sahiplendirme, 95+ eşleşme, 1,4 denetim çarpanı, 20.000 ₺, efsanevi köpek, bir yıl dayanmak...). Her başarım açıldığında itibar +1 verir; kayıtla korunur.
 
 ## Dil
 
@@ -118,6 +127,8 @@ Bilgisayar değiştirirken ya da yedek almak için kullan.
 - [x] M5 Personel ve görevlendirme: adaylar ve işe alma, görev tahtası, personel yapay zekâsı, vardiya çizelgesi, öncelikler, politikalar, maaş ve istifa
 - [x] M6 Ses ve cila: sentezlenen efektler ve üretken müzik, ayarlar, kayıt dışa/içe aktarma, başlangıç rehberi, lamba ışıkları, uzun koşu denge testi, tek dosya build
 - [x] M7 Ekstralar: mevsimler ve hava (yağmur/kar efektleri, mevsim tonu, ihtiyaç çarpanları), rastgele olaylar (sürpriz denetim, bağış, indirim, gezici veteriner, gazete, kaçan köpek), yaşlı köpek aşaması, 21 başarım, İngilizce dil
+- [x] M8 Canlı barınak: susuzluk ve su yalağı, dekor/mutfak etkisi, dünya üstü emote balonları ve isim etiketleri (OverlayScene), köpek-köpek dostluk/oyun/hırlaşma/havlama, huy ve becerilerin davranışa bağlanması (Çağır aracı, otur, bekle, gezdirme), hastalık ve karantina, köpek listesi sıralama/filtre, teknik borç (ışık haritası, doku sızıntısı, toast kuyruğu), kayıt sürümü 2
+- [ ] Sonraki paketler (`docs/PLAN.md` §7): M9 Yaşayan Dünya, M10 İlerleme ve Son Oyun, M11 Sahiplendirme Hikâyeleri, M12 Soy
 
 ## Geliştirme
 
@@ -135,7 +146,7 @@ src/core/       Rng, EventBus, Clock, SaveManager
 src/i18n/       t() yardımcısı ve İngilizce sözlük
 src/sim/        Phaser'dan bağımsız oyun mantığı (dünya, varlıklar, sistemler)
 src/render/     kodla üretilen pixel-art ve doku kaydı
-src/scenes/     Phaser sahneleri (çizim ve girdi)
+src/scenes/     Phaser sahneleri: World (çizim ve girdi), Overlay (emote balonları, isim etiketleri)
 src/ui/         Preact arayüzü (HUD, menüler, paneller)
 tests/          vitest testleri
 ```

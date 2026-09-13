@@ -378,6 +378,11 @@ Her taşın sonunda oyun çalışır hâlde olur, testler yeşildir, commit atı
 - **M6 Ses ve cila:** Synth/Sfx/Music, ayarlar, öğretici ipuçları (ilk gün rehberi), denge geçişi (4 haftalık bot simülasyonuyla),
   JSON dışa/içe aktarma, tek dosya build, README (kontroller, ses değiştirme rehberi).
 - **M7 İsteğe bağlı:** hava/mevsim, olaylar (sürpriz denetim, bağış, kaçan köpek), yaşlı köpek aşaması, başarımlar, İngilizce dil.
+- **M8 Canlı Barınak (2026-09-13, tamamlandı):** kayıt sürümü 2 + migrasyon; susuzluk ve su yalağı (su görevi, denetim kalemi);
+  dekor puanı ve mutfak etkisi; OverlayScene (emote balonları, isim etiketleri, L); köpek-köpek dostluk (birlikte oyun,
+  hırlaşma, havlama, dost kulübe tercihi); huy ve becerilerin davranışa bağlanması (Çağır aracı, otur, bekle, tasma/gezdirme);
+  hastalık (pire/soğuk/mide) + bulaşma + karantina politikası; teknik borç (ışık haritası boyutu, doku sızıntısı, toast kuyruğu,
+  köpek listesi sıralama/filtre, ölü kod).
 
 ## 5. Doğrulama
 
@@ -389,6 +394,24 @@ Her taşın sonunda oyun çalışır hâlde olur, testler yeşildir, commit atı
   personel al, görevlendir, sahiplendir) ve ekran görüntüleri; konsolda hata sıfır; 60 FPS kontrolü (100 köpek + 10 personel senaryosu).
 - **Build:** `npm run build` → `dist/index.html` çift tıkla açılıyor mu, kayıt localStorage'da kalıyor mu.
 - **Kod kalitesi:** `tsc --noEmit` temiz, eslint temel kurallar.
+
+## 7. Yol haritası (M9–M12, 2026-09-13 kararı)
+
+Ayrıntılı tasarım notları plan dosyasında; burada özet. Sırası değiştirilebilir, her paket tek başına oynanabilir sürüm verir.
+
+- **M9 Yaşayan Dünya:** sokak köpeği inleri mevsimlik yeniden dolar; terk edilmiş ev POI'si; harita kenarında köy
+  (yem toptancısı, oyuncak/ilaç dükkânı, pazar günü); köylülerden görevler; keşfedilmiş yol tabelaları arası hızlı seyahat,
+  bisiklet yükseltmesi; taş/odun toplama → inşa indirimi; tam ekran harita (M); dışarıda hava etkisi.
+- **M10 İlerleme ve Son Oyun:** yükseltme ağacı (kuluçka Sv2 6 yuva/2 gün, sırt çantası 6, ofis Sv2/Sv3 binası, otomatik yem
+  makinesi); personel XP/moral/eğitim kursu/gönüllü; 50 sahiplendirme + itibar 90 → "Yılın Barınağı" zafer ekranı;
+  **zorluk seviyesi** (Kolay/Normal/Zor: başlangıç parası 9.000/6.000/4.000, yardım ×1,3/1/0,8, ihtiyaç hızı ×0,8/1/1,2);
+  **iflas** (kasa 3 hafta üst üste −(maaş toplamı + 1.000) altındaysa oyun sonu ekranı) ve ofisten 5.000 ₺ kredi (%5 haftalık faiz);
+  **bina döndürme R** (`Building.rot`, tünel/bank dikey varyant); finans 8 haftalık grafik + nakit projeksiyonu; 3 kayıt yuvası.
+- **M11 Sahiplendirme Hikâyeleri:** 100+ isim ve 6 kişilik tipi, tekrar gelen sahiplenici; sahiplendirme sonrası mektup/fotoğraf;
+  "Mezunlar" albümü; sahiplendirme günü etkinliği; bağış kampanyası; ikili (bonded pair) sahiplendirme (M8 dostluk puanı).
+- **M12 Soy (üreme/kalıtım):** `inheritGenome(a, b, rng)` (alanlar %50/50, %10 mutasyon, nadirlik ebeveynlerin en yükseği, %15 bir
+  kademe üstü); "Yuva evi" 3×3 2.500 ₺: dostluğu ≥ 60 iki yetişkin köpek → 5 günde yumurta → kuluçka; köpek başına 4 hafta bekleme;
+  panelde soy ağacı; "İlk soy" / "Efsanevi soy" başarımları.
 
 ## 6. Varsayımlar ve açık noktalar
 
