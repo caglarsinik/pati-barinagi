@@ -165,6 +165,65 @@ html.is-touch .col-right {
   bottom: calc(var(--safe-b) + var(--minimap-w) + 2 * var(--gap) + 130px);
 }
 
+/* --- Telefon sayfaları ve dikey uyarısı --- */
+.alerts-sheet {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.alerts-sheet .alert {
+  padding: 10px 12px;
+}
+
+.backpack.in-sheet {
+  padding: 8px 0;
+}
+
+.minimap.in-sheet {
+  padding: 4px;
+  align-self: center;
+}
+
+.minimap.in-sheet canvas {
+  display: block;
+  width: min(80vw, 320px);
+  height: min(80vw, 320px);
+  image-rendering: pixelated;
+  border: 1px solid #0f0d1a;
+}
+
+.map-sheet {
+  align-items: stretch;
+}
+
+.rotate-hint {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 500;
+  background: #1b1a2a;
+  color: var(--text);
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 12px;
+  font-size: 1.2rem;
+  font-weight: 700;
+  pointer-events: auto;
+}
+
+.rotate-icon {
+  font-size: 3rem;
+  transform: rotate(90deg);
+}
+
+@media (max-width: 767px) and (orientation: portrait) {
+  .rotate-hint {
+    display: flex;
+  }
+}
+
 /* --- Tablet (<= 1023) --- */
 @media (max-width: 1023px) {
   :root {
@@ -254,9 +313,22 @@ html.is-touch .col-right {
   }
 
   .guide,
-  .minimap,
-  .minimap-show {
+  .hud.minimap,
+  .minimap-show,
+  .col-left .backpack,
+  .col-right .alerts {
     display: none;
+  }
+
+  .build-items {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 4px;
+  }
+
+  .build-item {
+    flex: none;
   }
 
   .nav-label {

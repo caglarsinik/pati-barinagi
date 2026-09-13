@@ -27,7 +27,10 @@ export type Panel =
   | 'staff'
   | 'deployment'
   | 'achievements'
-  | 'help';
+  | 'help'
+  | 'alerts'
+  | 'backpack'
+  | 'map';
 
 export type BuildTool =
   | { kind: 'none' }

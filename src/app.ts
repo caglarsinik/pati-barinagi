@@ -49,6 +49,8 @@ class AppController {
       render: { antialias: false, powerPreference: 'high-performance' },
       // İki işaretçi: pinch yakınlaştırma ve iki parmakla kaydırma.
       input: { activePointers: 2 },
+      // Telefon: pil için 30 kare/sn yeter (sim gerçek zamanı dt ile ölçekler).
+      fps: viewport().w <= 767 || viewport().h <= 500 ? { limit: 30 } : undefined,
       scene: [BootScene, WorldScene, OverlayScene],
     });
     // Gömülü tarayıcılar ilk anda 0 boyut bildirebiliyor; hem resize olayında hem periyodik kontrol et.
@@ -67,6 +69,13 @@ class AppController {
       () => {
         this.touchSeen = true;
         this.applyDevice();
+        // Telefonda yatay kilit dene (tam ekran/Android'de çalışır, diğerleri yok sayar).
+        try {
+          const o = screen.orientation as ScreenOrientation & { lock?: (t: string) => Promise<void> };
+          if (store.layout.value === 'phone' && typeof o?.lock === 'function') o.lock('landscape').catch(() => undefined);
+        } catch {
+          /* yoksay */
+        }
       },
       { once: true, passive: true },
     );

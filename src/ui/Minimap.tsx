@@ -5,9 +5,11 @@ import { store } from './store';
 import { t } from '../i18n';
 
 /** Biyom renkleriyle çizilen taban; sis, yuva/in işaretleri ve oyuncu her güncellemede üstüne gelir. */
-export function Minimap() {
+export function Minimap({ inSheet = false }: { inSheet?: boolean } = {}) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const baseRef = useRef<HTMLCanvasElement | null>(null);
+  /** Sis katmanı: keşif sayısı değişmedikçe yeniden üretilmez. */
+  const fogRef = useRef<{ canvas: HTMLCanvasElement; count: number } | null>(null);
   const version = store.version.value;
   const tile = store.playerTile.value;
   const tick = store.tick.value;
@@ -45,21 +47,24 @@ export function Minimap() {
     const h = sim.world.height;
     ctx.clearRect(0, 0, c.width, c.height);
     ctx.drawImage(base, 0, 0);
-    // Sis: keşfedilmemiş kareler koyu.
-    const fog = ctx.createImageData(w, h);
+    // Sis: keşfedilmemiş kareler koyu; keşif sayısı değişmediyse önbellekten.
     const explored = sim.world.explored;
-    for (let i = 0; i < w * h; i++) {
-      if (explored[i]) continue;
-      fog.data[i * 4] = 12;
-      fog.data[i * 4 + 1] = 10;
-      fog.data[i * 4 + 2] = 22;
-      fog.data[i * 4 + 3] = 215;
+    if (!fogRef.current || fogRef.current.count !== sim.exploredCount || fogRef.current.canvas.width !== w) {
+      const fog = ctx.createImageData(w, h);
+      for (let i = 0; i < w * h; i++) {
+        if (explored[i]) continue;
+        fog.data[i * 4] = 12;
+        fog.data[i * 4 + 1] = 10;
+        fog.data[i * 4 + 2] = 22;
+        fog.data[i * 4 + 3] = 215;
+      }
+      const fogCanvas = fogRef.current?.canvas ?? document.createElement('canvas');
+      fogCanvas.width = w;
+      fogCanvas.height = h;
+      fogCanvas.getContext('2d')?.putImageData(fog, 0, 0);
+      fogRef.current = { canvas: fogCanvas, count: sim.exploredCount };
     }
-    const fogCanvas = document.createElement('canvas');
-    fogCanvas.width = w;
-    fogCanvas.height = h;
-    fogCanvas.getContext('2d')?.putImageData(fog, 0, 0);
-    ctx.drawImage(fogCanvas, 0, 0);
+    ctx.drawImage(fogRef.current.canvas, 0, 0);
     // Arsa çerçevesi
     const p = sim.world.plot;
     ctx.strokeStyle = '#f6d55c';
@@ -89,6 +94,13 @@ export function Minimap() {
   }, [tile, version, Math.floor(tick / 5)]);
 
   const size = app.sim?.world.width ?? 200;
+  if (inSheet) {
+    return (
+      <div class="minimap in-sheet">
+        <canvas ref={canvasRef} width={size} height={size} />
+      </div>
+    );
+  }
   if (store.minimapHidden.value) {
     return (
       <button class="hud minimap-show btn small" title={t('Mini haritayı göster')} onClick={() => app.setMinimap(false)}>

@@ -8,6 +8,8 @@ import { HelpSheet } from './HelpSheet';
 import { HUD } from './HUD';
 import { MainMenu } from './MainMenu';
 import { KennelPanel, ShedPanel } from './Panels';
+import { AlertsSheet, BackpackSheet, MapSheet } from './PhoneSheets';
+import { t } from '../i18n';
 import { PauseMenu } from './PauseMenu';
 import { store } from './store';
 
@@ -34,11 +36,18 @@ export function App() {
           {panel === 'deployment' && <DeploymentPanel />}
           {panel === 'achievements' && <AchievementsPanel />}
           {panel === 'help' && <HelpSheet />}
+          {panel === 'alerts' && <AlertsSheet />}
+          {panel === 'backpack' && <BackpackSheet />}
+          {panel === 'map' && <MapSheet />}
           {store.report.value && <WeeklyReport />}
           {store.pauseMenu.value && <PauseMenu />}
         </>
       )}
       {store.settingsOpen.value && <SettingsPanel />}
+      <div class="rotate-hint">
+        <div class="rotate-icon">📱</div>
+        <div>{t('Telefonu yatay çevir')}</div>
+      </div>
       {store.toasts.value.length > 0 && (
         <div class="toasts">
           {store.toasts.value.map((x) => (

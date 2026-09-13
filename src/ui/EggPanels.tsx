@@ -33,13 +33,13 @@ function EggDetails({ egg }: { egg: Egg }) {
 }
 
 /** Sol üstteki çanta: yumurtalar ve ödül maması. */
-export function Backpack() {
+export function Backpack({ inSheet = false }: { inSheet?: boolean } = {}) {
   store.tick.value;
   const sim = app.sim;
   if (!sim) return null;
   const slots = sim.backpackSlots();
   return (
-    <div class="backpack panel" title={t('Çanta')}>
+    <div class={inSheet ? 'backpack in-sheet' : 'backpack panel'} title={t('Çanta')}>
       <div class="backpack-row">
         {Array.from({ length: slots }, (_, i) => {
           const egg = sim.backpack[i];

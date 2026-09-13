@@ -43,6 +43,21 @@ export function TopBar() {
             </button>
           </span>
         )}
+        {store.layout.value === 'phone' && (
+          <>
+            <button class="chip-btn" title={t('Çanta')} onClick={() => app.togglePanel('backpack')}>
+              🥚 {store.backpackCount.value} · 🦴 {store.treats.value}
+            </button>
+            {store.alerts.value.length > 0 && (
+              <button class="chip-btn" title={t('Uyarılar')} onClick={() => app.togglePanel('alerts')}>
+                🔔 {store.alerts.value.length}
+              </button>
+            )}
+            <button class="chip-btn" title={t('Harita')} onClick={() => app.togglePanel('map')}>
+              🗺️
+            </button>
+          </>
+        )}
         {mode === 'avatar' && (
           <span class={'stamina' + (store.exhausted.value ? ' exhausted' : '')} title={t('Dayanıklılık')}>
             <div class="bar">

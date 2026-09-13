@@ -848,4 +848,12 @@ export const EN: Record<string, string> = {
   'Yakınlaştır · yönetim modunda kaydır': 'Zoom · pan in manage mode',
   'Sürükle (yönetim)': 'Drag (manage)',
   'Kamerayı kaydır · araç seçiliyse çit/yol/bölge çiz': 'Pan the camera · with a tool selected draw fence/path/zone',
+
+  // M9: telefon sayfaları
+  'Uyarılar': 'Alerts',
+  'Uyarı yok.': 'No alerts.',
+  'Harita': 'Map',
+  'Yumurtaya dokununca incelenir. Ödül maması sokak köpeklerini evcilleştirir.': 'Tap an egg to inspect it. Treats tame stray dogs.',
+  'Sarı nokta dolu yuva, turuncu nokta sokak köpeği ini, beyaz nokta sensin.': 'Yellow dot: full nest, orange dot: stray den, white dot: you.',
+  'Telefonu yatay çevir': 'Rotate the phone to landscape',
 };
