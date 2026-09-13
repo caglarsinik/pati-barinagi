@@ -1,4 +1,4 @@
-import { useState } from 'preact/hooks';
+import { useRef, useState } from 'preact/hooks';
 import { app } from '../app';
 import { BALANCE } from '../config/balance';
 import { t } from '../i18n';
@@ -145,7 +145,10 @@ export function DeploymentPanel() {
   const sim = app.sim;
   const [tab, setTab] = useState<Tab>('shift');
   const [paint, setPaint] = useState<ShiftKind>(1);
-  const [dragging, setDragging] = useState(false);
+  /** Sürükleyerek boyama: pointer yakalama ile (fare ve dokunmatik); stale closure olmasın diye ref. */
+  const drag = useRef(false);
+  /** Son boyanan hücre: hızlı kaydırmada atlanan saatler de doldurulur. */
+  const last = useRef<{ staff: number; hour: number } | null>(null);
   if (!sim) return null;
   const hour = sim.clock.hour;
   const tasks = sim.tasks.tasks;
@@ -154,6 +157,20 @@ export function DeploymentPanel() {
     if (s.schedule[h] !== paint) sim.command({ type: 'setShift', staffId: s.id, hour: h, value: paint });
   };
   const kindName = (k: ShiftKind): string => (k === 1 ? t('çalış') : k === 2 ? t('mola') : t('izin'));
+  const cellAt = (e: PointerEvent): HTMLElement | null => (document.elementFromPoint(e.clientX, e.clientY) as HTMLElement | null)?.closest<HTMLElement>('[data-hour]') ?? null;
+  const paintCell = (cell: HTMLElement): void => {
+    const s = sim.staffById(Number(cell.dataset.staff));
+    const h = Number(cell.dataset.hour);
+    if (!s || !Number.isInteger(h)) return;
+    const prev = last.current;
+    if (prev && prev.staff === s.id && Math.abs(prev.hour - h) > 1) {
+      const step = h > prev.hour ? 1 : -1;
+      for (let x = prev.hour + step; x !== h; x += step) setShift(s, x);
+    }
+    setShift(s, h);
+    last.current = { staff: s.id, hour: h };
+  };
+  const compact = store.layout.value !== 'desktop';
   return (
     <div class="overlay">
       <div class="menu-card panel wide deployment">
@@ -181,7 +198,7 @@ export function DeploymentPanel() {
         {sim.staff.length === 0 && <p class="muted">{t('Personel yok. Önce Personel panelinden birini işe al.')}</p>}
 
         {tab === 'shift' && sim.staff.length > 0 && (
-          <div class="shift-editor" onMouseLeave={() => setDragging(false)}>
+          <div class="shift-editor">
             <div class="row">
               <span class="muted small-text">{t('Boya:')}</span>
               {([1, 2, 0] as ShiftKind[]).map((k) => (
@@ -202,7 +219,29 @@ export function DeploymentPanel() {
                 </button>
               ))}
             </div>
-            <div class="shift-grid" style={{ gridTemplateColumns: `140px repeat(24, 1fr)` }}>
+            <div
+              class="shift-grid"
+              style={{ gridTemplateColumns: 'minmax(80px, 140px) repeat(24, minmax(12px, 1fr))', touchAction: 'none' }}
+              onPointerDown={(e) => {
+                const cell = cellAt(e);
+                if (!cell) return;
+                drag.current = true;
+                last.current = null;
+                (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
+                paintCell(cell);
+              }}
+              onPointerMove={(e) => {
+                if (!drag.current) return;
+                const cell = cellAt(e);
+                if (cell) paintCell(cell);
+              }}
+              onPointerUp={() => {
+                drag.current = false;
+              }}
+              onPointerCancel={() => {
+                drag.current = false;
+              }}
+            >
               <div />
               {Array.from({ length: 24 }, (_, h) => (
                 <div key={h} class={'shift-hour' + (h === hour ? ' now' : '')}>
@@ -217,15 +256,9 @@ export function DeploymentPanel() {
                   {s.schedule.map((v, h) => (
                     <div
                       key={`${s.id}-${h}`}
+                      data-staff={s.id}
+                      data-hour={h}
                       class={`shift-cell shift-${v}` + (h === hour ? ' now' : '')}
-                      onMouseDown={() => {
-                        setDragging(true);
-                        setShift(s, h);
-                      }}
-                      onMouseEnter={() => {
-                        if (dragging) setShift(s, h);
-                      }}
-                      onMouseUp={() => setDragging(false)}
                       title={t('{name} · {h}:00 · {kind}', { name: s.name, h, kind: kindName(v) })}
                     />
                   ))}
@@ -236,7 +269,41 @@ export function DeploymentPanel() {
           </div>
         )}
 
-        {tab === 'priority' && sim.staff.length > 0 && (
+        {tab === 'priority' && sim.staff.length > 0 && compact && (
+          <div class="prio-cards">
+            {sim.staff.map((s) => (
+              <div key={s.id} class="staff-card">
+                <div class="staff-head">
+                  <b>{s.name}</b> <span class="muted small-text">{t(ROLE_NAMES_TR[s.role])}</span>
+                </div>
+                {TASK_TYPES.map((x) => {
+                  const can = ROLE_EFFICIENCY[s.role][x] > 0;
+                  const v = s.priorities[x];
+                  return (
+                    <div key={x} class="prio-row">
+                      <span class="prio-task">{t(TASK_NAMES_TR[x])}</span>
+                      {can ? (
+                        <div class="stepper">
+                          <button class="btn small" disabled={v <= 0} onClick={() => sim.command({ type: 'setPriority', staffId: s.id, task: x, value: v - 1 })}>
+                            −
+                          </button>
+                          <span class={'stepper-value' + (v === 0 ? ' off' : '')}>{v === 0 ? t('Kapalı') : v}</span>
+                          <button class="btn small" disabled={v >= 5} onClick={() => sim.command({ type: 'setPriority', staffId: s.id, task: x, value: v + 1 })}>
+                            +
+                          </button>
+                        </div>
+                      ) : (
+                        <span class="muted small-text">{t('yapamaz')}</span>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            ))}
+          </div>
+        )}
+
+        {tab === 'priority' && sim.staff.length > 0 && !compact && (
           <div class="priority-grid" style={{ gridTemplateColumns: `160px repeat(${TASK_TYPES.length}, 1fr)` }}>
             <div />
             {TASK_TYPES.map((x) => (

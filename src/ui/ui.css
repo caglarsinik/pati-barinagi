@@ -957,6 +957,49 @@ select,
   color: #fff;
 }
 
+/* Dar ekranda öncelikler: personel başına kart, görev başına adımlayıcı */
+.prio-cards {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 6px;
+}
+
+.prio-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 2px 0;
+  border-bottom: 1px solid #3a3550;
+}
+
+.prio-task {
+  flex: 1;
+  font-size: 0.9rem;
+}
+
+.stepper {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.stepper .btn.small {
+  min-width: 36px;
+  padding: 4px 0;
+  text-align: center;
+}
+
+.stepper-value {
+  min-width: 52px;
+  text-align: center;
+  font-weight: 700;
+}
+
+.stepper-value.off {
+  color: var(--danger);
+}
+
 .policies {
   display: flex;
   flex-direction: column;
