@@ -349,6 +349,15 @@ html.is-touch .col-right {
     font-size: 0.85rem;
   }
 
+  .tb-left {
+    flex-wrap: nowrap;
+  }
+
+  .topbar .chip,
+  .topbar .chip-btn {
+    font-size: 0.78rem;
+  }
+
   .topbar .chip[title] {
     gap: 2px;
   }
