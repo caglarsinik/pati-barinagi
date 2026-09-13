@@ -71,6 +71,8 @@ export class WorldScene extends Phaser.Scene {
   private unsub: Array<() => void> = [];
   private stepTimer = 0;
   private barkTimer = 4;
+  /** Havlama durumuna girdiği görülen köpekler (bir kez ses için). */
+  private barkSeen = new Set<number>();
   private lightMap!: Phaser.GameObjects.RenderTexture;
   private rain!: Phaser.GameObjects.Particles.ParticleEmitter;
   private snow!: Phaser.GameObjects.Particles.ParticleEmitter;
@@ -567,7 +569,7 @@ export class WorldScene extends Phaser.Scene {
       s.setPosition(px, py);
       s.setDepth(100 + py);
       const base = dog.facing * DOG_FRAMES;
-      const walking = dog.moving || dog.state === 'play';
+      const walking = dog.moving || dog.state === 'play' || dog.state === 'playTogether';
       if (walking && !this.sim.paused) {
         s.anims.play(`${key}-walk-${dog.facing}`, true);
         s.anims.timeScale = Math.max(0.6, Math.min(3, this.sim.speed * 0.9));
@@ -778,7 +780,7 @@ export class WorldScene extends Phaser.Scene {
     this.snow.emitting = snowing;
   }
 
-  /** Adım sesleri ve arada bir havlama. */
+  /** Adım sesleri; havlama durumuna giren köpek bir kez ses çıkarır; vahşi ve oynayan köpekler arada havlar. */
   private updateSounds(dt: number): void {
     const p = this.sim.player;
     if (p.moving && this.sim.mode === 'avatar' && !this.sim.paused) {
@@ -789,22 +791,32 @@ export class WorldScene extends Phaser.Scene {
       }
     } else this.stepTimer = 0;
     if (this.sim.paused) return;
-    this.barkTimer -= dt;
-    if (this.barkTimer > 0) return;
-    this.barkTimer = 5 + Math.random() * 7;
     const v = this.cameras.main.worldView;
     const T = GAME.tile;
-    const candidates = this.sim.dogs.filter((d) => {
+    const visible = (d: Dog): boolean => {
       const px = d.x * T;
       const py = d.y * T;
-      if (px < v.x || py < v.y || px > v.right || py > v.bottom) return false;
-      return d.needs.hunger > 70 || d.needs.play < 30 || d.state === 'play' || (d.wild && !d.following);
-    });
+      return px >= v.x && py >= v.y && px <= v.right && py <= v.bottom;
+    };
+    const pitchOf = (d: Dog): number => (d.genome.size === 'S' ? 1.5 : d.genome.size === 'L' ? 0.75 : 1) * (d.stage === 'puppy' ? 1.4 : 1);
+    for (const d of this.sim.dogs) {
+      if (d.state !== 'bark') {
+        this.barkSeen.delete(d.id);
+        continue;
+      }
+      if (this.barkSeen.has(d.id)) continue;
+      this.barkSeen.add(d.id);
+      if (!visible(d)) continue;
+      if (d.needs.hunger <= BALANCE.dogs.social.barkHungerAbove && Math.random() < 0.5) audio.play('whine', { pitch: pitchOf(d), volume: 0.6 });
+      else audio.play('bark', { pitch: pitchOf(d), volume: 0.7 });
+    }
+    this.barkTimer -= dt;
+    if (this.barkTimer > 0) return;
+    this.barkTimer = 6 + Math.random() * 8;
+    const candidates = this.sim.dogs.filter((d) => visible(d) && (d.state === 'play' || d.state === 'playTogether' || (d.wild && !d.following)));
     if (candidates.length === 0) return;
     const d = candidates[Math.floor(Math.random() * candidates.length)];
-    const pitch = (d.genome.size === 'S' ? 1.5 : d.genome.size === 'L' ? 0.75 : 1) * (d.stage === 'puppy' ? 1.4 : 1);
-    if (d.needs.play < 30 && d.needs.hunger <= 70 && Math.random() < 0.5) audio.play('whine', { pitch, volume: 0.6 });
-    else audio.play('bark', { pitch, volume: 0.7 });
+    audio.play('bark', { pitch: pitchOf(d), volume: 0.6 });
   }
 
   /** Nesne katmanı (alt) ve üst katman için tile indeksleri. */

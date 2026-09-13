@@ -46,6 +46,11 @@ const STATE_TR: Record<string, string> = {
   toToy: 'Oyuncağa gidiyor',
   play: 'Oynuyor',
   interact: 'Seninle',
+  toFriend: 'Dostuna gidiyor',
+  waitFriend: 'Dostunu bekliyor',
+  playTogether: 'Dostuyla oynuyor',
+  growl: 'Hırlıyor',
+  bark: 'Havlıyor',
 };
 
 export function DogPanel() {
@@ -60,6 +65,8 @@ export function DogPanel() {
   const n = dog.needs;
   const kennel = dog.kennelId !== null ? sim.buildingById(dog.kennelId) : undefined;
   const kennels = sim.buildings.filter((b) => (b.type === 'kennelSmall' || b.type === 'kennelLarge') && sim.kennelHasRoom(b, dog));
+  const bf = dog.bestFriend();
+  const friend = bf ? sim.dogById(bf.id) : undefined;
   const close = (): void => {
     store.panel.value = 'none';
     store.selectedDogId.value = null;
@@ -104,6 +111,7 @@ export function DogPanel() {
             {t(STATE_TR[dog.state] ?? dog.state)}
             {dog.sick ? ` · ${t('HASTA')}` : ''}
           </div>
+          <div class="muted">{friend && bf ? t('En yakın dostu: {name} (+{score})', { name: friend.name, score: Math.round(bf.score) }) : t('Henüz dostu yok')}</div>
         </div>
         <button class="btn small close" onClick={close} title={t('Kapat (Esc)')}>
           ✕

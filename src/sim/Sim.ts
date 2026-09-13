@@ -135,6 +135,10 @@ export interface SimFlags {
   foodDiscountDay: number;
   /** Bu gün fazladan sahiplenici gelir. */
   extraAdoptersDay: number;
+  /** Son hırlaşma uyarısının bittiği toplam dakika ve taraflar. */
+  growlUntil: number;
+  growlA: string;
+  growlB: string;
 }
 
 export interface SimStats {
@@ -158,6 +162,9 @@ export interface SimStats {
   watered: number;
   /** Köpek içimi. */
   drinks: number;
+  /** Tamamlanan dost oyunları ve hırlaşmalar. */
+  playdates: number;
+  growls: number;
   hired: number;
   slept: number;
 }
@@ -182,6 +189,8 @@ function emptyStats(): SimStats {
     bowlsFilled: 0,
     watered: 0,
     drinks: 0,
+    playdates: 0,
+    growls: 0,
     hired: 0,
     slept: 0,
   };
@@ -207,7 +216,7 @@ export class Sim {
   readonly weatherSys: WeatherSystem;
   readonly eventSys: EventSystem;
   readonly achievements: AchievementSystem;
-  flags: SimFlags = { foodDiscountDay: 0, extraAdoptersDay: 0 };
+  flags: SimFlags = { foodDiscountDay: 0, extraAdoptersDay: 0, growlUntil: 0, growlA: '', growlB: '' };
   speed: Speed = 1;
   mode: Mode = 'avatar';
   money: number;
@@ -676,6 +685,7 @@ export class Sim {
     const dog = this.dogMap.get(id);
     if (!dog) return false;
     this.assignKennel(dog, null);
+    for (const d of this.dogs) if (d.playmateId === id) d.playmateId = null;
     this.dogs = this.dogs.filter((d) => d.id !== id);
     this.dogMap.delete(id);
     this.events.emit('dogRemoved', id);
@@ -698,7 +708,14 @@ export class Sim {
     return true;
   }
 
+  /** Boş kulübe; en iyi dostunun kulübesinde yer varsa orası. */
   freeKennelFor(dog: Dog): Building | null {
+    const bf = dog.bestFriend();
+    if (bf) {
+      const friend = this.dogById(bf.id);
+      const k = friend && friend.kennelId !== null ? this.buildingMap.get(friend.kennelId) : undefined;
+      if (k && this.kennelHasRoom(k, dog)) return k;
+    }
     for (const b of this.buildings) {
       if (b.type !== 'kennelSmall' && b.type !== 'kennelLarge') continue;
       if (this.kennelHasRoom(b, dog)) return b;
@@ -1145,6 +1162,8 @@ export class Sim {
         }
       }
     }
+    // Dostluk puanları: kayıtta olmayan köpeklere ait girişleri at.
+    for (const d of sim.dogs) for (const k of Object.keys(d.friends)) if (!sim.dogMap.has(Number(k))) delete d.friends[Number(k)];
     if (Array.isArray(data.staff)) {
       for (const raw of data.staff) {
         const s = Staff.fromJSON(raw);
@@ -1180,6 +1199,9 @@ export class Sim {
       const f = data.flags as Partial<SimFlags>;
       if (typeof f.foodDiscountDay === 'number') sim.flags.foodDiscountDay = f.foodDiscountDay;
       if (typeof f.extraAdoptersDay === 'number') sim.flags.extraAdoptersDay = f.extraAdoptersDay;
+      if (typeof f.growlUntil === 'number') sim.flags.growlUntil = f.growlUntil;
+      if (typeof f.growlA === 'string') sim.flags.growlA = f.growlA;
+      if (typeof f.growlB === 'string') sim.flags.growlB = f.growlB;
     }
     if (Array.isArray(data.adopters)) {
       for (const raw of data.adopters) {

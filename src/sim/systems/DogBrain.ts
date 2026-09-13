@@ -7,6 +7,7 @@ import type { TilePos } from '../world/TileWorld';
 import { Obj, Zone } from '../world/tiles';
 import type { Sim } from '../Sim';
 import { placeMess } from './MessSystem';
+import { t } from '../../i18n';
 
 /**
  * Köpek davranışı: ihtiyaçlara göre hedef seçer, yol bulur, yürür, eylemi yapar.
@@ -59,6 +60,29 @@ export class DogBrain {
         if (this.shouldWake(dog)) this.setIdle(dog, 1);
         break;
       case 'interact':
+        if (dog.stateTimer <= 0) this.setIdle(dog, 1);
+        break;
+      case 'toFriend':
+        this.followPath(dog, dtMin);
+        if (dog.path.length === 0) this.arriveAtFriend(dog);
+        else if (dog.stateTimer <= 0) {
+          this.cancelPlaydate(dog);
+          this.decide(dog);
+        }
+        break;
+      case 'waitFriend': {
+        const mate = dog.playmateId !== null ? this.sim.dogById(dog.playmateId) : undefined;
+        if (!mate || mate.playmateId !== dog.id || dog.stateTimer <= 0) {
+          this.cancelPlaydate(dog);
+          this.setIdle(dog, 2);
+        }
+        break;
+      }
+      case 'playTogether':
+        if (dog.stateTimer <= 0) this.finishPlayTogether(dog);
+        break;
+      case 'growl':
+      case 'bark':
         if (dog.stateTimer <= 0) this.setIdle(dog, 1);
         break;
       case 'sit':
@@ -172,6 +196,7 @@ export class DogBrain {
     const n = dog.needs;
     const clock = sim.clock;
     const B = BALANCE.dogs;
+    const S = B.social;
 
     // Gece ya da bitkinlik: kulübeye git, uyu.
     if ((clock.isNight() && n.energy < 95) || n.energy < B.sleepBelowEnergy) {
@@ -212,12 +237,21 @@ export class DogBrain {
       return;
     }
 
+    // Dost oyunu: yakında oynamak isteyen bir köpek varsa birlikte oynarlar.
+    if (n.play < S.seekBelowPlay && n.energy >= B.playMinEnergy && this.startPlaydate(dog)) return;
+
     // Can sıkıntısı: oyuncak ya da oyun bahçesi.
     if (n.play < B.selfPlayBelow) {
       const toy = this.nearestToy(dog);
       if (toy && this.goTo(dog, { x: toy.x, y: toy.y }, 'toToy', toy.id)) return;
       const yard = this.randomZoneTile(dog, Zone.Play);
       if (yard && this.goTo(dog, yard, 'wander')) return;
+    }
+
+    // Havlama: sıkıldı ya da aç ve çaresi yok.
+    if ((n.play < S.barkPlayBelow || n.hunger > S.barkHungerAbove) && sim.rng.chance(S.barkChance)) {
+      this.setState(dog, 'bark', S.barkDurationMin);
+      return;
     }
 
     // Boş zaman.
@@ -265,6 +299,9 @@ export class DogBrain {
       case 'toToy':
         this.setState(dog, 'play', B.selfPlayDurationMin);
         break;
+      case 'toFriend':
+        this.arriveAtFriend(dog);
+        break;
       case 'wander':
       default:
         this.setIdle(dog, this.sim.rng.int(2, 8));
@@ -308,6 +345,121 @@ export class DogBrain {
       this.sim.stats.messes++;
     }
     this.setIdle(dog, 2);
+  }
+
+  // ---------------------------------------------------------------------------
+  // Dost oyunu (köpek-köpek)
+  // ---------------------------------------------------------------------------
+
+  /** Yakında oynamak isteyen en uygun köpeği bulur, ikisini buluşma noktasına yollar. */
+  private startPlaydate(dog: Dog): boolean {
+    const S = BALANCE.dogs.social;
+    if (dog.playmateId !== null) return false;
+    const me = dog.genome.temperament;
+    let best: Dog | null = null;
+    let bestScore = 0;
+    for (const other of this.sim.dogs) {
+      if (other === dog || other.wild || other.playmateId !== null || other.isAsleep()) continue;
+      if (other.state !== 'idle' && other.state !== 'wander' && other.state !== 'sit' && other.state !== 'lie') continue;
+      if (other.needs.play >= S.partnerBelowPlay || other.needs.energy < BALANCE.dogs.playMinEnergy) continue;
+      const dist = Math.hypot(other.x - dog.x, other.y - dog.y);
+      if (dist > S.radius) continue;
+      const aff = dog.affinity(other.id);
+      if (me === 'shy' && aff < S.shyMinAffinity) continue;
+      const compat = S.compat[me] * S.compat[other.genome.temperament];
+      const score = (compat * (1 + aff / 100) * (me === 'playful' ? S.playfulInitiateMul : 1)) / (1 + dist / 4);
+      if (score > bestScore) {
+        bestScore = score;
+        best = other;
+      }
+    }
+    if (!best) return false;
+    const w = this.sim.world;
+    let meet: TilePos = { x: Math.floor((dog.x + best.x) / 2), y: Math.floor((dog.y + best.y) / 2) };
+    const yard = this.nearestZoneTile(dog, Zone.Play);
+    if (yard && Math.hypot(yard.x + 0.5 - dog.x, yard.y + 0.5 - dog.y) <= S.yardRadius) meet = yard;
+    if (w.isSolid(meet.x, meet.y) || w.buildingIdAt(meet.x, meet.y) !== -1) meet = this.freeTileNear(meet.x, meet.y) ?? meet;
+    const side = this.freeTileNear(meet.x, meet.y) ?? meet;
+    dog.playmateId = best.id;
+    best.playmateId = dog.id;
+    if (!this.goTo(dog, meet, 'toFriend') || !this.goTo(best, side, 'toFriend')) {
+      this.cancelPlaydate(dog);
+      this.setIdle(dog, 1);
+      return false;
+    }
+    return true;
+  }
+
+  private arriveAtFriend(dog: Dog): void {
+    const mate = dog.playmateId !== null ? this.sim.dogById(dog.playmateId) : undefined;
+    if (!mate || mate.playmateId !== dog.id) {
+      this.cancelPlaydate(dog);
+      this.setIdle(dog, 2);
+      return;
+    }
+    if (mate.state === 'waitFriend') {
+      this.beginPlayTogether(dog, mate);
+      return;
+    }
+    this.setState(dog, 'waitFriend', BALANCE.dogs.social.meetTimeoutMin);
+  }
+
+  private beginPlayTogether(a: Dog, b: Dog): void {
+    const S = BALANCE.dogs.social;
+    this.setState(a, 'playTogether', S.durationMin);
+    this.setState(b, 'playTogether', S.durationMin);
+    const dx = b.x - a.x;
+    const dy = b.y - a.y;
+    const horizontal = Math.abs(dx) >= Math.abs(dy);
+    a.facing = (horizontal ? (dx < 0 ? 1 : 2) : dy < 0 ? 3 : 0) as Facing;
+    b.facing = (horizontal ? (dx < 0 ? 2 : 1) : dy < 0 ? 0 : 3) as Facing;
+  }
+
+  /** Oyun bitti: keyif, dostluk ve sosyallik artar; cesur×cesur bazen hırlaşmayla biter. */
+  private finishPlayTogether(dog: Dog): void {
+    const S = BALANCE.dogs.social;
+    const sim = this.sim;
+    const mate = dog.playmateId !== null ? sim.dogById(dog.playmateId) : undefined;
+    const paired = !!mate && mate.playmateId === dog.id;
+    const pair: Dog[] = paired && mate ? [dog, mate] : [dog];
+    const bothBold = paired && dog.genome.temperament === 'bold' && mate!.genome.temperament === 'bold';
+    const social = pair.every((d) => d.skills.social >= 100);
+    const growl = bothBold && !social && sim.rng.chance(S.growlChanceBoldBold);
+    for (const d of pair) {
+      const other = d === dog ? mate : dog;
+      const active = d === dog || d.state === 'playTogether';
+      d.playmateId = null;
+      if (growl) {
+        if (other) d.addAffinity(other.id, S.growlAffinity);
+        d.needs.play = clamp100(d.needs.play - S.growlPlayLoss);
+        if (active) this.setState(d, 'growl', S.growlDurationMin);
+        sim.events.emit('emote', { kind: 'dog', id: d.id, emote: 'alert', seconds: 2 });
+      } else {
+        d.needs.play = clamp100(d.needs.play + S.playGain);
+        d.needs.thirst = clamp100(d.needs.thirst + BALANCE.dogs.needs.thirstAfterPlay * 0.5);
+        d.needs.energy = clamp100(d.needs.energy - S.energyCost);
+        if (other) d.addAffinity(other.id, S.affinityGain);
+        d.skills.social = clamp100(d.skills.social + S.socialSkillGain);
+        if (active) this.setIdle(d, 3);
+        sim.events.emit('emote', { kind: 'dog', id: d.id, emote: 'paw', seconds: 2 });
+      }
+    }
+    if (growl && mate) {
+      sim.stats.growls++;
+      sim.flags.growlUntil = sim.clock.totalMinutes + S.growlAlertMin;
+      sim.flags.growlA = dog.name;
+      sim.flags.growlB = mate.name;
+      sim.events.emit('message', t('Hırlaşma: {a} ve {b}', { a: dog.name, b: mate.name }));
+    } else if (paired) sim.stats.playdates++;
+  }
+
+  private cancelPlaydate(dog: Dog): void {
+    const mate = dog.playmateId !== null ? this.sim.dogById(dog.playmateId) : undefined;
+    dog.playmateId = null;
+    if (mate && mate.playmateId === dog.id) {
+      mate.playmateId = null;
+      if (mate.state === 'toFriend' || mate.state === 'waitFriend' || mate.state === 'playTogether') this.setIdle(mate, 1);
+    }
   }
 
   private shouldWake(dog: Dog): boolean {
@@ -378,7 +530,7 @@ export class DogBrain {
   private setState(dog: Dog, state: Dog['state'], minutes: number): void {
     dog.state = state;
     dog.stateTimer = minutes;
-    if (state !== 'toBowl' && state !== 'toTrough' && state !== 'toToilet' && state !== 'toKennel' && state !== 'toToy' && state !== 'wander') dog.path = [];
+    if (state !== 'toBowl' && state !== 'toTrough' && state !== 'toToilet' && state !== 'toKennel' && state !== 'toToy' && state !== 'toFriend' && state !== 'wander') dog.path = [];
   }
 
   private setIdle(dog: Dog, minutes: number): void {

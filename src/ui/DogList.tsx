@@ -51,6 +51,7 @@ export function DogList() {
                 <td>
                   <b>{d.name}</b>
                   {d.sick ? ' 🤒' : ''}
+                  {d.bestFriend() ? ' 🐾' : ''}
                 </td>
                 <td>{t(STAGE_NAMES_TR[d.stage])}</td>
                 <td>{d.mood()}</td>

@@ -184,6 +184,36 @@ export const BALANCE = {
     trainingZoneBonus: 1.25,
     obstacleBonus: 0.05,
     stationRadius: 2.6,
+    /** Köpek-köpek etkileşimi: dost oyunu, hırlaşma, havlama. */
+    social: {
+      /** Bu keyfin altındaki köpek oyun arkadaşı arar. */
+      seekBelowPlay: 50,
+      /** Eş olabilmek için keyif bunun altında olmalı. */
+      partnerBelowPlay: 60,
+      radius: 8,
+      /** Oyun bahçesi bu kadar yakınsa buluşma orada olur. */
+      yardRadius: 10,
+      meetTimeoutMin: 4,
+      durationMin: 20,
+      playGain: 25,
+      energyCost: 6,
+      affinityGain: 5,
+      socialSkillGain: 2,
+      playfulInitiateMul: 1.3,
+      /** Çekingen köpek ancak bu dostluk puanının üstündeki köpekle oyun başlatır. */
+      shyMinAffinity: 20,
+      compat: { playful: 1.0, calm: 0.8, bold: 0.9, shy: 0.7 } as const,
+      growlChanceBoldBold: 0.2,
+      growlAffinity: -8,
+      growlPlayLoss: 5,
+      growlDurationMin: 2,
+      /** Hırlaşma uyarısı bu kadar dakika kalır. */
+      growlAlertMin: 60,
+      barkChance: 0.3,
+      barkDurationMin: 3,
+      barkPlayBelow: 30,
+      barkHungerAbove: 85,
+    },
   },
   eggs: {
     hatchDays: 3,

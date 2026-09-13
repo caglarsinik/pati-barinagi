@@ -46,6 +46,7 @@ export class AlertSystem {
     if (emptyBowls > 0 && sim.shelterDogs().length > 0) out.push({ id: 'bowls', text: emptyBowls === 1 ? t('Bir yem kabı boş') : t('{n} yem kabı boş', { n: emptyBowls }), severity: 'info' });
     const emptyTroughs = sim.buildings.filter((b) => b.type === 'trough' && b.water <= 0).length;
     if (emptyTroughs > 0 && sim.shelterDogs().length > 0) out.push({ id: 'troughs', text: emptyTroughs === 1 ? t('Su yalağı boş') : t('{n} su yalağı boş', { n: emptyTroughs }), severity: 'warn' });
+    if (sim.clock.totalMinutes < sim.flags.growlUntil) out.push({ id: 'growl', text: t('Hırlaşma: {a} ve {b}', { a: sim.flags.growlA, b: sim.flags.growlB }), severity: 'warn' });
     if (sim.money < 0) out.push({ id: 'debt', text: t('Kasa eksiye düştü'), severity: 'danger' });
     const waiting = sim.adopters.filter((a) => a.state === 'waiting');
     if (waiting.length > 0) {

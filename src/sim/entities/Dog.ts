@@ -51,7 +51,12 @@ export type DogState =
   | 'toKennel'
   | 'toToy'
   | 'play'
-  | 'interact';
+  | 'interact'
+  | 'toFriend'
+  | 'waitFriend'
+  | 'playTogether'
+  | 'growl'
+  | 'bark';
 
 export type DogOrigin = 'egg' | 'stray';
 
@@ -74,6 +79,7 @@ export interface DogSave {
   trust?: number;
   den?: TilePos | null;
   following?: boolean;
+  friends?: Record<string, number>;
 }
 
 export function defaultNeeds(origin: DogOrigin): DogNeeds {
@@ -117,6 +123,10 @@ export class Dog {
   den: TilePos | null = null;
   /** Evcilleşti, oyuncunun peşinden barınağa geliyor. */
   following = false;
+  /** Diğer köpeklerle dostluk puanı (-100..100), köpek id → puan. */
+  friends: Record<number, number> = {};
+  /** Şu an birlikte oyun için buluştuğu köpek (kayda yazılmaz). */
+  playmateId: number | null = null;
 
   // Davranış durumu (kayda yazılmaz; yüklemede boşta başlar)
   state: DogState = 'idle';
@@ -186,6 +196,23 @@ export class Dog {
     return this.state === 'sleep';
   }
 
+  affinity(otherId: number): number {
+    return this.friends[otherId] ?? 0;
+  }
+
+  addAffinity(otherId: number, delta: number): void {
+    this.friends[otherId] = Math.max(-100, Math.min(100, this.affinity(otherId) + delta));
+  }
+
+  /** En yüksek (0 üstü) dostluk puanlı köpek; yoksa null. */
+  bestFriend(): { id: number; score: number } | null {
+    let best: { id: number; score: number } | null = null;
+    for (const [k, v] of Object.entries(this.friends)) {
+      if (v > 0 && (!best || v > best.score)) best = { id: Number(k), score: v };
+    }
+    return best;
+  }
+
   toJSON(): DogSave {
     return {
       id: this.id,
@@ -206,6 +233,7 @@ export class Dog {
       trust: this.trust,
       den: this.den,
       following: this.following,
+      friends: { ...this.friends },
     };
   }
 
@@ -235,6 +263,12 @@ export class Dog {
     dog.trust = typeof d.trust === 'number' ? Math.max(0, Math.floor(d.trust)) : 0;
     dog.den = d.den && typeof d.den.x === 'number' && typeof d.den.y === 'number' ? { x: d.den.x, y: d.den.y } : null;
     dog.following = d.following === true;
+    if (d.friends && typeof d.friends === 'object') {
+      for (const [k, v] of Object.entries(d.friends)) {
+        const id = Number(k);
+        if (Number.isInteger(id) && typeof v === 'number' && Number.isFinite(v)) dog.friends[id] = Math.max(-100, Math.min(100, v));
+      }
+    }
     return dog;
   }
 }

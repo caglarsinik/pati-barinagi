@@ -695,4 +695,16 @@ export const EN: Record<string, string> = {
   'İsim etiketleri açık (L)': 'Name labels on (L)',
   'İsim etiketleri kapalı (L)': 'Name labels off (L)',
   'Köpek ve kişi isimlerini dünyada göster (L)': 'Show dog and people names in the world (L)',
+
+  // M8: köpek dostluğu
+  'Hırlaşma: {a} ve {b}': 'Scuffle: {a} and {b}',
+  'En yakın dostu: {name} (+{score})': 'Best friend: {name} (+{score})',
+  'Henüz dostu yok': 'No friends yet',
+  'Dostuna gidiyor': 'Going to a friend',
+  'Dostunu bekliyor': 'Waiting for a friend',
+  'Dostuyla oynuyor': 'Playing with a friend',
+  Hırlıyor: 'Growling',
+  Havlıyor: 'Barking',
+  'Can dostlar': 'Best buddies',
+  'İki köpek 50 dostluk puanına ulaşsın.': 'Get two dogs to 50 friendship points.',
 };
