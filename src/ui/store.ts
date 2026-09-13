@@ -90,17 +90,19 @@ export const store = {
   seed: signal(0),
   /** Yeni sim başladığında artar; mini harita gibi ağır çizimler bununla yenilenir. */
   version: signal(0),
-  toast: signal<string | null>(null),
+  /** Kısa bildirimler; en fazla 3 tanesi üst üste durur. */
+  toasts: signal<Array<{ id: number; text: string }>>([]),
 };
 
-let toastTimer: ReturnType<typeof setTimeout> | null = null;
+let toastSeq = 0;
+const TOAST_MAX = 3;
 
 export function showToast(message: string, ms = 2400): void {
-  store.toast.value = message;
-  if (toastTimer) clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => {
-    store.toast.value = null;
-    toastTimer = null;
+  const id = ++toastSeq;
+  const list = [...store.toasts.value, { id, text: message }];
+  store.toasts.value = list.length > TOAST_MAX ? list.slice(list.length - TOAST_MAX) : list;
+  setTimeout(() => {
+    store.toasts.value = store.toasts.value.filter((x) => x.id !== id);
   }, ms);
 }
 

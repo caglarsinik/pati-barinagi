@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { EMOTE_SIZE, buildEmoteSheet, drawEmote } from '../../src/render/EmoteArt';
-import { HUMAN_DIRS, HUMAN_FRAMES, HUMAN_H, HUMAN_W, PLAYER_STYLE, buildHumanSheet } from '../../src/render/HumanPainter';
+import { HUMAN_DIRS, HUMAN_FRAMES, HUMAN_H, HUMAN_W, PLAYER_STYLE, buildHumanSheet, humanStyleFromSeed } from '../../src/render/HumanPainter';
 import { EMOTE_KEYS } from '../../src/sim/systems/Emotes';
 import { Pixels, hex } from '../../src/render/Pixels';
 import { TILE, buildTileset } from '../../src/render/TileArt';
@@ -89,6 +89,18 @@ describe('EmoteArt', () => {
 });
 
 describe('HumanPainter', () => {
+  it('stil anahtarı: aynı görünüm aynı anahtar, farklı görünüm farklı; 65 bin tohum birkaç bin anahtara iner', async () => {
+    const { humanStyleKey } = await import('../../src/render/TextureRegistry');
+    const a = humanStyleKey(humanStyleFromSeed(1234));
+    const b = humanStyleKey(humanStyleFromSeed(1234));
+    expect(a).toBe(b);
+    const keys = new Set<string>();
+    for (let s = 0; s < 0x10000; s += 7) keys.add(humanStyleKey(humanStyleFromSeed(s)));
+    expect(keys.size).toBeGreaterThan(100);
+    expect(keys.size).toBeLessThan(4000);
+    expect(humanStyleKey(PLAYER_STYLE)).not.toBe('');
+  });
+
   it('12 kare, hepsi dolu, sağ kareler solun aynası', () => {
     const sheet = buildHumanSheet(PLAYER_STYLE);
     expect(sheet.w).toBe(HUMAN_W * HUMAN_DIRS * HUMAN_FRAMES);

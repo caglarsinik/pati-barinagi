@@ -4,7 +4,7 @@ import { BALANCE } from '../config/balance';
 import { t } from '../i18n';
 import { buildingDef } from '../sim/entities/Building';
 import { formatMoney } from './HUD';
-import { store } from './store';
+import { showToast, store } from './store';
 
 /** Sağ üstteki uyarı listesi; tıklayınca ilgili köpeğe/kareye gider. */
 export function AlertsPanel() {
@@ -42,7 +42,7 @@ export function ShedPanel() {
   const discount = price < BALANCE.economy.foodBagPrice;
   const order = (bags: number): void => {
     const r = sim.command({ type: 'orderFood', bags });
-    if (r.message) store.toast.value = r.message;
+    if (r.message) showToast(r.message);
     audio.play(r.ok ? 'coin' : 'error');
   };
   return (

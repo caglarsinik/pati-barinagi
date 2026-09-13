@@ -250,11 +250,19 @@ body {
   border: 1px solid #0f0d1a;
 }
 
-.toast {
+.toasts {
   position: absolute;
   bottom: 64px;
   left: 50%;
   transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  pointer-events: none;
+}
+
+.toast {
   background: var(--bg-solid);
   font-weight: 600;
   animation: toast-in 0.15s ease-out;
@@ -263,12 +271,22 @@ body {
 @keyframes toast-in {
   from {
     opacity: 0;
-    transform: translate(-50%, 8px);
+    transform: translateY(8px);
   }
   to {
     opacity: 1;
-    transform: translate(-50%, 0);
+    transform: none;
   }
+}
+
+.dog-table th.sortable {
+  cursor: pointer;
+  user-select: none;
+  white-space: nowrap;
+}
+
+.dog-table th.sortable:hover {
+  color: #f6d55c;
 }
 
 /* --- Araç çubuğu --- */

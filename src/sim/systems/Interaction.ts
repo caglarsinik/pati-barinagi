@@ -46,7 +46,6 @@ export type ActionKind =
   | 'berries'
   | 'treatWild'
   | 'call'
-  | 'sleep'
   | 'office'
   | 'none';
 
@@ -372,8 +371,6 @@ export function performAction(sim: Sim): ActionOutcome {
       p.setBusy(0.5, 'call');
       return { ok: true, message: t('{n} köpek geliyor', { n }) };
     }
-    case 'sleep':
-      return sim.command({ type: 'sleep' });
     case 'office':
       return { ok: true, open: 'office', building: r.building };
     case 'shed':

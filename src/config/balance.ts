@@ -7,7 +7,6 @@ export const BALANCE = {
     /** 1x hızda 1 gerçek saniyede geçen oyun dakikası (10 gerçek dakika = 1 gün). */
     minutesPerRealSecond: 2.4,
     speeds: [0, 1, 2, 4] as const,
-    nightSkipSpeed: 12,
     /** Oyun Pazartesi 06:00'da başlar. */
     startMinutes: 6 * 60,
     nightStartHour: 22,

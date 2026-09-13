@@ -6,8 +6,8 @@ import { drawBuilding } from './BuildingArt';
 import { EMOTE_SIZE, EMOTE_TEX, buildEmoteSheet } from './EmoteArt';
 import { EMOTE_KEYS } from '../sim/systems/Emotes';
 import { DOG_DIRS, DOG_FRAME, DOG_FRAMES, buildDogSheet, dogTextureKey } from './DogPainter';
-import { HUMAN_DIRS, HUMAN_FRAMES, HUMAN_H, HUMAN_W, PLAYER_STYLE, buildHumanSheet, humanStyleFromSeed } from './HumanPainter';
-import { hex, shade } from './Pixels';
+import { HUMAN_DIRS, HUMAN_FRAMES, HUMAN_H, HUMAN_W, type HumanStyle, PLAYER_STYLE, buildHumanSheet, humanStyleFromSeed } from './HumanPainter';
+import { type RGBA, hex, shade } from './Pixels';
 import { buildTileset } from './TileArt';
 
 export const TEX = {
@@ -59,16 +59,22 @@ export function registerAnimations(scene: Phaser.Scene): void {
 
 const ROLE_SHIRTS: Record<string, number> = { caretaker: 0x4fb36b, trainer: 0xa66bd6, vet: 0xf7f3ea };
 
-/** Sahiplenici / personel dokusu: görünüş tohumu (ve rol) başına bir kez. */
+/** Stilin (renk setinin) doku anahtarı: aynı görünen iki kişi tek doku paylaşır (sızıntı olmaz). */
+export function humanStyleKey(style: HumanStyle): string {
+  const h = (c: RGBA): string => ((c[0] << 16) | (c[1] << 8) | c[2]).toString(16);
+  return `${h(style.skin)}-${h(style.hair)}-${h(style.shirt)}-${h(style.pants)}-${style.hat ? h(style.hat) : 'n'}`;
+}
+
+/** Sahiplenici / personel dokusu: stil (ve rol) başına bir kez; tohum sayısı kadar değil. */
 export function ensureHumanTexture(scene: Phaser.Scene, look: number, role?: string): string {
-  const key = role ? `human-${look}-${role}` : `human-${look}`;
-  if (scene.textures.exists(key)) return key;
   const style = humanStyleFromSeed(look);
   if (role && ROLE_SHIRTS[role] !== undefined) {
     style.shirt = hex(ROLE_SHIRTS[role]);
     style.shirtDark = shade(style.shirt, 0.75);
     style.hat = role === 'vet' ? hex(0xe4514f) : role === 'caretaker' ? hex(0x2f7f5c) : style.hat;
   }
+  const key = `human-${humanStyleKey(style)}`;
+  if (scene.textures.exists(key)) return key;
   const sheet = buildHumanSheet(style);
   const tex = scene.textures.addCanvas(key, sheet.toCanvas());
   if (!tex) return key;
@@ -83,6 +89,16 @@ export function ensureHumanTexture(scene: Phaser.Scene, look: number, role?: str
     });
   }
   return key;
+}
+
+/** Köpek barınaktan ayrılınca 4 aşamanın dokusunu ve animasyonlarını siler. */
+export function releaseDogTextures(scene: Phaser.Scene, genome: DogGenome): void {
+  for (const stage of ['puppy', 'young', 'adult', 'senior'] as GrowthStage[]) {
+    const key = dogTextureKey(genome, stage);
+    if (!scene.textures.exists(key)) continue;
+    for (let dir = 0; dir < DOG_DIRS; dir++) scene.anims.remove(`${key}-walk-${dir}`);
+    scene.textures.remove(key);
+  }
 }
 
 /** Köpek dokusunu gerekiyorsa üretir (genom + aşama başına bir kez) ve anahtarını döndürür. */

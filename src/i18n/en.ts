@@ -746,4 +746,13 @@ export const EN: Record<string, string> = {
   'Bulaşıcı hastalığı olan köpek karantina alanında kalsın (bulaşmayı keser; alan yoksa Z ile boya)': 'Keep contagious dogs in the quarantine zone (stops spreading; paint one with Z if missing)',
   Şifacı: 'Healer',
   '10 hastalığı tedaviyle geçir.': 'Cure 10 illnesses with treatment.',
+
+  // M8: köpek listesi
+  Filtre: 'Filter',
+  Hasta: 'Sick',
+  Sahiplendirilebilir: 'Adoptable',
+  Susuz: 'Thirsty',
+  Dostsuz: 'No friends',
+  'Filtreye uyan köpek yok.': 'No dog matches the filter.',
+  'Sıralamak için tıkla': 'Click to sort',
 };

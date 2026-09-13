@@ -3,7 +3,8 @@ import { BALANCE } from '../config/balance';
 import { GAME } from '../config/game';
 import { BUILDING_DEFS } from '../content/buildings';
 import { DOG_FRAMES, DOG_FRAME_EAT, DOG_FRAME_IDLE, DOG_FRAME_LIE, DOG_FRAME_SIT } from '../render/DogPainter';
-import { TEX, buildingTextureKey, ensureDogTexture, ensureHumanTexture } from '../render/TextureRegistry';
+import { TEX, buildingTextureKey, ensureDogTexture, ensureHumanTexture, releaseDogTextures } from '../render/TextureRegistry';
+import { type DogGenome, genomeKey } from '../sim/entities/DogGenome';
 import { type Building, buildingDef, canPlaceBuilding, isReady } from '../sim/entities/Building';
 import type { Dog } from '../sim/entities/Dog';
 import type { PlayerInput } from '../sim/entities/Player';
@@ -80,6 +81,10 @@ export class WorldScene extends Phaser.Scene {
   private weatherZone = new Phaser.Geom.Rectangle(0, 0, 800, 4);
   private buildingImages = new Map<number, Phaser.GameObjects.Image>();
   private dogSprites = new Map<number, Phaser.GameObjects.Sprite>();
+  /** Doku temizliği için köpek id → genom. */
+  private dogGenomes = new Map<number, DogGenome>();
+  /** Hazır lambalar (bina değişince yenilenir). */
+  private lamps: Building[] = [];
   private adopterSprites = new Map<number, Phaser.GameObjects.Sprite>();
   private staffSprites = new Map<number, Phaser.GameObjects.Sprite>();
 
@@ -136,16 +141,27 @@ export class WorldScene extends Phaser.Scene {
     // --- Binalar ---
     for (const b of this.sim.buildings) this.addBuildingImage(b);
     this.unsub.push(
-      this.sim.events.on('buildingAdded', (b) => this.addBuildingImage(b)),
+      this.sim.events.on('buildingAdded', (b) => {
+        this.addBuildingImage(b);
+        this.refreshLamps();
+      }),
       this.sim.events.on('buildingRemoved', (id) => {
         this.buildingImages.get(id)?.destroy();
         this.buildingImages.delete(id);
+        this.refreshLamps();
       }),
-      this.sim.events.on('buildingReady', (b) => this.buildingImages.get(b.id)?.setAlpha(1)),
+      this.sim.events.on('buildingReady', (b) => {
+        this.buildingImages.get(b.id)?.setAlpha(1);
+        this.refreshLamps();
+      }),
       this.sim.events.on('dogRemoved', (id) => {
         this.dogSprites.get(id)?.destroy();
         this.dogSprites.delete(id);
         if (store.selectedDogId.value === id) store.selectedDogId.value = null;
+        // Aynı genomu taşıyan başka köpek yoksa dokuları bırak.
+        const g = this.dogGenomes.get(id);
+        this.dogGenomes.delete(id);
+        if (g && !this.sim.dogs.some((d) => genomeKey(d.genome) === genomeKey(g))) releaseDogTextures(this, g);
       }),
       this.sim.events.on('modeChanged', (m) => this.applyMode(m)),
       this.sim.events.on('message', (m) => showToast(m)),
@@ -186,7 +202,15 @@ export class WorldScene extends Phaser.Scene {
       .setDepth(8000)
       .setBlendMode(Phaser.BlendModes.MULTIPLY);
     if (!this.textures.exists('light')) this.textures.addCanvas('light', drawLightDisc(96).toCanvas());
-    this.lightMap = this.add.renderTexture(0, 0, 1400, 800).setOrigin(0, 0).setDepth(8001).setBlendMode(Phaser.BlendModes.MULTIPLY).setVisible(false);
+    // Işık haritası pencere boyutunda; pencere değişince yeniden boyutlanır (zoom >= 1 olduğu için görüş alanını kapsar).
+    this.lightMap = this.add
+      .renderTexture(0, 0, Math.max(64, this.scale.width), Math.max(64, this.scale.height))
+      .setOrigin(0, 0)
+      .setDepth(8001)
+      .setBlendMode(Phaser.BlendModes.MULTIPLY)
+      .setVisible(false);
+    this.scale.on(Phaser.Scale.Events.RESIZE, this.onResize, this);
+    this.refreshLamps();
     // Hava: yağmur damlası ve kar tanesi parçacıkları (kamera görüş alanının üst kenarından).
     if (!this.textures.exists('drop')) {
       const drop = new Pixels(2, 7);
@@ -243,6 +267,8 @@ export class WorldScene extends Phaser.Scene {
       for (const u of this.unsub) u();
       this.unsub = [];
       this.dragLast = null;
+      this.scale.off(Phaser.Scale.Events.RESIZE, this.onResize, this);
+      this.dogGenomes.clear();
       this.game.events.off('ui:focus-tile', this.focusTile, this);
       this.buildingImages.clear();
       this.dogSprites.clear();
@@ -557,6 +583,7 @@ export class WorldScene extends Phaser.Scene {
     const seen = new Set<number>();
     for (const dog of this.sim.dogs) {
       seen.add(dog.id);
+      if (!this.dogGenomes.has(dog.id)) this.dogGenomes.set(dog.id, dog.genome);
       const key = ensureDogTexture(this, dog.genome, dog.stage);
       let s = this.dogSprites.get(dog.id);
       if (!s) {
@@ -746,8 +773,8 @@ export class WorldScene extends Phaser.Scene {
     const T = GAME.tile;
     this.updateWeatherFx(v);
     const dark = r < 0.85;
-    const lamps = dark ? this.sim.buildings.filter((b) => b.type === 'lamp' && isReady(b)) : [];
-    if (lamps.length === 0 || v.width > 1400 || v.height > 800) {
+    const lamps = dark ? this.lamps : [];
+    if (lamps.length === 0) {
       this.lightMap.setVisible(false);
       this.nightRect.setFillStyle(color);
       this.nightRect.setPosition(v.x - 8, v.y - 8);
@@ -755,18 +782,30 @@ export class WorldScene extends Phaser.Scene {
       this.nightRect.setVisible(color !== 0xffffff);
       return;
     }
-    // Lambalar: gece haritasına ışık delikleri.
+    // Lambalar: gece haritasına ışık delikleri. Harita görüş alanından küçük kaldıysa büyüt.
+    const needW = Math.ceil(v.width + 16);
+    const needH = Math.ceil(v.height + 16);
+    if (this.lightMap.width < needW || this.lightMap.height < needH) this.lightMap.setSize(Math.max(this.lightMap.width, needW), Math.max(this.lightMap.height, needH));
     this.nightRect.setVisible(false);
     const ox = Math.floor(v.x - 8);
     const oy = Math.floor(v.y - 8);
     this.lightMap.setPosition(ox, oy).setVisible(true);
     this.lightMap.clear();
-    this.lightMap.fill(color, 1, 0, 0, 1400, 800);
+    this.lightMap.fill(color, 1, 0, 0, this.lightMap.width, this.lightMap.height);
     for (const l of lamps) {
       const lx = (l.x + 0.5) * T - ox;
       const ly = (l.y + 0.3) * T - oy;
       this.lightMap.erase('light', lx - 48, ly - 48);
     }
+  }
+
+  private refreshLamps(): void {
+    this.lamps = this.sim.buildings.filter((b) => b.type === 'lamp' && isReady(b));
+  }
+
+  private onResize(gameSize: Phaser.Structs.Size): void {
+    if (!this.lightMap) return;
+    this.lightMap.setSize(Math.max(64, gameSize.width), Math.max(64, gameSize.height));
   }
 
   /** Yağmur/kar parçacıkları görüş alanının üstünden düşer. */

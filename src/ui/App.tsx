@@ -47,7 +47,15 @@ export function App() {
         </>
       )}
       {store.settingsOpen.value && <SettingsPanel />}
-      {store.toast.value && <div class="toast panel">{store.toast.value}</div>}
+      {store.toasts.value.length > 0 && (
+        <div class="toasts">
+          {store.toasts.value.map((x) => (
+            <div key={x.id} class="toast panel">
+              {x.text}
+            </div>
+          ))}
+        </div>
+      )}
     </>
   );
 }
