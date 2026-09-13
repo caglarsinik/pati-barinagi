@@ -3,14 +3,14 @@ import { PERSON_NAMES } from '../../content/names';
 import { buildingDoorTile, isReady } from '../entities/Building';
 import { type Dog, clamp100 } from '../entities/Dog';
 import type { Facing } from '../entities/Player';
-import { STAFF_ROLES, Staff, type StaffRole, type TaskType, randomCandidate } from '../entities/Staff';
+import { STAFF_ROLES, Staff, type StaffRole, randomCandidate } from '../entities/Staff';
 import { findPath } from '../world/Pathfinder';
 import type { TilePos } from '../world/TileWorld';
 import { entryPoint } from '../world/gates';
 import { Zone } from '../world/tiles';
 import type { Sim } from '../Sim';
 import { trainingZoneFactor } from './Interaction';
-import { cleanMess } from './MessSystem';
+import { cleanMess, cleanMinutesMul } from './MessSystem';
 import type { Task } from './TaskBoard';
 import { t } from '../../i18n';
 
@@ -259,19 +259,22 @@ export class StaffSystem {
       }
       // Köpek dursun.
       dog.state = 'interact';
-      dog.stateTimer = this.duration(s, task.type) + 2;
+      dog.stateTimer = this.duration(s, task) + 2;
       dog.path = [];
       dog.lastInteractionDay = sim.clock.day;
     }
     s.state = 'working';
-    s.taskLeft = this.duration(s, task.type);
+    s.taskLeft = this.duration(s, task);
     const dx = task.tile.x + 0.5 - s.x;
     const dy = task.tile.y + 0.5 - s.y;
     s.facing = (Math.abs(dx) >= Math.abs(dy) ? (dx < 0 ? 1 : 2) : dy < 0 ? 3 : 0) as Facing;
   }
 
-  private duration(s: Staff, type: TaskType): number {
+  private duration(s: Staff, task: Task): number {
+    const type = task.type;
     let base: number = BALANCE.staff.taskMinutes[type];
+    // Çöp kutusuna yakın pislik daha çabuk temizlenir.
+    if (type === 'clean') base *= cleanMinutesMul(this.sim, task.tile);
     if ((type === 'feed' || type === 'water') && this.sim.hasReady('kitchen')) base *= BALANCE.staff.kitchenPrepMul;
     return Math.max(3, Math.round(base / Math.max(0.2, s.efficiency(type))));
   }

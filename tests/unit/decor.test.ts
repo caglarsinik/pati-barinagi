@@ -76,9 +76,10 @@ describe('Dekor', () => {
     const withKitchen = Math.max(3, Math.round((base * BALANCE.staff.kitchenPrepMul) / Math.max(0.2, s.efficiency('feed'))));
     expect(withKitchen).toBeLessThan(noKitchen);
     // Gerçek sistemden: mutfak kurulunca görev süresi kısalır
-    const dur = (sim.staffSystem as unknown as { duration: (st: Staff, t: 'feed') => number }).duration.bind(sim.staffSystem);
-    expect(dur(s, 'feed')).toBe(noKitchen);
+    const dur = (sim.staffSystem as unknown as { duration: (st: Staff, t: { type: 'feed'; tile: { x: number; y: number } }) => number }).duration.bind(sim.staffSystem);
+    const feedTask = { type: 'feed' as const, tile: { x: 0, y: 0 } };
+    expect(dur(s, feedTask)).toBe(noKitchen);
     put(sim, 'kitchen');
-    expect(dur(s, 'feed')).toBe(withKitchen);
+    expect(dur(s, feedTask)).toBe(withKitchen);
   });
 });

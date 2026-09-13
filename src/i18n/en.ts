@@ -370,7 +370,8 @@ export const EN: Record<string, string> = {
   'Eğitim alanına konursa eğitim daha hızlı ilerler (en fazla 3 engel sayılır).': 'Speeds up training when placed in a training area (up to 3 count).',
   'Personel burada mola verir, dayanıklılığını toplar.': 'Staff rest here and recover stamina.',
   'Gece çevresini aydınlatır. Dekor +0,5.': 'Lights up its surroundings at night.',
-  'Toplanan pislikler buraya atılır.': 'Collected messes go here.',
+  'Yakınındaki tuvalet alanının (6 kare) kapasitesini +4 artırır; çevresindeki pislikler %30 daha hızlı temizlenir.':
+    'Raises the capacity of a toilet area within 6 tiles by +4; nearby messes are cleaned 30% faster.',
   'Dekor +1: sahiplenici sabrı ve denetimdeki "Çevre" kalemi artar.': 'Decor +1: adopter patience and the "Surroundings" inspection item improve.',
   'Dekor +3: sahiplenici daha uzun bekler, denetimde "Çevre" artar.': 'Decor +3: adopters wait longer, "Surroundings" improves in inspections.',
   'Dekor +5 (bir tabela sayılır): daha çok sahiplenici gelir, denetimde "Çevre" artar.': 'Decor +5 (only one sign counts): more adopters come, "Surroundings" improves in inspections.',

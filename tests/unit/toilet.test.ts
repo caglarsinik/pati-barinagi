@@ -153,6 +153,13 @@ describe('Tuvalet alanı', () => {
     expect(urg(tiles[0])).toBeCloseTo(T.staffUrgencyFull);
   });
 
+  it('başlangıç çöp kutusu tuvalet alanının yanındadır', () => {
+    const sim = Sim.create(1208);
+    const T = BALANCE.toilet;
+    expect(toiletCapacity(sim)).toBe(T.capacity + T.binCapacityBonus);
+    expect(cleanMinutesMul(sim, zoneTiles(sim)[0])).toBe(T.binCleanMul);
+  });
+
   it('çöp kutusu yakınsa kapasite artar ve temizlik hızlanır', () => {
     const sim = Sim.create(1207);
     const T = BALANCE.toilet;

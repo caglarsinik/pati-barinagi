@@ -973,7 +973,7 @@ export class Sim {
     place('trough', 8, 9);
     place('incubator', 14, 4);
     place('toyBall', 23, 12);
-    place('bin', 33, 6);
+    place('bin', 34, 19); // tuvalet alanının hemen üstü: kapasite +4
     bowl.food = BALANCE.shelter.startBowlFood;
     this.foodStock = BALANCE.shelter.startFoodPortions;
 

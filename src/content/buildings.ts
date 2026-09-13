@@ -266,7 +266,7 @@ export const BUILDING_DEFS: Record<BuildingType, BuildingDef> = {
     cost: 120,
     category: 'altyapi',
     solidRows: 'all',
-    desc: 'Toplanan pislikler buraya atılır.',
+    desc: 'Yakınındaki tuvalet alanının (6 kare) kapasitesini +4 artırır; çevresindeki pislikler %30 daha hızlı temizlenir.',
     buildMinutes: 0,
     buildable: true,
   },
