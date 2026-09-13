@@ -218,6 +218,8 @@ class AppController {
       sim.events.on('weekReport', () => audio.play('week')),
       sim.events.on('gameOver', (info) => {
         store.gameOver.value = info;
+        // Sim durduğu için üst şerit kendiliğinden yenilenmez; son kasa değeri hemen yansısın.
+        syncStore(sim);
         audio.play('error');
       }),
       sim.events.on('adopterArrived', () => audio.play('alert')),
