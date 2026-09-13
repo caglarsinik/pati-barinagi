@@ -128,7 +128,8 @@ export function DogList() {
         </div>
         {all.length === 0 && <p class="muted">{t('Henüz köpek yok. Dünyada yumurta ara!')}</p>}
         {all.length > 0 && dogs.length === 0 && <p class="muted">{t('Filtreye uyan köpek yok.')}</p>}
-        <table class="dog-table">
+        <div class="table-scroll">
+          <table class="dog-table">
           <thead>
             <tr>
               <th />
@@ -172,7 +173,8 @@ export function DogList() {
               </tr>
             ))}
           </tbody>
-        </table>
+          </table>
+        </div>
       </div>
     </div>
   );

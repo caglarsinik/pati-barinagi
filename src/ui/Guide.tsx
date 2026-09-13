@@ -1,3 +1,4 @@
+import { useState } from 'preact/hooks';
 import { app } from '../app';
 import { t } from '../i18n';
 import { isReady } from '../sim/entities/Building';
@@ -26,10 +27,18 @@ export function Guide() {
     { text: 'Gece ofiste uyu', done: st.slept >= 1 },
   ];
   const remaining = steps.filter((s) => !s.done);
+  const [expanded, setExpanded] = useState(false);
   if (remaining.length === 0) return null;
   const shown = remaining.slice(0, 4);
+  if (store.layout.value !== 'desktop' && !expanded) {
+    return (
+      <button class="guide guide-pill panel" onClick={() => setExpanded(true)} title={t('Başlangıç rehberi')}>
+        ☐ {t('Rehber {n}/{total}', { n: steps.length - remaining.length, total: steps.length })} ▸
+      </button>
+    );
+  }
   return (
-    <div class="guide panel">
+    <div class="guide panel" onClick={() => store.layout.value !== 'desktop' && setExpanded(false)}>
       <div class="guide-head">
         <b>{t('Başlangıç rehberi')}</b>
         <span class="muted small-text">

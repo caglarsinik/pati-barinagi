@@ -251,6 +251,7 @@ export function FinancePanel() {
         {weeks.length > 0 && (
           <>
             <h4>{t('Geçmiş haftalar')}</h4>
+            <div class="table-scroll">
             <table class="dog-table">
               <thead>
                 <tr>
@@ -275,6 +276,7 @@ export function FinancePanel() {
                 ))}
               </tbody>
             </table>
+            </div>
           </>
         )}
       </div>

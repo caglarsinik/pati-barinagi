@@ -819,4 +819,12 @@ export const EN: Record<string, string> = {
   'Şu an sahiplendirilemez: {why}': 'Cannot be adopted right now: {why}',
   'Sahiplendirilmeye hazır.': 'Ready for adoption.',
   'Tutulan': 'Kept',
+
+  // M9: duyarlı arayüz
+  'Dokunmatik': 'Touch',
+  'Dokunmatik kontroller': 'Touch controls',
+  'Otomatik (cihaza göre)': 'Automatic (by device)',
+  'Şu an: açık': 'Currently: on',
+  'Şu an: kapalı': 'Currently: off',
+  'Rehber {n}/{total}': 'Guide {n}/{total}',
 };

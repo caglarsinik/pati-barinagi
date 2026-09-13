@@ -3,6 +3,7 @@ import { app } from './app';
 import { App } from './ui/App';
 import './ui/ui.css';
 import './ui/layout.css';
+import './ui/responsive.css';
 
 window.addEventListener('error', (e) => {
   console.error('[hata]', e.message, e.error?.stack ?? '');

@@ -68,6 +68,16 @@ export function SettingsPanel() {
           <input type="checkbox" checked={store.labels.value} onChange={(e) => app.setLabels((e.target as HTMLInputElement).checked)} />
           <span>{t('Köpek ve kişi isimlerini dünyada göster (L)')}</span>
         </label>
+        <h4>{t('Dokunmatik')}</h4>
+        <label class="setting">
+          <span>{t('Dokunmatik kontroller')}</span>
+          <select value={store.touchMode.value} onChange={(e) => app.setTouchMode((e.target as HTMLSelectElement).value as 'auto' | 'on' | 'off')}>
+            <option value="auto">{t('Otomatik (cihaza göre)')}</option>
+            <option value="on">{t('Açık')}</option>
+            <option value="off">{t('Kapalı')}</option>
+          </select>
+          <span class="muted small-text">{store.touch.value ? t('Şu an: açık') : t('Şu an: kapalı')}</span>
+        </label>
         {app.sim && (
           <>
             <h4>{t('Kayıt')}</h4>

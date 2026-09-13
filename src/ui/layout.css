@@ -52,9 +52,13 @@
 
 .tb-left {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
-  gap: 10px;
+  align-content: center;
+  column-gap: 10px;
+  row-gap: 0;
   min-width: 0;
+  max-height: 100%;
   overflow: hidden;
   white-space: nowrap;
 }
@@ -174,6 +178,15 @@
   box-sizing: border-box;
   padding: 8px 10px;
   font-size: 0.85rem;
+}
+
+.guide-pill {
+  width: auto;
+  font: inherit;
+  font-size: 0.85rem;
+  color: var(--text);
+  cursor: pointer;
+  text-align: left;
 }
 
 /* --- Alt şerit: araç çubuğu, ipucu, inşa, mini harita --- */

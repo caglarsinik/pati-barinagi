@@ -4,7 +4,7 @@ import { GAME } from './config/game';
 import { type Lang, getLang, initLang, setLang, t } from './i18n';
 import type { Speed } from './config/balance';
 import type { Tool } from './sim/systems/Interaction';
-import type { BuildTool, Panel } from './ui/store';
+import type { BuildTool, Layout, Panel, TouchMode } from './ui/store';
 import { parseSeed } from './core/Rng';
 import { SaveManager } from './core/SaveManager';
 import { BootScene } from './scenes/BootScene';
@@ -28,6 +28,8 @@ class AppController {
   sim: Sim | null = null;
   private unsub: Array<() => void> = [];
   private pausedBeforeMenu = false;
+  /** Kullanıcı en az bir kez dokundu (karma cihazlarda otomatik dokunmatik). */
+  private touchSeen = false;
 
   init(parent: string): void {
     initLang();
@@ -52,7 +54,16 @@ class AppController {
       const { w, h } = viewport();
       if (w < 64 || h < 64) return; // pencere gizli: son geçerli boyutu koru
       if (s.width !== w || s.height !== h) s.resize(w, h);
+      this.applyDevice();
     };
+    window.addEventListener(
+      'touchstart',
+      () => {
+        this.touchSeen = true;
+        this.applyDevice();
+      },
+      { once: true, passive: true },
+    );
     window.addEventListener('resize', syncSize);
     window.setInterval(syncSize, 500);
     this.game.events.on('ui:escape', () => this.togglePauseMenu());
@@ -75,9 +86,46 @@ class AppController {
       store.guideHidden.value = localStorage.getItem(`${SaveManager.key(0)}.guideHidden`) === '1';
       store.labels.value = localStorage.getItem(`${SaveManager.key(0)}.labels`) !== '0';
       store.minimapHidden.value = localStorage.getItem(`${SaveManager.key(0)}.minimapHidden`) === '1';
+      const tm = localStorage.getItem(`${SaveManager.key(0)}.touchMode`);
+      if (tm === 'on' || tm === 'off') store.touchMode.value = tm;
     } catch {
       /* yoksay */
     }
+  }
+
+  /**
+   * Cihaz sınıfı (pencere boyutu) ve dokunmatik kontroller: telefon = genişlik <= 767 ya da yükseklik <= 500,
+   * tablet = genişlik <= 1023. Dokunmatik: ayar "açık/kapalı" değilse kaba işaretçi, ilk dokunuş ya da ?touch=1.
+   * Sonuç html sınıflarına (layout-*, is-touch) ve store'a yazılır; CSS aynı eşikleri medya sorgusuyla kullanır.
+   */
+  applyDevice(): void {
+    const { w, h } = viewport();
+    if (w < 64 || h < 64) return;
+    const layout: Layout = w <= 767 || h <= 500 ? 'phone' : w <= 1023 ? 'tablet' : 'desktop';
+    const mode = store.touchMode.value;
+    let touch: boolean;
+    if (mode === 'on') touch = true;
+    else if (mode === 'off') touch = false;
+    else {
+      const coarse = typeof matchMedia === 'function' && matchMedia('(pointer: coarse)').matches;
+      const query = /[?&]touch=1/.test(window.location.search);
+      touch = coarse || this.touchSeen || query;
+    }
+    if (store.layout.value !== layout) store.layout.value = layout;
+    if (store.touch.value !== touch) store.touch.value = touch;
+    const cl = document.documentElement.classList;
+    cl.toggle('is-touch', touch);
+    for (const l of ['desktop', 'tablet', 'phone'] as Layout[]) cl.toggle(`layout-${l}`, l === layout);
+  }
+
+  setTouchMode(mode: TouchMode): void {
+    store.touchMode.value = mode;
+    try {
+      localStorage.setItem(`${SaveManager.key(0)}.touchMode`, mode);
+    } catch {
+      /* yoksay */
+    }
+    this.applyDevice();
   }
 
   /** Mini haritayı gizle/göster; tercih tarayıcıda kalır. */

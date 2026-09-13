@@ -10,6 +10,9 @@ import { WEEKDAYS_TR } from '../core/Clock';
 import { type Tool, resolveAction } from '../sim/systems/Interaction';
 
 export type Screen = 'menu' | 'game';
+/** Cihaz sınıfı: pencere boyutundan (app.ts) belirlenir. */
+export type Layout = 'desktop' | 'tablet' | 'phone';
+export type TouchMode = 'auto' | 'on' | 'off';
 export type Panel =
   | 'none'
   | 'dog'
@@ -68,6 +71,10 @@ export const store = {
   adoptionsOpen: signal(true),
   /** Mini harita gizli (tercih tarayıcıda kalır). */
   minimapHidden: signal(false),
+  /** Cihaz sınıfı ve dokunmatik kontroller (app.applyDevice). */
+  layout: signal<Layout>('desktop'),
+  touch: signal(false),
+  touchMode: signal<TouchMode>('auto'),
   season: signal(''),
   weather: signal(''),
   weatherIcon: signal(''),

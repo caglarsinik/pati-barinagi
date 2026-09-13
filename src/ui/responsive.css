@@ -1,0 +1,254 @@
+/*
+ * Duyarlı ve dokunmatik kurallar. Cihaz sınıfı (html.layout-desktop|tablet|phone) ve dokunmatik
+ * (html.is-touch) sınıfları app.ts'te belirlenir; medya sorguları aynı eşikleri kullanır:
+ * telefon = genişlik <= 767 ya da yükseklik <= 500 (yatay telefon), tablet = genişlik <= 1023.
+ */
+#game {
+  touch-action: none;
+}
+
+#game canvas {
+  -webkit-touch-callout: none;
+}
+
+* {
+  -webkit-tap-highlight-color: transparent;
+}
+
+html,
+body {
+  overscroll-behavior: none;
+}
+
+#ui button,
+#ui .panel {
+  touch-action: manipulation;
+}
+
+/* Dinamik görünüm yüksekliği (mobil adres çubuğu). */
+.menu-card.wide {
+  max-height: 80vh;
+  max-height: 80dvh;
+}
+
+.settings {
+  max-height: 85vh;
+  max-height: 85dvh;
+}
+
+/* --- Dokunmatik: hedefler en az 44 px --- */
+html.is-touch {
+  --tap: 44px;
+}
+
+html.is-touch .btn {
+  min-height: var(--tap);
+}
+
+html.is-touch .btn.small {
+  padding: 8px 12px;
+  min-height: 36px;
+}
+
+html.is-touch .tool {
+  width: 48px;
+  height: 48px;
+}
+
+html.is-touch .egg-slot {
+  width: 44px;
+  height: 44px;
+}
+
+html.is-touch .shift-cell {
+  height: 32px;
+}
+
+html.is-touch .prio {
+  width: 28px;
+  height: 28px;
+}
+
+html.is-touch .nav-item {
+  width: 66px;
+  height: 58px;
+}
+
+html.is-touch .chip-btn {
+  padding: 6px 8px;
+}
+
+html.is-touch .alert {
+  padding: 8px 10px;
+}
+
+html.is-touch .dog-table td,
+html.is-touch .dog-table th {
+  padding: 8px;
+}
+
+html.is-touch select,
+html.is-touch .name-input {
+  padding: 8px;
+}
+
+html.is-touch input[type='checkbox'] {
+  width: 22px;
+  height: 22px;
+}
+
+html.is-touch .nav-menu-item {
+  padding: 10px 12px;
+}
+
+html.is-touch .build-item {
+  min-height: 44px;
+}
+
+/* --- Tablet (<= 1023) --- */
+@media (max-width: 1023px) {
+  :root {
+    font-size: 14px;
+    --gap: 8px;
+    --side-w: 280px;
+    --left-w: 220px;
+    --minimap-w: 136px;
+    --bottom-side-w: 300px;
+  }
+
+  .minimap canvas {
+    width: 124px;
+    height: 124px;
+  }
+
+  .menu-card {
+    min-width: 0;
+    max-width: 96vw;
+  }
+
+  .menu-card.wide {
+    min-width: 0;
+    width: min(96vw, 900px);
+    max-height: 90vh;
+    max-height: 90dvh;
+    padding: 16px 18px;
+  }
+
+  .deployment {
+    min-width: 0;
+  }
+
+  .ledger-row {
+    grid-template-columns: 50px 1fr auto;
+  }
+
+  .ledger-row span:nth-child(3) {
+    grid-column: 1 / -1;
+  }
+
+  .tb-center .muted {
+    display: none;
+  }
+}
+
+/* Sahiplendirme masası: dar ekranda sütunlar alt alta, sahiplenici kartları yatay kaydırılır */
+@media (max-width: 899px) {
+  .adopt-layout {
+    flex-direction: column;
+  }
+
+  .adopter-list {
+    flex-direction: row;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    max-width: none;
+    min-width: 0;
+    padding-bottom: 4px;
+  }
+
+  .adopter-card {
+    min-width: 220px;
+    flex: none;
+  }
+
+  .match-list {
+    min-width: 0;
+  }
+}
+
+/* --- Telefon (yatay): <= 767 genişlik ya da <= 500 yükseklik --- */
+@media (max-width: 767px), (max-height: 500px) {
+  :root {
+    font-size: 13px;
+    --gap: 6px;
+    --top-h: 40px;
+    --nav-h: 54px;
+    --side-w: 250px;
+    --left-w: 190px;
+    --minimap-w: 0px;
+    --bottom-side-w: 240px;
+  }
+
+  .ach-list {
+    grid-template-columns: 1fr;
+  }
+
+  .guide,
+  .minimap,
+  .minimap-show {
+    display: none;
+  }
+
+  .nav-label {
+    display: none;
+  }
+
+  .nav-item {
+    width: 46px;
+    height: 42px;
+  }
+
+  html.is-touch .nav-item {
+    width: 50px;
+    height: 46px;
+  }
+
+  .tb-center {
+    font-size: 0.85rem;
+  }
+
+  .topbar .chip[title] {
+    gap: 2px;
+  }
+
+  /* Paneller tam ekran sayfa olur. */
+  .overlay {
+    align-items: stretch;
+    justify-content: stretch;
+  }
+
+  .overlay .menu-card {
+    width: 100%;
+    height: 100%;
+    max-width: none;
+    max-height: none;
+    min-width: 0;
+    border: 0;
+    border-radius: 0;
+    box-sizing: border-box;
+    padding: 10px 12px;
+    padding-top: calc(10px + var(--safe-t));
+    padding-bottom: calc(10px + var(--safe-b));
+    padding-left: calc(12px + var(--safe-l));
+    padding-right: calc(12px + var(--safe-r));
+    overflow: auto;
+  }
+
+  .toolbar .tool-desc {
+    display: none;
+  }
+
+  .side-panel {
+    padding: 8px 10px;
+  }
+}
