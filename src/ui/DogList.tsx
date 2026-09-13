@@ -8,7 +8,7 @@ import { DogPortrait } from './DogPortrait';
 import { store } from './store';
 
 type SortKey = 'name' | 'stage' | 'mood' | 'hunger' | 'thirst' | 'hygiene' | 'health' | 'loyalty' | 'training' | 'kennel';
-type Filter = 'sick' | 'nokennel' | 'adoptable' | 'thirsty' | 'lonely';
+type Filter = 'sick' | 'nokennel' | 'adoptable' | 'thirsty' | 'lonely' | 'kept';
 
 const COLUMNS: Array<[SortKey, string]> = [
   ['name', 'Ad'],
@@ -29,6 +29,7 @@ const FILTERS: Array<[Filter, string]> = [
   ['adoptable', 'Sahiplendirilebilir'],
   ['thirsty', 'Susuz'],
   ['lonely', 'Dostsuz'],
+  ['kept', 'Tutulan'],
 ];
 
 function sortValue(d: Dog, k: SortKey): number | string {
@@ -70,6 +71,8 @@ function passes(d: Dog, f: Filter): boolean {
       return d.needs.thirst >= BALANCE.dogs.drinkAboveThirst;
     case 'lonely':
       return d.bestFriend() === null;
+    case 'kept':
+      return d.keep;
     default:
       return true;
   }
@@ -155,6 +158,7 @@ export function DogList() {
                   {d.sick ? ' 🤒' : ''}
                   {d.bestFriend() ? ' 🐾' : ''}
                   {d.walking ? ' 🦮' : ''}
+                  {d.keep ? ' 🔒' : ''}
                 </td>
                 <td>{t(STAGE_NAMES_TR[d.stage])}</td>
                 <td>{d.mood()}</td>

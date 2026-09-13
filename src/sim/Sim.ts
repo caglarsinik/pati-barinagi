@@ -120,7 +120,8 @@ export type Command =
   | { type: 'setPriority'; staffId: number; task: TaskType; value: number }
   | { type: 'setPolicy'; policy: Partial<Policies> }
   | { type: 'walkDog'; dogId: number }
-  | { type: 'endWalk' };
+  | { type: 'endWalk' }
+  | { type: 'setKeep'; dogId: number; keep: boolean };
 
 export interface Policies {
   autoOrderFood: boolean;
@@ -129,10 +130,12 @@ export interface Policies {
   trainTarget: number;
   /** Bulaşıcı hastalığı olan köpek karantina alanında kalsın. */
   quarantineSick: boolean;
+  /** Sahiplendirme açık mı: kapalıyken sahiplenici gelmez, bekleyenler cezasız uğurlanır. */
+  adoptionsOpen: boolean;
 }
 
 export function defaultPolicies(): Policies {
-  return { autoOrderFood: false, foodThreshold: 10, trainTarget: 6, quarantineSick: true };
+  return { autoOrderFood: false, foodThreshold: 10, trainTarget: 6, quarantineSick: true, adoptionsOpen: true };
 }
 
 export interface SimFlags {
@@ -588,7 +591,21 @@ export class Sim {
         if (typeof p.foodThreshold === 'number' && Number.isFinite(p.foodThreshold)) this.policies.foodThreshold = Math.max(0, Math.min(200, Math.round(p.foodThreshold)));
         if (typeof p.trainTarget === 'number' && Number.isFinite(p.trainTarget)) this.policies.trainTarget = Math.max(0, Math.min(6, Math.round(p.trainTarget)));
         if (typeof p.quarantineSick === 'boolean') this.policies.quarantineSick = p.quarantineSick;
+        if (typeof p.adoptionsOpen === 'boolean' && p.adoptionsOpen !== this.policies.adoptionsOpen) {
+          this.policies.adoptionsOpen = p.adoptionsOpen;
+          if (p.adoptionsOpen) this.events.emit('message', t('Sahiplendirme açıldı: sahiplenici gelmeye başlar'));
+          else this.adoption.closeDesk();
+        }
         return { ok: true };
+      }
+      case 'setKeep': {
+        const dog = this.dogById(cmd.dogId);
+        if (!dog || dog.wild) return { ok: false };
+        dog.keep = cmd.keep;
+        return {
+          ok: true,
+          message: cmd.keep ? t('{name} tutulacak: sahiplendirme listesine çıkmaz', { name: dog.name }) : t('{name} yeniden sahiplendirilebilir', { name: dog.name }),
+        };
       }
       case 'walkDog': {
         const dog = this.dogById(cmd.dogId);
@@ -1250,6 +1267,7 @@ export class Sim {
       if (typeof p.foodThreshold === 'number') sim.policies.foodThreshold = p.foodThreshold;
       if (typeof p.trainTarget === 'number') sim.policies.trainTarget = p.trainTarget;
       if (typeof p.quarantineSick === 'boolean') sim.policies.quarantineSick = p.quarantineSick;
+      if (typeof p.adoptionsOpen === 'boolean') sim.policies.adoptionsOpen = p.adoptionsOpen;
     }
     sim.weatherSys.load(data.weather);
     sim.eventSys.load(data.eventLog);

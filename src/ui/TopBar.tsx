@@ -30,6 +30,11 @@ export function TopBar() {
             🧑 {t('{n} bekliyor', { n: store.adoptersWaiting.value })}
           </button>
         )}
+        {!store.adoptionsOpen.value && (
+          <button class="chip-btn" title={t('Sahiplendirme kapalı: tıkla ve aç')} onClick={() => app.togglePanel('adoption')}>
+            🚫 {t('Sahiplendirme kapalı')}
+          </button>
+        )}
         {store.walkingDog.value && (
           <span class="chip">
             🦮 {store.walkingDog.value}

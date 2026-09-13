@@ -71,6 +71,7 @@ export class AdoptionSystem {
   /** Doğu kapısından gelir, ofisin önüne yürür. */
   spawnAdopter(): Adopter | null {
     const sim = this.sim;
+    if (!sim.policies.adoptionsOpen) return null;
     const office = sim.buildings.find((b) => b.type === 'office');
     if (!office) return null;
     const gate = this.gateTile();
@@ -187,6 +188,7 @@ export class AdoptionSystem {
     const a = sim.adopters.find((x) => x.id === adopterId);
     const dog = sim.dogById(dogId);
     if (!a || !dog || a.state !== 'waiting') return { ok: false, message: t('Sahiplenici artık burada değil') };
+    if (!sim.policies.adoptionsOpen) return { ok: false, message: t('Sahiplendirme kapalı') };
     const why = adoptable(dog);
     if (why) return { ok: false, message: t('{name} sahiplendirilemez: {why}', { name: dog.name, why }) };
     const score = matchScore(dog, a.request);
@@ -206,6 +208,17 @@ export class AdoptionSystem {
     this.leave(a);
     const repText = rep >= 0 ? t('itibar +{n}', { n: rep }) : t('itibar {n}', { n: rep });
     return { ok: true, message: t('{dog}, {person} ile yeni evine gitti (+{fee} ₺, {rep})', { dog: dog.name, person: a.name, fee: a.fee, rep: repText }) };
+  }
+
+  /** Sahiplendirme kapatıldı: bekleyen ve yoldaki sahiplenicileri itibar kaybı olmadan uğurlar. */
+  closeDesk(): void {
+    let n = 0;
+    for (const a of this.sim.adopters) {
+      if (a.state !== 'walking' && a.state !== 'waiting') continue;
+      this.leave(a);
+      n++;
+    }
+    this.sim.events.emit('message', n > 0 ? t('Sahiplendirme kapatıldı: {n} sahiplenici uğurlandı', { n }) : t('Sahiplendirme kapatıldı: sahiplenici gelmeyecek'));
   }
 
   decline(adopterId: number): boolean {

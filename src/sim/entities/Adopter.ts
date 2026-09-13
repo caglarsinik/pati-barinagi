@@ -125,6 +125,7 @@ export function hardMismatch(dog: Dog, r: AdoptionRequest): string | null {
 export function adoptable(dog: Dog): string | null {
   const B = BALANCE.adoption;
   if (dog.wild || dog.following) return t('barınakta değil');
+  if (dog.keep) return t('sahiplendirmeye kapalı (tutuluyor)');
   if (dog.walking) return t('gezintide');
   if (dog.sick) return t('hasta');
   if (dog.needs.health < B.minHealth) return t('sağlığı düşük');

@@ -64,6 +64,8 @@ export const store = {
   walkingDog: signal<string | null>(null),
   /** Alt menü çubuğunda açık olan kategori. */
   navMenu: signal<string | null>(null),
+  /** Sahiplendirme açık mı (politika). */
+  adoptionsOpen: signal(true),
   /** Mini harita gizli (tercih tarayıcıda kalır). */
   minimapHidden: signal(false),
   season: signal(''),
@@ -136,6 +138,7 @@ export function syncStore(sim: Sim): void {
   store.kennelCapacity.value = sim.kennelCapacity();
   store.foodStock.value = Math.floor(sim.foodStock);
   store.walkingDog.value = sim.dogs.find((d) => d.walking)?.name ?? null;
+  store.adoptionsOpen.value = sim.policies.adoptionsOpen;
   if (store.alerts.value !== sim.alerts.alerts) store.alerts.value = sim.alerts.alerts;
   const tx = sim.player.tileX;
   const ty = sim.player.tileY;

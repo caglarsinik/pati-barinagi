@@ -50,9 +50,18 @@ export function OfficePanel() {
           <p class="muted">{t('Lisans en üst seviyede.')}</p>
         )}
         <p class="muted small-text">{t('İtibar {rep}/100 · toplam {n} sahiplendirme', { rep: Math.round(sim.reputation), n: sim.stats.adopted })}</p>
+        <label class="policy">
+          <input
+            type="checkbox"
+            checked={sim.policies.adoptionsOpen}
+            onChange={(e) => sim.command({ type: 'setPolicy', policy: { adoptionsOpen: (e.target as HTMLInputElement).checked } })}
+          />
+          <span>{t('Sahiplendirmeye açık')}</span>
+          <span class="muted small-text">{t('Kapalıyken sahiplenici gelmez; bekleyenler itibar kaybı olmadan uğurlanır.')}</span>
+        </label>
         <div class="row">
           <button class="btn" onClick={() => (store.panel.value = 'adoption')}>
-            {waiting > 0 ? t('Sahiplendirme masası ({n} bekliyor)', { n: waiting }) : t('Sahiplendirme masası')}
+            {!sim.policies.adoptionsOpen ? t('Sahiplendirme masası (kapalı)') : waiting > 0 ? t('Sahiplendirme masası ({n} bekliyor)', { n: waiting }) : t('Sahiplendirme masası')}
           </button>
           <button class="btn" onClick={() => (store.panel.value = 'finance')}>
             {t('Finans')}
@@ -101,7 +110,10 @@ export function AdoptionDesk() {
   if (!sim) return null;
   const waiting = sim.adopters.filter((a) => a.state === 'waiting');
   const selected = waiting.find((a) => a.id === selectedId) ?? waiting[0] ?? null;
-  const dogs = sim.shelterDogs();
+  const open = sim.policies.adoptionsOpen;
+  const all = sim.shelterDogs();
+  const dogs = all.filter((d) => !d.keep);
+  const kept = all.length - dogs.length;
   const rows = selected
     ? dogs
         .map((d) => ({ dog: d, score: matchScore(d, selected.request), why: adoptable(d) ?? hardMismatch(d, selected.request) }))
@@ -113,11 +125,15 @@ export function AdoptionDesk() {
       <div class="menu-card panel wide">
         <div class="panel-head">
           <h2>{t('Sahiplendirme masası')}</h2>
+          <button class={'btn small' + (open ? '' : ' danger active')} onClick={() => sim.command({ type: 'setPolicy', policy: { adoptionsOpen: !open } })}>
+            {open ? t('Sahiplendirmeyi kapat') : t('Sahiplendirmeyi aç')}
+          </button>
           <button class="btn small close" onClick={() => (store.panel.value = 'none')}>
             ✕
           </button>
         </div>
-        {waiting.length === 0 && (
+        {!open && <p class="muted">{t('Sahiplendirme kapalı. Sahiplenici gelmesi için aç.')}</p>}
+        {open && waiting.length === 0 && (
           <p class="muted">
             {t('Şu an bekleyen sahiplenici yok. Sahiplenici {from}:00-{to}:00 arasında gelir; itibar arttıkça daha sık.', {
               from: BALANCE.adoption.arriveFromHour,
@@ -147,6 +163,7 @@ export function AdoptionDesk() {
                 </button>
               </div>
               {rows.length === 0 && <p class="muted small-text">{t('Barınakta köpek yok.')}</p>}
+              {kept > 0 && <p class="muted small-text">{t('{n} köpek tutuluyor (listede yok)', { n: kept })}</p>}
               {rows.map(({ dog, score, why }) => (
                 <div key={dog.id} class={'match-row' + (why || score === 0 ? ' disabled' : '')}>
                   <DogPortrait genome={dog.genome} stage={dog.stage} scale={1.5} />

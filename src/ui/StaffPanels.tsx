@@ -307,6 +307,10 @@ export function DeploymentPanel() {
               <input type="checkbox" checked={sim.policies.quarantineSick} onChange={(e) => sim.command({ type: 'setPolicy', policy: { quarantineSick: (e.target as HTMLInputElement).checked } })} />
               <span>{t('Bulaşıcı hastalığı olan köpek karantina alanında kalsın (bulaşmayı keser; alan yoksa Z ile boya)')}</span>
             </label>
+            <label class="policy">
+              <input type="checkbox" checked={sim.policies.adoptionsOpen} onChange={(e) => sim.command({ type: 'setPolicy', policy: { adoptionsOpen: (e.target as HTMLInputElement).checked } })} />
+              <span>{t('Sahiplendirmeye açık (kapalıyken sahiplenici gelmez)')}</span>
+            </label>
             <p class="muted small-text">
               {t(
                 'Öğün saatleri {hours}:00; bu saatlerde yem görevleri öne çıkar. Temizlik her pislikte, tımar temizlik {g} altına inince, tedavi sağlık {t} altına inince görev olur.',

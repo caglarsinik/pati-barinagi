@@ -35,6 +35,8 @@ describe('Kayıt migrasyonu', () => {
     expect(trough.water).toBe(100);
     expect(back.stats.watered).toBe(0);
     expect(back.stats.drinks).toBe(0);
+    expect(back.policies.adoptionsOpen).toBe(true);
+    expect(back.dogs[0].keep).toBe(false);
     expect(back.buildings.length).toBe(sim.buildings.length);
     expect(back.dogs.length).toBe(sim.dogs.length);
     expect(back.toJSON().version).toBe(GAME.saveVersion);

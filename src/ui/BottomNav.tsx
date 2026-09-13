@@ -53,7 +53,11 @@ export function BottomNav() {
     if (g.id === 'build') return store.buildBar.value;
     return activeGroup === g.id;
   };
-  const badge = (g: MenuGroup): number => (g.id === 'shelter' ? store.adoptersWaiting.value : 0);
+  const badge = (g: MenuGroup): string => {
+    if (g.id !== 'shelter') return '';
+    if (store.adoptersWaiting.value > 0) return String(store.adoptersWaiting.value);
+    return store.adoptionsOpen.value ? '' : '!';
+  };
   const title = (g: MenuGroup): string => {
     if (g.items.length === 1) return g.key ? `${t(g.label)} (${g.key})` : t(g.label);
     return g.items.map((i) => (i.key ? `${t(i.label)} (${i.key})` : t(i.label))).join(' · ');
@@ -89,7 +93,7 @@ export function BottomNav() {
           >
             <span class="nav-icon">{g.icon}</span>
             <span class="nav-label">{t(g.label)}</span>
-            {badge(g) > 0 && <span class="nav-badge">{badge(g)}</span>}
+            {badge(g) !== '' && <span class="nav-badge">{badge(g)}</span>}
           </button>
         </div>
       ))}

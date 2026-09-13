@@ -54,6 +54,7 @@ export class AlertSystem {
     }
     if (sim.clock.totalMinutes < sim.flags.growlUntil) out.push({ id: 'growl', text: t('Hırlaşma: {a} ve {b}', { a: sim.flags.growlA, b: sim.flags.growlB }), severity: 'warn' });
     if (sim.money < 0) out.push({ id: 'debt', text: t('Kasa eksiye düştü'), severity: 'danger' });
+    if (!sim.policies.adoptionsOpen) out.push({ id: 'adoptClosed', text: t('Sahiplendirme kapalı: sahiplenici gelmiyor'), severity: 'info' });
     const waiting = sim.adopters.filter((a) => a.state === 'waiting');
     if (waiting.length > 0) {
       const soonest = Math.min(...waiting.map((a) => a.patienceLeft));

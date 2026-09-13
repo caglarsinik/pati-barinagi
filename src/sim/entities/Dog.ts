@@ -92,6 +92,7 @@ export interface DogSave {
   friends?: Record<string, number>;
   walking?: boolean;
   illness?: Illness | null;
+  keep?: boolean;
 }
 
 export function defaultNeeds(origin: DogOrigin): DogNeeds {
@@ -143,6 +144,8 @@ export class Dog {
   walking = false;
   /** Bulaşıcı hastalık; null ise yok (kayda yazılır). */
   illness: Illness | null = null;
+  /** Sahiplendirmeye kapalı: oyuncu bu köpeği tutmak istiyor (kayda yazılır). */
+  keep = false;
   /** Gezintide arsadan çıktı mı; çıkıp geri girince gezinti biter (kayda yazılmaz). */
   walkLeftPlot = false;
   /** Gezinti bitirildi, kendi başına eve dönüyor (kayda yazılmaz). */
@@ -261,6 +264,7 @@ export class Dog {
       friends: { ...this.friends },
       walking: this.walking,
       illness: this.illness ? { ...this.illness } : null,
+      keep: this.keep,
     };
   }
 
@@ -297,6 +301,7 @@ export class Dog {
       }
     }
     dog.walking = d.walking === true && !dog.wild;
+    dog.keep = d.keep === true;
     const ill = d.illness;
     if (ill && typeof ill === 'object' && ILLNESS_KINDS.includes(ill.kind)) {
       dog.illness = { kind: ill.kind, days: typeof ill.days === 'number' && Number.isFinite(ill.days) ? Math.max(0, Math.floor(ill.days)) : 0 };

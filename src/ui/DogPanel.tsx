@@ -1,6 +1,7 @@
 import { useState } from 'preact/hooks';
 import { app } from '../app';
 import { t } from '../i18n';
+import { adoptable } from '../sim/entities/Adopter';
 import { buildingDef } from '../sim/entities/Building';
 import { ILLNESS_NAMES_TR, SKILL_KEYS, SKILL_NAMES_TR, STAGE_NAMES_TR } from '../sim/entities/Dog';
 import {
@@ -68,6 +69,7 @@ export function DogPanel() {
   const kennels = sim.buildings.filter((b) => (b.type === 'kennelSmall' || b.type === 'kennelLarge') && sim.kennelHasRoom(b, dog));
   const bf = dog.bestFriend();
   const friend = bf ? sim.dogById(bf.id) : undefined;
+  const why = adoptable(dog);
   const close = (): void => {
     store.panel.value = 'none';
     store.selectedDogId.value = null;
@@ -183,6 +185,20 @@ export function DogPanel() {
           </button>
         )}
       </div>
+      <h4>{t('Sahiplendirme')}</h4>
+      <label class="policy">
+        <input
+          type="checkbox"
+          checked={dog.keep}
+          onChange={(e) => {
+            const r = sim.command({ type: 'setKeep', dogId: dog.id, keep: (e.target as HTMLInputElement).checked });
+            if (r.message) showToast(r.message);
+          }}
+        />
+        <span>{t('Bu köpeği tut (sahiplendirmeye kapalı)')}</span>
+      </label>
+      <div class="muted small-text">{why ? t('Şu an sahiplendirilemez: {why}', { why }) : t('Sahiplendirilmeye hazır.')}</div>
+
       <h4>{t('Gezinti')}</h4>
       <div class="row">
         {dog.walking ? (
