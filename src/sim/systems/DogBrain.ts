@@ -24,6 +24,14 @@ export class DogBrain {
     dog.stateTimer -= dtMin;
     dog.moving = false;
     if (dog.walking) {
+      // Gezintide dışarıda rahatlama: pislik bırakmaz, kısa durur.
+      if (dog.state === 'toilet') {
+        if (dog.stateTimer <= 0) {
+          dog.needs.bladder = 0;
+          this.setState(dog, 'idle', 0);
+        }
+        return;
+      }
       if (dog.walkReturning) this.returnHome(dog, dtMin);
       else this.followPlayer(dog, dtMin);
       return;
@@ -164,6 +172,11 @@ export class DogBrain {
       this.setIdle(dog, 1);
       return;
     }
+    if (dog.walking && !inside && dog.needs.bladder >= BALANCE.dogs.toiletAboveBladder) {
+      this.setState(dog, 'toilet', BALANCE.dogs.toiletDurationMin);
+      dog.path = [];
+      return;
+    }
     const dist = Math.hypot(p.x - dog.x, p.y - 0.3 - dog.y);
     if (dist > BALANCE.eggs.followCatchUpDistance) {
       // Çok geride kaldı: oyuncunun yanına ışınla.
@@ -214,8 +227,9 @@ export class DogBrain {
     const TP = B.temperament;
     const temper = dog.genome.temperament;
 
-    // Gece ya da bitkinlik: kulübeye git, uyu.
-    if ((clock.isNight() && n.energy < 95) || n.energy < B.sleepBelowEnergy) {
+    // Gece ya da bitkinlik: kulübeye git, uyu (dolu mesane geceyi erteler, tuvalet dalına düşer).
+    const mustPee = n.bladder >= B.toiletAboveBladder && n.energy > B.wakeForToiletEnergyAbove;
+    if ((clock.isNight() && n.energy < 95 && !mustPee) || n.energy < B.sleepBelowEnergy) {
       if (dog.kennelId !== null) {
         const kennel = sim.buildingById(dog.kennelId);
         if (kennel) {
@@ -613,6 +627,9 @@ export class DogBrain {
 
   private shouldWake(dog: Dog): boolean {
     const clock = this.sim.clock;
+    const B = BALANCE.dogs;
+    // Dolu mesane: gece de olsa kalkıp tuvalete gider (çok bitkinse uyur).
+    if (dog.needs.bladder >= B.toiletAboveBladder && dog.needs.energy > B.wakeForToiletEnergyAbove) return true;
     if (dog.needs.energy >= 100 && !clock.isNight()) return true;
     if (!clock.isNight() && dog.needs.energy > 60) return true;
     if (dog.needs.hunger > 90 && dog.needs.energy > 30) return true;

@@ -160,6 +160,51 @@ describe('Tuvalet alanı', () => {
     expect(cleanMinutesMul(sim, zoneTiles(sim)[0])).toBe(T.binCleanMul);
   });
 
+  it('gece dolu mesaneyle uyanır, alana yapar, kulübesine dönüp uyur', () => {
+    const sim = Sim.create(1209);
+    const dog = sim.dogs[0];
+    dog.skills.potty = 100;
+    dog.needs.hunger = 10;
+    dog.needs.thirst = 10;
+    dog.needs.energy = 40;
+    dog.needs.bladder = 10;
+    sim.clock.totalMinutes = 22 * 60 + 30;
+    runMinutes(sim, 90);
+    expect(dog.state).toBe('sleep');
+    dog.needs.bladder = 90;
+    dog.needs.energy = 60;
+    runMinutes(sim, 150);
+    expect(dog.needs.bladder).toBeLessThan(50);
+    expect(toiletMessCount(sim)).toBe(1);
+    expect(looseMessCount(sim)).toBe(0);
+    expect(dog.state).toBe('sleep');
+  });
+
+  it('gezintide dolu mesane dışarıda boşalır, pislik bırakmaz', () => {
+    const sim = Sim.create(1210);
+    const dog = sim.dogs[0];
+    dog.genome.temperament = 'calm';
+    dog.skills.leash = 100;
+    dog.needs.hunger = 10;
+    dog.needs.thirst = 10;
+    dog.needs.energy = 90;
+    dog.needs.bladder = 20;
+    sim.player.x = dog.x + 1;
+    sim.player.y = dog.y;
+    expect(sim.command({ type: 'walkDog', dogId: dog.id }).ok).toBe(true);
+    const p = sim.world.plot;
+    sim.player.x = p.x + p.w + 4.5;
+    sim.player.y = p.y + Math.floor(p.h / 2) + 0.5;
+    runMinutes(sim, 30);
+    expect(dog.walkLeftPlot).toBe(true);
+    dog.needs.bladder = 90;
+    runMinutes(sim, 15);
+    expect(dog.needs.bladder).toBeLessThan(10); // boşaldı, sonra biraz doldu
+    expect(sim.messTiles.size).toBe(0);
+    expect(sim.stats.messes).toBe(0);
+    expect(dog.walking).toBe(true);
+  });
+
   it('çöp kutusu yakınsa kapasite artar ve temizlik hızlanır', () => {
     const sim = Sim.create(1207);
     const T = BALANCE.toilet;
