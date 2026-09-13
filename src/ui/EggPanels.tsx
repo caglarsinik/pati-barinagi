@@ -39,7 +39,7 @@ export function Backpack() {
   if (!sim) return null;
   const slots = sim.backpackSlots();
   return (
-    <div class="hud backpack panel" title={t('Çanta')}>
+    <div class="backpack panel" title={t('Çanta')}>
       <div class="backpack-row">
         {Array.from({ length: slots }, (_, i) => {
           const egg = sim.backpack[i];

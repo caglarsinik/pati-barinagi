@@ -46,48 +46,6 @@ body {
   border-radius: 4px;
 }
 
-.hud {
-  position: absolute;
-}
-
-.hud-top-left {
-  top: 12px;
-  left: 12px;
-  min-width: 150px;
-}
-
-.hud-top-center {
-  top: 12px;
-  left: 50%;
-  transform: translateX(-50%);
-  text-align: center;
-  min-width: 220px;
-}
-
-.hud-top-right {
-  top: 12px;
-  right: 12px;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  align-items: flex-end;
-  max-width: 400px;
-}
-
-.hud-top-right .btn-row {
-  flex-wrap: wrap;
-  justify-content: flex-end;
-}
-
-.hud-bottom {
-  bottom: 12px;
-  left: 50%;
-  transform: translateX(-50%);
-  font-size: 0.9rem;
-  color: var(--muted);
-  white-space: nowrap;
-}
-
 .money {
   font-size: 1.25rem;
   font-weight: 700;
@@ -236,30 +194,12 @@ body {
   border-radius: 3px;
 }
 
-.minimap {
-  right: 12px;
-  bottom: 12px;
-  padding: 4px;
-}
-
 .minimap canvas {
   display: block;
   width: 160px;
   height: 160px;
   image-rendering: pixelated;
   border: 1px solid #0f0d1a;
-}
-
-.toasts {
-  position: absolute;
-  bottom: 64px;
-  left: 50%;
-  transform: translateX(-50%);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 6px;
-  pointer-events: none;
 }
 
 .toast {
@@ -290,12 +230,6 @@ body {
 }
 
 /* --- Araç çubuğu --- */
-.toolbar {
-  left: 12px;
-  bottom: 12px;
-  padding: 6px 8px;
-}
-
 .tool-row {
   display: flex;
   gap: 4px;
@@ -341,15 +275,6 @@ body {
 }
 
 /* --- Yan panel --- */
-.side-panel {
-  right: 12px;
-  top: 120px;
-  width: 300px;
-  max-height: calc(100vh - 320px);
-  overflow-y: auto;
-  padding: 10px 12px;
-}
-
 .panel-head {
   display: flex;
   gap: 10px;
@@ -490,16 +415,6 @@ select,
 }
 
 /* --- Uyarılar --- */
-.alerts {
-  top: 96px;
-  right: 12px;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  align-items: flex-end;
-  pointer-events: none;
-}
-
 .alert {
   pointer-events: auto;
   font: inherit;
@@ -565,14 +480,6 @@ select,
 }
 
 /* --- İnşa çubuğu --- */
-.build-bar {
-  left: 50%;
-  bottom: 52px;
-  transform: translateX(-50%);
-  width: min(900px, calc(100vw - 40px));
-  padding: 6px 8px;
-}
-
 .build-tabs {
   display: flex;
   gap: 4px;
@@ -641,12 +548,6 @@ select,
 }
 
 /* --- Çanta ve yumurtalar --- */
-.backpack {
-  top: 96px;
-  left: 12px;
-  padding: 6px 8px;
-}
-
 .backpack-row {
   display: flex;
   gap: 4px;
@@ -1132,14 +1033,6 @@ select,
 .settings {
   max-height: 85vh;
   overflow-y: auto;
-}
-
-.guide {
-  left: 12px;
-  top: 158px;
-  width: 260px;
-  padding: 8px 10px;
-  font-size: 0.85rem;
 }
 
 .guide-head {

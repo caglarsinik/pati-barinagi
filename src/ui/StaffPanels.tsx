@@ -84,7 +84,7 @@ export function StaffPanel() {
         <div class="panel-head">
           <h2>{t('Personel ({n}/{max}) · haftalık maaş {wages}', { n: sim.staff.length, max: BALANCE.staff.maxStaff, wages: formatMoney(sim.weeklyWages()) })}</h2>
           <button class="btn small" onClick={() => (store.panel.value = 'deployment')}>
-            {t('Görevlendirme (F)')}
+            {t('Görevlendirme')}
           </button>
           <button class="btn small close" onClick={() => (store.panel.value = 'none')}>
             ✕
@@ -171,7 +171,7 @@ export function DeploymentPanel() {
             </button>
           </div>
           <button class="btn small" onClick={() => (store.panel.value = 'staff')}>
-            {t('Personel (P)')}
+            {t('Personel')}
           </button>
           <button class="btn small close" onClick={() => (store.panel.value = 'none')}>
             ✕

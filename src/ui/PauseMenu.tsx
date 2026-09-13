@@ -15,6 +15,15 @@ export function PauseMenu() {
         <button class="btn" onClick={() => app.save()}>
           {t('Kaydet')}
         </button>
+        <button
+          class="btn"
+          onClick={() => {
+            app.closePauseMenu();
+            store.panel.value = 'help';
+          }}
+        >
+          {t('Kontroller')}
+        </button>
         <button class="btn" onClick={() => (store.settingsOpen.value = true)}>
           {t('Ayarlar ve kayıt aktarımı')}
         </button>

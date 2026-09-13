@@ -2,6 +2,7 @@ import { h, render } from 'preact';
 import { app } from './app';
 import { App } from './ui/App';
 import './ui/ui.css';
+import './ui/layout.css';
 
 window.addEventListener('error', (e) => {
   console.error('[hata]', e.message, e.error?.stack ?? '');

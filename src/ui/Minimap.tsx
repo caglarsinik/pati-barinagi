@@ -89,8 +89,18 @@ export function Minimap() {
   }, [tile, version, Math.floor(tick / 5)]);
 
   const size = app.sim?.world.width ?? 200;
+  if (store.minimapHidden.value) {
+    return (
+      <button class="hud minimap-show btn small" title={t('Mini haritayı göster')} onClick={() => app.setMinimap(false)}>
+        🗺️
+      </button>
+    );
+  }
   return (
     <div class="hud minimap panel" title={t('Mini harita: sarı nokta dolu yuva, turuncu nokta sokak köpeği ini')}>
+      <button class="btn small minimap-toggle" title={t('Mini haritayı gizle')} onClick={() => app.setMinimap(true)}>
+        ✕
+      </button>
       <canvas ref={canvasRef} width={size} height={size} />
     </div>
   );

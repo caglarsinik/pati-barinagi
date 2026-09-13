@@ -29,7 +29,7 @@ export function Guide() {
   if (remaining.length === 0) return null;
   const shown = remaining.slice(0, 4);
   return (
-    <div class="hud guide panel">
+    <div class="guide panel">
       <div class="guide-head">
         <b>{t('Başlangıç rehberi')}</b>
         <span class="muted small-text">

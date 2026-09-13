@@ -74,6 +74,17 @@ class AppController {
     try {
       store.guideHidden.value = localStorage.getItem(`${SaveManager.key(0)}.guideHidden`) === '1';
       store.labels.value = localStorage.getItem(`${SaveManager.key(0)}.labels`) !== '0';
+      store.minimapHidden.value = localStorage.getItem(`${SaveManager.key(0)}.minimapHidden`) === '1';
+    } catch {
+      /* yoksay */
+    }
+  }
+
+  /** Mini haritayı gizle/göster; tercih tarayıcıda kalır. */
+  setMinimap(hidden: boolean): void {
+    store.minimapHidden.value = hidden;
+    try {
+      localStorage.setItem(`${SaveManager.key(0)}.minimapHidden`, hidden ? '1' : '0');
     } catch {
       /* yoksay */
     }
@@ -184,6 +195,10 @@ class AppController {
   /** Esc: önce inşa aracı, sonra açık panel kapanır; hiçbiri yoksa duraklatma menüsü açılır/kapanır. */
   togglePauseMenu(): void {
     if (store.screen.value !== 'game') return;
+    if (!store.pauseMenu.value && store.navMenu.value !== null) {
+      store.navMenu.value = null;
+      return;
+    }
     if (!store.pauseMenu.value && store.build.value.kind !== 'none') {
       store.build.value = { kind: 'none' };
       return;

@@ -13,7 +13,7 @@ export function AlertsPanel() {
   if (alerts.length === 0) return null;
   const shown = alerts.slice(0, 6);
   return (
-    <div class="hud alerts">
+    <div class="alerts">
       {shown.map((a) => (
         <button
           key={a.id}

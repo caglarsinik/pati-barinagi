@@ -73,7 +73,7 @@ export function DogPanel() {
     store.selectedDogId.value = null;
   };
   return (
-    <div class="hud side-panel panel">
+    <div class="side-panel panel">
       <div class="panel-head">
         <DogPortrait genome={g} stage={dog.stage} />
         <div class="panel-title">

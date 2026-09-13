@@ -23,7 +23,8 @@ export type Panel =
   | 'finance'
   | 'staff'
   | 'deployment'
-  | 'achievements';
+  | 'achievements'
+  | 'help';
 
 export type BuildTool =
   | { kind: 'none' }
@@ -61,6 +62,10 @@ export const store = {
   labels: signal(true),
   /** Şu an gezdirilen köpeğin adı. */
   walkingDog: signal<string | null>(null),
+  /** Alt menü çubuğunda açık olan kategori. */
+  navMenu: signal<string | null>(null),
+  /** Mini harita gizli (tercih tarayıcıda kalır). */
+  minimapHidden: signal(false),
   season: signal(''),
   weather: signal(''),
   weatherIcon: signal(''),

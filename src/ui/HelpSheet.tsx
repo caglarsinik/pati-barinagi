@@ -1,0 +1,59 @@
+import { t } from '../i18n';
+import { store } from './store';
+
+/** [tuş, avatar modu, yönetim modu]; Türkçe metinler t() ile çevrilir. */
+const ROWS: Array<[string, string, string]> = [
+  ['WASD / ok tuşları', 'Yürü', 'Kamerayı kaydır'],
+  ['Shift', 'Koş (dayanıklılık harcar)', '–'],
+  ['E', 'Baktığın şeye göre iş yap: köpeği sev/oyna/eğit/fırçala, kabı ve yalağı doldur, pisliği temizle, kileri/ofisi aç', '–'],
+  ['1-6', 'Araç seç: Sev, Oyna, Eğit, Yem, Temizle, Çağır', '–'],
+  ['Sol tık', 'Köpeği seç (panel açılır)', 'Köpeği seç · seçili aracı yerleştir · çit/yol/bölge sürükle'],
+  ['Sağ tık sürükle', '–', 'Kamerayı kaydır (aracı bırakır)'],
+  ['Fare tekeri', 'Yakınlaştır', 'Yakınlaştır'],
+  ['Tab', 'Yönetim moduna geç', 'Avatara dön'],
+  ['B', 'İnşa çubuğu (yönetim moduna geçer)', 'İnşa çubuğu'],
+  ['X / Z', '–', 'Yık aracı / Bölge boyama'],
+  ['I / O / N / P / F / H', 'Köpekler / Sahiplendirme / Finans / Personel / Görevlendirme / Başarımlar', 'Aynı'],
+  ['L', 'İsim etiketlerini aç/kapa', 'Aynı'],
+  ['Space', 'Duraklat / devam', 'Aynı'],
+  ['+ / -', 'Hız artır / azalt', 'Aynı'],
+  ['Esc', 'Paneli kapat / menü', 'Aracı bırak / paneli kapat / menü'],
+];
+
+/** Kontroller sayfası: klavye ve fare tablosu. Alt menü → Menü → Kontroller ya da duraklatma menüsünden açılır. */
+export function HelpSheet() {
+  store.lang.value;
+  return (
+    <div class="overlay">
+      <div class="menu-card panel wide">
+        <div class="panel-head">
+          <h2>{t('Kontroller')}</h2>
+          <button class="btn small close" onClick={() => (store.panel.value = 'none')}>
+            ✕
+          </button>
+        </div>
+        <p class="muted small-text">{t('Alt çubuk her an E ile ne yapacağını yazar. Sağ üstteki uyarılara tıklayınca ilgili köpeğe gidersin.')}</p>
+        <div class="table-scroll">
+          <table class="help-table">
+            <thead>
+              <tr>
+                <th>{t('Tuş')}</th>
+                <th>{t('Avatar modu')}</th>
+                <th>{t('Yönetim modu')}</th>
+              </tr>
+            </thead>
+            <tbody>
+              {ROWS.map(([k, a, m]) => (
+                <tr key={k}>
+                  <td>{k}</td>
+                  <td>{t(a)}</td>
+                  <td>{t(m)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  );
+}
