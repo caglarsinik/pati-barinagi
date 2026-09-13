@@ -307,7 +307,8 @@ export const EN: Record<string, string> = {
   Kapı: 'Gate',
   Yol: 'Path',
   'Sürükleyerek düz çizgi çek. Köpekler geçemez.': 'Drag to draw a straight line. Dogs cannot pass.',
-  'Çit üzerinde geçiş.': 'A passage in the fence.',
+  'Çit üzerinde geçiş; sen, personel, sahiplenici ve tasmalı köpek yaklaşınca kendiliğinden açılır. Serbest köpekler geçemez.':
+    'A passage in the fence; it opens by itself when you, staff, adopters or a leashed dog approach. Loose dogs cannot pass.',
   'Üstünde biraz daha hızlı yürünür.': 'You walk a little faster on it.',
   'Bu bina inşa edilemez': 'This building cannot be built',
   'Yeterli para yok ({cost} ₺)': 'Not enough money ({cost} ₺)',

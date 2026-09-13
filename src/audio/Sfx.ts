@@ -22,7 +22,8 @@ export type SfxName =
   | 'sleep'
   | 'step'
   | 'treat'
-  | 'tame';
+  | 'tame'
+  | 'gate';
 
 export interface SfxOpts {
   /** 1 = normal; 2 = bir oktav tiz. */
@@ -75,6 +76,11 @@ export function playSfx(s: Synth, dest: AudioNode, name: SfxName, opts: SfxOpts 
     case 'demolish':
       s.noise(dest, { dur: 0.45, gain: g(0.2), lowpass: 600, attack: 0.01, release: 0.3 });
       s.tone(dest, { type: 'sawtooth', freq: 120, freqEnd: 60, dur: 0.4, gain: g(0.08), lowpass: 400 });
+      break;
+    case 'gate':
+      // Gıcırtı + mandal tıkı.
+      s.tone(dest, { type: 'sawtooth', freq: 320 * p, freqEnd: 180 * p, dur: 0.22, gain: g(0.06), lowpass: 900, attack: 0.03 });
+      s.noise(dest, { dur: 0.05, gain: g(0.08), lowpass: 2500, at: 0.2 });
       break;
     case 'coin':
       s.tone(dest, { freq: 1500 * p, dur: 0.07, gain: g(0.14) });

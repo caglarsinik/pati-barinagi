@@ -11,7 +11,7 @@ import type { PlayerInput } from '../sim/entities/Player';
 import type { Mode, Sim } from '../sim/Sim';
 import type { ActionKind, ActionOutcome, Tool } from '../sim/systems/Interaction';
 import type { TilePos } from '../sim/world/TileWorld';
-import { OBJ_INFO, Obj, ZONE_COLORS, ZONE_TILE_BASE, Zone, objTileIndex } from '../sim/world/tiles';
+import { GATE_OPEN_TILE, OBJ_INFO, Obj, ZONE_COLORS, ZONE_TILE_BASE, Zone, objTileIndex } from '../sim/world/tiles';
 import { showToast, store, syncStore } from '../ui/store';
 import { audio } from '../audio/audio';
 import { resolveAction } from '../sim/systems/Interaction';
@@ -185,6 +185,12 @@ export class WorldScene extends Phaser.Scene {
       this.sim.events.on('gameEvent', () => audio.play('alert')),
       this.sim.events.on('achievement', () => audio.play('adopt')),
       this.sim.events.on('interacted', (e) => this.afterInteract(e.kind, e.result)),
+      this.sim.events.on('gate', (e) => {
+        const half = GAME.tile / 2;
+        if (this.cameras.main.worldView.contains(e.x * GAME.tile + half, e.y * GAME.tile + half)) {
+          audio.play('gate', { pitch: e.open ? 1 : 0.85, volume: 0.6 });
+        }
+      }),
     );
 
     // --- Oyuncu ---
@@ -994,7 +1000,7 @@ export class WorldScene extends Phaser.Scene {
     const o = world.objectAt(x, y);
     if (o === Obj.None) return [-1, -1];
     const info = OBJ_INFO[o];
-    const idx = objTileIndex(o, o === Obj.Fence ? world.fenceMask(x, y) : 0);
+    const idx = o === Obj.Gate && world.isGateOpen(x, y) ? GATE_OPEN_TILE : objTileIndex(o, o === Obj.Fence ? world.fenceMask(x, y) : 0);
     return info.above ? [-1, idx] : [idx, -1];
   }
 

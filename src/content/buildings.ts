@@ -319,7 +319,7 @@ export interface TileToolDef {
 
 export const TILE_TOOL_DEFS: Record<TileTool, TileToolDef> = {
   fence: { id: 'fence', name: 'Çit', cost: 15, desc: 'Sürükleyerek düz çizgi çek. Köpekler geçemez.' },
-  gate: { id: 'gate', name: 'Kapı', cost: 60, desc: 'Çit üzerinde geçiş.' },
+  gate: { id: 'gate', name: 'Kapı', cost: 60, desc: 'Çit üzerinde geçiş; sen, personel, sahiplenici ve tasmalı köpek yaklaşınca kendiliğinden açılır. Serbest köpekler geçemez.' },
   path: { id: 'path', name: 'Yol', cost: 8, desc: 'Üstünde biraz daha hızlı yürünür.' },
 };
 

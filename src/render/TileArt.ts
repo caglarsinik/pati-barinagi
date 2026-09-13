@@ -2,6 +2,7 @@ import { Rng, hash2 } from '../core/Rng';
 import {
   FENCE_TILE_BASE,
   DEN_TILE,
+  GATE_OPEN_TILE,
   GATE_TILE,
   Ground,
   MESS_TILE,
@@ -37,6 +38,7 @@ export function buildTileset(frame: 0 | 1): Pixels {
   }
   for (let mask = 0; mask < 16; mask++) put(FENCE_TILE_BASE + mask, drawFence(mask));
   put(GATE_TILE, drawGate());
+  put(GATE_OPEN_TILE, drawGateOpen());
   put(MESS_TILE, drawMess());
   put(DEN_TILE, drawDen());
   for (let z = 1; z < Zone.COUNT; z++) put(ZONE_TILE_BASE + z, drawZoneOverlay(ZONE_COLORS[z] ?? 0xffffff));
@@ -81,6 +83,21 @@ export function drawGate(): Pixels {
   p.fillRect(3, 10, 10, 1, P.trunkLight);
   p.fillRect(1, 1, 3, 1, P.trunkLight);
   p.fillRect(12, 1, 3, 1, P.trunkLight);
+  p.outline(P.outline);
+  return p;
+}
+
+/** Açık kapı: iki direk, içeri (yukarı) açılmış iki kısa kanat; arası boş. */
+export function drawGateOpen(): Pixels {
+  const p = new Pixels(TILE, TILE);
+  p.fillRect(1, 2, 3, 12, P.trunk);
+  p.fillRect(12, 2, 3, 12, P.trunk);
+  p.fillRect(1, 1, 3, 1, P.trunkLight);
+  p.fillRect(12, 1, 3, 1, P.trunkLight);
+  p.fillRect(4, 0, 2, 9, P.trunkLight);
+  p.fillRect(10, 0, 2, 9, P.trunkLight);
+  p.fillRect(4, 3, 2, 1, P.trunkDark);
+  p.fillRect(10, 3, 2, 1, P.trunkDark);
   p.outline(P.outline);
   return p;
 }

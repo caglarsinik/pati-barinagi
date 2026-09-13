@@ -4,7 +4,7 @@ import { HUMAN_DIRS, HUMAN_FRAMES, HUMAN_H, HUMAN_W, PLAYER_STYLE, buildHumanShe
 import { EMOTE_KEYS } from '../../src/sim/systems/Emotes';
 import { Pixels, hex } from '../../src/render/Pixels';
 import { TILE, buildTileset } from '../../src/render/TileArt';
-import { FENCE_TILE_BASE, Ground, Obj, TILESET_COLUMNS, TILESET_ROWS, objTileIndex } from '../../src/sim/world/tiles';
+import { FENCE_TILE_BASE, GATE_OPEN_TILE, GATE_TILE, Ground, Obj, TILESET_COLUMNS, TILESET_ROWS, objTileIndex } from '../../src/sim/world/tiles';
 
 function opaqueCount(p: Pixels, x: number, y: number, w: number, h: number): number {
   let n = 0;
@@ -59,6 +59,16 @@ describe('TileArt', () => {
       const y = Math.floor(id / TILESET_COLUMNS) * TILE;
       expect(opaqueCount(sheet, x, y, TILE, TILE), `çit ${m}`).toBeGreaterThan(8);
     }
+    // Açık kapı çizili ve kapalı kapıdan farklı
+    const cropAt = (id: number): Pixels => sheet.crop((id % TILESET_COLUMNS) * TILE, Math.floor(id / TILESET_COLUMNS) * TILE, TILE, TILE);
+    const open = cropAt(GATE_OPEN_TILE);
+    const nOpen = opaqueCount(open, 0, 0, TILE, TILE);
+    expect(nOpen).toBeGreaterThan(10);
+    expect(nOpen).toBeLessThan(TILE * TILE);
+    const closed = cropAt(GATE_TILE);
+    let diff = 0;
+    for (let yy = 0; yy < TILE; yy++) for (let xx = 0; xx < TILE; xx++) if (open.get(xx, yy).join() !== closed.get(xx, yy).join()) diff++;
+    expect(diff).toBeGreaterThan(0);
   });
 
   it('su kareleri iki karede farklı, diğerleri aynı', () => {
