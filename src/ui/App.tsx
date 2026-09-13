@@ -4,6 +4,7 @@ import { AdoptionDesk, FinancePanel, OfficePanel, WeeklyReport } from './Economy
 import { DeploymentPanel, StaffPanel } from './StaffPanels';
 import { SettingsPanel } from './SettingsPanel';
 import { AchievementsPanel } from './AchievementsPanel';
+import { GameOverPanel } from './GameOverPanel';
 import { HelpSheet } from './HelpSheet';
 import { HUD } from './HUD';
 import { MainMenu } from './MainMenu';
@@ -41,6 +42,7 @@ export function App() {
           {panel === 'map' && <MapSheet />}
           {store.report.value && <WeeklyReport />}
           {store.pauseMenu.value && <PauseMenu />}
+          {store.gameOver.value && <GameOverPanel />}
         </>
       )}
       {store.settingsOpen.value && <SettingsPanel />}

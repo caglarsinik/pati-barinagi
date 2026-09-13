@@ -4,7 +4,20 @@ import type { Sim } from '../Sim';
 import { effectiveMessCount, toiletMessCount } from './MessSystem';
 import { t } from '../../i18n';
 
-export type LedgerCategory = 'aid' | 'adoption' | 'refund' | 'food' | 'building' | 'land' | 'treatment' | 'upkeep' | 'wages' | 'license' | 'donation';
+export type LedgerCategory =
+  | 'aid'
+  | 'adoption'
+  | 'refund'
+  | 'food'
+  | 'building'
+  | 'land'
+  | 'treatment'
+  | 'upkeep'
+  | 'wages'
+  | 'license'
+  | 'donation'
+  | 'loan'
+  | 'interest';
 
 export const LEDGER_NAMES_TR: Record<LedgerCategory, string> = {
   aid: 'Devlet yardımı',
@@ -18,6 +31,8 @@ export const LEDGER_NAMES_TR: Record<LedgerCategory, string> = {
   wages: 'Maaşlar',
   license: 'Lisans',
   donation: 'Bağış',
+  loan: 'Kredi',
+  interest: 'Faiz',
 };
 
 export interface LedgerEntry {

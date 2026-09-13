@@ -39,6 +39,8 @@ describe('Kayıt migrasyonu', () => {
     expect(back.policies.adoptionsOpen).toBe(true);
     expect(back.dogs[0].keep).toBe(false);
     expect(back.difficulty).toBe('normal');
+    expect(back.loan).toBe(0);
+    expect(back.gameOver).toBeNull();
     expect(back.buildings.length).toBe(sim.buildings.length);
     expect(back.dogs.length).toBe(sim.dogs.length);
     expect(back.toJSON().version).toBe(GAME.saveVersion);

@@ -69,6 +69,12 @@ export type Difficulty = 'easy' | 'normal' | 'hard';
 export const DIFFICULTIES: readonly Difficulty[] = ['easy', 'normal', 'hard'];
 export const DIFFICULTY_NAMES_TR: Record<Difficulty, string> = { easy: 'Kolay', normal: 'Normal', hard: 'Zor' };
 
+/** Oyun sonu: iflas. Kayda yazılır; yüklemede ekran yeniden açılır. */
+export interface GameOverInfo {
+  reason: 'bankrupt';
+  week: number;
+}
+
 export interface SimEvents extends Record<string, unknown> {
   /** Saat başı geçildi (0-23). */
   hour: number;
@@ -103,6 +109,8 @@ export interface SimEvents extends Record<string, unknown> {
   interacted: { kind: ActionKind; result: ActionOutcome };
   /** Çit kapısı açıldı/kapandı (ses ve çizim). */
   gate: { x: number; y: number; open: boolean };
+  /** İflas: oyun durur, arayüz son ekranı açar. */
+  gameOver: GameOverInfo;
 }
 
 export type Command =
@@ -123,6 +131,8 @@ export type Command =
   | { type: 'adopt'; adopterId: number; dogId: number }
   | { type: 'declineAdopter'; adopterId: number }
   | { type: 'upgradeLicense' }
+  | { type: 'takeLoan' }
+  | { type: 'repayLoan' }
   | { type: 'hire'; candidateId: number }
   | { type: 'fire'; staffId: number }
   | { type: 'setShift'; staffId: number; hour: number; value: 0 | 1 | 2 }
@@ -254,6 +264,11 @@ export class Sim {
   speed: Speed = 1;
   mode: Mode = 'avatar';
   difficulty: Difficulty = 'normal';
+  /** Kalan kredi anaparası. */
+  loan = 0;
+  /** Kasanın art arda kaç hafta iflas eşiğinin altında kaldığı. */
+  negativeWeeks = 0;
+  gameOver: GameOverInfo | null = null;
   money: number;
   tool: Tool = 'pet';
   dogs: Dog[] = [];
@@ -355,7 +370,7 @@ export class Sim {
 
   /** Gerçek zamanlı bir kare ilerletir. Oyuncu hareketi gerçek zamanlı, saat oyun hızıyla ölçekli. */
   update(dtSec: number, input: PlayerInput = IDLE_INPUT): void {
-    if (this.paused || dtSec <= 0) return;
+    if (this.paused || this.gameOver || dtSec <= 0) return;
     const dtMin = dtSec * BALANCE.time.minutesPerRealSecond * this.speed;
     this.stepSim(dtMin);
     // Kapılar gerçek zamanda: oyuncu için katılık, NPC'ler için yakınlık.
@@ -456,9 +471,31 @@ export class Sim {
         this.events.emit('message', t('{name} artık {stage}!', { name: dog.name, stage: t(STAGE_NAMES_TR[dog.stage]).toLowerCase() }));
       }
     }
+    this.applyLoanInterest(newWeek - 1);
     const summary = closeWeek(this, newWeek);
     this.staffSystem.afterPayday();
     this.events.emit('weekReport', summary);
+    this.checkBankruptcy(newWeek);
+  }
+
+  /** Kredi faizi: biten haftanın defterine gider olarak yazılır, anapara değişmez. */
+  private applyLoanInterest(week: number): void {
+    if (this.loan <= 0) return;
+    const interest = Math.round(this.loan * BALANCE.economy.loan.weeklyInterest);
+    if (interest > 0) this.addExpense('interest', interest, t('Kredi faizi'), week);
+  }
+
+  /** İflas sayacı: kasa −(maaş + tampon) altındaysa sayar, art arda eşiğe ulaşınca oyun biter. */
+  private checkBankruptcy(week: number): void {
+    const B = BALANCE.economy.bankruptcy;
+    const threshold = -(this.weeklyWages() + B.buffer);
+    if (this.money < threshold) this.negativeWeeks++;
+    else this.negativeWeeks = 0;
+    if (this.negativeWeeks >= B.weeks && !this.gameOver) {
+      this.gameOver = { reason: 'bankrupt', week };
+      this.setSpeed(0);
+      this.events.emit('gameOver', this.gameOver);
+    }
   }
 
   // ---------------------------------------------------------------------------
@@ -519,6 +556,7 @@ export class Sim {
   // ---------------------------------------------------------------------------
 
   command(cmd: Command): ActionOutcome {
+    if (this.gameOver) return { ok: false, message: t('Oyun bitti') };
     switch (cmd.type) {
       case 'interact':
         return performAction(this);
@@ -671,6 +709,21 @@ export class Sim {
       case 'cancelNav':
         this.nav.cancel();
         return { ok: true };
+      case 'takeLoan': {
+        const L = BALANCE.economy.loan;
+        if (this.loan > 0) return { ok: false, message: t('Önce mevcut krediyi kapat') };
+        this.loan = L.amount;
+        this.addIncome('loan', L.amount, t('Ofis kredisi'));
+        return { ok: true, message: t('{n} ₺ kredi alındı · haftalık faiz %{p}', { n: L.amount, p: Math.round(L.weeklyInterest * 100) }) };
+      }
+      case 'repayLoan': {
+        if (this.loan <= 0) return { ok: false, message: t('Kredi borcu yok') };
+        const n = Math.min(this.loan, Math.floor(this.money));
+        if (n <= 0) return { ok: false, message: t('Kasada para yok') };
+        this.loan -= n;
+        this.addExpense('loan', n, t('Kredi ödemesi'));
+        return { ok: true, message: this.loan > 0 ? t('{n} ₺ ödendi, kalan borç {rest} ₺', { n, rest: this.loan }) : t('Kredi kapatıldı') };
+      }
       case 'upgradeLicense': {
         const cost = licenseUpgradeCost(this.licenseLevel);
         if (cost === null) return { ok: false, message: t('Lisans en üst seviyede') };
@@ -1050,6 +1103,9 @@ export class Sim {
       mode: this.mode,
       money: this.money,
       difficulty: this.difficulty,
+      loan: this.loan,
+      negativeWeeks: this.negativeWeeks,
+      gameOver: this.gameOver,
       tool: this.tool,
       foodStock: this.foodStock,
       treats: this.treats,
@@ -1115,6 +1171,10 @@ export class Sim {
     const money = typeof data.money === 'number' && Number.isFinite(data.money) ? data.money : BALANCE.difficulty[difficulty].startMoney;
     const sim = new Sim(data.seed >>> 0, world, clock, player, money);
     sim.difficulty = difficulty;
+    sim.loan = numOr(data.loan, 0, 0);
+    sim.negativeWeeks = Math.floor(numOr(data.negativeWeeks, 0, 0));
+    const go = data.gameOver as Partial<GameOverInfo> | null | undefined;
+    sim.gameOver = go && go.reason === 'bankrupt' && typeof go.week === 'number' ? { reason: 'bankrupt', week: go.week } : null;
     const speeds = BALANCE.time.speeds as readonly number[];
     sim.speed = speeds.includes(data.speed) && data.speed !== 0 ? (data.speed as Speed) : 1;
     sim.lastRunningSpeed = sim.speed;

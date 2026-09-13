@@ -185,6 +185,15 @@ body {
   color: var(--muted);
 }
 
+.game-over {
+  text-align: center;
+  align-items: center;
+}
+
+.game-over h2 {
+  color: #ff7b7b;
+}
+
 .field input,
 .field select {
   font: inherit;

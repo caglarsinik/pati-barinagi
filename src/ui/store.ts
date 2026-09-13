@@ -1,6 +1,6 @@
 import { signal } from '@preact/signals';
 import { BUILDING_DEFS, type BuildingType, TILE_TOOL_DEFS, type TileTool } from '../content/buildings';
-import type { Mode, Sim } from '../sim/Sim';
+import { type Mode, type Sim, type GameOverInfo } from '../sim/Sim';
 import { ZONE_NAMES_TR, Zone } from '../sim/world/tiles';
 import type { Alert } from '../sim/systems/AlertSystem';
 import type { WeekSummary } from '../sim/systems/EconomySystem';
@@ -62,6 +62,8 @@ export const store = {
   adoptersWaiting: signal(0),
   /** Hafta sonu raporu açık pencere. */
   report: signal<WeekSummary | null>(null),
+  /** İflas ekranı (sim.gameOver yansıması). */
+  gameOver: signal<GameOverInfo | null>(null),
   settingsOpen: signal(false),
   guideHidden: signal(false),
   /** Dünya üstü isim etiketleri (L). */

@@ -216,6 +216,10 @@ class AppController {
       sim.events.on('dogHatched', () => audio.play('hatch')),
       sim.events.on('dogTamed', () => audio.play('tame')),
       sim.events.on('weekReport', () => audio.play('week')),
+      sim.events.on('gameOver', (info) => {
+        store.gameOver.value = info;
+        audio.play('error');
+      }),
       sim.events.on('adopterArrived', () => audio.play('alert')),
       sim.events.on('slept', () => audio.play('sleep')),
       sim.events.on('buildingReady', () => audio.play('build')),
@@ -230,6 +234,7 @@ class AppController {
     store.buildBar.value = false;
     store.build.value = { kind: 'none' };
     store.screen.value = 'game';
+    store.gameOver.value = sim.gameOver;
     syncStore(sim);
   }
 
@@ -255,6 +260,7 @@ class AppController {
     audio.stopMusic();
     store.settingsOpen.value = false;
     store.pauseMenu.value = false;
+    store.gameOver.value = null;
     store.screen.value = 'menu';
   }
 

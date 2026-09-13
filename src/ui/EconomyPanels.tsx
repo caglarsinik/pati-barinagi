@@ -51,6 +51,33 @@ export function OfficePanel() {
           <p class="muted">{t('Lisans en üst seviyede.')}</p>
         )}
         <p class="muted small-text">{t('İtibar {rep}/100 · toplam {n} sahiplendirme', { rep: Math.round(sim.reputation), n: sim.stats.adopted })}</p>
+        <div class="row">
+          {sim.loan > 0 ? (
+            <button
+              class="btn"
+              disabled={sim.money <= 0}
+              onClick={() => {
+                const r = sim.command({ type: 'repayLoan' });
+                run(r);
+                if (r.ok) audio.play('coin');
+              }}
+            >
+              {t('Krediyi öde ({n})', { n: formatMoney(Math.min(sim.loan, Math.max(0, Math.floor(sim.money)))) })}
+            </button>
+          ) : (
+            <button
+              class="btn"
+              onClick={() => {
+                const r = sim.command({ type: 'takeLoan' });
+                run(r);
+                if (r.ok) audio.play('coin');
+              }}
+            >
+              {t('Kredi al ({n}, haftalık %{p} faiz)', { n: formatMoney(BALANCE.economy.loan.amount), p: Math.round(BALANCE.economy.loan.weeklyInterest * 100) })}
+            </button>
+          )}
+          {sim.loan > 0 && <span class="muted small-text">{t('Kalan borç {n}', { n: formatMoney(sim.loan) })}</span>}
+        </div>
         <label class="policy">
           <input
             type="checkbox"
@@ -230,6 +257,14 @@ export function FinancePanel() {
               cap: sim.licenseCap(),
             })}
           </div>
+          {(sim.loan > 0 || sim.negativeWeeks > 0) && (
+            <div class="small-text">
+              {sim.loan > 0 &&
+                t('Kredi borcu {n} · haftalık faiz {f}', { n: formatMoney(sim.loan), f: formatMoney(Math.round(sim.loan * BALANCE.economy.loan.weeklyInterest)) })}
+              {sim.loan > 0 && sim.negativeWeeks > 0 && ' · '}
+              {sim.negativeWeeks > 0 && <b class="bad">{t('İflas riski: {n}/{max} hafta', { n: sim.negativeWeeks, max: BALANCE.economy.bankruptcy.weeks })}</b>}
+            </div>
+          )}
         </div>
         <h4>{t('Bu haftanın hareketleri')}</h4>
         <div class="ledger">

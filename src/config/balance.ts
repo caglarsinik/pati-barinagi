@@ -60,6 +60,10 @@ export const BALANCE = {
     upkeepRate: 0.01,
     startReputation: 20,
     deliveryFee: 10,
+    /** Ofisten kredi: tek seferde bu kadar, haftalık faiz oranı (anaparaya eklenmez, her hafta kasadan düşer). */
+    loan: { amount: 5000, weeklyInterest: 0.05 },
+    /** İflas: kasa art arda bu kadar hafta −(haftalık maaş + tampon) altındaysa oyun biter. */
+    bankruptcy: { weeks: 3, buffer: 1000 },
   },
   staff: {
     baseWage: { caretaker: 350, trainer: 500, vet: 650 } as const,

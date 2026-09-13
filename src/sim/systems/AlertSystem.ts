@@ -56,7 +56,18 @@ export class AlertSystem {
       out.push({ id: 'quarantine', text: t('Karantina alanı yok: yönetim modunda Z ile boya'), severity: 'warn' });
     }
     if (sim.clock.totalMinutes < sim.flags.growlUntil) out.push({ id: 'growl', text: t('Hırlaşma: {a} ve {b}', { a: sim.flags.growlA, b: sim.flags.growlB }), severity: 'warn' });
-    if (sim.money < 0) out.push({ id: 'debt', text: t('Kasa eksiye düştü'), severity: 'danger' });
+    if (sim.money < 0) {
+      const BK = BALANCE.economy.bankruptcy;
+      out.push(
+        sim.negativeWeeks > 0
+          ? { id: 'debt', text: t('İflas riski: {n}/{max} hafta kasa eksi', { n: sim.negativeWeeks, max: BK.weeks }), severity: 'danger' }
+          : { id: 'debt', text: t('Kasa eksiye düştü'), severity: 'danger' },
+      );
+    }
+    if (sim.loan > 0) {
+      const f = Math.round(sim.loan * BALANCE.economy.loan.weeklyInterest);
+      out.push({ id: 'loan', text: t('Kredi borcu {n} ₺ · haftalık faiz {f} ₺', { n: sim.loan, f }), severity: 'info' });
+    }
     if (!sim.policies.adoptionsOpen) out.push({ id: 'adoptClosed', text: t('Sahiplendirme kapalı: sahiplenici gelmiyor'), severity: 'info' });
     const waiting = sim.adopters.filter((a) => a.state === 'waiting');
     if (waiting.length > 0) {

@@ -11,6 +11,9 @@ export interface SaveData {
   mode: string;
   money: number;
   difficulty?: string;
+  loan?: number;
+  negativeWeeks?: number;
+  gameOver?: unknown;
   tool?: string;
   foodStock?: number;
   nextId?: number;
