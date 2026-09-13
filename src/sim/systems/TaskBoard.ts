@@ -71,8 +71,9 @@ export class TaskBoard {
       if (d.needs.hygiene < B.groomBelow) {
         wanted.set(`groom:${d.id}`, { type: 'groom', targetId: d.id, tile, urgency: (B.groomBelow - d.needs.hygiene) / B.groomBelow, key: `groom:${d.id}` });
       }
-      if (d.needs.health < B.treatBelow) {
-        wanted.set(`treat:${d.id}`, { type: 'treat', targetId: d.id, tile, urgency: 0.7 + ((B.treatBelow - d.needs.health) / B.treatBelow) * 0.3, key: `treat:${d.id}` });
+      if (d.needs.health < B.treatBelow || d.illness) {
+        const byHealth = 0.7 + (Math.max(0, B.treatBelow - d.needs.health) / B.treatBelow) * 0.3;
+        wanted.set(`treat:${d.id}`, { type: 'treat', targetId: d.id, tile, urgency: d.illness ? Math.max(0.8, byHealth) : byHealth, key: `treat:${d.id}` });
       }
     }
 

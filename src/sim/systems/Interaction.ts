@@ -130,7 +130,7 @@ export function resolveAction(sim: Sim): ResolvedAction {
     if (building.type === 'vetClinic') {
       const near = nearestDogToBuilding(sim, building, BALANCE.dogs.stationRadius);
       if (!near) return { kind: 'none', hint: t('Veteriner: yakında köpek yok'), building };
-      if (near.needs.health >= 90) return { kind: 'none', hint: t('{name} sağlıklı', { name: near.name }), building };
+      if (near.needs.health >= 90 && !near.illness) return { kind: 'none', hint: t('{name} sağlıklı', { name: near.name }), building };
       return { kind: 'treat', hint: t("E: {name}'i tedavi et ({price} ₺)", { name: near.name, price: BALANCE.economy.treatmentPrice }), building, dog: near };
     }
     if (building.type === 'shed') return { kind: 'shed', hint: t('E: kiler ({n} porsiyon)', { n: Math.floor(sim.foodStock) }), building };
@@ -250,6 +250,7 @@ export function performAction(sim: Sim): ActionOutcome {
       if (sim.money < price) return { ok: false, message: t('İlaç için para yok') };
       sim.addExpense('treatment', price, dog.name);
       dog.needs.health = clamp100(dog.needs.health + B.treatHealthGain);
+      sim.illness.cure(dog);
       interactWith(sim, dog, B.treatDurationMin);
       sim.stats.treated++;
       p.setBusy(1.2, 'treat');

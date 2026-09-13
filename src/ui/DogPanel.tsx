@@ -2,7 +2,7 @@ import { useState } from 'preact/hooks';
 import { app } from '../app';
 import { t } from '../i18n';
 import { buildingDef } from '../sim/entities/Building';
-import { SKILL_KEYS, SKILL_NAMES_TR, STAGE_NAMES_TR } from '../sim/entities/Dog';
+import { ILLNESS_NAMES_TR, SKILL_KEYS, SKILL_NAMES_TR, STAGE_NAMES_TR } from '../sim/entities/Dog';
 import {
   BODY_NAMES_TR,
   COAT_COLORS,
@@ -43,6 +43,7 @@ const STATE_TR: Record<string, string> = {
   toToilet: 'Tuvalete gidiyor',
   toilet: 'Tuvaletini yapıyor',
   toKennel: 'Kulübeye gidiyor',
+  toQuarantine: 'Karantinaya gidiyor',
   toToy: 'Oyuncağa gidiyor',
   play: 'Oynuyor',
   interact: 'Seninle',
@@ -109,7 +110,7 @@ export function DogPanel() {
           </div>
           <div class="muted">
             {t(STATE_TR[dog.state] ?? dog.state)}
-            {dog.sick ? ` · ${t('HASTA')}` : ''}
+            {dog.illness ? ` · ${t('HASTA')}: ${t(ILLNESS_NAMES_TR[dog.illness.kind])}` : dog.sick ? ` · ${t('HASTA')}` : ''}
           </div>
           <div class="muted">{friend && bf ? t('En yakın dostu: {name} (+{score})', { name: friend.name, score: Math.round(bf.score) }) : t('Henüz dostu yok')}</div>
         </div>

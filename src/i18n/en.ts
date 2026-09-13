@@ -731,4 +731,19 @@ export const EN: Record<string, string> = {
   '"Tasma" becerisini öğrenince gezdirebilirsin.': 'Teach the "Leash" skill to take walks.',
   'Gezgin dost': 'Walking buddy',
   'Tasma bilen köpeklerle 10 gezinti yap.': 'Take 10 walks with leash-trained dogs.',
+
+  // M8: hastalık ve karantina
+  Pire: 'Fleas',
+  'Soğuk algınlığı': 'A cold',
+  'Mide bozukluğu': 'Upset stomach',
+  '{name} hastalandı: {illness}': '{name} fell ill: {illness}',
+  '{name} hastalandı: {illness} ({from} bulaştırdı)': '{name} fell ill: {illness} (caught from {from})',
+  '{name} iyileşti: {illness}': '{name} recovered: {illness}',
+  '{name} kendiliğinden iyileşti ({illness})': '{name} recovered on their own ({illness})',
+  '{name} hasta: {illness}': '{name} is sick: {illness}',
+  'Karantina alanı yok: yönetim modunda Z ile boya': 'No quarantine zone: paint one with Z in manage mode',
+  'Karantinaya gidiyor': 'Going to quarantine',
+  'Bulaşıcı hastalığı olan köpek karantina alanında kalsın (bulaşmayı keser; alan yoksa Z ile boya)': 'Keep contagious dogs in the quarantine zone (stops spreading; paint one with Z if missing)',
+  Şifacı: 'Healer',
+  '10 hastalığı tedaviyle geçir.': 'Cure 10 illnesses with treatment.',
 };

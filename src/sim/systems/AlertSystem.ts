@@ -1,5 +1,7 @@
 import { BALANCE } from '../../config/balance';
 import type { TilePos } from '../world/TileWorld';
+import { ILLNESS_NAMES_TR } from '../entities/Dog';
+import { Zone } from '../world/tiles';
 import type { Sim } from '../Sim';
 import { t } from '../../i18n';
 
@@ -26,7 +28,8 @@ export class AlertSystem {
       if (dog.wild) continue;
       const n = dog.needs;
       const name = dog.name;
-      if (dog.sick) out.push({ id: `sick-${dog.id}`, text: t('{name} hasta', { name }), severity: 'danger', dogId: dog.id });
+      if (dog.illness) out.push({ id: `ill-${dog.id}`, text: t('{name} hasta: {illness}', { name, illness: t(ILLNESS_NAMES_TR[dog.illness.kind]) }), severity: 'danger', dogId: dog.id });
+      else if (dog.sick) out.push({ id: `sick-${dog.id}`, text: t('{name} hasta', { name }), severity: 'danger', dogId: dog.id });
       if (n.hunger >= 80) out.push({ id: `hunger-${dog.id}`, text: t('{name} çok aç', { name }), severity: n.hunger >= 95 ? 'danger' : 'warn', dogId: dog.id });
       else if (n.hunger >= 60 && sim.clock.isMealTime()) out.push({ id: `meal-${dog.id}`, text: t('{name} yemek bekliyor', { name }), severity: 'info', dogId: dog.id });
       if (n.thirst >= 85) out.push({ id: `thirst-${dog.id}`, text: t('{name} çok susuz', { name }), severity: 'danger', dogId: dog.id });
@@ -46,6 +49,9 @@ export class AlertSystem {
     if (emptyBowls > 0 && sim.shelterDogs().length > 0) out.push({ id: 'bowls', text: emptyBowls === 1 ? t('Bir yem kabı boş') : t('{n} yem kabı boş', { n: emptyBowls }), severity: 'info' });
     const emptyTroughs = sim.buildings.filter((b) => b.type === 'trough' && b.water <= 0).length;
     if (emptyTroughs > 0 && sim.shelterDogs().length > 0) out.push({ id: 'troughs', text: emptyTroughs === 1 ? t('Su yalağı boş') : t('{n} su yalağı boş', { n: emptyTroughs }), severity: 'warn' });
+    if (sim.policies.quarantineSick && sim.shelterDogs().some((d) => d.illness) && sim.world.zoneTiles(Zone.Quarantine).length === 0) {
+      out.push({ id: 'quarantine', text: t('Karantina alanı yok: yönetim modunda Z ile boya'), severity: 'warn' });
+    }
     if (sim.clock.totalMinutes < sim.flags.growlUntil) out.push({ id: 'growl', text: t('Hırlaşma: {a} ve {b}', { a: sim.flags.growlA, b: sim.flags.growlB }), severity: 'warn' });
     if (sim.money < 0) out.push({ id: 'debt', text: t('Kasa eksiye düştü'), severity: 'danger' });
     const waiting = sim.adopters.filter((a) => a.state === 'waiting');

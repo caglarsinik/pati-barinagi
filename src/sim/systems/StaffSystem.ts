@@ -325,6 +325,7 @@ export class StaffSystem {
           if (sim.money >= price) {
             sim.addExpense('treatment', price, t('{dog} ({staff})', { dog: dog.name, staff: s.name }));
             dog.needs.health = clamp100(dog.needs.health + BALANCE.dogs.treatHealthGain);
+            sim.illness.cure(dog);
             sim.stats.treated++;
           } else sim.events.emit('message', t('{name}: ilaç için para yok', { name: s.name }));
         }

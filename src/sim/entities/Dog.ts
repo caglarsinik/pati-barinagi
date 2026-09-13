@@ -25,6 +25,15 @@ export interface DogNeeds {
   energy: number;
 }
 
+export const ILLNESS_KINDS = ['flea', 'cold', 'stomach'] as const;
+export type IllnessKind = (typeof ILLNESS_KINDS)[number];
+export interface Illness {
+  kind: IllnessKind;
+  /** Kaç gündür hasta. */
+  days: number;
+}
+export const ILLNESS_NAMES_TR: Record<IllnessKind, string> = { flea: 'Pire', cold: 'Soğuk algınlığı', stomach: 'Mide bozukluğu' };
+
 export const SKILL_KEYS = ['sit', 'stay', 'come', 'leash', 'potty', 'social'] as const;
 export type SkillKey = (typeof SKILL_KEYS)[number];
 export const SKILL_NAMES_TR: Record<SkillKey, string> = {
@@ -49,6 +58,7 @@ export type DogState =
   | 'toToilet'
   | 'toilet'
   | 'toKennel'
+  | 'toQuarantine'
   | 'toToy'
   | 'play'
   | 'interact'
@@ -81,6 +91,7 @@ export interface DogSave {
   following?: boolean;
   friends?: Record<string, number>;
   walking?: boolean;
+  illness?: Illness | null;
 }
 
 export function defaultNeeds(origin: DogOrigin): DogNeeds {
@@ -130,6 +141,8 @@ export class Dog {
   playmateId: number | null = null;
   /** Tasmada, oyuncuyla gezintide (kayda yazılır). */
   walking = false;
+  /** Bulaşıcı hastalık; null ise yok (kayda yazılır). */
+  illness: Illness | null = null;
   /** Gezintide arsadan çıktı mı; çıkıp geri girince gezinti biter (kayda yazılmaz). */
   walkLeftPlot = false;
   /** Gezinti bitirildi, kendi başına eve dönüyor (kayda yazılmaz). */
@@ -171,8 +184,9 @@ export class Dog {
     return Math.floor(this.y);
   }
 
+  /** Hasta: sağlığı düşük ya da bulaşıcı hastalığı var. Sahiplendirilemez, tedavi görevi doğurur. */
   get sick(): boolean {
-    return this.needs.health < BALANCE.dogs.sickBelowHealth;
+    return this.needs.health < BALANCE.dogs.sickBelowHealth || this.illness !== null;
   }
 
   /** Bir öğünde yediği porsiyon. */
@@ -246,6 +260,7 @@ export class Dog {
       following: this.following,
       friends: { ...this.friends },
       walking: this.walking,
+      illness: this.illness ? { ...this.illness } : null,
     };
   }
 
@@ -282,6 +297,10 @@ export class Dog {
       }
     }
     dog.walking = d.walking === true && !dog.wild;
+    const ill = d.illness;
+    if (ill && typeof ill === 'object' && ILLNESS_KINDS.includes(ill.kind)) {
+      dog.illness = { kind: ill.kind, days: typeof ill.days === 'number' && Number.isFinite(ill.days) ? Math.max(0, Math.floor(ill.days)) : 0 };
+    }
     return dog;
   }
 }

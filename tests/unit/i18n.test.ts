@@ -3,7 +3,7 @@ import { WEEKDAYS_TR } from '../../src/core/Clock';
 import { BUILDING_DEFS, CATEGORY_NAMES_TR, TILE_TOOL_DEFS } from '../../src/content/buildings';
 import { EN } from '../../src/i18n/en';
 import { getLang, setLang, t } from '../../src/i18n';
-import { SKILL_NAMES_TR, STAGE_NAMES_TR } from '../../src/sim/entities/Dog';
+import { ILLNESS_NAMES_TR, SKILL_NAMES_TR, STAGE_NAMES_TR } from '../../src/sim/entities/Dog';
 import {
   BODY_NAMES_TR,
   COAT_COLORS,
@@ -46,6 +46,7 @@ function tableValues(): string[] {
   push(CATEGORY_NAMES_TR);
   push(STAGE_NAMES_TR);
   push(SKILL_NAMES_TR);
+  push(ILLNESS_NAMES_TR);
   push(BODY_NAMES_TR);
   push(EAR_NAMES_TR);
   push(PATTERN_NAMES_TR);

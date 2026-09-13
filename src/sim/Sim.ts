@@ -45,6 +45,7 @@ import {
 } from './systems/EconomySystem';
 import { packExplored, revealAround, unpackExplored } from './systems/Exploration';
 import { placeEgg, takeEgg, tickIncubators } from './systems/IncubatorSystem';
+import { IllnessSystem } from './systems/IllnessSystem';
 import { type ActionOutcome, TOOL_DEFS, type Tool, performAction } from './systems/Interaction';
 import { rebuildMessSet } from './systems/MessSystem';
 import { NeedsSystem } from './systems/NeedsSystem';
@@ -126,10 +127,12 @@ export interface Policies {
   foodThreshold: number;
   /** Personel köpekleri bu beceri seviyesine kadar eğitir (0 = eğitme). */
   trainTarget: number;
+  /** Bulaşıcı hastalığı olan köpek karantina alanında kalsın. */
+  quarantineSick: boolean;
 }
 
 export function defaultPolicies(): Policies {
-  return { autoOrderFood: false, foodThreshold: 10, trainTarget: 6 };
+  return { autoOrderFood: false, foodThreshold: 10, trainTarget: 6, quarantineSick: true };
 }
 
 export interface SimFlags {
@@ -170,6 +173,9 @@ export interface SimStats {
   /** Gezinti ve çağırma sayısı. */
   walks: number;
   calls: number;
+  /** Başlayan ve tedaviyle geçen hastalıklar. */
+  illnesses: number;
+  cured: number;
   hired: number;
   slept: number;
 }
@@ -198,6 +204,8 @@ function emptyStats(): SimStats {
     growls: 0,
     walks: 0,
     calls: 0,
+    illnesses: 0,
+    cured: 0,
     hired: 0,
     slept: 0,
   };
@@ -223,6 +231,7 @@ export class Sim {
   readonly weatherSys: WeatherSystem;
   readonly eventSys: EventSystem;
   readonly achievements: AchievementSystem;
+  readonly illness: IllnessSystem;
   flags: SimFlags = { foodDiscountDay: 0, extraAdoptersDay: 0, growlUntil: 0, growlA: '', growlB: '' };
   speed: Speed = 1;
   mode: Mode = 'avatar';
@@ -274,7 +283,10 @@ export class Sim {
     this.weatherSys = new WeatherSystem(this);
     this.eventSys = new EventSystem(this);
     this.achievements = new AchievementSystem(this);
+    this.illness = new IllnessSystem(this);
     this.events.on('day', (d) => this.needs.onDay(d));
+    this.events.on('day', () => this.illness.onDay());
+    this.events.on('hour', () => this.illness.onHour());
     this.events.on('hour', (h) => this.eventSys.onHour(h));
     this.events.on('week', (w) => this.onWeek(w));
     this.events.on('hour', (h) => this.onHour(h));
@@ -575,6 +587,7 @@ export class Sim {
         if (typeof p.autoOrderFood === 'boolean') this.policies.autoOrderFood = p.autoOrderFood;
         if (typeof p.foodThreshold === 'number' && Number.isFinite(p.foodThreshold)) this.policies.foodThreshold = Math.max(0, Math.min(200, Math.round(p.foodThreshold)));
         if (typeof p.trainTarget === 'number' && Number.isFinite(p.trainTarget)) this.policies.trainTarget = Math.max(0, Math.min(6, Math.round(p.trainTarget)));
+        if (typeof p.quarantineSick === 'boolean') this.policies.quarantineSick = p.quarantineSick;
         return { ok: true };
       }
       case 'walkDog': {
@@ -1236,6 +1249,7 @@ export class Sim {
       if (typeof p.autoOrderFood === 'boolean') sim.policies.autoOrderFood = p.autoOrderFood;
       if (typeof p.foodThreshold === 'number') sim.policies.foodThreshold = p.foodThreshold;
       if (typeof p.trainTarget === 'number') sim.policies.trainTarget = p.trainTarget;
+      if (typeof p.quarantineSick === 'boolean') sim.policies.quarantineSick = p.quarantineSick;
     }
     sim.weatherSys.load(data.weather);
     sim.eventSys.load(data.eventLog);

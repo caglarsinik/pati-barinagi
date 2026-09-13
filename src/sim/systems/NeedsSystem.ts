@@ -17,6 +17,8 @@ export class NeedsSystem {
   private updateDog(dog: Dog, dtH: number, wm: WeatherModifiers): void {
     const B = BALANCE.dogs.needs;
     const S = BALANCE.dogs.senior;
+    const I = BALANCE.dogs.illness;
+    const ill = dog.illness?.kind;
     const senior = dog.stage === 'senior';
     const n = dog.needs;
     const asleep = dog.isAsleep();
@@ -33,11 +35,11 @@ export class NeedsSystem {
       n.play = clamp100(n.play - playRate * dtH + (inYard ? B.playYardGainPerHour * wm.playYard * dtH : 0));
     }
 
-    n.bladder = clamp100(n.bladder + B.bladderPerHour * (asleep ? 0.4 : 1) * dtH);
-    n.hygiene = clamp100(n.hygiene - B.hygieneDecayPerHour * (asleep ? 1 : wm.hygiene) * dtH);
+    n.bladder = clamp100(n.bladder + (B.bladderPerHour * (asleep ? 0.4 : 1) + (ill === 'stomach' ? I.stomachBladderPerHour : 0)) * dtH);
+    n.hygiene = clamp100(n.hygiene - (B.hygieneDecayPerHour * (asleep ? 1 : wm.hygiene) + (ill === 'flea' ? I.fleaHygienePerHour : 0)) * dtH);
 
     if (asleep) n.energy = clamp100(n.energy + B.energyRegenPerHour * (dog.kennelId === null ? 0.5 : 1) * dtH);
-    else n.energy = clamp100(n.energy - (night ? B.energyDecayPerHour * 2 : B.energyDecayPerHour) * wm.energy * dtH);
+    else n.energy = clamp100(n.energy - (night ? B.energyDecayPerHour * 2 : B.energyDecayPerHour) * wm.energy * (ill === 'cold' ? I.coldEnergyDrainMul : 1) * dtH);
 
     if (n.hunger > B.healthDropHungerAbove || n.hygiene < B.healthDropHygieneBelow) {
       n.health = clamp100(n.health - B.healthDropPerHour * (senior ? S.healthDecayMul : 1) * dtH);

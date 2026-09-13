@@ -38,6 +38,7 @@ export class DogBrain {
       case 'toTrough':
       case 'toToilet':
       case 'toKennel':
+      case 'toQuarantine':
       case 'toToy':
       case 'wander':
         this.followPath(dog, dtMin);
@@ -230,6 +231,20 @@ export class DogBrain {
       return;
     }
 
+    // Karantina: bulaşıcı hastalığı olan köpek politika açıksa alanda kalır (acil ihtiyaçlar hariç).
+    if (dog.illness && sim.policies.quarantineSick) {
+      const inQ = sim.world.zoneAt(dog.tileX, dog.tileY) === Zone.Quarantine;
+      const urgent = n.thirst >= B.drinkAboveThirst || n.hunger >= B.eatAboveHunger || n.bladder >= B.toiletAboveBladder;
+      if (!urgent) {
+        if (inQ) {
+          this.setState(dog, sim.rng.next() < 0.6 ? 'lie' : 'sit', sim.rng.int(10, 30));
+          return;
+        }
+        const target = this.nearestZoneTile(dog, Zone.Quarantine);
+        if (target && this.goTo(dog, target, 'toQuarantine')) return;
+      }
+    }
+
     // Susuzluk: dolu bir yalak bul (açlıktan önce; su daha çabuk zarar verir).
     if (n.thirst >= B.drinkAboveThirst) {
       const trough = this.findTrough(dog);
@@ -312,6 +327,9 @@ export class DogBrain {
       case 'toKennel':
         this.setState(dog, 'sleep', 0);
         break;
+      case 'toQuarantine':
+        this.setState(dog, 'lie', this.sim.rng.int(10, 30));
+        break;
       case 'toToy':
         this.setState(dog, 'play', B.selfPlayDurationMin);
         break;
@@ -376,6 +394,7 @@ export class DogBrain {
     let bestScore = 0;
     for (const other of this.sim.dogs) {
       if (other === dog || other.wild || other.playmateId !== null || other.isAsleep()) continue;
+      if (other.illness && this.sim.policies.quarantineSick) continue;
       if (other.state !== 'idle' && other.state !== 'wander' && other.state !== 'sit' && other.state !== 'lie') continue;
       if (other.needs.play >= S.partnerBelowPlay || other.needs.energy < BALANCE.dogs.playMinEnergy) continue;
       const dist = Math.hypot(other.x - dog.x, other.y - dog.y);
@@ -659,7 +678,7 @@ export class DogBrain {
   private setState(dog: Dog, state: Dog['state'], minutes: number): void {
     dog.state = state;
     dog.stateTimer = minutes;
-    if (state !== 'toBowl' && state !== 'toTrough' && state !== 'toToilet' && state !== 'toKennel' && state !== 'toToy' && state !== 'toFriend' && state !== 'wander') dog.path = [];
+    if (state !== 'toBowl' && state !== 'toTrough' && state !== 'toToilet' && state !== 'toKennel' && state !== 'toQuarantine' && state !== 'toToy' && state !== 'toFriend' && state !== 'wander') dog.path = [];
   }
 
   private setIdle(dog: Dog, minutes: number): void {

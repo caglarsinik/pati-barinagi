@@ -65,11 +65,12 @@ export class EventSystem {
         }
         break;
       case 16:
-        if (rng.chance(E.vetChance) && dogs.some((d) => d.needs.health < 80)) {
+        if (rng.chance(E.vetChance) && dogs.some((d) => d.needs.health < 80 || d.illness)) {
           let healed = 0;
           for (const d of dogs) {
-            if (d.needs.health < 90) {
-              d.needs.health = 90;
+            if (d.needs.health < 90 || d.illness) {
+              d.needs.health = Math.max(d.needs.health, 90);
+              sim.illness.cure(d);
               healed++;
             }
           }

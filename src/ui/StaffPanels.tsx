@@ -303,6 +303,10 @@ export function DeploymentPanel() {
                 ))}
               </select>
             </label>
+            <label class="policy">
+              <input type="checkbox" checked={sim.policies.quarantineSick} onChange={(e) => sim.command({ type: 'setPolicy', policy: { quarantineSick: (e.target as HTMLInputElement).checked } })} />
+              <span>{t('Bulaşıcı hastalığı olan köpek karantina alanında kalsın (bulaşmayı keser; alan yoksa Z ile boya)')}</span>
+            </label>
             <p class="muted small-text">
               {t(
                 'Öğün saatleri {hours}:00; bu saatlerde yem görevleri öne çıkar. Temizlik her pislikte, tımar temizlik {g} altına inince, tedavi sağlık {t} altına inince görev olur.',

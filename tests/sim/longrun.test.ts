@@ -55,6 +55,8 @@ describe('Uzun koşu', () => {
     expect(sim.money).toBeGreaterThan(1500);
     // Yavru büyüdü.
     expect(dogs[1].stage).toBe('young');
+    // Hastalık barınağı ele geçirmedi.
+    expect(sim.shelterDogs().filter((d) => d.illness).length).toBeLessThanOrEqual(Math.ceil(sim.shelterDogs().length / 2));
     console.log(`4 hafta sonu: kasa ${Math.round(sim.money)}, yardım ${aid}, maaş ${wages}, görev ${sim.stats.staffTasks}, min sağlık ${Math.min(...health).toFixed(0)}`);
   });
 

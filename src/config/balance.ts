@@ -232,6 +232,22 @@ export const BALANCE = {
       playfulSelfPlayBelow: 50,
       calmLieMul: 1.5,
     },
+    /** Hastalıklar: günlük başlangıç zarları, saatlik bulaşma, etkiler. */
+    illness: {
+      fleaHygieneBelow: 25,
+      fleaChance: 0.05,
+      /** Kulübesiz + kış/yağmur/kar. */
+      coldChance: 0.08,
+      stomachMessAbove: 3,
+      stomachChance: 0.04,
+      spreadRadius: 2,
+      spreadPerHour: { flea: 0.03, cold: 0.02, stomach: 0 } as const,
+      fleaHygienePerHour: 3,
+      coldEnergyDrainMul: 1.4,
+      stomachBladderPerHour: 5,
+      /** Tedavi edilmezse bu kadar günde kendiliğinden geçer. */
+      selfHealDays: 7,
+    },
     /** Öğrenilen becerilerin etkisi (100 olunca). */
     skills: {
       /** "Otur": oyuncu bu kadar saniye bitişik durunca köpek oturur. */
