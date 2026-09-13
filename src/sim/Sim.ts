@@ -55,6 +55,7 @@ import { StaffSystem } from './systems/StaffSystem';
 import { TaskBoard } from './systems/TaskBoard';
 import { type AchievementDef, AchievementSystem } from './systems/Achievements';
 import { EventSystem, type GameEvent } from './systems/EventSystem';
+import { GateSystem } from './systems/GateSystem';
 import type { EmoteEvent } from './systems/Emotes';
 import { type Weather, WeatherSystem } from './systems/WeatherSystem';
 import type { TilePos, TileWorld } from './world/TileWorld';
@@ -96,6 +97,8 @@ export interface SimEvents extends Record<string, unknown> {
   emote: EmoteEvent;
   /** Dokun-git varışında yapılan E eylemi (ses ve panel açma için). */
   interacted: { kind: ActionKind; result: ActionOutcome };
+  /** Çit kapısı açıldı/kapandı (ses ve çizim). */
+  gate: { x: number; y: number; open: boolean };
 }
 
 export type Command =
@@ -242,6 +245,7 @@ export class Sim {
   readonly achievements: AchievementSystem;
   readonly illness: IllnessSystem;
   readonly nav: PlayerNav;
+  readonly gates: GateSystem;
   flags: SimFlags = { foodDiscountDay: 0, extraAdoptersDay: 0, growlUntil: 0, growlA: '', growlB: '' };
   speed: Speed = 1;
   mode: Mode = 'avatar';
@@ -295,6 +299,7 @@ export class Sim {
     this.achievements = new AchievementSystem(this);
     this.illness = new IllnessSystem(this);
     this.nav = new PlayerNav(this);
+    this.gates = new GateSystem(this);
     this.events.on('day', (d) => this.needs.onDay(d));
     this.events.on('day', () => this.illness.onDay());
     this.events.on('hour', () => this.illness.onHour());
@@ -347,6 +352,8 @@ export class Sim {
     if (this.paused || dtSec <= 0) return;
     const dtMin = dtSec * BALANCE.time.minutesPerRealSecond * this.speed;
     this.stepSim(dtMin);
+    // Kapılar gerçek zamanda: oyuncu için katılık, NPC'ler için yakınlık.
+    this.gates.update(dtSec);
     if (this.mode === 'avatar') {
       // Klavye girişi dokun-git yolunu iptal eder; girdi yoksa yol takibi girdiyi üretir.
       const manual = input.dx !== 0 || input.dy !== 0;
@@ -1309,7 +1316,9 @@ export class Sim {
       for (const raw of data.adopters) {
         const a = adopterFromJSON(raw);
         if (!a) continue;
-        if (world.isSolid(Math.floor(a.x), Math.floor(a.y))) continue;
+        const ax = Math.floor(a.x);
+        const ay = Math.floor(a.y);
+        if (world.isSolid(ax, ay) && world.objectAt(ax, ay) !== Obj.Gate) continue;
         sim.adopters.push(a);
         maxId = Math.max(maxId, a.id);
       }
@@ -1321,6 +1330,8 @@ export class Sim {
     }
     sim.nextId = Math.max(typeof data.nextId === 'number' ? data.nextId : 1, maxId + 1);
 
+    // Kapı karesinde kaydedilmiş oyuncu için kapı önce açılır.
+    sim.gates.update(0);
     if (player.collides(world, player.x, player.y)) {
       player.x = world.spawn.x;
       player.y = world.spawn.y;

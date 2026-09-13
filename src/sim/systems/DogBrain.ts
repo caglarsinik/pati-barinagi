@@ -175,7 +175,7 @@ export class DogBrain {
     }
     if (dist > 1.6) {
       if (dog.path.length === 0 || dog.stateTimer <= 0) {
-        const path = findPath(w, { x: dog.tileX, y: dog.tileY }, { x: p.tileX, y: p.tileY }, { maxNodes: 2500, adjacentOk: true });
+        const path = findPath(w, { x: dog.tileX, y: dog.tileY }, { x: p.tileX, y: p.tileY }, { maxNodes: 2500, adjacentOk: true, throughGates: true });
         dog.path = path ?? [];
         dog.stateTimer = 1.5;
       }
@@ -597,7 +597,7 @@ export class DogBrain {
     if (dog.path.length === 0) {
       const office = sim.buildings.find((b) => b.type === 'office');
       const door = office ? buildingDoorTile(office) : { x: Math.floor(w.spawn.x), y: Math.floor(w.spawn.y) };
-      const path = findPath(w, { x: dog.tileX, y: dog.tileY }, door, { maxNodes: 8000, adjacentOk: true });
+      const path = findPath(w, { x: dog.tileX, y: dog.tileY }, door, { maxNodes: 8000, adjacentOk: true, throughGates: true });
       if (!path || path.length === 0) {
         dog.x = door.x + 0.5;
         dog.y = door.y + 0.5;

@@ -1,4 +1,5 @@
 import type { Rect, TilePos, TileWorld } from './TileWorld';
+import { Obj } from './tiles';
 
 /** İkili yığın (min-heap) açık liste. */
 class Heap {
@@ -72,6 +73,8 @@ export interface PathOptions {
   maxNodes?: number;
   /** Hedef kare geçilmez olsa da (kap gibi) yanına gelmek yeterli. */
   adjacentOk?: boolean;
+  /** Kapalı çit kapısı geçilebilir sayılır (kapı izinli aktöre kendiliğinden açılır). */
+  throughGates?: boolean;
 }
 
 /**
@@ -84,7 +87,9 @@ export function findPath(world: TileWorld, from: TilePos, to: TilePos, opts: Pat
   const inRegion = (x: number, y: number): boolean =>
     x >= region.x && y >= region.y && x < region.x + region.w && y < region.y + region.h;
   if (!inRegion(from.x, from.y) || !inRegion(to.x, to.y)) return null;
-  const goalSolid = world.isSolid(to.x, to.y);
+  const blocked = (x: number, y: number): boolean =>
+    world.isSolid(x, y) && !(opts.throughGates === true && world.objectAt(x, y) === Obj.Gate);
+  const goalSolid = blocked(to.x, to.y);
   if (goalSolid && !opts.adjacentOk) return null;
   if (from.x === to.x && from.y === to.y) return [];
 
@@ -126,11 +131,11 @@ export function findPath(world: TileWorld, from: TilePos, to: TilePos, opts: Pat
       const nx = cx + dx;
       const ny = cy + dy;
       if (!inRegion(nx, ny)) continue;
-      const solid = world.isSolid(nx, ny);
+      const solid = blocked(nx, ny);
       if (solid && !(goalSolid && nx === to.x && ny === to.y && opts.adjacentOk)) continue;
       if (solid) continue; // hedef geçilmezse ona basmayız, yanında dururuz
       // Köşe kesme yok: çapraz adımda iki dik komşu da açık olmalı.
-      if (dx !== 0 && dy !== 0 && (world.isSolid(cx + dx, cy) || world.isSolid(cx, cy + dy))) continue;
+      if (dx !== 0 && dy !== 0 && (blocked(cx + dx, cy) || blocked(cx, cy + dy))) continue;
       const ni = ny * W + nx;
       if (closed.has(ni)) continue;
       const ng = gc + cost;

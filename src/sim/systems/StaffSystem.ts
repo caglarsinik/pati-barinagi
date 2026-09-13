@@ -6,7 +6,8 @@ import type { Facing } from '../entities/Player';
 import { STAFF_ROLES, Staff, type StaffRole, type TaskType, randomCandidate } from '../entities/Staff';
 import { findPath } from '../world/Pathfinder';
 import type { TilePos } from '../world/TileWorld';
-import { Obj, Zone } from '../world/tiles';
+import { entryPoint } from '../world/gates';
+import { Zone } from '../world/tiles';
 import type { Sim } from '../Sim';
 import { trainingZoneFactor } from './Interaction';
 import { cleanMess } from './MessSystem';
@@ -40,9 +41,9 @@ export class StaffSystem {
     if (idx === -1) return { ok: false, message: t('Aday artık yok') };
     if (sim.staff.length >= BALANCE.staff.maxStaff) return { ok: false, message: t('En fazla {n} personel', { n: BALANCE.staff.maxStaff }) };
     const s = sim.candidates.splice(idx, 1)[0];
-    const gate = this.gateTile();
-    s.x = gate.x + 0.5;
-    s.y = gate.y + 0.5;
+    const at = this.entryOutside();
+    s.x = at.x + 0.5;
+    s.y = at.y + 0.5;
     s.state = 'offDuty';
     s.hiredDay = sim.clock.day;
     sim.staff.push(s);
@@ -130,13 +131,19 @@ export class StaffSystem {
 
     // Vardiya başladı: kapıdan gir.
     if (s.state === 'offDuty') {
-      const gate = this.gateTile();
-      s.x = gate.x + 0.5;
-      s.y = gate.y + 0.5;
+      const e = entryPoint(sim.world, 'south');
+      const at = e?.outside ?? this.spawnTile();
+      s.x = at.x + 0.5;
+      s.y = at.y + 0.5;
       s.state = 'idle';
       s.energy = Math.max(s.energy, 60);
+      // Kapının dışında belirir, içeri yürür (yolu olan boştaki personel yürüyordur).
+      s.path = e ? (this.pathTo(s, e.inside) ?? []) : [];
     }
-    if (s.state === 'leaving') s.state = 'idle';
+    if (s.state === 'leaving') {
+      s.state = 'idle';
+      s.path = [];
+    }
 
     // Enerji
     const night = sim.clock.isNight() && !s.has('nightOwl');
@@ -149,6 +156,10 @@ export class StaffSystem {
 
     switch (s.state) {
       case 'idle':
+        if (s.path.length > 0) {
+          this.followPath(s, dtMin);
+          break;
+        }
         if (needsRest) {
           this.goRest(s);
           break;
@@ -220,7 +231,7 @@ export class StaffSystem {
     const w = this.sim.world;
     const from = { x: s.tileX, y: s.tileY };
     const inside = w.inPlot(tile.x, tile.y) && w.inPlot(from.x, from.y);
-    return findPath(w, from, tile, { region: inside ? w.plot : undefined, maxNodes: 5000, adjacentOk: true });
+    return findPath(w, from, tile, { region: inside ? w.plot : undefined, maxNodes: 5000, adjacentOk: true, throughGates: true });
   }
 
   private arriveAtTask(s: Staff, task: Task): void {
@@ -385,18 +396,17 @@ export class StaffSystem {
 
   private startLeaving(s: Staff): void {
     this.dropTask(s);
-    const gate = this.gateTile();
-    s.path = this.pathTo(s, gate) ?? [];
+    s.path = this.pathTo(s, this.entryOutside()) ?? [];
     s.state = 'leaving';
   }
 
-  private gateTile(): TilePos {
+  /** Personelin kullandığı kapının dış karesi (güney kapı tercih); kapı yoksa doğuş noktası. */
+  private entryOutside(): TilePos {
+    return entryPoint(this.sim.world, 'south')?.outside ?? this.spawnTile();
+  }
+
+  private spawnTile(): TilePos {
     const w = this.sim.world;
-    const p = w.plot;
-    const bottom = p.y + p.h - 1;
-    for (let x = p.x; x < p.x + p.w; x++) if (w.objectAt(x, bottom) === Obj.Gate) return { x, y: bottom };
-    const right = p.x + p.w - 1;
-    for (let y = p.y; y < p.y + p.h; y++) if (w.objectAt(right, y) === Obj.Gate) return { x: right, y };
     return { x: Math.floor(w.spawn.x), y: Math.floor(w.spawn.y) };
   }
 

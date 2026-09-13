@@ -311,6 +311,13 @@ export const BALANCE = {
     inspectionBonusPerDog: 60,
     inspectionFine: 200,
   },
+  /** Otomatik çit kapısı (GateSystem). */
+  gates: {
+    /** İzinli aktör kapı karesinin merkezine bu kadar yaklaşınca açılır (kare). */
+    openRadius: 1.6,
+    /** Kimse kalmayınca bu kadar saniye sonra kapanır. */
+    closeDelaySec: 1.0,
+  },
   /** Dokun-git: oyuncu yol takibi (PlayerNav). */
   nav: {
     plotMaxNodes: 4000,

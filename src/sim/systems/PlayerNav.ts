@@ -125,7 +125,7 @@ export class PlayerNav {
       const p = findPath(w, from, to, { region: w.plotInterior(), maxNodes: N.plotMaxNodes, adjacentOk });
       if (p) return p;
     }
-    return findPath(w, from, to, { maxNodes: N.maxNodes, adjacentOk });
+    return findPath(w, from, to, { maxNodes: N.maxNodes, adjacentOk, throughGates: true });
   }
 
   /** Bu karedeki girdi: sıradaki kareye doğru -1/0/1; yol bitince varış işlenir. */

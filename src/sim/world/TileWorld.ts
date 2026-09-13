@@ -39,6 +39,11 @@ export class TileWorld {
   /** Üretimden sonra değişen nesne kareleri (kayıt için): kare indeksi → nesne. */
   objectChanges = new Map<number, number>();
   private zoneCache = new Map<Zone, TilePos[]>();
+  /** Kapı kareleri açık mı (1). Kayda yazılmaz; yüklemede hepsi kapalı başlar. */
+  readonly gateOpen: Uint8Array;
+  /** Kapı kümesi değişince artar; GateSystem gruplarını yeniden kurar. */
+  gateVersion = 0;
+  private gateCache: TilePos[] | null = null;
 
   constructor(width: number, height: number, plot: Rect) {
     this.width = width;
@@ -52,6 +57,7 @@ export class TileWorld {
     this.buildingIndex = new Int32Array(n).fill(-1);
     this.buildingSolid = new Uint8Array(n);
     this.explored = new Uint8Array(n);
+    this.gateOpen = new Uint8Array(n);
     this.plot = { ...plot };
   }
 
@@ -116,6 +122,13 @@ export class TileWorld {
   setObject(x: number, y: number, o: Obj): void {
     if (!this.inBounds(x, y)) return;
     const i = this.idx(x, y);
+    const was = this.object[i];
+    if (was === Obj.Gate || o === Obj.Gate) {
+      // Yeni kapı kapalı başlar; silinen ya da değişen kapı bayrağını bırakır.
+      this.gateOpen[i] = 0;
+      this.gateCache = null;
+      this.gateVersion++;
+    }
     this.object[i] = o;
     this.objectChanges.set(i, o);
     this.recomputeSolid(i);
@@ -156,6 +169,36 @@ export class TileWorld {
     return out;
   }
 
+  isGateOpen(x: number, y: number): boolean {
+    if (!this.inBounds(x, y)) return false;
+    const i = this.idx(x, y);
+    return this.object[i] === Obj.Gate && this.gateOpen[i] === 1;
+  }
+
+  /** Kapıyı açar/kapatır; katılık ve çizim güncellenir. Değişiklik olduysa true. */
+  setGateOpen(x: number, y: number, open: boolean): boolean {
+    if (!this.inBounds(x, y)) return false;
+    const i = this.idx(x, y);
+    if (this.object[i] !== Obj.Gate) return false;
+    const v = open ? 1 : 0;
+    if (this.gateOpen[i] === v) return false;
+    this.gateOpen[i] = v;
+    this.recomputeSolid(i);
+    this.dirty.push(i);
+    return true;
+  }
+
+  /** Tüm kapı kareleri (önbellekli; setObject geçersiz kılar). */
+  gateTiles(): TilePos[] {
+    if (this.gateCache) return this.gateCache;
+    const out: TilePos[] = [];
+    for (let i = 0; i < this.object.length; i++) {
+      if (this.object[i] === Obj.Gate) out.push({ x: i % this.width, y: Math.floor(i / this.width) });
+    }
+    this.gateCache = out;
+    return out;
+  }
+
   /** Çit komşu maskesi: L=1, R=2, U=4, D=8 (kapı da çit sayılır). */
   fenceMask(x: number, y: number): number {
     const isF = (xx: number, yy: number): boolean => {
@@ -168,7 +211,8 @@ export class TileWorld {
   recomputeSolid(i: number): void {
     const g = this.ground[i];
     const o = this.object[i];
-    this.solid[i] = GROUND_SOLID[g] || OBJ_INFO[o]?.solid || this.buildingSolid[i] === 1 ? 1 : 0;
+    const objSolid = o === Obj.Gate ? this.gateOpen[i] === 0 : (OBJ_INFO[o]?.solid ?? false);
+    this.solid[i] = GROUND_SOLID[g] || objSolid || this.buildingSolid[i] === 1 ? 1 : 0;
   }
 
   recomputeAllSolid(): void {

@@ -49,12 +49,18 @@ describe('Başlangıç barınağı', () => {
     expect(sim.world.zoneTiles(Zone.Toilet).length).toBeGreaterThan(10);
   });
 
-  it('çit geçilmez, kapı geçilir, binalar geçilmez', () => {
+  it('çit geçilmez, kapı kapalıyken geçilmez açılınca geçilir, binalar geçilmez', () => {
     const p = sim.world.plot;
     expect(sim.world.isSolid(p.x, p.y + 5)).toBe(true);
     const gateX = Math.floor(p.x + p.w / 2);
-    expect(sim.world.objectAt(gateX, p.y + p.h - 1)).toBe(Obj.Gate);
-    expect(sim.world.isSolid(gateX, p.y + p.h - 1)).toBe(false);
+    const gateY = p.y + p.h - 1;
+    expect(sim.world.objectAt(gateX, gateY)).toBe(Obj.Gate);
+    expect(sim.world.isGateOpen(gateX, gateY)).toBe(false);
+    expect(sim.world.isSolid(gateX, gateY)).toBe(true);
+    expect(sim.world.setGateOpen(gateX, gateY, true)).toBe(true);
+    expect(sim.world.isSolid(gateX, gateY)).toBe(false);
+    sim.world.setGateOpen(gateX, gateY, false);
+    expect(sim.world.isSolid(gateX, gateY)).toBe(true);
     const office = sim.buildings.find((b) => b.type === 'office')!;
     expect(sim.world.isSolid(office.x + 1, office.y + 1)).toBe(true);
     const kennel = sim.buildings.find((b) => b.type === 'kennelSmall')!;

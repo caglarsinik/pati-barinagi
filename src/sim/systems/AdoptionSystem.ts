@@ -6,7 +6,7 @@ import { Dog, clamp100 } from '../entities/Dog';
 import type { Facing } from '../entities/Player';
 import { findPath } from '../world/Pathfinder';
 import type { TilePos } from '../world/TileWorld';
-import { Obj } from '../world/tiles';
+import { entryPoint } from '../world/gates';
 import type { Sim } from '../Sim';
 import { t } from '../../i18n';
 
@@ -74,8 +74,9 @@ export class AdoptionSystem {
     if (!sim.policies.adoptionsOpen) return null;
     const office = sim.buildings.find((b) => b.type === 'office');
     if (!office) return null;
-    const gate = this.gateTile();
-    if (!gate) return null;
+    const entry = entryPoint(sim.world, 'east');
+    if (!entry) return null;
+    const gate = entry.outside;
     const rng = sim.rng;
     const request = randomRequest(rng, sim.reputation);
     const a: Adopter = {
@@ -94,20 +95,10 @@ export class AdoptionSystem {
       queueSlot: this.freeQueueSlot(),
     };
     const target = this.queueTile(office, a.queueSlot);
-    a.path = findPath(sim.world, gate, target, { maxNodes: 6000, adjacentOk: true }) ?? [];
+    a.path = findPath(sim.world, gate, target, { maxNodes: 6000, adjacentOk: true, throughGates: true }) ?? [];
     sim.adopters.push(a);
     sim.events.emit('adopterArrived', a);
     return a;
-  }
-
-  private gateTile(): TilePos | null {
-    const w = this.sim.world;
-    const p = w.plot;
-    const right = p.x + p.w - 1;
-    for (let y = p.y; y < p.y + p.h; y++) if (w.objectAt(right, y) === Obj.Gate) return { x: right, y };
-    const bottom = p.y + p.h - 1;
-    for (let x = p.x; x < p.x + p.w; x++) if (w.objectAt(x, bottom) === Obj.Gate) return { x, y: bottom };
-    return null;
   }
 
   private freeQueueSlot(): number {
@@ -176,9 +167,9 @@ export class AdoptionSystem {
   }
 
   leave(a: Adopter): void {
-    const gate = this.gateTile();
+    const gate = entryPoint(this.sim.world, 'east')?.outside ?? null;
     a.state = 'leaving';
-    a.path = gate ? (findPath(this.sim.world, { x: Math.floor(a.x), y: Math.floor(a.y) }, gate, { maxNodes: 6000 }) ?? []) : [];
+    a.path = gate ? (findPath(this.sim.world, { x: Math.floor(a.x), y: Math.floor(a.y) }, gate, { maxNodes: 6000, throughGates: true }) ?? []) : [];
     if (a.path.length === 0) a.path = [];
   }
 
@@ -237,8 +228,8 @@ export class AdoptionSystem {
     for (const r of due) {
       const dog = Dog.fromJSON(r.dog);
       if (!dog) continue;
-      const gate = this.gateTile() ?? { x: Math.floor(sim.world.spawn.x), y: Math.floor(sim.world.spawn.y) };
-      const back = sim.addDog(dog.genome, dog.origin, dog.ageWeeks, gate.x - 1 + 0.5, gate.y + 0.5, dog.name);
+      const at = entryPoint(sim.world, 'east')?.inside ?? { x: Math.floor(sim.world.spawn.x), y: Math.floor(sim.world.spawn.y) };
+      const back = sim.addDog(dog.genome, dog.origin, dog.ageWeeks, at.x + 0.5, at.y + 0.5, dog.name);
       back.skills = { ...dog.skills };
       back.needs.loyalty = Math.max(0, dog.needs.loyalty - 15);
       sim.reputation = clamp100(sim.reputation - BALANCE.adoption.repReturn);

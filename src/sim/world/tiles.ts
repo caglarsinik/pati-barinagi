@@ -48,6 +48,8 @@ export const FENCE_TILE_BASE = 48;
 export const GATE_TILE = 64;
 export const MESS_TILE = 65;
 export const DEN_TILE = 66;
+export const GATE_OPEN_TILE = 67;
+export const TOILET_TILE = 68;
 export const ZONE_TILE_BASE = 80;
 export const TILESET_COLUMNS = 16;
 export const TILESET_ROWS = 6;
@@ -154,7 +156,8 @@ export const OBJ_INFO: Readonly<Record<number, ObjInfo>> = {
   [Obj.Nest]: { solid: false, above: false },
   [Obj.NestEggs]: { solid: false, above: false },
   [Obj.Fence]: { solid: true, above: false },
-  [Obj.Gate]: { solid: false, above: false },
+  // Kapı kapalıyken geçilmez; açık durumu TileWorld.gateOpen belirler (recomputeSolid).
+  [Obj.Gate]: { solid: true, above: false },
   [Obj.Mess]: { solid: false, above: false },
   [Obj.Den]: { solid: false, above: false },
 };

@@ -72,7 +72,7 @@ describe('İnşa', () => {
     // Çitin ortasına kapı
     expect(sim.command({ type: 'placeTiles', tool: 'gate', tiles: [tiles[2]] }).ok).toBe(true);
     expect(sim.world.objectAt(tiles[2].x, tiles[2].y)).toBe(Obj.Gate);
-    expect(sim.world.isSolid(tiles[2].x, tiles[2].y)).toBe(false);
+    expect(sim.world.isSolid(tiles[2].x, tiles[2].y)).toBe(true); // kapalı kapı geçilmez
     // Yol
     const pathTile = { x: spot.x, y: spot.y + 1 };
     expect(sim.command({ type: 'placeTiles', tool: 'path', tiles: [pathTile] }).ok).toBe(true);
