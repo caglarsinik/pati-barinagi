@@ -23,6 +23,7 @@ Tasarım dokümanı ve kilometre taşları: `docs/PLAN.md`
 | Sol tık | Köpeği seç (panel açılır) | Köpeği seç |
 | I / O / N / P / F / H | Köpek listesi / Sahiplendirme / Finans / Personel / Görevlendirme / Başarımlar | Aynı |
 | L | Dünya üstü isim etiketlerini aç/kapa (seçili köpekte her zaman görünür) | Aynı |
+| Alt menü çubuğu | Barınak {Köpekler, Sahiplendirme} · Yönetim {Finans, Personel, Görevlendirme} · İnşa · Başarımlar · Menü {Kontroller, Ayarlar, Kaydet, Duraklat, Ana menü}; açılır listelerde tuşlar yazar | Aynı |
 | B | İnşa çubuğu (yönetim moduna geçer) | İnşa çubuğu |
 | X / Z | – | Yık aracı / Bölge boyama |
 | Tab | Yönetim moduna geç | Avatara dön |
@@ -33,7 +34,23 @@ Tasarım dokümanı ve kilometre taşları: `docs/PLAN.md`
 | Sağ tık sürükle | – | Kamerayı kaydır (her zaman) |
 | Esc | Paneli kapat / menü | Aracı bırak / paneli kapat / menü |
 
-Alt çubuk her an E ile ne yapacağını yazar. Sağ üstteki uyarılara tıklayınca ilgili köpeğe gidersin.
+Alt satır her an E ile ne yapacağını yazar. Sağ sütundaki uyarılara tıklayınca ilgili köpeğe gidersin. Üst şerit durumu
+(para, köpek, yem, itibar, personel, bekleyen sahiplenici, saat, hava, hız, mod) gösterir; mini harita sağ alttan gizlenebilir.
+
+### Dokunmatik (tablet ve telefon)
+
+Oyun yatay tutulan tablet ve telefonlarda oynanır (dikeyde "çevir" ekranı çıkar). Dokunmatik kontroller cihaza göre
+kendiliğinden açılır; Ayarlar → Dokunmatik kontroller ile Otomatik / Açık / Kapalı seçilir, masaüstünde denemek için adrese
+`?touch=1` eklenir.
+
+- **Dokun:** avatar oraya yürür (yol bulur). **Köpeğe / binaya / yuvaya dokun:** yanına gidip işini yapar (sev, kabı doldur,
+  yumurta al, temizle). **Uzun bas:** köpeği seçer. Klavye girişi ya da yönetim modu yolu iptal eder.
+- **E düğmesi** (sağ alt) baktığın işi yazar ve yapar; **Koş** anahtarı koşarak yürütür.
+- **İki parmak:** yakınlaştırır, yönetim modunda kaydırır. **Sürükle (yönetim):** kamerayı kaydırır; araç seçiliyken çit/yol/bölge çizer;
+  aracı bırakmak için ipucu satırındaki İptal.
+- Paneller telefonda tam ekran sayfa olur; görevlendirme ızgarası parmakla boyanır, öncelikler +/− adımlayıcıdır;
+  telefonda üst şeritteki 🥚 çanta, 🔔 uyarı ve 🗺️ harita çipleri ilgili sayfayı açar.
+- Yüksek çözünürlüklü ekranlarda piksel sanatı tam ölçekte (cihaz piksel oranı 2'ye kadar) çizilir.
 
 ## Köpek bakımı
 
@@ -72,6 +89,9 @@ Alt çubuk her an E ile ne yapacağını yazar. Sağ üstteki uyarılara tıklay
 - Köpek sahiplendirilebilmek için sağlıklı, temiz ve sana güvenir olmalı (sadakat 30+).
 - Her Pazartesi 06:00 hafta raporu: denetim (temizlik, sağlık, keyif, pislik, kulübe, yem) yardım çarpanını (0,4-1,5) belirler; köpek başına 150 ₺ × çarpan devlet yardımı yatar, bina bakım gideri düşer.
 - Lisans seviyesi yardım alınan köpek sayısını sınırlar (8/20/45); ofisten yükseltilir. Finans (N) kasa hareketlerini ve geçmiş haftaları gösterir.
+- **Sahiplendirmeyi kapatmak:** ofisteki ya da masadaki "Sahiplendirmeye açık" anahtarı kapalıyken sahiplenici gelmez,
+  bekleyenler itibar kaybı olmadan uğurlanır (üst şeritte 🚫 çipi, alt menüde rozet). **Bu köpeği tut:** köpek panelindeki
+  kutu o köpeği sahiplendirme listesinden çıkarır (listede 🔒, "Tutulan" filtresi).
 
 ## Personel ve görevlendirme
 
@@ -128,7 +148,8 @@ Bilgisayar değiştirirken ya da yedek almak için kullan.
 - [x] M6 Ses ve cila: sentezlenen efektler ve üretken müzik, ayarlar, kayıt dışa/içe aktarma, başlangıç rehberi, lamba ışıkları, uzun koşu denge testi, tek dosya build
 - [x] M7 Ekstralar: mevsimler ve hava (yağmur/kar efektleri, mevsim tonu, ihtiyaç çarpanları), rastgele olaylar (sürpriz denetim, bağış, indirim, gezici veteriner, gazete, kaçan köpek), yaşlı köpek aşaması, 21 başarım, İngilizce dil
 - [x] M8 Canlı barınak: susuzluk ve su yalağı, dekor/mutfak etkisi, dünya üstü emote balonları ve isim etiketleri (OverlayScene), köpek-köpek dostluk/oyun/hırlaşma/havlama, huy ve becerilerin davranışa bağlanması (Çağır aracı, otur, bekle, gezdirme), hastalık ve karantina, köpek listesi sıralama/filtre, teknik borç (ışık haritası, doku sızıntısı, toast kuyruğu), kayıt sürümü 2
-- [ ] Sonraki paketler (`docs/PLAN.md` §7): M9 Yaşayan Dünya, M10 İlerleme ve Son Oyun, M11 Sahiplendirme Hikâyeleri, M12 Soy
+- [x] M9 Arayüz ve dokunmatik: üst durum şeridi + kategorili alt menü çubuğu, sütunlu HUD (çakışma yok), Kontroller sayfası, sahiplendirme anahtarı ve "bu köpeği tut", duyarlı CSS (tablet/telefon, 44 px dokunma hedefleri, tam ekran sayfalar), görevlendirme ızgarası parmakla boyanır, DPR'lı canvas + pinch, dokun-git + E düğmesi, telefon sayfaları ve çevir ekranı
+- [ ] Sonraki paketler (`docs/PLAN.md` §7): M10 Yaşayan Dünya, M11 İlerleme ve Son Oyun, M12 Sahiplendirme Hikâyeleri, M13 Soy
 
 ## Geliştirme
 
@@ -147,7 +168,7 @@ src/i18n/       t() yardımcısı ve İngilizce sözlük
 src/sim/        Phaser'dan bağımsız oyun mantığı (dünya, varlıklar, sistemler)
 src/render/     kodla üretilen pixel-art ve doku kaydı
 src/scenes/     Phaser sahneleri: World (çizim ve girdi), Overlay (emote balonları, isim etiketleri)
-src/ui/         Preact arayüzü (HUD, menüler, paneller)
+src/ui/         Preact arayüzü (HUD, menüler, paneller); layout.css yerleşim değişkenleri, responsive.css tablet/telefon/dokunmatik
 tests/          vitest testleri
 ```
 
