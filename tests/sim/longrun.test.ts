@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { BALANCE } from '../../src/config/balance';
 import { Sim } from '../../src/sim/Sim';
+import { looseMessCount, toiletCapacity } from '../../src/sim/systems/MessSystem';
 
 /** 4x hızda, 30 saniyelik gerçek zaman adımlarıyla ilerletir (uzun koşular için hızlı). */
 function runHours(sim: Sim, hours: number): void {
@@ -46,7 +47,8 @@ describe('Uzun koşu', () => {
     // Personel çalıştı, görevler yaptı, istifa etmedi.
     expect(sim.staff.length).toBe(1);
     expect(sim.stats.staffTasks).toBeGreaterThan(40);
-    expect(sim.messTiles.size).toBeLessThanOrEqual(4);
+    expect(looseMessCount(sim)).toBeLessThanOrEqual(4);
+    expect(sim.messTiles.size).toBeLessThanOrEqual(4 + toiletCapacity(sim));
     // Ekonomi: yardım geldi, maaş ödendi, kasa tamamen erimedi.
     const aid = sim.weeks.reduce((s, w) => s + (w.income.aid ?? 0), 0);
     const wages = sim.weeks.reduce((s, w) => s + (w.expense.wages ?? 0), 0);

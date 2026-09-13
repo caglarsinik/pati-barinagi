@@ -156,6 +156,8 @@ export const BALANCE = {
     bladderAfterMeal: 15,
     toiletAboveBladder: 85,
     toiletDurationMin: 2,
+    /** Mesane doluysa ve enerji bunun üstündeyse köpek gece tuvalet için uyanır. */
+    wakeForToiletEnergyAbove: 20,
     sleepBelowEnergy: 15,
     selfPlayBelow: 35,
     selfPlayDurationMin: 20,
@@ -310,6 +312,22 @@ export const BALANCE = {
     escapeDays: 3,
     inspectionBonusPerDog: 60,
     inspectionFine: 200,
+  },
+  /** Tuvalet alanı: alandaki pislik "kapsanır" (MessSystem). */
+  toilet: {
+    /** Bu kadar pislikten sonra alan dolu sayılır. */
+    capacity: 6,
+    /** Dolmamış alandaki pisliğin denetim/hastalık ağırlığı. */
+    containedInspectionMul: 0.25,
+    /** Çöp kutusu bu kadar kare içindeyse (Chebyshev) alanı destekler. */
+    binRadius: 6,
+    binCapacityBonus: 4,
+    /** Çöp kutusuna yakın temizlik görevlerinin süre çarpanı. */
+    binCleanMul: 0.7,
+    /** Personel aciliyeti: kapsanan pislik düşük, alan dolunca yüksek. */
+    staffUrgencyBase: 0.2,
+    staffUrgencyPerMess: 0.05,
+    staffUrgencyFull: 0.6,
   },
   /** Otomatik çit kapısı (GateSystem). */
   gates: {

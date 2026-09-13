@@ -9,6 +9,7 @@ import {
   Obj,
   TILESET_COLUMNS,
   TILESET_ROWS,
+  TOILET_TILE,
   ZONE_COLORS,
   ZONE_TILE_BASE,
   Zone,
@@ -41,6 +42,7 @@ export function buildTileset(frame: 0 | 1): Pixels {
   put(GATE_OPEN_TILE, drawGateOpen());
   put(MESS_TILE, drawMess());
   put(DEN_TILE, drawDen());
+  put(TOILET_TILE, drawToiletPatch());
   for (let z = 1; z < Zone.COUNT; z++) put(ZONE_TILE_BASE + z, drawZoneOverlay(ZONE_COLORS[z] ?? 0xffffff));
   return sheet;
 }
@@ -99,6 +101,30 @@ export function drawGateOpen(): Pixels {
   p.fillRect(4, 3, 2, 1, P.trunkDark);
   p.fillRect(10, 3, 2, 1, P.trunkDark);
   p.outline(P.outline);
+  return p;
+}
+
+/** Tuvalet alanı zemini: kum, benekler, kesik kenar (avatar modunda da görünür). */
+export function drawToiletPatch(): Pixels {
+  const p = new Pixels(TILE, TILE);
+  p.fill(P.sand);
+  const specks: Array<[number, number, RGBA]> = [
+    [2, 3, P.sandDark],
+    [11, 2, P.dirt],
+    [6, 7, P.pathDark],
+    [13, 9, P.sandDark],
+    [4, 12, P.dirt],
+    [9, 13, P.sandDark],
+    [1, 9, P.pathDark],
+    [14, 14, P.dirt],
+  ];
+  for (const [x, y, c] of specks) p.set(x, y, c);
+  for (let i = 0; i < TILE; i += 2) {
+    p.set(i, 0, P.dirtDark);
+    p.set(i, TILE - 1, P.dirtDark);
+    p.set(0, i, P.dirtDark);
+    p.set(TILE - 1, i, P.dirtDark);
+  }
   return p;
 }
 

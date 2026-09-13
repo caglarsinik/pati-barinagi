@@ -4,9 +4,9 @@ import { type Dog, clamp100 } from '../entities/Dog';
 import type { Facing } from '../entities/Player';
 import { findPath } from '../world/Pathfinder';
 import type { TilePos } from '../world/TileWorld';
-import { Obj, Zone } from '../world/tiles';
+import { Zone } from '../world/tiles';
 import type { Sim } from '../Sim';
-import { placeMess } from './MessSystem';
+import { messHygienePenalty, placeMess } from './MessSystem';
 import { t } from '../../i18n';
 
 /**
@@ -257,9 +257,11 @@ export class DogBrain {
       if (bowl && this.goTo(dog, { x: bowl.x, y: bowl.y }, 'toBowl', bowl.id)) return;
     }
 
-    // Tuvalet.
+    // Tuvalet: eğitim yüzdesi kadar olasılıkla tuvalet alanına gider (0 ve 100'de zar atılmaz).
     if (n.bladder >= B.toiletAboveBladder) {
-      if (dog.isPottyTrained()) {
+      const p = dog.skills.potty / 100;
+      const useArea = p >= 1 || (p > 0 && this.sim.rng.chance(p));
+      if (useArea) {
         const target = this.nearestZoneTile(dog, Zone.Toilet);
         if (target && this.goTo(dog, target, 'toToilet')) return;
       }
@@ -373,11 +375,10 @@ export class DogBrain {
 
   private finishToilet(dog: Dog): void {
     dog.needs.bladder = 0;
+    // Alanda da pislik bırakır; alanın içinde kalması için komşu seçimi bölgeyi tercih eder.
     const inToiletZone = this.sim.world.zoneAt(dog.tileX, dog.tileY) === Zone.Toilet;
-    if (!inToiletZone) {
-      placeMess(this.sim, dog.tileX, dog.tileY);
-      this.sim.stats.messes++;
-    }
+    placeMess(this.sim, dog.tileX, dog.tileY, inToiletZone ? Zone.Toilet : undefined);
+    this.sim.stats.messes++;
     this.setIdle(dog, 2);
   }
 
@@ -668,7 +669,8 @@ export class DogBrain {
     const i = w.idx(dog.tileX, dog.tileY);
     if (i === dog.lastTileIdx) return;
     dog.lastTileIdx = i;
-    if (w.object[i] === Obj.Mess) dog.needs.hygiene = clamp100(dog.needs.hygiene - BALANCE.dogs.needs.hygieneMessPenalty);
+    const pen = messHygienePenalty(this.sim, i);
+    if (pen > 0) dog.needs.hygiene = clamp100(dog.needs.hygiene - pen);
   }
 
   // ---------------------------------------------------------------------------

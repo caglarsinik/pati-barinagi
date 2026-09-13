@@ -857,4 +857,7 @@ export const EN: Record<string, string> = {
   'Yumurtaya dokununca incelenir. Ödül maması sokak köpeklerini evcilleştirir.': 'Tap an egg to inspect it. Treats tame stray dogs.',
   'Sarı nokta dolu yuva, turuncu nokta sokak köpeği ini, beyaz nokta sensin.': 'Yellow dot: full nest, orange dot: stray den, white dot: you.',
   'Telefonu yatay çevir': 'Rotate the phone to landscape',
+
+  // M10: tuvalet alanı
+  'Tuvalet alanı doldu: temizlet': 'Toilet area is full: have it cleaned',
 };

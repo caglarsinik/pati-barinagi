@@ -1,6 +1,7 @@
 import { BALANCE } from '../../config/balance';
 import { buildingDef, isReady } from '../entities/Building';
 import type { Sim } from '../Sim';
+import { effectiveMessCount, toiletMessCount } from './MessSystem';
 import { t } from '../../i18n';
 
 export type LedgerCategory = 'aid' | 'adoption' | 'refund' | 'food' | 'building' | 'land' | 'treatment' | 'upkeep' | 'wages' | 'license' | 'donation';
@@ -76,8 +77,10 @@ export function runInspection(sim: Sim): InspectionReport {
   } else {
     add('Köpek yok', '-', 0, 1);
   }
-  const mess = sim.messTiles.size;
-  add('Pislik', `${mess}`, mess === 0 ? 0.5 : -Math.min(1, mess / 5), 2);
+  const contained = toiletMessCount(sim);
+  const loose = sim.messTiles.size - contained;
+  const eff = effectiveMessCount(sim);
+  add('Pislik', contained > 0 ? `${loose} (+${contained})` : `${loose}`, eff === 0 ? 0.5 : -Math.min(1, eff / 5), 2);
   const cap = sim.kennelCapacity();
   const over = Math.max(0, dogs.length - cap);
   add('Kulübe', `${dogs.length}/${cap}`, over === 0 ? 0.5 : -Math.min(1, over / 3), 2);

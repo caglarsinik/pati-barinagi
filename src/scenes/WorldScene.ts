@@ -11,7 +11,7 @@ import type { PlayerInput } from '../sim/entities/Player';
 import type { Mode, Sim } from '../sim/Sim';
 import type { ActionKind, ActionOutcome, Tool } from '../sim/systems/Interaction';
 import type { TilePos } from '../sim/world/TileWorld';
-import { GATE_OPEN_TILE, OBJ_INFO, Obj, ZONE_COLORS, ZONE_TILE_BASE, Zone, objTileIndex } from '../sim/world/tiles';
+import { GATE_OPEN_TILE, OBJ_INFO, Obj, TOILET_TILE, ZONE_COLORS, ZONE_TILE_BASE, Zone, objTileIndex } from '../sim/world/tiles';
 import { showToast, store, syncStore } from '../ui/store';
 import { audio } from '../audio/audio';
 import { resolveAction } from '../sim/systems/Interaction';
@@ -53,6 +53,8 @@ export class WorldScene extends Phaser.Scene {
   private tileset!: Phaser.Tilemaps.Tileset;
   private groundLayer!: Phaser.Tilemaps.TilemapLayer;
   private zoneLayer!: Phaser.Tilemaps.TilemapLayer;
+  /** Tuvalet alanı zemini: her modda görünür (bölge kaplaması yalnız yönetimde). */
+  private toiletLayer!: Phaser.Tilemaps.TilemapLayer;
   private objectLayer!: Phaser.Tilemaps.TilemapLayer;
   private aboveLayer!: Phaser.Tilemaps.TilemapLayer;
   private playerSprite!: Phaser.GameObjects.Sprite;
@@ -113,17 +115,20 @@ export class WorldScene extends Phaser.Scene {
     if (!tileset) throw new Error('Tileset oluşturulamadı');
     this.tileset = tileset;
     this.groundLayer = must(map.createBlankLayer('ground', tileset)).setDepth(0);
+    this.toiletLayer = must(map.createBlankLayer('toilet', tileset)).setDepth(0.25);
     this.zoneLayer = must(map.createBlankLayer('zones', tileset)).setDepth(0.5).setAlpha(0.6);
     this.objectLayer = must(map.createBlankLayer('objects', tileset)).setDepth(1);
     this.aboveLayer = must(map.createBlankLayer('above', tileset)).setDepth(5000);
 
     const ground: number[][] = [];
     const zones: number[][] = [];
+    const toilet: number[][] = [];
     const objects: number[][] = [];
     const above: number[][] = [];
     for (let y = 0; y < world.height; y++) {
       const gRow: number[] = [];
       const zRow: number[] = [];
+      const tRow: number[] = [];
       const oRow: number[] = [];
       const aRow: number[] = [];
       for (let x = 0; x < world.width; x++) {
@@ -131,17 +136,20 @@ export class WorldScene extends Phaser.Scene {
         gRow.push(world.ground[i]);
         const z = world.zone[i];
         zRow.push(z !== Zone.None ? ZONE_TILE_BASE + z : -1);
+        tRow.push(z === Zone.Toilet ? TOILET_TILE : -1);
         const [o, a] = this.objectTiles(x, y);
         oRow.push(o);
         aRow.push(a);
       }
       ground.push(gRow);
       zones.push(zRow);
+      toilet.push(tRow);
       objects.push(oRow);
       above.push(aRow);
     }
     this.groundLayer.putTilesAt(ground, 0, 0, false);
     this.zoneLayer.putTilesAt(zones, 0, 0, false);
+    this.toiletLayer.putTilesAt(toilet, 0, 0, false);
     this.objectLayer.putTilesAt(objects, 0, 0, false);
     this.aboveLayer.putTilesAt(above, 0, 0, false);
 
@@ -1019,6 +1027,8 @@ export class WorldScene extends Phaser.Scene {
       const z = world.zone[i];
       if (z !== Zone.None) this.zoneLayer.putTileAt(ZONE_TILE_BASE + z, x, y);
       else this.zoneLayer.removeTileAt(x, y);
+      if (z === Zone.Toilet) this.toiletLayer.putTileAt(TOILET_TILE, x, y);
+      else this.toiletLayer.removeTileAt(x, y);
     }
   }
 

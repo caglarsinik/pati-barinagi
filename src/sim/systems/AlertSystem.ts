@@ -3,6 +3,7 @@ import type { TilePos } from '../world/TileWorld';
 import { ILLNESS_NAMES_TR } from '../entities/Dog';
 import { Zone } from '../world/tiles';
 import type { Sim } from '../Sim';
+import { firstMessTile, looseMessCount, toiletFull } from './MessSystem';
 import { t } from '../../i18n';
 
 export type AlertSeverity = 'info' | 'warn' | 'danger';
@@ -37,11 +38,13 @@ export class AlertSystem {
       if (n.play < 25) out.push({ id: `bored-${dog.id}`, text: t('{name} sıkıldı', { name }), severity: 'info', dogId: dog.id });
       if (dog.kennelId === null) out.push({ id: `nokennel-${dog.id}`, text: t('{name} kulübesiz', { name }), severity: 'warn', dogId: dog.id });
     }
-    const mess = sim.messTiles.size;
+    const mess = looseMessCount(sim);
     if (mess >= 1) {
-      const first = sim.messTiles.values().next().value as number;
-      const tile = { x: first % sim.world.width, y: Math.floor(first / sim.world.width) };
+      const tile = firstMessTile(sim, false) ?? undefined;
       out.push({ id: 'mess', text: mess === 1 ? t('1 pislik temizlenmeli') : t('{n} pislik temizlenmeli', { n: mess }), severity: mess >= 4 ? 'warn' : 'info', tile });
+    }
+    if (toiletFull(sim)) {
+      out.push({ id: 'toiletFull', text: t('Tuvalet alanı doldu: temizlet'), severity: 'warn', tile: firstMessTile(sim, true) ?? undefined });
     }
     if (sim.foodStock <= 0) out.push({ id: 'nofood', text: t('Kiler boş: yem sipariş et'), severity: 'danger' });
     else if (sim.foodStock < BALANCE.economy.foodBagPortions / 2) out.push({ id: 'lowfood', text: t('Yem azalıyor'), severity: 'info' });

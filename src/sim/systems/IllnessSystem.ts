@@ -2,6 +2,7 @@ import { BALANCE } from '../../config/balance';
 import { type Dog, ILLNESS_NAMES_TR, type IllnessKind } from '../entities/Dog';
 import { Zone } from '../world/tiles';
 import type { Sim } from '../Sim';
+import { effectiveMessCount } from './MessSystem';
 import { t } from '../../i18n';
 
 /**
@@ -19,7 +20,7 @@ export class IllnessSystem {
     const season = sim.weatherSys.season;
     const weather = sim.weatherSys.weather;
     const coldWeather = season === 'winter' || weather === 'rain' || weather === 'storm' || weather === 'snow';
-    const messy = sim.messTiles.size > I.stomachMessAbove;
+    const messy = effectiveMessCount(sim) > I.stomachMessAbove;
     for (const dog of sim.shelterDogs()) {
       if (dog.illness) {
         dog.illness.days++;

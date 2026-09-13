@@ -4,6 +4,7 @@ import type { Staff, TaskType } from '../entities/Staff';
 import type { TilePos } from '../world/TileWorld';
 import { Obj } from '../world/tiles';
 import type { Sim } from '../Sim';
+import { isContainedMess, toiletFull, toiletMessCount } from './MessSystem';
 
 export interface Task {
   id: number;
@@ -53,12 +54,21 @@ export class TaskBoard {
       const urgency = Math.min(1, 0.4 + thirsty * 0.06 + (b.water <= 0 ? 0.15 : 0));
       wanted.set(`water:${b.id}`, { type: 'water', targetId: b.id, tile: { x: b.x, y: b.y }, urgency, key: `water:${b.id}` });
     }
-    const messCount = sim.messTiles.size;
+    // Temizlik: serbest pislik acil, tuvalet alanındaki düşük öncelikli (alan dolunca yükselir).
+    const contained = toiletMessCount(sim);
+    const loose = sim.messTiles.size - contained;
+    const full = toiletFull(sim);
+    const TZ = BALANCE.toilet;
     for (const i of sim.messTiles) {
       const x = i % sim.world.width;
       const y = Math.floor(i / sim.world.width);
       if (sim.world.objectAt(x, y) !== Obj.Mess) continue;
-      wanted.set(`clean:${i}`, { type: 'clean', targetId: null, tile: { x, y }, urgency: Math.min(1, 0.4 + messCount * 0.1), key: `clean:${i}` });
+      const urgency = isContainedMess(sim, i)
+        ? full
+          ? TZ.staffUrgencyFull
+          : Math.min(1, TZ.staffUrgencyBase + contained * TZ.staffUrgencyPerMess)
+        : Math.min(1, 0.4 + loose * 0.1);
+      wanted.set(`clean:${i}`, { type: 'clean', targetId: null, tile: { x, y }, urgency, key: `clean:${i}` });
     }
     for (const d of dogs) {
       const tile = { x: d.tileX, y: d.tileY };

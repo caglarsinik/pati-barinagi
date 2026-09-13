@@ -6,6 +6,7 @@ import { randomGenome, genomeKey } from '../../src/sim/entities/DogGenome';
 import { Sim } from '../../src/sim/Sim';
 import { performAction, resolveAction } from '../../src/sim/systems/Interaction';
 import { Rng } from '../../src/core/Rng';
+import { looseMessCount, toiletMessCount } from '../../src/sim/systems/MessSystem';
 import { Obj, Zone } from '../../src/sim/world/tiles';
 
 /** Oyun dakikası cinsinden ilerletir (hız 4x, yarım saniyelik adımlar). */
@@ -83,7 +84,7 @@ describe('Köpek davranışı', () => {
     expect(sim.stats.fed).toBeGreaterThanOrEqual(1);
   });
 
-  it('eğitimsiz köpek pislik bırakır, eğitimli tuvalet alanına gider', () => {
+  it('eğitimsiz köpek olduğu yere pislik bırakır, eğitimli tuvalet alanına yapar', () => {
     const sim = Sim.create(22);
     const dog = sim.dogs[0];
     dog.needs.hunger = 10;
@@ -102,7 +103,11 @@ describe('Köpek davranışı', () => {
     dog2.needs.energy = 90;
     dog2.needs.bladder = 95;
     runMinutes(sim2, 120);
-    expect(sim2.messTiles.size).toBe(0);
+    expect(sim2.messTiles.size).toBe(1);
+    const tile2 = [...sim2.messTiles][0];
+    expect(sim2.world.zone[tile2]).toBe(Zone.Toilet);
+    expect(looseMessCount(sim2)).toBe(0);
+    expect(toiletMessCount(sim2)).toBe(1);
     expect(dog2.needs.bladder).toBeLessThan(50);
   });
 

@@ -4,7 +4,7 @@ import { HUMAN_DIRS, HUMAN_FRAMES, HUMAN_H, HUMAN_W, PLAYER_STYLE, buildHumanShe
 import { EMOTE_KEYS } from '../../src/sim/systems/Emotes';
 import { Pixels, hex } from '../../src/render/Pixels';
 import { TILE, buildTileset } from '../../src/render/TileArt';
-import { FENCE_TILE_BASE, GATE_OPEN_TILE, GATE_TILE, Ground, Obj, TILESET_COLUMNS, TILESET_ROWS, objTileIndex } from '../../src/sim/world/tiles';
+import { FENCE_TILE_BASE, GATE_OPEN_TILE, GATE_TILE, Ground, Obj, TILESET_COLUMNS, TILESET_ROWS, TOILET_TILE, objTileIndex } from '../../src/sim/world/tiles';
 
 function opaqueCount(p: Pixels, x: number, y: number, w: number, h: number): number {
   let n = 0;
@@ -69,6 +69,8 @@ describe('TileArt', () => {
     let diff = 0;
     for (let yy = 0; yy < TILE; yy++) for (let xx = 0; xx < TILE; xx++) if (open.get(xx, yy).join() !== closed.get(xx, yy).join()) diff++;
     expect(diff).toBeGreaterThan(0);
+    // Tuvalet zemini tamamen dolu
+    expect(opaqueCount(cropAt(TOILET_TILE), 0, 0, TILE, TILE)).toBe(TILE * TILE);
   });
 
   it('su kareleri iki karede farklı, diğerleri aynı', () => {
