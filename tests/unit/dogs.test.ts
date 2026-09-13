@@ -124,6 +124,7 @@ describe('Etkileşim', () => {
   it('sevme, oynama ve eğitim köpeği etkiler', () => {
     const sim = Sim.create(31);
     const dog = sim.dogs[0];
+    dog.genome.temperament = 'calm'; // çekingen çarpanı devre dışı
     dog.state = 'sit';
     dog.stateTimer = 999;
     placePlayerFacing(sim, dog.x, dog.y + 1.2, 3);

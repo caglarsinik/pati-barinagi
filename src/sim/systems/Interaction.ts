@@ -10,7 +10,7 @@ import { cleanMess } from './MessSystem';
 import { harvestBerries, harvestNest } from './NestSystem';
 import { t } from '../../i18n';
 
-export type Tool = 'pet' | 'play' | 'train' | 'feed' | 'clean';
+export type Tool = 'pet' | 'play' | 'train' | 'feed' | 'clean' | 'call';
 
 export interface ToolDef {
   id: Tool;
@@ -26,6 +26,7 @@ export const TOOL_DEFS: readonly ToolDef[] = [
   { id: 'train', name: 'Eğit', icon: '🎓', key: '3', desc: 'Seçili beceriyi çalıştır. Zekâ ve sadakat başarıyı artırır.' },
   { id: 'feed', name: 'Yem', icon: '🥣', key: '4', desc: 'Yem kabının önünde E: kilerden yem taşıyıp kabı doldur.' },
   { id: 'clean', name: 'Temizle', icon: '🧹', key: '5', desc: 'Pisliğin önünde E: temizle. Köpeğin önünde E: fırçala (hijyen artar).' },
+  { id: 'call', name: 'Çağır', icon: '📣', key: '6', desc: '"Gel" bilen köpekler E ile yanına gelir (12 kare içinde).' },
 ];
 
 export type ActionKind =
@@ -44,6 +45,7 @@ export type ActionKind =
   | 'pickEgg'
   | 'berries'
   | 'treatWild'
+  | 'call'
   | 'sleep'
   | 'office'
   | 'none';
@@ -143,12 +145,19 @@ export function resolveAction(sim: Sim): ResolvedAction {
     if (building.type === 'incubator') return { kind: 'incubator', hint: t('E: kuluçka'), building };
   }
 
+  // Çağır aracı: yakındaki "Gel" bilen köpekler.
+  if (sim.tool === 'call') {
+    const n = callableDogs(sim).length;
+    if (n === 0) return { kind: 'none', hint: t('Çağır: yakında "Gel" bilen köpek yok'), tile };
+    return { kind: 'call', hint: t('E: çağır ({n} köpek gelir)', { n }), tile };
+  }
+
   // Köpek.
   const dog = nearestDog(sim, fp.x, fp.y, 1.25);
   if (dog && dog.wild) {
     if (dog.following) return { kind: 'none', hint: t('{name} peşinde: barınağa götür', { name: dog.name }), dog };
     if (sim.treats <= 0) return { kind: 'none', hint: t('{name} ürkek: ödül maması lazım (böğürtlen çalısı)', { name: dog.name }), dog };
-    return { kind: 'treatWild', hint: t("E: {name}'e ödül ver (güven {trust}/{max})", { name: dog.name, trust: dog.trust, max: BALANCE.eggs.tameTreats }), dog };
+    return { kind: 'treatWild', hint: t("E: {name}'e ödül ver (güven {trust}/{max})", { name: dog.name, trust: dog.trust, max: tameTreatsFor(dog) }), dog };
   }
   if (dog) {
     const tool = sim.tool;
@@ -172,6 +181,22 @@ export function resolveAction(sim: Sim): ResolvedAction {
   }
 
   return { kind: 'none', hint: '', tile };
+}
+
+/** Evcilleştirmek için gereken ödül: cesur köpek daha çabuk güvenir. */
+export function tameTreatsFor(dog: Dog): number {
+  return dog.genome.temperament === 'bold' ? BALANCE.dogs.temperament.boldTameTreats : BALANCE.eggs.tameTreats;
+}
+
+/** Çağır aracının ulaşacağı köpekler: barınakta, "Gel" bilen, meşgul olmayan, yarıçap içinde. */
+export function callableDogs(sim: Sim): Dog[] {
+  const p = sim.player;
+  const R = BALANCE.dogs.skills.callRadius;
+  return sim.shelterDogs().filter((d) => {
+    if (d.skills.come < 100 || d.walking) return false;
+    if (d.state === 'sleep' || d.state === 'eat' || d.state === 'drink' || d.state === 'interact' || d.state === 'toilet') return false;
+    return Math.hypot(d.x - p.x, d.y - p.y) <= R;
+  });
 }
 
 export function trainingSkill(dog: Dog): SkillKey | null {
@@ -250,7 +275,9 @@ export function performAction(sim: Sim): ActionOutcome {
     }
     case 'pet': {
       const dog = r.dog!;
-      const gain = dog.petsToday < B.petsFullGainPerDay ? B.petLoyaltyGain : B.petLoyaltyGainDiminished;
+      let gain = dog.petsToday < B.petsFullGainPerDay ? B.petLoyaltyGain : B.petLoyaltyGainDiminished;
+      // Çekingen köpek güvenmesi zor ama bir kez güvenince daha çok bağlanır.
+      if (dog.genome.temperament === 'shy') gain *= dog.needs.loyalty < B.temperament.shyTrustAt ? B.temperament.shyPetMulBelow : B.temperament.shyPetMulAbove;
       dog.needs.loyalty = clamp100(dog.needs.loyalty + gain);
       dog.needs.play = clamp100(dog.needs.play + 4);
       dog.petsToday++;
@@ -324,11 +351,25 @@ export function performAction(sim: Sim): ActionOutcome {
       dog.needs.loyalty = clamp100(dog.needs.loyalty + 5);
       interactWith(sim, dog, 3);
       p.setBusy(0.7, 'treat');
-      if (dog.trust >= BALANCE.eggs.tameTreats) {
+      if (dog.trust >= tameTreatsFor(dog)) {
         sim.tameDog(dog);
         return { ok: true };
       }
-      return { ok: true, message: t('{name} ödülü aldı (güven {trust}/{max})', { name: dog.name, trust: dog.trust, max: BALANCE.eggs.tameTreats }) };
+      return { ok: true, message: t('{name} ödülü aldı (güven {trust}/{max})', { name: dog.name, trust: dog.trust, max: tameTreatsFor(dog) }) };
+    }
+    case 'call': {
+      const dogs = callableDogs(sim);
+      let n = 0;
+      for (const d of dogs) {
+        if (!sim.brain.summon(d, { x: p.tileX, y: p.tileY })) continue;
+        n++;
+        d.needs.loyalty = clamp100(d.needs.loyalty + 1);
+        d.lastInteractionDay = sim.clock.day;
+      }
+      if (n === 0) return { ok: false, message: t('Kimse gelemedi (yol yok)') };
+      sim.stats.calls++;
+      p.setBusy(0.5, 'call');
+      return { ok: true, message: t('{n} köpek geliyor', { n }) };
     }
     case 'sleep':
       return sim.command({ type: 'sleep' });

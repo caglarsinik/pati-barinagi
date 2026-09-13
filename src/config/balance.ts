@@ -214,6 +214,39 @@ export const BALANCE = {
       barkPlayBelow: 30,
       barkHungerAbove: 85,
     },
+    /** Huyun davranışa etkisi. */
+    temperament: {
+      /** Çekingen: bu sadakatin altında sevme kazancı yarım, üstünde bir buçuk kat. */
+      shyTrustAt: 40,
+      shyPetMulBelow: 0.5,
+      shyPetMulAbove: 1.5,
+      /** Çekingen köpek bu sadakatin altında insan bitişiğine gelince kaçar. */
+      shyFleeLoyaltyBelow: 50,
+      shyFleeTriggerDistance: 1.4,
+      shyFleeDistance: 2.5,
+      shyFleeCooldownMin: 5,
+      boldEscapeMul: 1.5,
+      boldTameTreats: 2,
+      boldWanderRadius: 10,
+      wanderRadius: 6,
+      playfulSelfPlayBelow: 50,
+      calmLieMul: 1.5,
+    },
+    /** Öğrenilen becerilerin etkisi (100 olunca). */
+    skills: {
+      /** "Otur": oyuncu bu kadar saniye bitişik durunca köpek oturur. */
+      sitNearSeconds: 2,
+      sitNearDistance: 1.4,
+      sitMinutes: 1,
+      sitMatchBonus: 3,
+      /** İstekten fazla her öğrenilmiş beceri için eşleşme puanı ve tavanı. */
+      extraSkillBonus: 2,
+      extraSkillBonusMax: 6,
+      /** "Gel": çağır aracının yarıçapı (kare). */
+      callRadius: 12,
+      /** "Tasma": gezinti dönüşünde kazanımlar. */
+      walk: { playGain: 40, loyaltyGain: 5, hygieneLoss: 10, energyCost: 15 },
+    },
   },
   eggs: {
     hatchDays: 3,

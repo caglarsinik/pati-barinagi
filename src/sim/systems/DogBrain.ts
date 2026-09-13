@@ -1,5 +1,5 @@
 import { BALANCE } from '../../config/balance';
-import { type Building, buildingDef, isReady, kennelRestTile } from '../entities/Building';
+import { type Building, buildingDef, buildingDoorTile, isReady, kennelRestTile } from '../entities/Building';
 import { type Dog, clamp100 } from '../entities/Dog';
 import type { Facing } from '../entities/Player';
 import { findPath } from '../world/Pathfinder';
@@ -23,10 +23,16 @@ export class DogBrain {
   private updateDog(dog: Dog, dtMin: number): void {
     dog.stateTimer -= dtMin;
     dog.moving = false;
+    if (dog.walking) {
+      if (dog.walkReturning) this.returnHome(dog, dtMin);
+      else this.followPlayer(dog, dtMin);
+      return;
+    }
     if (dog.wild) {
       this.updateWild(dog, dtMin);
       return;
     }
+    if (this.maybeFlee(dog, dtMin)) return;
     switch (dog.state) {
       case 'toBowl':
       case 'toTrough':
@@ -145,7 +151,14 @@ export class DogBrain {
     const sim = this.sim;
     const p = sim.player;
     const w = sim.world;
-    if (w.inPlotInterior(dog.tileX, dog.tileY)) {
+    const inside = w.inPlotInterior(dog.tileX, dog.tileY);
+    if (dog.walking) {
+      if (!inside) dog.walkLeftPlot = true;
+      else if (dog.walkLeftPlot) {
+        sim.finishWalk(dog);
+        return;
+      }
+    } else if (inside) {
       sim.joinShelter(dog);
       this.setIdle(dog, 1);
       return;
@@ -197,6 +210,8 @@ export class DogBrain {
     const clock = sim.clock;
     const B = BALANCE.dogs;
     const S = B.social;
+    const TP = B.temperament;
+    const temper = dog.genome.temperament;
 
     // Gece ya da bitkinlik: kulübeye git, uyu.
     if ((clock.isNight() && n.energy < 95) || n.energy < B.sleepBelowEnergy) {
@@ -240,8 +255,8 @@ export class DogBrain {
     // Dost oyunu: yakında oynamak isteyen bir köpek varsa birlikte oynarlar.
     if (n.play < S.seekBelowPlay && n.energy >= B.playMinEnergy && this.startPlaydate(dog)) return;
 
-    // Can sıkıntısı: oyuncak ya da oyun bahçesi.
-    if (n.play < B.selfPlayBelow) {
+    // Can sıkıntısı: oyuncak ya da oyun bahçesi (oyuncu huylu daha erken arar).
+    if (n.play < (temper === 'playful' ? TP.playfulSelfPlayBelow : B.selfPlayBelow)) {
       const toy = this.nearestToy(dog);
       if (toy && this.goTo(dog, { x: toy.x, y: toy.y }, 'toToy', toy.id)) return;
       const yard = this.randomZoneTile(dog, Zone.Play);
@@ -260,11 +275,12 @@ export class DogBrain {
       this.setState(dog, 'lie', sim.rng.int(15, 40));
       return;
     }
-    if (r < 0.5) {
+    const lieBias = temper === 'calm' ? TP.calmLieMul : 1;
+    if (r < 0.5 / lieBias) {
       const target = this.randomWanderTarget(dog);
       if (target && this.goTo(dog, target, 'wander')) return;
       this.setState(dog, 'sit', sim.rng.int(5, 15));
-    } else if (r < 0.75) {
+    } else if (r < 0.75 / lieBias) {
       this.setState(dog, 'sit', sim.rng.int(8, 20));
     } else {
       this.setState(dog, 'lie', sim.rng.int(10, 30));
@@ -462,6 +478,119 @@ export class DogBrain {
     }
   }
 
+  // ---------------------------------------------------------------------------
+  // Huy ve beceriler
+  // ---------------------------------------------------------------------------
+
+  /** Çekingen köpek güven kazanmadan bir insan bitişiğine gelince birkaç kare kaçar. */
+  private maybeFlee(dog: Dog, dtMin: number): boolean {
+    const TP = BALANCE.dogs.temperament;
+    dog.fleeTimer = Math.max(0, dog.fleeTimer - dtMin);
+    if (dog.genome.temperament !== 'shy' || dog.needs.loyalty >= TP.shyFleeLoyaltyBelow || dog.fleeTimer > 0) return false;
+    if (dog.state !== 'idle' && dog.state !== 'wander' && dog.state !== 'sit' && dog.state !== 'lie') return false;
+    const near = this.nearestHuman(dog, TP.shyFleeTriggerDistance);
+    if (!near) return false;
+    dog.fleeTimer = TP.shyFleeCooldownMin;
+    const dx = dog.x - near.x;
+    const dy = dog.y - near.y;
+    const len = Math.hypot(dx, dy) || 1;
+    const target = { x: Math.floor(dog.x + (dx / len) * TP.shyFleeDistance), y: Math.floor(dog.y + (dy / len) * TP.shyFleeDistance) };
+    const w = this.sim.world;
+    if (!w.inPlotInterior(target.x, target.y) || w.isSolid(target.x, target.y)) return false;
+    return this.goTo(dog, target, 'wander');
+  }
+
+  /** Yarıçap içindeki en yakın insan (oyuncu, görevdeki personel, sahiplenici). */
+  private nearestHuman(dog: Dog, radius: number): { x: number; y: number } | null {
+    const sim = this.sim;
+    let best: { x: number; y: number } | null = null;
+    let bestD = radius;
+    const consider = (x: number, y: number): void => {
+      const d = Math.hypot(x - dog.x, y - dog.y);
+      if (d < bestD) {
+        bestD = d;
+        best = { x, y };
+      }
+    };
+    if (sim.mode === 'avatar') consider(sim.player.x, sim.player.y - 0.2);
+    for (const s of sim.staff) if (s.onDuty) consider(s.x, s.y);
+    for (const a of sim.adopters) consider(a.x, a.y);
+    return best;
+  }
+
+  /** "Otur" bilen köpek, oyuncu birkaç saniye bitişiğinde durunca oturur (gerçek saniye ile). */
+  updateNearPlayer(dtSec: number): void {
+    const K = BALANCE.dogs.skills;
+    const p = this.sim.player;
+    for (const dog of this.sim.dogs) {
+      if (dog.wild || dog.walking || dog.skills.sit < 100) continue;
+      const near = Math.hypot(p.x - dog.x, p.y - 0.2 - dog.y) <= K.sitNearDistance;
+      const idle = dog.state === 'idle' || dog.state === 'wander' || dog.state === 'sit' || dog.state === 'lie';
+      if (!near || !idle) {
+        dog.nearPlayerSec = 0;
+        continue;
+      }
+      dog.nearPlayerSec += dtSec;
+      if (dog.nearPlayerSec >= K.sitNearSeconds && dog.state !== 'sit') {
+        this.setState(dog, 'sit', K.sitMinutes);
+        const dx = p.x - dog.x;
+        const dy = p.y - dog.y;
+        dog.facing = (Math.abs(dx) >= Math.abs(dy) ? (dx < 0 ? 1 : 2) : dy < 0 ? 3 : 0) as Facing;
+      }
+    }
+  }
+
+  /** "Gel": köpeği verilen karenin yanına yürütür. */
+  summon(dog: Dog, tile: TilePos): boolean {
+    this.cancelPlaydate(dog);
+    const spot = this.freeTileNear(tile.x, tile.y) ?? tile;
+    return this.goTo(dog, spot, 'wander');
+  }
+
+  /** "Tasma": köpek oyuncunun peşine takılır; arsadan çıkıp geri girince gezinti biter. */
+  startWalk(dog: Dog): void {
+    this.cancelPlaydate(dog);
+    dog.walking = true;
+    dog.walkReturning = false;
+    dog.walkLeftPlot = !this.sim.world.inPlotInterior(dog.tileX, dog.tileY);
+    dog.path = [];
+    dog.targetBuildingId = null;
+    this.setState(dog, 'idle', 0);
+  }
+
+  /** Gezintiyi bitir: içerideyse hemen, dışarıdaysa kendi başına eve döner. */
+  endWalk(dog: Dog): void {
+    if (this.sim.world.inPlotInterior(dog.tileX, dog.tileY)) {
+      this.sim.finishWalk(dog);
+      return;
+    }
+    dog.walkReturning = true;
+    dog.path = [];
+  }
+
+  private returnHome(dog: Dog, dtMin: number): void {
+    const sim = this.sim;
+    const w = sim.world;
+    if (w.inPlotInterior(dog.tileX, dog.tileY)) {
+      sim.finishWalk(dog);
+      return;
+    }
+    if (dog.path.length === 0) {
+      const office = sim.buildings.find((b) => b.type === 'office');
+      const door = office ? buildingDoorTile(office) : { x: Math.floor(w.spawn.x), y: Math.floor(w.spawn.y) };
+      const path = findPath(w, { x: dog.tileX, y: dog.tileY }, door, { maxNodes: 8000, adjacentOk: true });
+      if (!path || path.length === 0) {
+        dog.x = door.x + 0.5;
+        dog.y = door.y + 0.5;
+        dog.path = [];
+        sim.finishWalk(dog);
+        return;
+      }
+      dog.path = path;
+    }
+    this.followPath(dog, dtMin);
+  }
+
   private shouldWake(dog: Dog): boolean {
     const clock = this.sim.clock;
     if (dog.needs.energy >= 100 && !clock.isNight()) return true;
@@ -607,9 +736,11 @@ export class DogBrain {
   private randomWanderTarget(dog: Dog): TilePos | null {
     const w = this.sim.world;
     const r = w.plotInterior();
+    const TP = BALANCE.dogs.temperament;
+    const radius = dog.genome.temperament === 'bold' ? TP.boldWanderRadius : TP.wanderRadius;
     for (let tries = 0; tries < 8; tries++) {
-      const x = dog.tileX + this.sim.rng.int(-6, 6);
-      const y = dog.tileY + this.sim.rng.int(-6, 6);
+      const x = dog.tileX + this.sim.rng.int(-radius, radius);
+      const y = dog.tileY + this.sim.rng.int(-radius, radius);
       if (x < r.x || y < r.y || x >= r.x + r.w || y >= r.y + r.h) continue;
       if (w.isSolid(x, y) || w.buildingIdAt(x, y) !== -1) continue;
       return { x, y };

@@ -18,7 +18,7 @@ import {
   unstampBuilding,
 } from './entities/Building';
 import { type Adopter, adopterFromJSON } from './entities/Adopter';
-import { Dog, type DogOrigin, SKILL_KEYS, STAGE_NAMES_TR, type SkillKey, defaultNeeds } from './entities/Dog';
+import { Dog, type DogOrigin, SKILL_KEYS, STAGE_NAMES_TR, type SkillKey, clamp100, defaultNeeds } from './entities/Dog';
 import { type DogGenome, randomGenome } from './entities/DogGenome';
 import { type Egg, eggFromJSON } from './entities/Egg';
 import { IDLE_INPUT, Player, type PlayerInput } from './entities/Player';
@@ -117,7 +117,9 @@ export type Command =
   | { type: 'setShift'; staffId: number; hour: number; value: 0 | 1 | 2 }
   | { type: 'setSchedule'; staffId: number; schedule: number[] }
   | { type: 'setPriority'; staffId: number; task: TaskType; value: number }
-  | { type: 'setPolicy'; policy: Partial<Policies> };
+  | { type: 'setPolicy'; policy: Partial<Policies> }
+  | { type: 'walkDog'; dogId: number }
+  | { type: 'endWalk' };
 
 export interface Policies {
   autoOrderFood: boolean;
@@ -165,6 +167,9 @@ export interface SimStats {
   /** Tamamlanan dost oyunları ve hırlaşmalar. */
   playdates: number;
   growls: number;
+  /** Gezinti ve çağırma sayısı. */
+  walks: number;
+  calls: number;
   hired: number;
   slept: number;
 }
@@ -191,6 +196,8 @@ function emptyStats(): SimStats {
     drinks: 0,
     playdates: 0,
     growls: 0,
+    walks: 0,
+    calls: 0,
     hired: 0,
     slept: 0,
   };
@@ -320,6 +327,7 @@ export class Sim {
     if (this.mode === 'avatar') {
       this.player.update(dtSec, input, this.world);
       this.revealPlayer(false);
+      this.brain.updateNearPlayer(dtSec);
     }
   }
 
@@ -388,7 +396,7 @@ export class Sim {
     this.player.y = door.y + 0.9;
     this.player.busy = 0;
     for (const dog of this.dogs) {
-      if (dog.following) {
+      if (dog.following || dog.walking) {
         dog.x = this.player.x + 1;
         dog.y = this.player.y;
         dog.path = [];
@@ -569,6 +577,23 @@ export class Sim {
         if (typeof p.trainTarget === 'number' && Number.isFinite(p.trainTarget)) this.policies.trainTarget = Math.max(0, Math.min(6, Math.round(p.trainTarget)));
         return { ok: true };
       }
+      case 'walkDog': {
+        const dog = this.dogById(cmd.dogId);
+        if (!dog || dog.wild) return { ok: false };
+        if (dog.walking) return { ok: false, message: t('{name} zaten gezintide', { name: dog.name }) };
+        if (dog.skills.leash < 100) return { ok: false, message: t('{name} tasmayı henüz öğrenmedi', { name: dog.name }) };
+        if (this.mode !== 'avatar') return { ok: false, message: t('Gezdirmek için avatar moduna geç (Tab)') };
+        if (this.dogs.some((d) => d.walking)) return { ok: false, message: t('Zaten bir köpek gezdiriyorsun') };
+        if (dog.isAsleep() || dog.sick) return { ok: false, message: t('{name} şu an gezemez', { name: dog.name }) };
+        this.brain.startWalk(dog);
+        return { ok: true, message: t('{name} tasmada: arsadan çıkıp dön, keyfi yerine gelir', { name: dog.name }) };
+      }
+      case 'endWalk': {
+        const dog = this.dogs.find((d) => d.walking);
+        if (!dog) return { ok: false };
+        this.brain.endWalk(dog);
+        return { ok: true };
+      }
       case 'upgradeLicense': {
         const cost = licenseUpgradeCost(this.licenseLevel);
         if (cost === null) return { ok: false, message: t('Lisans en üst seviyede') };
@@ -660,6 +685,25 @@ export class Sim {
     dog.stateTimer = 0;
     this.events.emit('dogTamed', dog);
     this.events.emit('message', t('{name} sana güvendi, peşinden geliyor! Barınağa götür.', { name: dog.name }));
+  }
+
+  /** Gezinti bitti: keyif ve sadakat artar, biraz kirlenir ve yorulur. */
+  finishWalk(dog: Dog): void {
+    const W = BALANCE.dogs.skills.walk;
+    dog.walking = false;
+    dog.walkLeftPlot = false;
+    dog.walkReturning = false;
+    dog.path = [];
+    dog.state = 'idle';
+    dog.stateTimer = 2;
+    dog.needs.play = clamp100(dog.needs.play + W.playGain);
+    dog.needs.loyalty = clamp100(dog.needs.loyalty + W.loyaltyGain);
+    dog.needs.hygiene = clamp100(dog.needs.hygiene - W.hygieneLoss);
+    dog.needs.energy = clamp100(dog.needs.energy - W.energyCost);
+    dog.lastInteractionDay = this.clock.day;
+    this.stats.walks++;
+    this.events.emit('emote', { kind: 'dog', id: dog.id, emote: 'heart', seconds: 2 });
+    this.events.emit('message', t('{name} gezintiden döndü: keyfi ve sadakati arttı', { name: dog.name }));
   }
 
   /** Peşinden gelen köpek barınağa girince kayda alınır. */
@@ -1154,7 +1198,8 @@ export class Sim {
           const free = sim.freeKennelFor(dog);
           if (free) sim.assignKennel(dog, free);
         }
-        if (!world.inPlotInterior(dog.tileX, dog.tileY) || world.isSolid(dog.tileX, dog.tileY)) {
+        if (dog.walking) dog.walkLeftPlot = !world.inPlotInterior(dog.tileX, dog.tileY);
+        if (!dog.walking && (!world.inPlotInterior(dog.tileX, dog.tileY) || world.isSolid(dog.tileX, dog.tileY))) {
           const k = dog.kennelId !== null ? sim.buildingMap.get(dog.kennelId) : undefined;
           const t = k ? kennelRestTile(k, k.occupants.indexOf(dog.id)) : { x: Math.floor(world.spawn.x), y: Math.floor(world.spawn.y) };
           dog.x = t.x + 0.5;

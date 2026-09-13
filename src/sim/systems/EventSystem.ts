@@ -1,5 +1,6 @@
 import { BALANCE } from '../../config/balance';
 import { t } from '../../i18n';
+import { tameTreatsFor } from './Interaction';
 import { type Dog, clamp100 } from '../entities/Dog';
 import type { TilePos } from '../world/TileWorld';
 import { Obj } from '../world/tiles';
@@ -106,15 +107,17 @@ export class EventSystem {
   private maybeEscape(): void {
     const sim = this.sim;
     const E = BALANCE.events;
-    const candidates = sim.shelterDogs().filter((d) => d.needs.loyalty < E.escapeLoyaltyBelow && !d.isAsleep());
+    // "Bekle" bilen köpek kaçmaz; cesur köpek daha kolay kaçar.
+    const candidates = sim.shelterDogs().filter((d) => d.needs.loyalty < E.escapeLoyaltyBelow && !d.isAsleep() && !d.walking && d.skills.stay < 100);
     for (const dog of candidates) {
-      if (!sim.rng.chance(E.escapeChancePerDog)) continue;
+      const chance = E.escapeChancePerDog * (dog.genome.temperament === 'bold' ? BALANCE.dogs.temperament.boldEscapeMul : 1);
+      if (!sim.rng.chance(chance)) continue;
       const spot = this.hideSpot();
       if (!spot) return;
       sim.assignKennel(dog, null);
       dog.wild = true;
       dog.following = false;
-      dog.trust = BALANCE.eggs.tameTreats - 1;
+      dog.trust = tameTreatsFor(dog) - 1;
       dog.den = { ...spot };
       dog.x = spot.x + 0.5;
       dog.y = spot.y + 0.5;

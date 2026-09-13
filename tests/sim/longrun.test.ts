@@ -66,6 +66,7 @@ describe('Uzun koşu', () => {
       const g = { ...sim.dogs[0].genome, size: (['S', 'M', 'L'] as const)[i % 3] };
       sim.addDog(g, 'egg', 5 + i, p.x + 4 + (i % 12) * 2, p.y + 12 + Math.floor(i / 12) * 3);
     }
+    for (const d of sim.dogs) d.needs.loyalty = 60; // gece kaçma olmasın, performans ölçülsün
     for (let i = 0; i < 4; i++) {
       if (sim.candidates.length === 0) sim.staffSystem.refreshCandidates();
       const c = sim.candidates[0];

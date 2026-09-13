@@ -76,8 +76,17 @@ describe('Köpek dostluğu', () => {
     expect(sim.stats.playdates).toBe(0);
     a.friends[b.id] = BALANCE.dogs.social.shyMinAffinity + 5;
     ready(a, 40, 'shy');
+    const together = (): void => {
+      b.x = a.x + 2;
+      b.y = a.y;
+      b.path = [];
+      ready(b, 55, 'calm');
+    };
+    together();
     runMinutes(sim, 120, () => {
       b.needs.play = Math.max(b.needs.play, 55);
+      // Dolaşırken birbirinden uzaklaşırlarsa yeniden yan yana getir (yarıçap testi değil).
+      if (sim.stats.playdates === 0 && a.playmateId === null && Math.hypot(a.x - b.x, a.y - b.y) > 6) together();
     });
     expect(sim.stats.playdates).toBeGreaterThanOrEqual(1);
   });

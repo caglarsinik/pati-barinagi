@@ -21,12 +21,12 @@ import { t } from '../i18n';
 
 type KeyName =
   | 'W' | 'A' | 'S' | 'D' | 'UP' | 'DOWN' | 'LEFT' | 'RIGHT' | 'SHIFT' | 'E' | 'I' | 'B' | 'X' | 'Z' | 'O' | 'N' | 'P' | 'F' | 'TAB' | 'SPACE' | 'ESC'
-  | 'PLUS' | 'MINUS' | 'NUMPAD_ADD' | 'NUMPAD_SUBTRACT' | 'ONE' | 'TWO' | 'THREE' | 'FOUR' | 'FIVE' | 'H' | 'L';
+  | 'PLUS' | 'MINUS' | 'NUMPAD_ADD' | 'NUMPAD_SUBTRACT' | 'ONE' | 'TWO' | 'THREE' | 'FOUR' | 'FIVE' | 'SIX' | 'H' | 'L';
 type Keys = Record<KeyName, Phaser.Input.Keyboard.Key>;
 
 const KEY_LIST: KeyName[] = [
   'W', 'A', 'S', 'D', 'UP', 'DOWN', 'LEFT', 'RIGHT', 'SHIFT', 'E', 'I', 'B', 'X', 'Z', 'O', 'N', 'P', 'F', 'TAB', 'SPACE', 'ESC',
-  'PLUS', 'MINUS', 'NUMPAD_ADD', 'NUMPAD_SUBTRACT', 'ONE', 'TWO', 'THREE', 'FOUR', 'FIVE', 'H', 'L',
+  'PLUS', 'MINUS', 'NUMPAD_ADD', 'NUMPAD_SUBTRACT', 'ONE', 'TWO', 'THREE', 'FOUR', 'FIVE', 'SIX', 'H', 'L',
 ];
 
 const TOOL_KEYS: Array<[KeyName, Tool]> = [
@@ -35,6 +35,7 @@ const TOOL_KEYS: Array<[KeyName, Tool]> = [
   ['THREE', 'train'],
   ['FOUR', 'feed'],
   ['FIVE', 'clean'],
+  ['SIX', 'call'],
 ];
 
 export interface WorldSceneData {
@@ -330,6 +331,7 @@ export class WorldScene extends Phaser.Scene {
         pickEgg: 'pick',
         berries: 'berries',
         treatWild: 'pet',
+        call: 'play',
         treat: 'treat',
         shed: 'click',
         kennel: 'click',

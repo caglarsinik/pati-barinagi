@@ -59,6 +59,8 @@ export const store = {
   guideHidden: signal(false),
   /** Dünya üstü isim etiketleri (L). */
   labels: signal(true),
+  /** Şu an gezdirilen köpeğin adı. */
+  walkingDog: signal<string | null>(null),
   season: signal(''),
   weather: signal(''),
   weatherIcon: signal(''),
@@ -126,6 +128,7 @@ export function syncStore(sim: Sim): void {
   store.adoptersWaiting.value = sim.adopters.filter((a) => a.state === 'waiting').length;
   store.kennelCapacity.value = sim.kennelCapacity();
   store.foodStock.value = Math.floor(sim.foodStock);
+  store.walkingDog.value = sim.dogs.find((d) => d.walking)?.name ?? null;
   if (store.alerts.value !== sim.alerts.alerts) store.alerts.value = sim.alerts.alerts;
   const tx = sim.player.tileX;
   const ty = sim.player.tileY;

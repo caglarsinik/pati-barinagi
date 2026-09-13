@@ -14,7 +14,7 @@ import {
   TEMPERAMENT_NAMES_TR,
 } from '../sim/entities/DogGenome';
 import { DogPortrait } from './DogPortrait';
-import { store } from './store';
+import { showToast, store } from './store';
 
 export function Bar({ label, value, danger = 30 }: { label: string; value: number; danger?: number }) {
   const v = Math.round(value);
@@ -180,6 +180,26 @@ export function DogPanel() {
           <button class="btn small" onClick={() => app.focusTile(kennel.x, kennel.y)}>
             {t('Göster')}
           </button>
+        )}
+      </div>
+      <h4>{t('Gezinti')}</h4>
+      <div class="row">
+        {dog.walking ? (
+          <button class="btn small" onClick={() => sim.command({ type: 'endWalk' })}>
+            {t('Gezintiyi bitir')}
+          </button>
+        ) : dog.skills.leash >= 100 ? (
+          <button
+            class="btn small"
+            onClick={() => {
+              const r = sim.command({ type: 'walkDog', dogId: dog.id });
+              if (r.message) showToast(r.message);
+            }}
+          >
+            {t('Gezdir (tasma)')}
+          </button>
+        ) : (
+          <span class="muted small-text">{t('"Tasma" becerisini öğrenince gezdirebilirsin.')}</span>
         )}
       </div>
       <div class="row">

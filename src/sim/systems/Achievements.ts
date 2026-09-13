@@ -27,6 +27,7 @@ export const ACHIEVEMENTS: AchievementDef[] = [
   { id: 'staff-3', name: 'Tam kadro', desc: '3 personel çalıştır.', check: (s) => s.staff.length >= 3 },
   { id: 'trained-6', name: 'Baş eğitmen', desc: 'Bir köpeğe 6 beceriyi de öğret.', check: (s) => s.shelterDogs().some((d) => d.trainingLevel() >= 6) },
   { id: 'bff', name: 'Can dostlar', desc: 'İki köpek 50 dostluk puanına ulaşsın.', check: (s) => s.shelterDogs().some((d) => Object.values(d.friends).some((v) => v >= 50)) },
+  { id: 'walker', name: 'Gezgin dost', desc: 'Tasma bilen köpeklerle 10 gezinti yap.', check: (s) => s.stats.walks >= 10 },
   { id: 'builder', name: 'Mimar', desc: '10 inşaat yap.', check: (s) => s.stats.built >= 10 },
   { id: 'explorer', name: 'Kâşif', desc: 'Haritanın yarısını keşfet.', check: (s) => s.exploredCount >= s.world.width * s.world.height * 0.5 },
   { id: 'legendary', name: 'Efsane', desc: 'Efsanevi bir köpeğe bak.', check: (s) => s.shelterDogs().some((d) => d.genome.rarity === 'legendary') },

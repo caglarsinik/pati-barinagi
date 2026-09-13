@@ -125,6 +125,7 @@ export function hardMismatch(dog: Dog, r: AdoptionRequest): string | null {
 export function adoptable(dog: Dog): string | null {
   const B = BALANCE.adoption;
   if (dog.wild || dog.following) return t('barınakta değil');
+  if (dog.walking) return t('gezintide');
   if (dog.sick) return t('hasta');
   if (dog.needs.health < B.minHealth) return t('sağlığı düşük');
   if (dog.needs.hygiene < B.minHygiene) return t('kirli');
@@ -137,7 +138,10 @@ export function matchScore(dog: Dog, r: AdoptionRequest): number {
   if (hardMismatch(dog, r)) return 0;
   const prefs = softPrefs(r);
   const seniorPenalty = dog.stage === 'senior' && r.stage !== 'senior' ? 10 : 0;
-  if (prefs.length === 0) return Math.max(1, 85 + Math.min(15, RARITY_ORDER[dog.genome.rarity] * 5) - seniorPenalty);
+  // Öğrenilmiş beceriler: istekten fazlası küçük bonus, "otur" ayrıca artı.
+  const K = BALANCE.dogs.skills;
+  const skillBonus = Math.min(K.extraSkillBonusMax, K.extraSkillBonus * Math.max(0, dog.trainingLevel() - (r.minTraining ?? 0))) + (dog.skills.sit >= 100 ? K.sitMatchBonus : 0);
+  if (prefs.length === 0) return Math.max(1, Math.min(100, 85 + Math.min(15, RARITY_ORDER[dog.genome.rarity] * 5) + skillBonus) - seniorPenalty);
   let total = 0;
   let got = 0;
   for (const p of prefs) {
@@ -145,7 +149,7 @@ export function matchScore(dog: Dog, r: AdoptionRequest): number {
     if (p.ok(dog)) got += p.weight;
   }
   const base = 40 + 60 * (got / total);
-  return Math.max(1, Math.round(Math.min(100, base + RARITY_ORDER[dog.genome.rarity] * 3) - seniorPenalty));
+  return Math.max(1, Math.round(Math.min(100, base + RARITY_ORDER[dog.genome.rarity] * 3 + skillBonus) - seniorPenalty));
 }
 
 /** İstek kartı metni. */

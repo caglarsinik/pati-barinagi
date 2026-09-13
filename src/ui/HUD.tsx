@@ -31,6 +31,14 @@ export function HUD() {
           ⭐ {t('İtibar {rep} · Lisans {lvl}', { rep: store.reputation.value, lvl: store.licenseLevel.value })} · 👷 {store.staffCount.value}
           {store.adoptersWaiting.value > 0 ? ` · 🧑 ${t('{n} bekliyor', { n: store.adoptersWaiting.value })}` : ''}
         </div>
+        {store.walkingDog.value && (
+          <div class="muted small-text">
+            🦮 {t('{name} tasmada: arsadan çıkıp dön', { name: store.walkingDog.value })}{' '}
+            <button class="btn small" onClick={() => app.sim?.command({ type: 'endWalk' })}>
+              {t('Bırak')}
+            </button>
+          </div>
+        )}
         <div class={'stamina' + (store.exhausted.value ? ' exhausted' : '')} title={t('Dayanıklılık')}>
           <div class="bar">
             <div class="fill" style={{ width: `${store.stamina.value}%` }} />

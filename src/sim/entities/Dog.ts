@@ -80,6 +80,7 @@ export interface DogSave {
   den?: TilePos | null;
   following?: boolean;
   friends?: Record<string, number>;
+  walking?: boolean;
 }
 
 export function defaultNeeds(origin: DogOrigin): DogNeeds {
@@ -127,6 +128,16 @@ export class Dog {
   friends: Record<number, number> = {};
   /** Şu an birlikte oyun için buluştuğu köpek (kayda yazılmaz). */
   playmateId: number | null = null;
+  /** Tasmada, oyuncuyla gezintide (kayda yazılır). */
+  walking = false;
+  /** Gezintide arsadan çıktı mı; çıkıp geri girince gezinti biter (kayda yazılmaz). */
+  walkLeftPlot = false;
+  /** Gezinti bitirildi, kendi başına eve dönüyor (kayda yazılmaz). */
+  walkReturning = false;
+  /** Çekingen kaçış bekleme süresi (oyun dakikası). */
+  fleeTimer = 0;
+  /** "Otur" için oyuncunun bitişikte durduğu süre (gerçek saniye). */
+  nearPlayerSec = 0;
 
   // Davranış durumu (kayda yazılmaz; yüklemede boşta başlar)
   state: DogState = 'idle';
@@ -234,6 +245,7 @@ export class Dog {
       den: this.den,
       following: this.following,
       friends: { ...this.friends },
+      walking: this.walking,
     };
   }
 
@@ -269,6 +281,7 @@ export class Dog {
         if (Number.isInteger(id) && typeof v === 'number' && Number.isFinite(v)) dog.friends[id] = Math.max(-100, Math.min(100, v));
       }
     }
+    dog.walking = d.walking === true && !dog.wild;
     return dog;
   }
 }
