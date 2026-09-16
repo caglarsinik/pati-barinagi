@@ -1,0 +1,17 @@
+{
+  "name": "Pati Barınağı",
+  "short_name": "Pati",
+  "description": "2D köpek barınağı yönetim ve açık dünya keşif oyunu",
+  "lang": "tr",
+  "start_url": "./",
+  "scope": "./",
+  "display": "fullscreen",
+  "orientation": "landscape",
+  "background_color": "#1b1a2a",
+  "theme_color": "#1b1a2a",
+  "icons": [
+    { "src": "./icons/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "./icons/icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "./icons/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
