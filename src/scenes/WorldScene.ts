@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { bindUiKeyboard, isUiKeyboardTarget } from '../ui/keyboard';
+import { isUiKeyboardTarget } from '../ui/keyboard';
 import { BALANCE } from '../config/balance';
 import { GAME } from '../config/game';
 import { BUILDING_DEFS } from '../content/buildings';
@@ -271,8 +271,6 @@ export class WorldScene extends Phaser.Scene {
     if (!kb) throw new Error('Klavye eklentisi yok');
     this.keys = kb.addKeys(KEY_LIST.join(',')) as Keys;
     kb.addCapture(['TAB', 'SPACE']);
-    const ui = document.getElementById('ui');
-    if (ui) this.unsub.push(bindUiKeyboard(ui, () => { kb.resetKeys(); this.sim.nav.cancel(); }));
     const canvasFocus = (): void => {
       if (isUiKeyboardTarget(document.activeElement)) (document.activeElement as HTMLElement).blur();
     };

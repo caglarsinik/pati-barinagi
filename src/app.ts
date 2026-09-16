@@ -1,4 +1,5 @@
 import Phaser from 'phaser';
+import { bindUiKeyboard } from './ui/keyboard';
 import { OrientationPause, portraitBlocked } from './ui/OrientationPause';
 import { audio } from './audio/audio';
 import { GAME } from './config/game';
@@ -38,6 +39,11 @@ class AppController {
     initLang();
     store.lang.value = getLang();
     document.title = t(GAME.name);
+    const ui = document.getElementById('ui');
+    if (ui) bindUiKeyboard(ui, () => {
+      for (const scene of this.game?.scene.getScenes(true) ?? []) scene.input.keyboard?.resetKeys();
+      this.sim?.nav.cancel();
+    });
     this.game = new Phaser.Game({
       type: Phaser.AUTO,
       parent,
