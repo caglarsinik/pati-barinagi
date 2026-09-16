@@ -10,3 +10,8 @@
 - Dikey uyar? boyunca sim?lasyon durur; yataya d?n?? ?nceki h?z? korur.
 - Elle duraklatma, a??k rapor/men? ve iflas yeniden ba?lat?lmaz.
 - orientation.test.ts zaman?n ger?ekten durdu?unu ve h?z geri y?klemesini kontrol eder.
+
+## Klavye
+- UI keydown/keyup olaylar? varsay?lan taray?c? davran??? korunarak Phaser pencere dinleyicisinden ayr?ld?.
+- Odak de?i?iminde bas?l? tu?lar ve dokun-git temizleniyor. Oyun tuvaline dokunmak oda?? oyuna geri verir.
+- keyboard.test.ts olaylar?n engellenmedi?ini ve dinleyici temizli?ini kontrol eder.

@@ -1,4 +1,5 @@
 import Phaser from 'phaser';
+import { bindUiKeyboard, isUiKeyboardTarget } from '../ui/keyboard';
 import { BALANCE } from '../config/balance';
 import { GAME } from '../config/game';
 import { BUILDING_DEFS } from '../content/buildings';
@@ -270,6 +271,13 @@ export class WorldScene extends Phaser.Scene {
     if (!kb) throw new Error('Klavye eklentisi yok');
     this.keys = kb.addKeys(KEY_LIST.join(',')) as Keys;
     kb.addCapture(['TAB', 'SPACE']);
+    const ui = document.getElementById('ui');
+    if (ui) this.unsub.push(bindUiKeyboard(ui, () => { kb.resetKeys(); this.sim.nav.cancel(); }));
+    const canvasFocus = (): void => {
+      if (isUiKeyboardTarget(document.activeElement)) (document.activeElement as HTMLElement).blur();
+    };
+    this.game.canvas.addEventListener('pointerdown', canvasFocus);
+    this.unsub.push(() => this.game.canvas.removeEventListener('pointerdown', canvasFocus));
 
     this.input.on('wheel', (_p: Phaser.Input.Pointer, _o: unknown, _dx: number, dy: number) => {
       const f = dy > 0 ? 1 / 1.15 : 1.15;
@@ -337,7 +345,7 @@ export class WorldScene extends Phaser.Scene {
   private handleHotkeys(): void {
     const k = this.keys;
     const JustDown = Phaser.Input.Keyboard.JustDown;
-    if (store.orientationBlocked.value || store.inputFocused.value) return;
+    if (store.orientationBlocked.value || store.inputFocused.value || isUiKeyboardTarget(document.activeElement)) return;
     if (JustDown(k.ESC)) {
       this.game.events.emit('ui:escape');
       return;
@@ -423,7 +431,7 @@ export class WorldScene extends Phaser.Scene {
 
   private readInput(): PlayerInput {
     const k = this.keys;
-    if (store.pauseMenu.value || store.inputFocused.value) return { dx: 0, dy: 0, run: false };
+    if (store.pauseMenu.value || store.orientationBlocked.value || store.inputFocused.value || isUiKeyboardTarget(document.activeElement)) return { dx: 0, dy: 0, run: false };
     const left = k.A.isDown || k.LEFT.isDown;
     const right = k.D.isDown || k.RIGHT.isDown;
     const up = k.W.isDown || k.UP.isDown;
