@@ -904,4 +904,11 @@ export const EN: Record<string, string> = {
   // 0.11: PWA
   'Ana ekrana eklendi': 'Added to the home screen',
   'Yeni sürüm indirildi · Ayarlar → Şimdi yenile': 'New version downloaded · Settings → Reload now',
+  'Yeni sürüm: şimdi yenile': 'New version: reload now',
+  'Ana ekrana ekle': 'Add to home screen',
+  "iPhone/iPad: Safari'de Paylaş → Ana Ekrana Ekle": 'iPhone/iPad: in Safari tap Share → Add to Home Screen',
+  'Android: tarayıcı menüsü (⋮) → Ana ekrana ekle': 'Android: browser menu (⋮) → Add to Home screen',
+  'Tam ekran': 'Fullscreen',
+  'Uygulama olarak yüklü': 'Installed as an app',
+  'Telefona kurulum': 'Install on your phone',
 };

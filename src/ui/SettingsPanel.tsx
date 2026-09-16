@@ -2,6 +2,7 @@ import { useState } from 'preact/hooks';
 import { app } from '../app';
 import { audio } from '../audio/audio';
 import { getLang, t } from '../i18n';
+import { InstallControls } from './InstallControls';
 import { showToast, store } from './store';
 
 /** Ses ve dil ayarları, kaydı JSON olarak dışa/içe aktarma. */
@@ -78,6 +79,7 @@ export function SettingsPanel() {
           </select>
           <span class="muted small-text">{store.touch.value ? t('Şu an: açık') : t('Şu an: kapalı')}</span>
         </label>
+        <InstallControls title />
         {app.sim && (
           <>
             <h4>{t('Kayıt')}</h4>

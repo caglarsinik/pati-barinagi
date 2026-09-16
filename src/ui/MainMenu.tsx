@@ -5,6 +5,7 @@ import { BALANCE } from '../config/balance';
 import { getLang, t } from '../i18n';
 import { DIFFICULTIES, DIFFICULTY_NAMES_TR, type Difficulty } from '../sim/Sim';
 import { formatMoney } from './format';
+import { InstallControls } from './InstallControls';
 import { store } from './store';
 
 export function MainMenu() {
@@ -65,6 +66,7 @@ export function MainMenu() {
             English
           </button>
         </div>
+        <InstallControls />
         <p class="version">
           v{GAME.version} · {booted ? t('hazır') : t('dokular üretiliyor...')}
         </p>

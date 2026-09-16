@@ -194,6 +194,13 @@ body {
   color: #ff7b7b;
 }
 
+.install-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
 .field input,
 .field select {
   font: inherit;
