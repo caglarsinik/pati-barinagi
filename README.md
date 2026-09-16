@@ -185,3 +185,7 @@ tests/          vitest testleri
 ```
 
 Kayıt tarayıcının `localStorage` alanında tutulur; her sabah 06:00'da ve menüden çıkarken otomatik kaydedilir.
+
+### 0.10.1 bak?m g?ncellemesi
+
+Kapal? kap? ge?i?leri ve uyku s?ras?nda kap?lar, telefon dikey y?n?nde duraklatma ve metin alanlar?nda klavye kullan?m? d?zeltildi. Ayr?nt?lar: `docs/CLAUDE_HANDOFF.md`.

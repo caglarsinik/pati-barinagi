@@ -428,3 +428,7 @@ Ayrıntılı tasarım notları plan dosyasında; burada özet. Sırası değişt
 - Kaybetme durumu: iflas ekranı (M10); zafer ekranı M12'de.
 - Gerçek ses dosyaları istenirse M6'da `SoundSource` üzerinden dosya yükleme eklenir; lisans uyarıları README'de.
 - Git deposu projede başlatılır ve her kilometre taşında commit atılır (uzak depo yok, istenirse GitHub'a bağlanır).
+
+## 0.10.1 bak?m do?rulamas?
+
+Kap? ge?i?i, mobil y?n duraklatmas?, UI klavye ayr?m? ve s?r?m e?itlemesi tamamland?. Test sonu?lar? `CLAUDE_HANDOFF.md` i?inde tutulur.
