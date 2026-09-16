@@ -658,6 +658,7 @@ export class DogBrain {
     let budget = dog.speed() * dtMin;
     while (budget > 0 && dog.path.length > 0) {
       const next = dog.path[0];
+      if (!this.sim.gates.canEnter(next)) break;
       const tx = next.x + 0.5;
       const ty = next.y + 0.5;
       const dx = tx - dog.x;

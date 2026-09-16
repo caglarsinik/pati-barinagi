@@ -146,6 +146,7 @@ export class AdoptionSystem {
     let budget = BALANCE.adoption.walkSpeed * dtMin;
     while (budget > 0 && a.path.length > 0) {
       const next = a.path[0];
+      if (!this.sim.gates.canEnter(next)) break;
       const tx = next.x + 0.5;
       const ty = next.y + 0.5;
       const dx = tx - a.x;

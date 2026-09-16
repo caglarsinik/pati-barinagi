@@ -417,6 +417,7 @@ export class StaffSystem {
     let budget = s.speed() * dtMin;
     while (budget > 0 && s.path.length > 0) {
       const next = s.path[0];
+      if (!this.sim.gates.canEnter(next)) break;
       const tx = next.x + 0.5;
       const ty = next.y + 0.5;
       const dx = tx - s.x;

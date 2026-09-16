@@ -362,9 +362,10 @@ export class Sim {
   update(dtSec: number, input: PlayerInput = IDLE_INPUT): void {
     if (this.paused || this.gameOver || dtSec <= 0) return;
     const dtMin = dtSec * BALANCE.time.minutesPerRealSecond * this.speed;
-    this.stepSim(dtMin);
+    this.stepSim(dtMin, dtSec);
+    if (this.gameOver) return;
     // Kapılar gerçek zamanda: oyuncu için katılık, NPC'ler için yakınlık.
-    this.gates.update(dtSec);
+    this.gates.update(0);
     if (this.mode === 'avatar') {
       // Klavye girişi dokun-git yolunu iptal eder; girdi yoksa yol takibi girdiyi üretir.
       const manual = input.dx !== 0 || input.dy !== 0;
@@ -377,12 +378,15 @@ export class Sim {
   }
 
   /** Oyun zamanını ilerletir (oyuncu hareketi hariç). Uyku gibi atlamalar bunu döngüde çağırır. */
-  stepSim(dtMin: number): void {
+  stepSim(dtMin: number, dtSec = dtMin / BALANCE.time.minutesPerRealSecond): void {
+    if (this.gameOver) return;
+    this.gates.update(dtSec);
     this.weatherSys.update();
     const crossed = this.clock.advance(dtMin);
     for (const h of crossed.hours) this.events.emit('hour', h);
     for (const d of crossed.days) this.events.emit('day', d);
     for (const w of crossed.weeks) this.events.emit('week', w);
+    if (this.gameOver) return;
     this.needs.update(dtMin);
     this.brain.update(dtMin);
     tickConstruction(this, dtMin);
@@ -398,6 +402,7 @@ export class Sim {
       this.achievements.check();
     }
     this.staffSystem.update(dtMin);
+    this.gates.update(0);
   }
 
   private revealPlayer(force: boolean): void {
@@ -415,7 +420,7 @@ export class Sim {
     let target = c.dayIndex * MINUTES_PER_DAY + morning;
     if (c.minuteOfDay >= morning) target += MINUTES_PER_DAY;
     const total = target - c.totalMinutes;
-    while (this.clock.totalMinutes < target) {
+    while (this.clock.totalMinutes < target && !this.gameOver) {
       this.stepSim(Math.min(5, target - this.clock.totalMinutes));
     }
     this.player.stamina = BALANCE.player.staminaMax;

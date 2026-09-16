@@ -1,6 +1,7 @@
 import { BALANCE } from '../../config/balance';
 import type { Sim } from '../Sim';
 import type { TilePos } from '../world/TileWorld';
+import { Obj } from '../world/tiles';
 import { gateGroups } from '../world/gates';
 
 interface GateActor {
@@ -62,6 +63,14 @@ export class GateSystem {
         if (this.timers[k] <= 0) this.setOpen(group, false);
       }
     }
+  }
+
+  /** Check each path tile before crossing, including large simulation steps. */
+  canEnter(tile: TilePos): boolean {
+    const w = this.sim.world;
+    if (w.objectAt(tile.x, tile.y) !== Obj.Gate) return true;
+    this.update(0);
+    return w.isGateOpen(tile.x, tile.y);
   }
 
   private setOpen(group: TilePos[], open: boolean): void {
