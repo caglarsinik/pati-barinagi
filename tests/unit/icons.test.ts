@@ -1,8 +1,9 @@
 import { readFileSync } from 'node:fs';
-import { resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
 
-const DIR = resolve(__dirname, '../../public/icons');
+const DIR = fileURLToPath(new URL('../../public/icons/', import.meta.url));
+const MANIFEST = fileURLToPath(new URL('../../public/manifest.webmanifest', import.meta.url));
 const EXPECTED: Array<[string, number]> = [
   ['icon-512.png', 512],
   ['icon-192.png', 192],
@@ -13,7 +14,7 @@ const EXPECTED: Array<[string, number]> = [
 
 describe('PWA ikonları', () => {
   it.each(EXPECTED)('%s geçerli PNG ve %d piksel', (name, size) => {
-    const buf = readFileSync(resolve(DIR, name));
+    const buf = readFileSync(DIR + name);
     // PNG imzası ve IHDR boyutları
     expect([...buf.subarray(0, 8)]).toEqual([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]);
     expect(buf.toString('ascii', 12, 16)).toBe('IHDR');
@@ -25,13 +26,7 @@ describe('PWA ikonları', () => {
   });
 
   it('manifest ikon dosyalarını gösteriyor', () => {
-    const manifestPath = resolve(__dirname, '../../public/manifest.webmanifest');
-    let manifest: { icons?: Array<{ src: string; sizes: string }> } = {};
-    try {
-      manifest = JSON.parse(readFileSync(manifestPath, 'utf8'));
-    } catch {
-      return; // manifest sonraki adımda eklenir
-    }
+    const manifest = JSON.parse(readFileSync(MANIFEST, 'utf8')) as { icons?: Array<{ src: string; sizes: string }> };
     for (const icon of manifest.icons ?? []) {
       const file = icon.src.replace(/^\.\//, '').replace(/^icons\//, '');
       expect(EXPECTED.some(([n]) => n === file), icon.src).toBe(true);

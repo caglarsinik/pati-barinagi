@@ -7,6 +7,7 @@ import type { Alert } from '../sim/systems/AlertSystem';
 import type { WeekSummary } from '../sim/systems/EconomySystem';
 import { SEASON_NAMES_TR, WEATHER_ICONS, WEATHER_NAMES_TR } from '../sim/systems/WeatherSystem';
 import { t } from '../i18n';
+import type { BeforeInstallPromptEvent } from '../pwa';
 import { WEEKDAYS_TR } from '../core/Clock';
 import { type Tool, resolveAction } from '../sim/systems/Interaction';
 
@@ -66,6 +67,10 @@ export const store = {
   /** İflas ekranı (sim.gameOver yansıması). */
   gameOver: signal<GameOverInfo | null>(null),
   settingsOpen: signal(false),
+  /** Tarayıcının "Ana ekrana ekle" istemi (Chrome/Edge); null ise düğme gösterilmez. */
+  installPrompt: signal<BeforeInstallPromptEvent | null>(null),
+  /** Yeni service worker indirildi; Ayarlar → Şimdi yenile. */
+  updateReady: signal(false),
   guideHidden: signal(false),
   /** Dünya üstü isim etiketleri (L). */
   labels: signal(true),

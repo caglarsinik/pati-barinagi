@@ -1,5 +1,6 @@
 import { h, render } from 'preact';
 import { app } from './app';
+import { registerPwa } from './pwa';
 import { App } from './ui/App';
 import './ui/ui.css';
 import './ui/layout.css';
@@ -13,6 +14,7 @@ window.addEventListener('unhandledrejection', (e) => {
 });
 
 app.init('game');
+registerPwa();
 // Konsoldan ve otomatik testlerden erişim için.
 (window as unknown as { __pati: typeof app }).__pati = app;
 const root = document.getElementById('ui');

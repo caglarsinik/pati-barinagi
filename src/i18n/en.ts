@@ -900,4 +900,8 @@ export const EN: Record<string, string> = {
   'Döndür': 'Rotate',
   'R': 'R',
   'Seçili binayı döndür (kare olmayan binalar)': 'Rotate the selected building (non-square buildings)',
+
+  // 0.11: PWA
+  'Ana ekrana eklendi': 'Added to the home screen',
+  'Yeni sürüm indirildi · Ayarlar → Şimdi yenile': 'New version downloaded · Settings → Reload now',
 };
