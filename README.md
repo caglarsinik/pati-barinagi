@@ -11,6 +11,38 @@ Tasarım dokümanı ve kilometre taşları: `docs/PLAN.md`
 - `run.bat` dosyasına çift tıkla. İlk seferde bağımlılıklar kurulur (Node.js gerekir), sonra tarayıcı açılır.
 - Elle: `npm install` ve `npm run dev`
 - Tek dosya sürüm: `build.bat` → `dist/index.html` (çift tıkla açılır, internet gerekmez)
+- Yayın için `dist` klasörünün tamamı kullanılır (`index.html` + `manifest.webmanifest` + `icons/` + `sw.js`); bkz. aşağıdaki bölüm.
+
+## Telefona kurulum ve yayın
+
+Oyun bir **PWA**dır: HTTPS'li bir adreste yayınlanınca telefon ve tablette tarayıcıdan açılır, "Ana ekrana ekle" ile simge
+olur, tam ekran yatay çalışır ve bir kez açıldıktan sonra internetsiz de açılır (service worker önbelleği). iOS ve Android
+için ayrı paket gerekmez; mağaza yoktur.
+
+**Yayınlama (GitHub Pages, ücretsiz):**
+
+1. GitHub'da boş bir depo aç (ör. `pati-barinagi`, public ya da private fark etmez; Pages için public gerekir).
+2. Bu klasörde:
+   ```bat
+   git remote add origin https://github.com/KULLANICI/pati-barinagi.git
+   git push -u origin main
+   ```
+3. Depo sayfasında **Settings → Pages → Build and deployment → Source: GitHub Actions** seç.
+4. `.github/workflows/pages.yml` her push'ta testleri koşturup `dist` klasörünü yayınlar (Actions sekmesinden izlenir, 1–2 dk).
+5. Adres: `https://KULLANICI.github.io/pati-barinagi/`
+
+Alternatif: Netlify Drop ya da Vercel'e `dist` klasörünü sürükle-bırak; hepsi HTTPS verir.
+Yerel ağdan denemek için `npm run build` sonra `npm run preview -- --host` ve telefondan `http://BILGISAYAR-IP:4173/`
+(HTTP olduğu için ana ekrana ekleme ve çevrimdışı çalışmaz; oynanış test edilir).
+
+**Telefona ekleme:**
+
+- **Android (Chrome):** adres açılınca ana menüde "Ana ekrana ekle" düğmesi çıkar (ya da tarayıcı menüsü ⋮ → Ana ekrana ekle /
+  Uygulamayı yükle). Simgeden açılınca tam ekran ve yatay kilitli çalışır.
+- **iPhone / iPad (Safari):** Paylaş → **Ana Ekrana Ekle**. Ana menüde ipucu görünür. Tam ekran için Ayarlar'da "Tam ekran"
+  düğmesi de vardır.
+- **Güncelleme:** yeni sürüm yayınlanınca oyun "Yeni sürüm indirildi" der; Ayarlar → **Şimdi yenile**. Kayıt tarayıcıda
+  kalır (localStorage), sürüm geçişinde silinmez; yedek için Ayarlar → Kaydı panoya kopyala / Dosya olarak indir.
 
 ## Kontroller
 
