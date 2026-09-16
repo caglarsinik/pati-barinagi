@@ -393,6 +393,10 @@ Her taşın sonunda oyun çalışır hâlde olur, testler yeşildir, commit atı
   tuvalet eğitimi, kapsanan pislik (MessSystem kapasite/etkin sayı/aciliyet, "Tuvalet alanı doldu"), çöp kutusu bonusu,
   gece tuvaleti ve gezintide rahatlama; zorluk seviyesi (BALANCE.difficulty, Sim.difficulty); kredi ve iflas
   (loan/negativeWeeks/gameOver, GameOverPanel); bina döndürme (Building.rot, buildingSize/solidRowsFor, -r1 dokular, R / Döndür).
+- **0.10.1 bakım (2026-09-16):** NPC/köpek yol adımında kapalı kapı kontrolü (GateSystem.canEnter) ve uyku döngüsünde kapı
+  güncellemesi, iflasta uyku döngüsünün durması; telefon dikey yönünde simülasyon duraklatması (OrientationPause); UI klavye
+  olaylarının Phaser'dan ayrılması (ui/keyboard.ts); sürüm eşitleme. Doğrulama notları ve açık sorunlar
+  `docs/CLAUDE_HANDOFF.md` içinde.
 
 ## 5. Doğrulama
 
@@ -428,7 +432,3 @@ Ayrıntılı tasarım notları plan dosyasında; burada özet. Sırası değişt
 - Kaybetme durumu: iflas ekranı (M10); zafer ekranı M12'de.
 - Gerçek ses dosyaları istenirse M6'da `SoundSource` üzerinden dosya yükleme eklenir; lisans uyarıları README'de.
 - Git deposu projede başlatılır ve her kilometre taşında commit atılır (uzak depo yok, istenirse GitHub'a bağlanır).
-
-## 0.10.1 bak?m do?rulamas?
-
-Kap? ge?i?i, mobil y?n duraklatmas?, UI klavye ayr?m? ve s?r?m e?itlemesi tamamland?. Test sonu?lar? `CLAUDE_HANDOFF.md` i?inde tutulur.

@@ -161,6 +161,7 @@ Bilgisayar değiştirirken ya da yedek almak için kullan.
 - [x] M8 Canlı barınak: susuzluk ve su yalağı, dekor/mutfak etkisi, dünya üstü emote balonları ve isim etiketleri (OverlayScene), köpek-köpek dostluk/oyun/hırlaşma/havlama, huy ve becerilerin davranışa bağlanması (Çağır aracı, otur, bekle, gezdirme), hastalık ve karantina, köpek listesi sıralama/filtre, teknik borç (ışık haritası, doku sızıntısı, toast kuyruğu), kayıt sürümü 2
 - [x] M9 Arayüz ve dokunmatik: üst durum şeridi + kategorili alt menü çubuğu, sütunlu HUD (çakışma yok), Kontroller sayfası, sahiplendirme anahtarı ve "bu köpeği tut", duyarlı CSS (tablet/telefon, 44 px dokunma hedefleri, tam ekran sayfalar), görevlendirme ızgarası parmakla boyanır, DPR'lı canvas + pinch, dokun-git + E düğmesi, telefon sayfaları ve çevir ekranı
 - [x] M10 Kapı, tuvalet ve zorluk: otomatik çit kapısı (kapalıyken geçilmez, yaklaşınca açılır, NPC'ler kapı dışında belirir), her modda görünür tuvalet alanı + kademeli tuvalet eğitimi + kapsanan pislik/kapasite/uyarı, işe yarayan çöp kutusu, gece tuvaleti ve gezintide rahatlama, zorluk seviyesi, kredi ve iflas ekranı, bina döndürme (R)
+- [x] 0.10.1 bakım (2026-09-16): kapalı kapıdan geçiş kontrolü ve uykuda kapılar, telefon dikey yönde duraklatma, metin alanlarında klavye ayrımı (ayrıntı ve doğrulama notları: `docs/CLAUDE_HANDOFF.md`)
 - [ ] Sonraki paketler (`docs/PLAN.md` §7): M11 Yaşayan Dünya, M12 İlerleme ve Son Oyun, M13 Sahiplendirme Hikâyeleri, M14 Soy
 
 ## Geliştirme
@@ -185,7 +186,3 @@ tests/          vitest testleri
 ```
 
 Kayıt tarayıcının `localStorage` alanında tutulur; her sabah 06:00'da ve menüden çıkarken otomatik kaydedilir.
-
-### 0.10.1 bak?m g?ncellemesi
-
-Kapal? kap? ge?i?leri ve uyku s?ras?nda kap?lar, telefon dikey y?n?nde duraklatma ve metin alanlar?nda klavye kullan?m? d?zeltildi. Ayr?nt?lar: `docs/CLAUDE_HANDOFF.md`.
