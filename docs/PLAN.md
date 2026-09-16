@@ -397,6 +397,12 @@ Her taşın sonunda oyun çalışır hâlde olur, testler yeşildir, commit atı
   güncellemesi, iflasta uyku döngüsünün durması; telefon dikey yönünde simülasyon duraklatması (OrientationPause); UI klavye
   olaylarının Phaser'dan ayrılması (ui/keyboard.ts); sürüm eşitleme. Doğrulama notları ve açık sorunlar
   `docs/CLAUDE_HANDOFF.md` içinde.
+- **0.11.0 Telefona kurulum (2026-09-16):** PWA — kodla üretilen ikonlar (`scripts/make-icons.mjs`, `public/icons`),
+  `manifest.webmanifest` (tam ekran, yatay), `index.html` meta/ikon bağlantıları, göreli `base`, service worker
+  (`public/sw.js`: sürümlü önbellek, sayfa için ağ öncelikli, çevrimdışı açılış; sürüm `?v=` ile), `src/pwa.ts`
+  (kayıt, güncelleme bildirimi, kurulum istemi, tam ekran), `InstallControls` (ana menü + Ayarlar: Ana ekrana ekle,
+  iOS/Android ipucu, Tam ekran, Şimdi yenile), GitHub Pages iş akışı (`.github/workflows/pages.yml`), README bölümü.
+  iOS ve Android tek paketle; APK/IPA (Capacitor) kapsam dışı.
 
 ## 5. Doğrulama
 
