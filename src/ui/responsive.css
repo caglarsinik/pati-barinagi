@@ -50,6 +50,11 @@ html.is-touch .btn.small {
   min-height: 36px;
 }
 
+html.is-touch .topbar .btn.small {
+  min-height: 34px;
+  padding: 4px 8px;
+}
+
 html.is-touch .tool {
   width: 48px;
   height: 48px;
@@ -70,7 +75,7 @@ html.is-touch .prio {
 }
 
 html.is-touch .nav-item {
-  width: 66px;
+  flex-basis: 66px;
   height: 58px;
 }
 
@@ -105,23 +110,7 @@ html.is-touch .build-item {
   min-height: 44px;
 }
 
-/* --- Dokunmatik kontroller (avatar modu): E düğmesi ve Koş --- */
-.touch-controls {
-  position: absolute;
-  right: calc(var(--safe-r) + var(--gap));
-  bottom: calc(var(--safe-b) + var(--minimap-w) + 2 * var(--gap));
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 8px;
-  pointer-events: none;
-  z-index: var(--z-touch);
-}
-
-.touch-controls > * {
-  pointer-events: auto;
-}
-
+/* --- Dokunmatik kontroller (avatar modu): E düğmesi ve Koş (konum layout.css .dock-right) --- */
 .action-btn {
   width: 76px;
   height: 76px;
@@ -159,10 +148,6 @@ html.is-touch .build-item {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-}
-
-html.is-touch .col-right {
-  bottom: calc(var(--safe-b) + var(--minimap-w) + 2 * var(--gap) + 130px);
 }
 
 /* --- Telefon sayfaları ve dikey uyarısı --- */
@@ -231,8 +216,7 @@ html.is-touch .col-right {
     --gap: 8px;
     --side-w: 280px;
     --left-w: 220px;
-    --minimap-w: 136px;
-    --bottom-side-w: 300px;
+    --dock-h: 148px;
   }
 
   .minimap canvas {
@@ -301,11 +285,9 @@ html.is-touch .col-right {
     font-size: 13px;
     --gap: 6px;
     --top-h: 40px;
-    --nav-h: 54px;
-    --side-w: 250px;
+    --dock-h: 106px;
+    --side-w: min(260px, 42vw);
     --left-w: 190px;
-    --minimap-w: 0px;
-    --bottom-side-w: 240px;
   }
 
   .ach-list {
@@ -313,11 +295,48 @@ html.is-touch .col-right {
   }
 
   .guide,
-  .hud.minimap,
-  .minimap-show,
+  .dock-right .minimap,
+  .dock-right .minimap-show,
   .col-left .backpack,
   .col-right .alerts {
     display: none;
+  }
+
+  /* Alt menü öğeleri daralabilir; E düğmesi küçülür. */
+  .nav-item {
+    width: auto;
+    flex: 0 1 46px;
+    min-width: 36px;
+    height: 42px;
+  }
+
+  html.is-touch .nav-item {
+    flex-basis: 50px;
+    height: 46px;
+  }
+
+  .bottom-nav {
+    gap: 4px;
+  }
+
+  .action-btn {
+    width: 64px;
+    height: 64px;
+    border-width: 2px;
+  }
+
+  .action-label {
+    max-width: 54px;
+  }
+
+  .run-toggle {
+    min-height: 34px;
+    padding: 4px 10px;
+  }
+
+  html.is-touch .run-toggle {
+    min-height: 34px;
+    padding: 4px 10px;
   }
 
   .build-items {
@@ -333,16 +352,6 @@ html.is-touch .col-right {
 
   .nav-label {
     display: none;
-  }
-
-  .nav-item {
-    width: 46px;
-    height: 42px;
-  }
-
-  html.is-touch .nav-item {
-    width: 50px;
-    height: 46px;
   }
 
   .tb-center {
@@ -391,5 +400,78 @@ html.is-touch .col-right {
 
   .side-panel {
     padding: 8px 10px;
+  }
+}
+
+/* --- Çok dar telefon (<= 719): ikincil çipler gizli, üst şerit kaydırılır --- */
+@media (max-width: 719px) {
+  .topbar .chip-food,
+  .topbar .chip-rep {
+    display: none;
+  }
+}
+
+/* --- Çok kısa ekran (<= 340): her şey bir kademe küçük --- */
+@media (max-height: 340px) {
+  :root {
+    font-size: 12px;
+    --top-h: 34px;
+    --dock-h: 92px;
+  }
+
+  .nav-item,
+  html.is-touch .nav-item {
+    flex-basis: 40px;
+    height: 38px;
+  }
+
+  .action-btn {
+    width: 56px;
+    height: 56px;
+  }
+
+  .tool-current,
+  html.is-touch .tool {
+    width: 40px;
+    height: 40px;
+  }
+
+  .topbar .btn.small,
+  html.is-touch .topbar .btn.small {
+    min-height: 28px;
+    padding: 2px 6px;
+  }
+}
+
+/* --- Kısa ekranda ana menü iki sütun (yatay telefon) --- */
+@media (max-height: 500px) {
+  .menu-screen .menu-card {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr);
+    gap: 6px 16px;
+    align-items: start;
+    min-width: 0;
+    max-width: min(94vw, 760px);
+    padding: 12px 18px;
+  }
+
+  .menu-screen .title {
+    font-size: 1.6rem;
+  }
+
+  .menu-screen .menu-intro {
+    gap: 6px;
+  }
+
+  .menu-screen .menu-form {
+    gap: 8px;
+  }
+
+  .menu-screen .menu-form .row {
+    margin: 0;
+  }
+
+  .menu-screen .menu-card .version {
+    text-align: left;
   }
 }

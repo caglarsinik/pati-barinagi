@@ -911,4 +911,9 @@ export const EN: Record<string, string> = {
   'Tam ekran': 'Fullscreen',
   'Uygulama olarak yüklü': 'Installed as an app',
   'Telefona kurulum': 'Install on your phone',
+
+  // 0.12: telefon HUD
+  'Araçlar': 'Tools',
+  'Yönet': 'Manage',
+  'Avatar': 'Avatar',
 };

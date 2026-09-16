@@ -1,6 +1,7 @@
 import Phaser from 'phaser';
 import { bindUiKeyboard } from './ui/keyboard';
 import { OrientationPause, portraitBlocked } from './ui/OrientationPause';
+import { classifyLayout } from './ui/layout';
 import { audio } from './audio/audio';
 import { GAME } from './config/game';
 import { type Lang, getLang, initLang, setLang, t } from './i18n';
@@ -124,7 +125,7 @@ class AppController {
   applyDevice(): void {
     const { w, h } = viewport();
     if (w < 64 || h < 64) return;
-    const layout: Layout = w <= 767 || h <= 500 ? 'phone' : w <= 1023 ? 'tablet' : 'desktop';
+    const layout: Layout = classifyLayout(w, h);
     const mode = store.touchMode.value;
     let touch: boolean;
     if (mode === 'on') touch = true;

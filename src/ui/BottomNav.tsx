@@ -64,7 +64,7 @@ export function BottomNav() {
   };
 
   return (
-    <div class="hud bottom-nav panel">
+    <div class="bottom-nav panel">
       {MENU_GROUPS.map((g) => (
         <div key={g.id} class="nav-slot">
           {open === g.id && g.items.length > 1 && (

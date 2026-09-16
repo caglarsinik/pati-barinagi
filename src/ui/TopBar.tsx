@@ -4,12 +4,19 @@ import { t } from '../i18n';
 import { formatMoney } from './format';
 import { store } from './store';
 
-/** Üst durum şeridi: sol durum çipleri, ortada saat, sağda hız ve mod. Düğme kümesi alt menüye taşındı. */
+const RUN_SPEEDS = BALANCE.time.speeds.filter((s) => s !== 0) as Speed[];
+
+/**
+ * Üst durum şeridi: sol durum çipleri (dar ekranda parmakla kaydırılır), ortada saat, sağda hız ve mod.
+ * Telefonda: saat kısa, hız ⏸/▶ + döngülü tek düğme, mod düğmesi ikonlu; 🥣/⭐ çipleri çok dar ekranda CSS ile gizlenir.
+ */
 export function TopBar() {
   store.lang.value;
-  const speed = store.speed.value;
+  const speed = store.speed.value as Speed;
   const mode = store.mode.value;
   const phone = store.layout.value === 'phone';
+  const running: Speed = speed === 0 ? RUN_SPEEDS[0] : speed;
+  const nextSpeed = RUN_SPEEDS[(RUN_SPEEDS.indexOf(running) + 1) % RUN_SPEEDS.length];
   const phoneChips = phone ? (
     <>
       <button class="chip-btn" title={t('Çanta')} onClick={() => app.togglePanel('backpack')}>
@@ -25,6 +32,30 @@ export function TopBar() {
       </button>
     </>
   ) : null;
+  const speedControls = phone ? (
+    <div class="speed-row">
+      <button class={'btn small' + (speed === 0 ? ' active' : '')} title={t('Duraklat / devam')} onClick={() => app.setSpeed(speed === 0 ? running : 0)}>
+        {speed === 0 ? '▶' : '❚❚'}
+      </button>
+      <button class="btn small" title={t('{s}x hız', { s: nextSpeed })} onClick={() => app.setSpeed(nextSpeed)}>
+        {running}x
+      </button>
+    </div>
+  ) : (
+    <div class="speed-row">
+      {BALANCE.time.speeds.map((s) => (
+        <button
+          key={s}
+          class={'btn small' + (speed === s ? ' active' : '')}
+          title={s === 0 ? t('Duraklat (Space)') : t('{s}x hız', { s })}
+          onClick={() => app.setSpeed(s as Speed)}
+        >
+          {s === 0 ? '❚❚' : `${s}x`}
+        </button>
+      ))}
+    </div>
+  );
+  const dayShort = store.dayText.value.split(' · ')[0];
   return (
     <div class="hud topbar">
       <div class="tb-left">
@@ -32,10 +63,10 @@ export function TopBar() {
         <span class="chip" title={t('Köpek sayısı / kulübe kapasitesi')}>
           🐕 {store.dogCount.value}/{store.kennelCapacity.value}
         </span>
-        <span class="chip" title={t('Yem stoğu (porsiyon)')}>
+        <span class="chip chip-food" title={t('Yem stoğu (porsiyon)')}>
           🥣 {store.foodStock.value}
         </span>
-        <span class="chip" title={t('İtibar: sahiplenici sayısını ve isteklerini etkiler')}>
+        <span class="chip chip-rep" title={t('İtibar: sahiplenici sayısını ve isteklerini etkiler')}>
           ⭐ {store.reputation.value} · L{store.licenseLevel.value}
         </span>
         {!phone && (
@@ -69,30 +100,28 @@ export function TopBar() {
           </span>
         )}
       </div>
-      <div class="tb-center">
-        <b>{store.dayText.value}</b> · {store.timeText.value} · {store.weekText.value}
-        {store.isNight.value ? ' 🌙' : ''}
-        <span class="muted">
-          {' '}
-          · {store.season.value} {store.weatherIcon.value} {store.weather.value}
-        </span>
+      <div class="tb-center" title={`${store.dayText.value} · ${store.weekText.value} · ${store.season.value} ${store.weather.value}`}>
+        {phone ? (
+          <>
+            <b>{dayShort}</b> · {store.timeText.value}
+            {store.isNight.value ? ' 🌙' : ''} {store.weatherIcon.value}
+          </>
+        ) : (
+          <>
+            <b>{store.dayText.value}</b> · {store.timeText.value} · {store.weekText.value}
+            {store.isNight.value ? ' 🌙' : ''}
+            <span class="muted">
+              {' '}
+              · {store.season.value} {store.weatherIcon.value} {store.weather.value}
+            </span>
+          </>
+        )}
       </div>
       <div class="tb-right">
         {phoneChips}
-        <div class="speed-row">
-          {BALANCE.time.speeds.map((s) => (
-            <button
-              key={s}
-              class={'btn small' + (speed === s ? ' active' : '')}
-              title={s === 0 ? t('Duraklat (Space)') : t('{s}x hız', { s })}
-              onClick={() => app.setSpeed(s as Speed)}
-            >
-              {s === 0 ? '❚❚' : `${s}x`}
-            </button>
-          ))}
-        </div>
+        {speedControls}
         <button class={'btn small' + (mode === 'manage' ? ' active' : '')} title={t('Avatar ve yönetim modu arasında geçiş (Tab)')} onClick={() => app.toggleMode()}>
-          {mode === 'avatar' ? t('Yönetim (Tab)') : t('Avatar (Tab)')}
+          {phone ? (mode === 'avatar' ? `🛠 ${t('Yönet')}` : `🧍 ${t('Avatar')}`) : mode === 'avatar' ? t('Yönetim (Tab)') : t('Avatar (Tab)')}
         </button>
       </div>
     </div>

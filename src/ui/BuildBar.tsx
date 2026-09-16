@@ -42,7 +42,7 @@ export function BuildBar() {
   ];
 
   return (
-    <div class="hud build-bar panel">
+    <div class="build-bar panel">
       <div class="build-tabs">
         {tabs.map(([id, name]) => (
           <button key={id} class={'btn small' + (tab === id ? ' active' : '')} onClick={() => setTab(id)}>

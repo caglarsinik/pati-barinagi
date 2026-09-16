@@ -37,6 +37,20 @@ body {
   pointer-events: none;
 }
 
+/* Kutu modeli: bildirilen boyut = görünen boyut (kenarlık ve iç boşluk dahil). */
+.panel,
+.btn,
+.tool,
+.nav-item,
+.nav-menu-item,
+.action-btn,
+.chip-btn,
+.build-item,
+.egg-slot,
+.menu-card {
+  box-sizing: border-box;
+}
+
 .panel {
   pointer-events: auto;
   background: var(--bg);
@@ -138,6 +152,9 @@ body {
 
 .menu-screen {
   background: radial-gradient(circle at 50% 40%, #35406a 0%, #1b1a2a 70%);
+  overflow: auto;
+  padding: var(--safe-t, 0px) var(--safe-r, 0px) var(--safe-b, 0px) var(--safe-l, 0px);
+  box-sizing: border-box;
 }
 
 .overlay {
@@ -148,10 +165,21 @@ body {
   display: flex;
   flex-direction: column;
   gap: 12px;
-  min-width: 340px;
-  max-width: 420px;
+  min-width: 380px;
+  max-width: 460px;
+  max-height: calc(100vh - 16px);
+  max-height: calc(100dvh - 16px);
+  overflow: auto;
   padding: 24px 28px;
   background: var(--bg-solid);
+}
+
+.menu-intro,
+.menu-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 0;
 }
 
 .menu-card h1,
@@ -460,7 +488,7 @@ select,
 
 /* --- Köpek listesi --- */
 .menu-card.wide {
-  min-width: 640px;
+  min-width: 680px;
   max-width: 90vw;
   max-height: 80vh;
   overflow: auto;
@@ -1063,6 +1091,7 @@ select,
 /* --- Ayarlar ve rehber --- */
 .setting {
   display: flex;
+  flex-wrap: wrap;
   gap: 10px;
   align-items: center;
   margin: 4px 0;

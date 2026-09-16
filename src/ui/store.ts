@@ -13,7 +13,8 @@ import { type Tool, resolveAction } from '../sim/systems/Interaction';
 
 export type Screen = 'menu' | 'game';
 /** Cihaz sınıfı: pencere boyutundan (app.ts) belirlenir. */
-export type Layout = 'desktop' | 'tablet' | 'phone';
+import type { Layout } from './layout';
+export type { Layout };
 export type TouchMode = 'auto' | 'on' | 'off';
 export type Panel =
   | 'none'
@@ -78,6 +79,8 @@ export const store = {
   walkingDog: signal<string | null>(null),
   /** Alt menü çubuğunda açık olan kategori. */
   navMenu: signal<string | null>(null),
+  /** Telefonda araç şeridi açık mı (ToolPopover). */
+  toolMenu: signal(false),
   /** Sahiplendirme açık mı (politika). */
   adoptionsOpen: signal(true),
   /** Mini harita gizli (tercih tarayıcıda kalır). */

@@ -18,8 +18,15 @@ export function MainMenu() {
   return (
     <div class="menu-screen">
       <div class="menu-card panel">
-        <h1 class="title">{t(GAME.name)}</h1>
-        <p class="sub">{t('Yumurtadan çıkan köpekler, bir barınak ve keşfedilecek koca bir dünya.')}</p>
+        <div class="menu-intro">
+          <h1 class="title">{t(GAME.name)}</h1>
+          <p class="sub">{t('Yumurtadan çıkan köpekler, bir barınak ve keşfedilecek koca bir dünya.')}</p>
+          <InstallControls />
+          <p class="version">
+            v{GAME.version} · {booted ? t('hazır') : t('dokular üretiliyor...')}
+          </p>
+        </div>
+        <div class="menu-form">
         {store.hasSave.value && (
           <button class="btn primary" disabled={!booted} onClick={() => app.continueGame()}>
             {t('Devam et')}
@@ -66,10 +73,7 @@ export function MainMenu() {
             English
           </button>
         </div>
-        <InstallControls />
-        <p class="version">
-          v{GAME.version} · {booted ? t('hazır') : t('dokular üretiliyor...')}
-        </p>
+        </div>
       </div>
     </div>
   );
