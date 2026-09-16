@@ -83,6 +83,11 @@ kendiliğinden açılır; Ayarlar → Dokunmatik kontroller ile Otomatik / Açı
   aracı bırakmak için ipucu satırındaki İptal, kare olmayan binayı döndürmek için Döndür.
 - Paneller telefonda tam ekran sayfa olur; görevlendirme ızgarası parmakla boyanır, öncelikler +/− adımlayıcıdır;
   telefonda üst şeritteki 🥚 çanta, 🔔 uyarı ve 🗺️ harita çipleri ilgili sayfayı açar.
+- **Telefon yerleşimi:** alt şerit tek satırdır — solda etkin araç düğmesi (dokununca 6 araçlık şerit açılır), ortada
+  5 ikonlu menü, sağda E ve Koş; üst şeritteki çipler parmakla kaydırılır, hız düğmesi ⏸ + döngülü 1x/2x/4x, mod düğmesi
+  🛠 Yönet / 🧍 Avatar. Parçalar tek bir "rıhtım" satırında durduğu için hiçbir ekran boyutunda üst üste binmez
+  (568×320'den itibaren); üst şerit ve rıhtım yükseklikleri ölçülür, köpek paneli aralarına sığar. Ana menü kısa
+  ekranda iki sütun olur.
 - Yüksek çözünürlüklü ekranlarda piksel sanatı tam ölçekte (cihaz piksel oranı 2'ye kadar) çizilir.
 
 ## Köpek bakımı
@@ -194,6 +199,8 @@ Bilgisayar değiştirirken ya da yedek almak için kullan.
 - [x] M9 Arayüz ve dokunmatik: üst durum şeridi + kategorili alt menü çubuğu, sütunlu HUD (çakışma yok), Kontroller sayfası, sahiplendirme anahtarı ve "bu köpeği tut", duyarlı CSS (tablet/telefon, 44 px dokunma hedefleri, tam ekran sayfalar), görevlendirme ızgarası parmakla boyanır, DPR'lı canvas + pinch, dokun-git + E düğmesi, telefon sayfaları ve çevir ekranı
 - [x] M10 Kapı, tuvalet ve zorluk: otomatik çit kapısı (kapalıyken geçilmez, yaklaşınca açılır, NPC'ler kapı dışında belirir), her modda görünür tuvalet alanı + kademeli tuvalet eğitimi + kapsanan pislik/kapasite/uyarı, işe yarayan çöp kutusu, gece tuvaleti ve gezintide rahatlama, zorluk seviyesi, kredi ve iflas ekranı, bina döndürme (R)
 - [x] 0.10.1 bakım (2026-09-16): kapalı kapıdan geçiş kontrolü ve uykuda kapılar, telefon dikey yönde duraklatma, metin alanlarında klavye ayrımı (ayrıntı ve doğrulama notları: `docs/CLAUDE_HANDOFF.md`)
+- [x] 0.11.0 Telefona kurulum: PWA (manifest, kodla üretilen ikonlar, service worker ile çevrimdışı, "Ana ekrana ekle", Şimdi yenile), GitHub Pages iş akışı
+- [x] 0.12.0 Telefon HUD yeniden düzeni: alt rıhtım (araç / menü / E-Koş tek flex satırı), telefonda tek araç düğmesi, kaydırılabilir üst şerit ve kısa hız/mod düğmeleri, ölçülen yüksekliklerle konumlanan köpek paneli, kutu modeli border-box, iki sütunlu ana menü, yerleşim bütçe testi
 - [ ] Sonraki paketler (`docs/PLAN.md` §7): M11 Yaşayan Dünya, M12 İlerleme ve Son Oyun, M13 Sahiplendirme Hikâyeleri, M14 Soy
 
 ## Geliştirme

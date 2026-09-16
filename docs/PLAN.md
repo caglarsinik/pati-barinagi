@@ -403,6 +403,12 @@ Her taşın sonunda oyun çalışır hâlde olur, testler yeşildir, commit atı
   (kayıt, güncelleme bildirimi, kurulum istemi, tam ekran), `InstallControls` (ana menü + Ayarlar: Ana ekrana ekle,
   iOS/Android ipucu, Tam ekran, Şimdi yenile), GitHub Pages iş akışı (`.github/workflows/pages.yml`), README bölümü.
   iOS ve Android tek paketle; APK/IPA (Capacitor) kapsam dışı.
+- **0.12.0 Telefon HUD yeniden düzeni (2026-09-16):** alt parçalar `.hud-dock` flex satırında (sol: araç çubuğu ya da
+  telefonda `ToolPopover`; orta: inşa çubuğu + ipucu + alt menü; sağ: E/Koş + mini harita) → çakışma imkânsız; `--top-h`/
+  `--dock-h` ResizeObserver ile ölçülür (HUD.tsx), `.col-right` buna göre biter; kutu modeli border-box; üst şerit
+  `minmax(0,1fr)` sütunlar, kaydırılabilir çip şeridi, telefonda ⏸ + döngülü hız ve ikonlu mod düğmesi, kısa saat; alt menü
+  öğeleri esnek; ≤340 px yükseklik ve ≤719 px genişlik kademeleri; ana menü kısa ekranda iki sütun (`.menu-intro`/`.menu-form`);
+  `src/ui/layout.ts` (classifyLayout, hudSizes, dockFits) + `tests/unit/layout.test.ts`.
 
 ## 5. Doğrulama
 
