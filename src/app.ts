@@ -1,4 +1,5 @@
 import Phaser from 'phaser';
+import { OrientationPause, portraitBlocked } from './ui/OrientationPause';
 import { audio } from './audio/audio';
 import { GAME } from './config/game';
 import { type Lang, getLang, initLang, setLang, t } from './i18n';
@@ -31,6 +32,7 @@ class AppController {
   private pausedBeforeMenu = false;
   /** Kullanıcı en az bir kez dokundu (karma cihazlarda otomatik dokunmatik). */
   private touchSeen = false;
+  private readonly orientationPause = new OrientationPause();
 
   init(parent: string): void {
     initLang();
@@ -130,6 +132,9 @@ class AppController {
     if (store.touch.value !== touch) store.touch.value = touch;
     const cl = document.documentElement.classList;
     cl.toggle('is-touch', touch);
+    const blocked = portraitBlocked(w, h);
+    store.orientationBlocked.value = blocked;
+    if (this.sim) this.orientationPause.update(this.sim, blocked, store.pauseMenu.value || !!store.report.value);
     for (const l of ['desktop', 'tablet', 'phone'] as Layout[]) cl.toggle(`layout-${l}`, l === layout);
   }
 
@@ -200,6 +205,7 @@ class AppController {
   private start(sim: Sim): void {
     if (!this.game) throw new Error('Oyun başlatılmadı');
     this.detach();
+    this.orientationPause.reset();
     this.sim = sim;
     store.seed.value = sim.seed;
     store.version.value++;
@@ -236,6 +242,7 @@ class AppController {
     store.buildBar.value = false;
     store.build.value = { kind: 'none' };
     store.screen.value = 'game';
+    this.applyDevice();
     store.gameOver.value = sim.gameOver;
     syncStore(sim);
   }

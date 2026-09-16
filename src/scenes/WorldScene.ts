@@ -337,7 +337,7 @@ export class WorldScene extends Phaser.Scene {
   private handleHotkeys(): void {
     const k = this.keys;
     const JustDown = Phaser.Input.Keyboard.JustDown;
-    if (store.inputFocused.value) return;
+    if (store.orientationBlocked.value || store.inputFocused.value) return;
     if (JustDown(k.ESC)) {
       this.game.events.emit('ui:escape');
       return;

@@ -80,6 +80,7 @@ export const store = {
   /** Cihaz sınıfı ve dokunmatik kontroller (app.applyDevice). */
   layout: signal<Layout>('desktop'),
   touch: signal(false),
+  orientationBlocked: signal(false),
   touchMode: signal<TouchMode>('auto'),
   /** Dokunmatik Koş anahtarı (readInput ile birleşir). */
   touchRun: signal(false),
