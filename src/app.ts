@@ -43,7 +43,6 @@ class AppController {
     const ui = document.getElementById('ui');
     if (ui) bindUiKeyboard(ui, () => {
       for (const scene of this.game?.scene.getScenes(true) ?? []) scene.input.keyboard?.resetKeys();
-      this.sim?.nav.cancel();
     });
     this.game = new Phaser.Game({
       type: Phaser.AUTO,

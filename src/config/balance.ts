@@ -346,6 +346,11 @@ export const BALANCE = {
     /** Kimse kalmayınca bu kadar saniye sonra kapanır. */
     closeDelaySec: 1.0,
   },
+  /** Dokunma girdisi (WorldScene). */
+  touch: {
+    /** Bu süredir olay üretmeyen "basılı" işaretçi bayat sayılır; pinch'i tetiklemez (kaçan touchend koruması). */
+    stalePointerMs: 3000,
+  },
   /** Dokun-git: oyuncu yol takibi (PlayerNav). */
   nav: {
     plotMaxNodes: 4000,

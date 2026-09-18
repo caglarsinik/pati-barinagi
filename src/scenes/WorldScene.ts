@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
 import { isUiKeyboardTarget } from '../ui/keyboard';
+import { isUiTarget } from '../ui/uiTarget';
 import { BALANCE } from '../config/balance';
 import { GAME } from '../config/game';
 import { BUILDING_DEFS } from '../content/buildings';
@@ -84,6 +85,10 @@ export class WorldScene extends Phaser.Scene {
   /** Dokunmatik uzun basış: köpek seçimi. */
   private longPressTimer: Phaser.Time.TimerEvent | null = null;
   private longPressed = false;
+  /** #ui üstünde başlayan işaretçiler (Phaser pencere düzeyinde de dinler): dünya girdisi sayılmaz. */
+  private uiPointers = new Set<number>();
+  /** İşaretçinin son olay zamanı (ms): basılı kalmış görünen bayat işaretçi pinch'i tetiklemesin. */
+  private pointerSeen = new Map<number, number>();
   private touchTipShown = false;
   private lightMap!: Phaser.GameObjects.RenderTexture;
   private rain!: Phaser.GameObjects.Particles.ParticleEmitter;
@@ -284,6 +289,21 @@ export class WorldScene extends Phaser.Scene {
     this.input.on('pointerdown', (ptr: Phaser.Input.Pointer) => this.onPointerDown(ptr));
     this.input.on('pointermove', (ptr: Phaser.Input.Pointer) => this.onPointerMove(ptr));
     this.input.on('pointerup', (ptr: Phaser.Input.Pointer) => this.onPointerUp(ptr));
+    // Kaçan "parmak kalktı" olaylarına karşı: tuval dışında bırakma, dokunma iptali, odak/sekme kaybı durumu sıfırlar.
+    this.input.on('pointerupoutside', () => this.resetPointerState(false));
+    const softReset = (): void => this.resetPointerState(false);
+    const hardReset = (): void => this.resetPointerState(true);
+    const onVisibility = (): void => {
+      if (document.hidden) hardReset();
+    };
+    window.addEventListener('touchcancel', softReset);
+    window.addEventListener('blur', hardReset);
+    document.addEventListener('visibilitychange', onVisibility);
+    this.unsub.push(() => {
+      window.removeEventListener('touchcancel', softReset);
+      window.removeEventListener('blur', hardReset);
+      document.removeEventListener('visibilitychange', onVisibility);
+    });
 
     this.game.events.on('ui:focus-tile', this.focusTile, this);
     this.game.events.on('ui:interact', this.onUiInteract, this);
@@ -295,7 +315,7 @@ export class WorldScene extends Phaser.Scene {
       this.scene.stop('Overlay');
       for (const u of this.unsub) u();
       this.unsub = [];
-      this.dragLast = null;
+      this.resetPointerState(false);
       this.scale.off(Phaser.Scale.Events.RESIZE, this.onResize, this);
       this.dogGenomes.clear();
       this.game.events.off('ui:focus-tile', this.focusTile, this);
@@ -313,6 +333,8 @@ export class WorldScene extends Phaser.Scene {
 
   override update(_time: number, deltaMs: number): void {
     const dt = Math.min(deltaMs / 1000, 0.05);
+    // Emniyet: pinch açık kalmış ama iki parmak basılı değilse bırak (yoksa tüm dokunuşlar yutulur).
+    if (this.pinch && this.activeTouches() < 2) this.pinch = null;
     this.handleHotkeys();
     const input = this.readInput();
     this.sim.update(dt, input);
@@ -459,6 +481,36 @@ export class WorldScene extends Phaser.Scene {
     return z * DPR;
   }
 
+  private isUiEvent(ptr: Phaser.Input.Pointer): boolean {
+    return isUiTarget((ptr.event as Event | undefined)?.target);
+  }
+
+  /** Dünya için geçerli, basılı ve taze (son birkaç saniyede olay üretmiş) dokunma işaretçisi sayısı. */
+  private activeTouches(): number {
+    const now = this.time.now;
+    let n = 0;
+    for (const p of [this.input.pointer1, this.input.pointer2]) {
+      if (!p || !p.isDown || this.uiPointers.has(p.id)) continue;
+      if (now - (this.pointerSeen.get(p.id) ?? Number.NEGATIVE_INFINITY) > BALANCE.touch.stalePointerMs) continue;
+      n++;
+    }
+    return n;
+  }
+
+  /** Dokunma durumunu sıfırlar (iptal, odak kaybı, sahne kapanışı). hard: Phaser işaretçilerini de bırakır. */
+  private resetPointerState(hard: boolean): void {
+    this.pinch = null;
+    this.dragLast = null;
+    this.dragStartTile = null;
+    this.dragMoved = false;
+    this.longPressTimer?.remove(false);
+    this.longPressTimer = null;
+    this.longPressed = false;
+    this.uiPointers.clear();
+    this.pointerSeen.clear();
+    if (hard) for (const p of this.input.manager.pointers) p.reset();
+  }
+
   /** İki parmak: mesafe oranı zoom, orta nokta kayması yönetim modunda pan. */
   private handlePinch(p1: Phaser.Input.Pointer, p2: Phaser.Input.Pointer): void {
     const dist = Math.max(1, Phaser.Math.Distance.Between(p1.x, p1.y, p2.x, p2.y));
@@ -480,6 +532,14 @@ export class WorldScene extends Phaser.Scene {
   }
 
   private onPointerDown(ptr: Phaser.Input.Pointer): void {
+    // #ui düğmelerine dokunuş/tıklama (Phaser pencere dinleyicisinden gelir) dünya girdisi değildir.
+    if (this.isUiEvent(ptr)) {
+      this.uiPointers.add(ptr.id);
+      return;
+    }
+    this.uiPointers.delete(ptr.id);
+    this.pointerSeen.set(ptr.id, this.time.now);
+    if (this.pinch && this.activeTouches() < 2) this.pinch = null;
     if (this.pinch) return;
     this.dragLast = { x: ptr.x, y: ptr.y };
     this.dragMoved = false;
@@ -511,9 +571,14 @@ export class WorldScene extends Phaser.Scene {
   }
 
   private onPointerMove(ptr: Phaser.Input.Pointer): void {
+    if (this.uiPointers.has(ptr.id)) {
+      if (ptr.isDown) return;
+      this.uiPointers.delete(ptr.id); // bırakma olayı kaçmış: bayat kaydı temizle
+    }
+    this.pointerSeen.set(ptr.id, this.time.now);
     const p1 = this.input.pointer1;
     const p2 = this.input.pointer2;
-    if (p1 && p2 && p1.isDown && p2.isDown) {
+    if (p1 && p2 && this.activeTouches() === 2) {
       this.handlePinch(p1, p2);
       return;
     }
@@ -535,12 +600,12 @@ export class WorldScene extends Phaser.Scene {
   }
 
   private onPointerUp(ptr: Phaser.Input.Pointer): void {
+    if (this.uiPointers.delete(ptr.id)) return; // UI üstünde başlayan dokunuş: dünya tıklaması değil
     this.longPressTimer?.remove(false);
     this.longPressTimer = null;
     if (this.pinch) {
-      const p1 = this.input.pointer1;
-      const p2 = this.input.pointer2;
-      if (!(p1 && p1.isDown) && !(p2 && p2.isDown)) this.pinch = null;
+      // Parmaklardan biri kalkınca pinch biter; kalan parmağın dragLast'ı yok, dokunuş sayılmaz.
+      if (this.activeTouches() < 2) this.pinch = null;
       this.dragLast = null;
       this.dragStartTile = null;
       return;

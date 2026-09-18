@@ -57,9 +57,18 @@
   köpek paneli, araç şeridi, alt menü listesi, ana menü, Ayarlar: çakışma yok, taşma yok. Alt menü açılır listesi köpek
   panelinin üstüne gelebilir (geçici popover, üstte kalır) — kabul edildi. Gerçek cihaz testi kullanıcıda.
 
+## 0.12.1 — Acil dokunma düzeltmesi (Claude, 2026-09-18)
+- Rapor: telefonda köpeği eğittikten sonra hiçbir dokunuş karakteri yürütmüyor, oyun kapatılana kadar kalıcı.
+- `WorldScene`: #ui üstünde başlayan işaretçiler dünya girdisi sayılmıyor (`src/ui/uiTarget.ts`; Phaser pencere düzeyinde
+  dokunma/fare dinlediği için E, araç ve menü düğmeleri `touchTap`/`selectDogAt` tetikliyordu); `pinch` artık
+  `activeTouches() < 2` olunca her karede ve her pointerdown'da bırakılıyor (kaçan touchend/touchcancel tüm dokunuşları
+  yutuyordu); bayat "basılı" işaretçi (3 sn olaysız, `BALANCE.touch.stalePointerMs`) pinch saymıyor; `pointerupoutside`,
+  `touchcancel`, pencere `blur` ve sekme gizlenince dokunma durumu sıfırlanıyor (son ikisi Phaser işaretçilerini de bırakır).
+- `src/ui/keyboard.ts`: yalnız metin girişi odağı oyun tuşlarını kapatır; düğme/bağlantı tıklamadan sonra, seçim kutusu
+  değer değişince `blur()`; `focusin`'de yürüyüş iptali kaldırıldı → masaüstünde HUD düğmesine basınca klavyenin ölmesi de kapandı.
+- Cihazda doğrulanacak: eğit → uzağa dokun; E'ye art arda bas; iki parmakla yakınlaştırıp bırak → tek dokunuş yürütüyor mu.
+
 ## Claude incelemesi — 2026-09-16 (açık sorunlar)
-- Klavye ayrımı fazla geniş: `isUiKeyboardTarget` seçicisi `#ui button` ve `#ui a`'yı da kapsıyor. Herhangi bir HUD
-  düğmesine tıklandığında odak düğmede kalıyor; tuvale tıklanana kadar WASD, Esc ve kısayollar çalışmıyor. Düzeltme bekliyor
-  (öneri: tıklama sonrası metin girişi olmayan öğeleri `blur()` etmek, seçiciyi input/textarea/select/contenteditable ile sınırlamak).
+- ~~Klavye ayrımı fazla geniş (HUD düğmesi odağı WASD/Esc/kısayolları öldürüyordu)~~ → 0.12.1'de düzeltildi.
 - `Sim.update` içinde `gates.update` bir karede üç kez çağrılıyor (stepSim başı, stepSim sonu, update sonu); biri yeterli.
 - `portraitBlocked` `h > w` derken CSS `orientation: portrait` `h >= w` kabul eder; kare pencerede ekran "çevir" der, sim durmaz (önemsiz).
