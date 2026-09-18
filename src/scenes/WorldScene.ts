@@ -1,6 +1,7 @@
 import Phaser from 'phaser';
 import { isUiKeyboardTarget } from '../ui/keyboard';
 import { isUiTarget } from '../ui/uiTarget';
+import { pickTapDog } from './tapTarget';
 import { BALANCE } from '../config/balance';
 import { GAME } from '../config/game';
 import { BUILDING_DEFS } from '../content/buildings';
@@ -668,20 +669,13 @@ export class WorldScene extends Phaser.Scene {
   /** Dokunma: köpek → yanına gidip işini yap; bina/yuva/çalı/pislik → yanına git ve E; boş kare → yürü. */
   private touchTap(wx: number, wy: number): void {
     const sim = this.sim;
-    let best: Dog | null = null;
-    let bestD = 1.1;
-    for (const dog of sim.dogs) {
-      const d = Math.hypot(dog.x - wx, dog.y - 0.2 - wy);
-      if (d < bestD) {
-        bestD = d;
-        best = dog;
-      }
-    }
+    const pick = pickTapDog(sim.dogs, sim.player, wx, wy);
     const tx = Math.floor(wx);
     const ty = Math.floor(wy);
     const w = sim.world;
     if (!w.inBounds(tx, ty)) return;
-    if (best) sim.command({ type: 'goInteract', goal: { kind: 'dog', id: best.id } });
+    // Köpeğin dibindeyken çevresine dokunuş yürüyüştür (pick.interact false): aşağıdaki kare mantığına düşer.
+    if (pick?.interact) sim.command({ type: 'goInteract', goal: { kind: 'dog', id: pick.dog.id } });
     else {
       const bid = w.buildingIdAt(tx, ty);
       const o = w.objectAt(tx, ty);

@@ -215,6 +215,11 @@ export class PlayerNav {
       }
     }
     this.goal = null;
+    if (p.busy > 0) {
+      // Zaten hedefin dibinde ve bir iş sürüyor: E yutulurdu, sessiz kalmasın.
+      sim.events.emit('message', t('Şu an meşgul'));
+      return;
+    }
     p.faceToward(target.face.x, target.face.y);
     const kind = resolveAction(sim).kind;
     const result = performAction(sim);

@@ -123,4 +123,53 @@ describe('Dokun-git (PlayerNav)', () => {
     expect(sim.nav.active).toBe(false);
     expect(sim.player.x).not.toBe(x0);
   });
+
+  it('köpeğin dibinde meşgulken yeniden dokunuş sessiz kalmaz, işi yinelemez', () => {
+    const sim = Sim.create(1007);
+    sim.setSpeed(1);
+    const dog = sim.dogs[0];
+    dog.state = 'sit';
+    dog.stateTimer = 9999;
+    // Oyuncu köpeğin bitişik karesinde (yol uzunluğu 0) ve bir iş sürüyor.
+    const w = sim.world;
+    const spot = [
+      { x: dog.tileX, y: dog.tileY + 1 },
+      { x: dog.tileX - 1, y: dog.tileY },
+      { x: dog.tileX + 1, y: dog.tileY },
+      { x: dog.tileX, y: dog.tileY - 1 },
+    ].find((c) => w.inBounds(c.x, c.y) && !w.isSolid(c.x, c.y))!;
+    sim.player.x = spot.x + 0.5;
+    sim.player.y = spot.y + 0.7;
+    sim.player.setBusy(2, 'pet');
+    const msgs: string[] = [];
+    const events: string[] = [];
+    sim.events.on('message', (m) => msgs.push(m));
+    sim.events.on('interacted', (e) => events.push(`${e.kind}:${e.result.ok}`));
+    const { x, y } = sim.player;
+    expect(sim.command({ type: 'goInteract', goal: { kind: 'dog', id: dog.id } }).ok).toBe(true);
+    expect(sim.nav.active).toBe(false);
+    expect(msgs.some((m) => m.includes('meşgul'))).toBe(true);
+    expect(events).toEqual([]);
+    expect(sim.stats.petted).toBe(0);
+    expect(sim.player.x).toBe(x);
+    expect(sim.player.y).toBe(y);
+    // İş bitince aynı dokunuş işini yapar.
+    sim.player.busy = 0;
+    sim.command({ type: 'goInteract', goal: { kind: 'dog', id: dog.id } });
+    expect(events).toEqual(['pet:true']);
+    expect(sim.stats.petted).toBe(1);
+  });
+
+  it('yönetim modunda yürüme komutu nedenini söyler', () => {
+    const sim = Sim.create(1008);
+    const target = freeTileEast(sim, 4);
+    sim.setMode('manage');
+    const walk = sim.command({ type: 'goTo', x: target.x, y: target.y });
+    expect(walk.ok).toBe(false);
+    expect(walk.message).toContain('Avatar');
+    const interact = sim.command({ type: 'goInteract', goal: { kind: 'dog', id: sim.dogs[0].id } });
+    expect(interact.ok).toBe(false);
+    expect(interact.message).toContain('Avatar');
+    expect(sim.nav.active).toBe(false);
+  });
 });

@@ -350,6 +350,10 @@ export const BALANCE = {
   touch: {
     /** Bu süredir olay üretmeyen "basılı" işaretçi bayat sayılır; pinch'i tetiklemez (kaçan touchend koruması). */
     stalePointerMs: 3000,
+    /** Dokunuş köpeğe bu kadar yakınsa (kare) köpek aday olur. */
+    dogSnapTiles: 1.1,
+    /** Bu kadar yakınsa dokunuş doğrudan köpeğin üstüdür: oyuncu dibinde olsa da köpeğe gider. */
+    dogDirectTiles: 0.5,
   },
   /** Dokun-git: oyuncu yol takibi (PlayerNav). */
   nav: {

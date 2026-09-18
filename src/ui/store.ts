@@ -129,6 +129,8 @@ let toastSeq = 0;
 const TOAST_MAX = 3;
 
 export function showToast(message: string, ms = 2400): void {
+  // Aynı bildirim ekrandayken yinelenmez (art arda dokunuşta "Şu an meşgul" yığılmasın).
+  if (store.toasts.value.some((x) => x.text === message)) return;
   const id = ++toastSeq;
   const list = [...store.toasts.value, { id, text: message }];
   store.toasts.value = list.length > TOAST_MAX ? list.slice(list.length - TOAST_MAX) : list;

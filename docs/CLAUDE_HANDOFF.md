@@ -57,6 +57,16 @@
   köpek paneli, araç şeridi, alt menü listesi, ana menü, Ayarlar: çakışma yok, taşma yok. Alt menü açılır listesi köpek
   panelinin üstüne gelebilir (geçici popover, üstte kalır) — kabul edildi. Gerçek cihaz testi kullanıcıda.
 
+## 0.12.3 — Yakın köpek yeniden hedefleme ve sessiz retler (Claude, 2026-09-19)
+- `src/scenes/tapTarget.ts` `pickTapDog` (saf, testli): dokunuş köpeğin üstündeyse (`BALANCE.touch.dogDirectTiles` 0,5) her
+  zaman köpeğe gider; çevresindeyse (`dogSnapTiles` 1,1) yalnız oyuncu köpekten `nav.reachDist`'ten uzaksa kilitlenir.
+  Oyuncu köpeğin dibindeyken çevre dokunuşu artık yürüyüş: eğitilen/oturan köpeğin yanından ayrılamama ve her dokunuşta
+  işin yinelenmesi kapandı. `WorldScene.touchTap` bunu kullanır; `selectDogAt` (uzun basış/fare) değişmedi.
+- `PlayerNav.arrive`: oyuncu meşgulken hedefin dibinde yeniden dokunuş `performAction`'ı sessizce düşürüyordu → artık
+  `message` "Şu an meşgul" (iş yinelenmez, `interacted` yayılmaz). `showToast` ekrandaki aynı metni yinelemez.
+- `Sim.command goTo/goInteract` yönetim modunda `message` döndürür ("Yürümek için Avatar moduna geç"); dokunuşlar yönetim
+  modunda zaten bu komutu çağırmadığı için toast yok, yalnız çağıranlara (ileride otopilot/test) neden bildirilir.
+
 ## 0.12.2 — Yumurta kuluçka süresi korunur (Claude, 2026-09-18)
 - Hata (kullanıcı): kuluçkadan yanlışlıkla "Al" ile alınan yumurta geri konunca süre yeniden 3 güne çıkıyordu.
 - Kural: `Egg.hatchLeft` = kalan kuluçka dakikası, `-1` = hiç girmemiş; çantadayken sayaç durur, silinmez.

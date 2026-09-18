@@ -694,11 +694,11 @@ export class Sim {
         return { ok: true };
       }
       case 'goTo': {
-        if (this.mode !== 'avatar') return { ok: false };
+        if (this.mode !== 'avatar') return { ok: false, message: t('Yürümek için Avatar moduna geç') };
         return { ok: this.nav.goTo({ x: Math.floor(cmd.x), y: Math.floor(cmd.y) }) };
       }
       case 'goInteract': {
-        if (this.mode !== 'avatar') return { ok: false };
+        if (this.mode !== 'avatar') return { ok: false, message: t('Yürümek için Avatar moduna geç') };
         return { ok: this.nav.goInteract(cmd.goal) };
       }
       case 'cancelNav':

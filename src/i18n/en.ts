@@ -158,6 +158,8 @@ export const EN: Record<string, string> = {
   'Kuluçkada boş yuva yok': 'No free slot in the incubator',
   'Yumurta çantada değil': 'That egg is not in your backpack',
   'Yumurta kuluçkaya kondu': 'Egg placed in the incubator',
+  'Şu an meşgul': 'Busy right now',
+  'Yürümek için Avatar moduna geç': 'Switch to Avatar mode to walk',
   'Yumurta çantaya alındı; kuluçka süresi korunur': 'Egg moved to your backpack; incubation progress is kept',
   'Çanta dolu': 'Backpack full',
 
