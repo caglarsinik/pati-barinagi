@@ -20,20 +20,20 @@ export function placeEgg(sim: Sim, building: Building, eggId: number): Incubator
   const idx = sim.backpack.findIndex((e) => e.id === eggId);
   if (idx === -1) return { ok: false, message: t('Yumurta çantada değil') };
   const egg = sim.backpack.splice(idx, 1)[0];
-  egg.hatchLeft = hatchMinutes();
+  // Daha önce kuluçkada kalmış yumurta kaldığı yerden devam eder; süre yalnız ilk girişte kurulur.
+  if (egg.hatchLeft < 0) egg.hatchLeft = hatchMinutes();
   building.eggs.push(egg);
   return { ok: true, message: t('Yumurta kuluçkaya kondu') };
 }
 
-/** Kuluçkadaki yumurtayı çantaya geri alır (kuluçka süresi sıfırlanır). */
+/** Kuluçkadaki yumurtayı çantaya geri alır; kalan kuluçka süresi korunur (çantada sayaç durur). */
 export function takeEgg(sim: Sim, building: Building, eggId: number): IncubatorResult {
   const idx = building.eggs.findIndex((e) => e.id === eggId);
   if (idx === -1) return { ok: false };
   if (sim.backpack.length >= sim.backpackSlots()) return { ok: false, message: t('Çanta dolu') };
   const egg = building.eggs.splice(idx, 1)[0];
-  egg.hatchLeft = -1;
   sim.backpack.push(egg);
-  return { ok: true };
+  return { ok: true, message: t('Yumurta çantaya alındı; kuluçka süresi korunur') };
 }
 
 /** Kuluçka sayaçları; süre dolunca yavru doğar. */

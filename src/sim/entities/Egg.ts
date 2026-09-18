@@ -21,7 +21,7 @@ export interface Egg {
   id: number;
   genome: DogGenome;
   foundDay: number;
-  /** Kuluçkada kalan süre (oyun dakikası); çantadayken -1. */
+  /** Kalan kuluçka süresi (oyun dakikası); hiç kuluçkaya girmediyse -1. Çantadayken sayaç durur, silinmez. */
   hatchLeft: number;
 }
 
@@ -43,7 +43,7 @@ export function eggFromJSON(data: unknown): Egg | null {
     id: d.id,
     genome: d.genome,
     foundDay: typeof d.foundDay === 'number' ? d.foundDay : 1,
-    hatchLeft: typeof d.hatchLeft === 'number' && Number.isFinite(d.hatchLeft) ? d.hatchLeft : -1,
+    hatchLeft: typeof d.hatchLeft === 'number' && Number.isFinite(d.hatchLeft) && d.hatchLeft >= 0 ? Math.min(d.hatchLeft, hatchMinutes()) : -1,
   };
 }
 

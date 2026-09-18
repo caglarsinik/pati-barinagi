@@ -57,6 +57,14 @@
   köpek paneli, araç şeridi, alt menü listesi, ana menü, Ayarlar: çakışma yok, taşma yok. Alt menü açılır listesi köpek
   panelinin üstüne gelebilir (geçici popover, üstte kalır) — kabul edildi. Gerçek cihaz testi kullanıcıda.
 
+## 0.12.2 — Yumurta kuluçka süresi korunur (Claude, 2026-09-18)
+- Hata (kullanıcı): kuluçkadan yanlışlıkla "Al" ile alınan yumurta geri konunca süre yeniden 3 güne çıkıyordu.
+- Kural: `Egg.hatchLeft` = kalan kuluçka dakikası, `-1` = hiç girmemiş; çantadayken sayaç durur, silinmez.
+  `placeEgg` süreyi yalnız `hatchLeft < 0` iken kurar; `takeEgg`, kuluçka yıkımı (`Sim.removeBuilding`) ve kayıt yükleme
+  artık sıfırlamıyor; `eggFromJSON` süreyi `hatchMinutes()` ile sınırlar. Kuluçka panelinde çantadaki yumurtanın kalan günü görünür.
+- Planlanan tanı katmanı (`?debug=1`, tanı kaydı) **iptal**: kullanıcı 0.12.1'in telefondaki takılmayı çözdüğünü doğruladı.
+  0.12.5 senaryoları için gereken kanca o sürümde eklenecek.
+
 ## 0.12.1 — Acil dokunma düzeltmesi (Claude, 2026-09-18)
 - Rapor: telefonda köpeği eğittikten sonra hiçbir dokunuş karakteri yürütmüyor, oyun kapatılana kadar kalıcı.
 - `WorldScene`: #ui üstünde başlayan işaretçiler dünya girdisi sayılmıyor (`src/ui/uiTarget.ts`; Phaser pencere düzeyinde

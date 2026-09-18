@@ -76,7 +76,61 @@ describe('Yumurtalar', () => {
     sim.backpack.push(egg2);
     sim.command({ type: 'placeEgg', buildingId: inc.id, eggId: egg2.id });
     expect(sim.command({ type: 'takeEgg', buildingId: inc.id, eggId: egg2.id }).ok).toBe(true);
-    expect(sim.backpack[0].hatchLeft).toBe(-1);
+    expect(sim.backpack[0].hatchLeft).toBeGreaterThan(0);
+  });
+
+  it('kuluçkadan alınan yumurtanın süresi korunur: geri koyunca 3 güne dönmez', () => {
+    const sim = Sim.create(73);
+    const dayMin = 24 * 60;
+    const total = BALANCE.eggs.hatchDays * dayMin;
+    const inc = sim.buildings.find((b) => b.type === 'incubator')!;
+    const nest = sim.world.nests.find((n) => sim.world.objectAt(n.x, n.y) === Obj.NestEggs)!;
+    const egg = harvestNest(sim, nest.x, nest.y)!;
+    expect(egg.hatchLeft).toBe(-1);
+    sim.backpack.push(egg);
+    sim.command({ type: 'placeEgg', buildingId: inc.id, eggId: egg.id });
+    expect(egg.hatchLeft).toBe(total); // ilk giriş: tam süre
+    runMinutes(sim, dayMin);
+    const left = egg.hatchLeft;
+    expect(left).toBeLessThan(total - dayMin + 60);
+    expect(left).toBeGreaterThan(total - dayMin - 60);
+
+    // Yanlışlıkla al → çantada sayaç durur
+    const taken = sim.command({ type: 'takeEgg', buildingId: inc.id, eggId: egg.id });
+    expect(taken.ok).toBe(true);
+    expect(taken.message).toBeTruthy();
+    runMinutes(sim, 120);
+    expect(sim.backpack[0].hatchLeft).toBe(left);
+
+    // Kaydet/yükle çantadaki ilerlemeyi silmez
+    const back = Sim.fromJSON(SaveManager.parse(JSON.stringify(sim.toJSON()))!);
+    expect(back.backpack[0].hatchLeft).toBe(left);
+
+    // Geri koy → kaldığı yerden devam eder ve kalan sürede çatlar
+    sim.command({ type: 'placeEgg', buildingId: inc.id, eggId: egg.id });
+    expect(egg.hatchLeft).toBe(left);
+    const hatchedBefore = sim.stats.hatched;
+    runMinutes(sim, left + 30);
+    expect(sim.stats.hatched).toBe(hatchedBefore + 1);
+  });
+
+  it('kuluçka yıkılınca yumurta ilerlemesiyle çantaya döner; bozuk kayıt süresi sınırlanır', () => {
+    const sim = Sim.create(73);
+    const inc = sim.buildings.find((b) => b.type === 'incubator')!;
+    const nest = sim.world.nests.find((n) => sim.world.objectAt(n.x, n.y) === Obj.NestEggs)!;
+    const egg = harvestNest(sim, nest.x, nest.y)!;
+    sim.backpack.push(egg);
+    sim.command({ type: 'placeEgg', buildingId: inc.id, eggId: egg.id });
+    runMinutes(sim, 600);
+    const left = egg.hatchLeft;
+    expect(sim.removeBuilding(inc.id)).toBe(true);
+    expect(sim.backpack[0].id).toBe(egg.id);
+    expect(sim.backpack[0].hatchLeft).toBe(left);
+
+    const raw = JSON.parse(JSON.stringify(sim.toJSON()));
+    raw.backpack[0].hatchLeft = 999999;
+    const back = Sim.fromJSON(SaveManager.parse(JSON.stringify(raw))!);
+    expect(back.backpack[0].hatchLeft).toBe(BALANCE.eggs.hatchDays * 24 * 60);
   });
 
   it('haftalar geçtikçe yavru büyür', () => {

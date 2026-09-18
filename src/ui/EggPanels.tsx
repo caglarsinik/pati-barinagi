@@ -160,6 +160,7 @@ export function IncubatorPanel() {
               <EggIcon genome={egg.genome} scale={2} />
               <span>
                 {t(eggLook(egg).colorName)} · {t(eggLook(egg).rarityName)}
+                {egg.hatchLeft >= 0 && <span class="muted small-text"> · {t('{days} gün kaldı', { days: (egg.hatchLeft / dayMin).toFixed(1) })}</span>}
               </span>
               <button class="btn small primary" disabled={!ready || b.eggs.length >= slots} onClick={() => run(sim.command({ type: 'placeEgg', buildingId: b.id, eggId: egg.id }))}>
                 {t('Kuluçkaya koy')}

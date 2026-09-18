@@ -981,11 +981,8 @@ export class Sim {
       const dog = this.dogMap.get(dogId);
       if (dog) this.assignKennel(dog, null);
     }
-    // Kuluçkadaki yumurtalar kaybolmasın: çantaya döner.
-    for (const egg of b.eggs) {
-      egg.hatchLeft = -1;
-      this.backpack.push(egg);
-    }
+    // Kuluçkadaki yumurtalar kaybolmasın: çantaya döner (kalan kuluçka süresi korunur).
+    for (const egg of b.eggs) this.backpack.push(egg);
     b.eggs = [];
     unstampBuilding(this.world, b);
     this.buildings = this.buildings.filter((x) => x.id !== id);
@@ -1309,7 +1306,6 @@ export class Sim {
       for (const e of data.backpack) {
         const egg = eggFromJSON(e);
         if (egg && sim.backpack.length < sim.backpackSlots()) {
-          egg.hatchLeft = -1;
           sim.backpack.push(egg);
           maxId = Math.max(maxId, egg.id);
         }
