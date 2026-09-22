@@ -156,6 +156,35 @@ export function closeWeek(sim: Sim, newWeek: number): WeekSummary {
   return summary;
 }
 
+export interface CashProjection {
+  /** Tahmini haftalık net (maaş ve faiz bugünkü değerle). */
+  weeklyNet: number;
+  /** Önümüzdeki haftaların sonunda tahmini kasa. */
+  points: number[];
+  /** Kasanın ilk eksiye düştüğü hafta (1 tabanlı) ya da null. */
+  weeksUntilNegative: number | null;
+}
+
+/**
+ * Nakit tahmini: son 3 haftanın maaş ve faiz dışı net ortalaması, eksi bugünkü haftalık maaş ve kredi faizi.
+ * Geçmiş yoksa yalnız maaş ve faiz düşer (yardım bilinmiyor, kötümser).
+ */
+export function projectCash(sim: Sim, weeks = 4): CashProjection {
+  const recent = sim.weeks.slice(-3);
+  const base = recent.length > 0 ? Math.round(recent.reduce((s, w) => s + w.net + (w.expense.wages ?? 0) + (w.expense.interest ?? 0), 0) / recent.length) : 0;
+  const interest = sim.loan > 0 ? Math.round(sim.loan * BALANCE.economy.loan.weeklyInterest) : 0;
+  const weeklyNet = base - sim.weeklyWages() - interest;
+  const points: number[] = [];
+  let cash = sim.money;
+  let until: number | null = null;
+  for (let k = 1; k <= weeks; k++) {
+    cash += weeklyNet;
+    points.push(cash);
+    if (until === null && cash < 0) until = k;
+  }
+  return { weeklyNet, points, weeksUntilNegative: until };
+}
+
 export function licenseUpgradeCost(level: number): number | null {
   const costs = BALANCE.economy.licenseUpgradeCosts;
   return level >= 1 && level <= costs.length ? costs[level - 1] : null;

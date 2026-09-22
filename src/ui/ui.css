@@ -815,6 +815,46 @@ select,
   color: var(--danger);
 }
 
+.fin-chart {
+  display: block;
+  width: 100%;
+  max-width: 520px;
+  height: auto;
+  aspect-ratio: 320 / 120;
+  /* Panel dikey flex: kısa ekranda büzülüp 0 yüksekliğe inmesin. */
+  flex: none;
+  margin: 2px 0 6px;
+}
+
+.fin-chart .axis {
+  stroke: var(--muted);
+  stroke-width: 0.6;
+}
+
+.fin-chart .inc {
+  fill: var(--accent-2);
+}
+
+.fin-chart .exp {
+  fill: var(--danger);
+}
+
+.fin-chart .net {
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 1.4;
+  stroke-dasharray: 3 2;
+}
+
+.fin-chart .net-dot {
+  fill: var(--accent);
+}
+
+.fin-chart .lbl {
+  fill: var(--muted);
+  font-size: 8px;
+}
+
 .fin-summary {
   display: flex;
   flex-direction: column;

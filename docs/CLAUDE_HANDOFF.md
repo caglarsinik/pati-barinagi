@@ -57,6 +57,17 @@
   köpek paneli, araç şeridi, alt menü listesi, ana menü, Ayarlar: çakışma yok, taşma yok. Alt menü açılır listesi köpek
   panelinin üstüne gelebilir (geçici popover, üstte kalır) — kabul edildi. Gerçek cihaz testi kullanıcıda.
 
+## 0.14.5 — Finans grafiği ve nakit tahmini (Claude, 2026-09-23)
+- Saf `EconomySystem.projectCash(sim, weeks = 4)`: son 3 haftanın maaş ve faiz dışı net ortalaması (geçmiş yoksa 0) − bugünkü
+  haftalık maaş − bugünkü kredi faizi = `weeklyNet`; `points` hafta hafta kasa; `weeksUntilNegative` ilk eksi hafta ya da null.
+  Maaş/faiz bugünkü değerle girer: yeni işe alım ya da kredi tahmine hemen yansır.
+- `src/ui/FinanceChart.tsx`: son 8 hafta SVG (gelir yeşil yukarı, gider kırmızı aşağı, net sarı kesikli çizgi; çubuk başına
+  ipucu), viewBox ile genişliğe ölçeklenir (telefonda yatay kaydırma yok). `FinancePanel` özet altında grafik + tahmin satırı
+  (eksiye düşecekse kırmızı "Bu gidişle n hafta sonra kasa eksiye düşer").
+- Not: panel dikey flex olduğu için SVG kısa ekranda 0 yüksekliğe büzülüyordu → `.fin-chart { flex: none; aspect-ratio }` ve
+  SVG'ye width/height öznitelikleri. Panel içine eklenen her grafik/görsel için aynı kural.
+- Testler: `tests/unit/projection.test.ts` (3).
+
 ## 0.14.4 — Eğitim kursu ve gönüllüler (Claude, 2026-09-22)
 - Kurs: komut `sendToCourse { staffId }` (`BALANCE.staff.course` 800 ₺, 1 gün; defter `wages` "Kurs: ad"); `Staff.courseUntil`
   (toplam dakika, kayıtta). Kurstayken `updateStaff` vardiyayı 0 sayar (eve gider); süre dolunca `finishCourse` → bir seviye

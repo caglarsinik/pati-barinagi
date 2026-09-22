@@ -148,7 +148,7 @@ yeniden denemez. Otopilot inşaat, işe alım ve sahiplendirme kararı vermez.
 - Sahiplenici 10:00-16:00 arasında kapıdan gelir, ofisin önünde yaklaşık 2,5 saat bekler. O tuşu ya da ofiste E ile masayı aç; istek kartına göre en uygun köpeği puanla gör ve sahiplendir. Zayıf eşleşme (puan < 50) itibar düşürür, köpek geri gelebilir.
 - Köpek sahiplendirilebilmek için sağlıklı, temiz ve sana güvenir olmalı (sadakat 30+).
 - Her Pazartesi 06:00 hafta raporu: denetim (temizlik, sağlık, keyif, pislik, kulübe, yem) yardım çarpanını (0,4-1,5) belirler; köpek başına 150 ₺ × çarpan devlet yardımı yatar, bina bakım gideri düşer.
-- Lisans seviyesi yardım alınan köpek sayısını sınırlar (8/20/45); ofisten yükseltilir. Finans (N) kasa hareketlerini ve geçmiş haftaları gösterir.
+- Lisans seviyesi yardım alınan köpek sayısını sınırlar (8/20/45); ofisten yükseltilir. Finans (N) kasa hareketlerini, son 8 haftanın gelir/gider grafiğini ve geçmiş haftaları gösterir; nakit tahmini son 3 haftanın ortalamasına bugünkü maaş ve kredi faizini ekleyip "Bu gidişle n hafta sonra kasa eksiye düşer" uyarısı verir.
 - **Zorluk:** yeni oyunda Kolay / Normal / Zor seçilir (başlangıç 9.000 / 6.000 / 4.000 ₺, yardım ×1,3 / 1 / 0,8, ihtiyaç hızı
   ×0,8 / 1 / 1,2); kayıtta korunur, Finans başlığında görünür.
 - **Kredi:** ofisten tek seferde 5.000 ₺ kredi alınır; her hafta %5 faiz (250 ₺) kasadan düşer, anapara ofisten "Krediyi öde"
@@ -232,7 +232,8 @@ Bilgisayar değiştirirken ya da yedek almak için kullan.
 - [x] 0.14.2 Otomatik yem makinesi (saatte 8 kare içindeki kaplara 2 porsiyon) ve lisansla büyüyen ofis (Sv3: 16 personel)
 - [x] 0.14.3 Personel deneyim/seviye (görev başına deneyim, Sv5'e kadar, seviyede ana nitelik +1) ve moral (yorgunluk, iş yükü, maaş; düşük moral verimi düşürür, uzun süre dipte kalan istifa eder)
 - [x] 0.14.4 Eğitim kursu (800 ₺, bir gün, bir seviye) ve gönüllüler (Cuma başvurur, maaşsız, hafta sonu, 2 hafta, itibar +1)
-- [ ] M12 İlerleme ve Son Oyun (0.14.5–0.14.6: finans grafiği, 3 kayıt yuvası)
+- [x] 0.14.5 Finans: 8 haftalık gelir/gider grafiği ve nakit tahmini
+- [ ] M12 İlerleme ve Son Oyun (0.14.6: 3 kayıt yuvası ve haftalık otomatik kayıt)
 - [ ] Sonraki paketler (`docs/PLAN.md` §7): M14 Soy, M11 Yaşayan Dünya, M13 Sahiplendirme Hikâyeleri
 
 ## Geliştirme

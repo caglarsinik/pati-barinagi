@@ -6,7 +6,8 @@ import { t } from '../i18n';
 import { adoptable, hardMismatch, matchScore, requestText } from '../sim/entities/Adopter';
 import { STAGE_NAMES_TR } from '../sim/entities/Dog';
 import { DIFFICULTY_NAMES_TR } from '../sim/Sim';
-import { LEDGER_NAMES_TR, type LedgerCategory, licenseUpgradeCost } from '../sim/systems/EconomySystem';
+import { LEDGER_NAMES_TR, type LedgerCategory, licenseUpgradeCost, projectCash } from '../sim/systems/EconomySystem';
+import { FinanceChart } from './FinanceChart';
 import { DogPortrait } from './DogPortrait';
 import { formatMoney } from './HUD';
 import { showToast, store } from './store';
@@ -278,6 +279,12 @@ export function FinancePanel() {
   const weeks = [...sim.weeks].reverse();
   const insp = sim.lastInspection;
   const entries = sim.ledger.filter((e) => e.week === sim.clock.week);
+  const proj = projectCash(sim, 4);
+  const forecast = proj.weeksUntilNegative
+    ? t('Bu gidişle {n} hafta sonra kasa eksiye düşer (haftalık tahmini net {net}).', { n: proj.weeksUntilNegative, net: formatMoney(proj.weeklyNet) })
+    : proj.weeklyNet >= 0
+      ? t('Kasa önümüzdeki {n} hafta artıda; haftalık tahmini net {net}.', { n: proj.points.length, net: formatMoney(proj.weeklyNet) })
+      : t('Kasa önümüzdeki {n} hafta artıda kalır ama eriyor; haftalık tahmini net {net}.', { n: proj.points.length, net: formatMoney(proj.weeklyNet) });
   return (
     <div class="overlay">
       <div class="menu-card panel wide">
@@ -310,6 +317,17 @@ export function FinancePanel() {
             </div>
           )}
         </div>
+        <p class={'small-text ' + (proj.weeksUntilNegative ? 'bad' : 'muted')} title={t('Son 3 haftanın ortalaması; maaş ve kredi faizi bugünkü değerle')}>
+          {forecast}
+        </p>
+        {sim.weeks.length > 0 && (
+          <>
+            <h4>
+              {t('Son {n} hafta', { n: Math.min(8, sim.weeks.length) })} <span class="muted small-text">{t('yeşil gelir · kırmızı gider · sarı net')}</span>
+            </h4>
+            <FinanceChart weeks={sim.weeks.slice(-8)} />
+          </>
+        )}
         <h4>{t('Bu haftanın hareketleri')}</h4>
         <div class="ledger">
           {entries
