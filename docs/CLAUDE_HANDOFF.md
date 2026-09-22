@@ -57,6 +57,16 @@
   köpek paneli, araç şeridi, alt menü listesi, ana menü, Ayarlar: çakışma yok, taşma yok. Alt menü açılır listesi köpek
   panelinin üstüne gelebilir (geçici popover, üstte kalır) — kabul edildi. Gerçek cihaz testi kullanıcıda.
 
+## 0.14.2 — Otomatik yem makinesi + ofis seviyesi (Claude, 2026-09-22)
+- Yeni bina `feeder` "Otomatik yem makinesi" (1×1, katı, 2.500 ₺, 120 dk, Besleme): `src/sim/systems/FeederSystem.ts`
+  `tickFeeders` her saat başı (`Sim.onHour`, mutfak dolumunun yanında) `BALANCE.feeder.radius` (8 kare) içindeki hazır
+  kaplara kilerden `feedPerHour` (2) porsiyon koyar, kiler boşsa durur. `feederCovers` → `TaskBoard` yem görevinin aciliyeti
+  × `taskUrgencyMul` (0,5): makine yetişemezse görev yine gelir. Doku `BuildingArt` (hazne + boru + kap).
+- Ofis seviyesi = lisans seviyesi: ofis dokusu 3 varyant (Sv2 bayrak + ikinci pencere, Sv3 altın yıldız tabela + çatı
+  penceresi), `WorldScene.buildingVariant` office → `licenseLevel - 1`, `syncBuildings` lisans yükselince dokuyu değiştirir.
+  `StaffSystem.maxStaff(sim)`: Sv3'te `BALANCE.staff.maxStaffTop` (16), Sv1–2'de 12 (işe alım, kayıt yükleme, personel paneli).
+- Testler: `tests/unit/feeder.test.ts` (4).
+
 ## 0.14.1 — Yükseltmeler 1: kuluçka Sv2 + büyük çanta (Claude, 2026-09-22)
 - `Building.level` (1–2, kayıtta, varsayılan 1); `BuildingDef.upgrade?: { cost, eggSlots?, hatchDays? }` — kuluçka
   `{ cost: 2000, eggSlots: 6, hatchDays: 2 }`. Genel komut `upgradeBuilding { buildingId }` (hazır bina, para, tek seviye;

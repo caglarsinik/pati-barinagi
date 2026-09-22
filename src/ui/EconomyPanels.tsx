@@ -62,6 +62,7 @@ export function OfficePanel() {
           </button>
         </div>
         <p>{t('Lisans seviyesi {lvl}: en fazla {cap} köpek için yardım alınır. Şu an {n} köpek.', { lvl: sim.licenseLevel, cap: sim.licenseCap(), n: sim.shelterDogs().length })}</p>
+        <p class="muted small-text">{t('Ofis lisansla büyür (şu an Sv{lvl}); Sv3 ofiste en fazla {n} personel çalışır.', { lvl: sim.licenseLevel, n: BALANCE.staff.maxStaffTop })}</p>
         {cost !== null ? (
           <button
             class="btn"

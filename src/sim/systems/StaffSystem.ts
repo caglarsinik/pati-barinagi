@@ -15,6 +15,11 @@ import type { Task } from './TaskBoard';
 import { t } from '../../i18n';
 
 /** Personelin çalışma ritmi: vardiya, mola, görev seçimi, iş yapma. */
+/** Personel sınırı: ofis Sv3 (lisans 3) daha kalabalık kadro alır. */
+export function maxStaff(sim: Sim): number {
+  return sim.licenseLevel >= 3 ? BALANCE.staff.maxStaffTop : BALANCE.staff.maxStaff;
+}
+
 export class StaffSystem {
   constructor(private readonly sim: Sim) {}
 
@@ -39,7 +44,7 @@ export class StaffSystem {
     const sim = this.sim;
     const idx = sim.candidates.findIndex((c) => c.id === candidateId);
     if (idx === -1) return { ok: false, message: t('Aday artık yok') };
-    if (sim.staff.length >= BALANCE.staff.maxStaff) return { ok: false, message: t('En fazla {n} personel', { n: BALANCE.staff.maxStaff }) };
+    if (sim.staff.length >= maxStaff(sim)) return { ok: false, message: t('En fazla {n} personel', { n: maxStaff(sim) }) };
     const s = sim.candidates.splice(idx, 1)[0];
     const at = this.entryOutside();
     s.x = at.x + 0.5;

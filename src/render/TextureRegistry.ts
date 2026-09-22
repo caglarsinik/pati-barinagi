@@ -39,7 +39,7 @@ export function registerTextures(scene: Phaser.Scene): void {
   if (emotes) for (let i = 0; i < EMOTE_KEYS.length; i++) emotes.add(i, 0, i * EMOTE_SIZE, 0, EMOTE_SIZE, EMOTE_SIZE);
 
   for (const type of Object.keys(BUILDING_DEFS) as BuildingType[]) {
-    const variants = type === 'bowl' || type === 'trough' ? 3 : 1;
+    const variants = type === 'bowl' || type === 'trough' || type === 'office' ? 3 : 1;
     for (let v = 0; v < variants; v++) t.addCanvas(buildingTextureKey(type, v), drawBuilding(type, v).toCanvas());
     if (canRotate(type)) t.addCanvas(buildingTextureKey(type, 0, 1), drawBuilding(type, 0, 1).toCanvas());
   }

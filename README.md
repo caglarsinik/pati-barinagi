@@ -129,7 +129,8 @@ yeniden denemez. Otopilot inşaat, işe alım ve sahiplendirme kararı vermez.
 - Çit ve yol sürükleyerek düz çizgi halinde çekilir; kapı çitin üstüne konur. **Kapı kapalıyken geçilmez:** sen, personel, sahiplenici ve tasmalı köpek yaklaşınca kendiliğinden açılır, geçince kapanır; serbest köpekler kapıdan çıkamaz (gece kaçış yine çitten atlamadır). Bölgeler (tuvalet, oyun bahçesi, eğitim, karantina, personel) dikdörtgen sürükleyerek boyanır.
 - Büyük binalar inşaat süresi boyunca yarı saydamdır ve kullanılamaz. Yıkım bedelin yarısını iade eder.
 - Arsa sekmesinden doğuya/güneye 16 kare genişletilir (2.500 ₺); alan temizlenir, çit ve yol kapıları yeniden kurulur.
-- Tımar istasyonu yakındaki köpeği yıkar, veteriner odası tedavi eder, mutfak kapların kapasitesini ikiye katlar, yalakları kendiliğinden doldurur ve personelin yem/su işini %40 hızlandırır; oyuncaklar köpeklerin kendi kendine oynamasını sağlar.
+- Tımar istasyonu yakındaki köpeği yıkar, veteriner odası tedavi eder, mutfak kapların kapasitesini ikiye katlar, yalakları kendiliğinden doldurur ve personelin yem/su işini %40 hızlandırır; oyuncaklar köpeklerin kendi kendine oynamasını sağlar. Otomatik yem makinesi (2.500 ₺) her saat 8 kare içindeki kaplara kilerden 2 porsiyon koyar; o kapların yem görevi daha az acil olur.
+- Ofis lisansla büyür: lisans 2'de bayrak ve yan pencere, lisans 3'te çatı penceresi ve yıldızlı tabela; Sv3 ofiste en fazla 16 personel çalışır (öncesinde 12).
 - Dekor puanı: çiçek 1, bank 3, tabela 5 (bir tabela sayılır), lamba 0,5; en çok 20. Puan sahiplenicilerin sabrını uzatır, günlük sahiplenici sayısını biraz artırır ve haftalık denetimde "Çevre" kalemi olarak sayılır.
 
 ## Yumurtalar ve keşif
@@ -221,7 +222,8 @@ Bilgisayar değiştirirken ya da yedek almak için kullan.
 - [x] 0.13.x Otopilot: 🤖 / T ile karakter barınağın işlerini kendisi yapar (bakım, köpek işleri, yumurta, böğürtlen, gece uykusu, koşu), durum satırı, elle müdahalede kapanır, 3 günlük başsız koşu testi
 - [x] 0.14.0 Yılın Barınağı: 50 sahiplendirme ve 90 itibar → zafer ekranı (bir kez, oyun sürer), ofiste hedef çubukları, başarım
 - [x] 0.14.1 Yükseltmeler 1: kuluçka Sv2 (6 yuva, 2 gün) ve büyük çanta (6 yumurta)
-- [ ] M12 İlerleme ve Son Oyun (0.14.2–0.14.6: yem makinesi ve ofis seviyesi, personel seviye/moral, kurs/gönüllü, finans grafiği, 3 kayıt yuvası)
+- [x] 0.14.2 Otomatik yem makinesi (saatte 8 kare içindeki kaplara 2 porsiyon) ve lisansla büyüyen ofis (Sv3: 16 personel)
+- [ ] M12 İlerleme ve Son Oyun (0.14.3–0.14.6: personel seviye/moral, kurs/gönüllü, finans grafiği, 3 kayıt yuvası)
 - [ ] Sonraki paketler (`docs/PLAN.md` §7): M14 Soy, M11 Yaşayan Dünya, M13 Sahiplendirme Hikâyeleri
 
 ## Geliştirme

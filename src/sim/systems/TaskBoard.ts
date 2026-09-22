@@ -5,6 +5,7 @@ import type { TilePos } from '../world/TileWorld';
 import { Obj } from '../world/tiles';
 import type { Sim } from '../Sim';
 import { isContainedMess, toiletFull, toiletMessCount } from './MessSystem';
+import { feederCovers } from './FeederSystem';
 
 export interface Task {
   id: number;
@@ -43,7 +44,8 @@ export class TaskBoard {
       if (b.type !== 'bowl' || !isReady(b)) continue;
       const cap = sim.bowlCapacity(b);
       if (b.food >= cap * 0.5 || sim.foodStock <= 0) continue;
-      const urgency = Math.min(1, 0.45 + (meal ? 0.35 : 0) + hungry * 0.06 + (b.food <= 0 ? 0.1 : 0));
+      // Makine menzilindeki kap kendiliğinden dolar: iş daha az acil (makine yetişemezse görev yine gelir).
+      const urgency = Math.min(1, 0.45 + (meal ? 0.35 : 0) + hungry * 0.06 + (b.food <= 0 ? 0.1 : 0)) * (feederCovers(sim, b) ? BALANCE.feeder.taskUrgencyMul : 1);
       wanted.set(`feed:${b.id}`, { type: 'feed', targetId: b.id, tile: { x: b.x, y: b.y }, urgency, key: `feed:${b.id}` });
     }
     const thirsty = dogs.filter((d) => d.needs.thirst >= BALANCE.dogs.drinkAboveThirst).length;

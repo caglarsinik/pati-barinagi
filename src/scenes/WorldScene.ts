@@ -865,6 +865,8 @@ export class WorldScene extends Phaser.Scene {
   }
 
   private buildingVariant(b: Building): number {
+    // Ofis lisansla büyür (Sv1–3).
+    if (b.type === 'office') return Math.min(2, Math.max(0, this.sim.licenseLevel - 1));
     if (b.type === 'trough') {
       if (b.water <= 0.01) return 0;
       return b.water >= this.sim.troughCapacity() * 0.5 ? 2 : 1;
@@ -879,7 +881,7 @@ export class WorldScene extends Phaser.Scene {
     for (const b of this.sim.buildings) {
       const img = this.buildingImages.get(b.id);
       if (!img) continue;
-      if (b.type === 'bowl' || b.type === 'trough') {
+      if (b.type === 'bowl' || b.type === 'trough' || b.type === 'office') {
         const key = buildingTextureKey(b.type, this.buildingVariant(b), b.rot);
         if (img.texture.key !== key) img.setTexture(key);
       }

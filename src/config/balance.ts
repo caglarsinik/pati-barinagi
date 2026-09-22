@@ -68,6 +68,8 @@ export const BALANCE = {
   staff: {
     baseWage: { caretaker: 350, trainer: 500, vet: 650 } as const,
     maxStaff: 12,
+    /** Ofis Sv3 (lisans 3) personel sınırı. */
+    maxStaffTop: 16,
     candidatesPerDay: 3,
     /** Kare / oyun dakikası. */
     baseSpeed: 1.4,
@@ -372,6 +374,13 @@ export const BALANCE = {
     reachDist: 1.7,
     stuckSeconds: 0.6,
     maxReplans: 2,
+  },
+  /** Otomatik yem makinesi (FeederSystem): saat başı menzildeki kaplara kilerden porsiyon. */
+  feeder: {
+    radius: 8,
+    feedPerHour: 2,
+    /** Menzildeki kabın yem görevi aciliyet çarpanı. */
+    taskUrgencyMul: 0.5,
   },
   /** Satın alınan yükseltmeler (bina yükseltmeleri content/buildings.ts `upgrade` alanında). */
   upgrades: {

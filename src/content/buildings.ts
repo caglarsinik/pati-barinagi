@@ -18,7 +18,8 @@ export type BuildingType =
   | 'bin'
   | 'flower'
   | 'bench'
-  | 'sign';
+  | 'sign'
+  | 'feeder';
 
 export type BuildingCategory = 'altyapi' | 'barinma' | 'besleme' | 'bakim' | 'buyume' | 'oyun' | 'personel' | 'yonetim' | 'dekor';
 
@@ -259,6 +260,18 @@ export const BUILDING_DEFS: Record<BuildingType, BuildingDef> = {
     solidRows: 'all',
     desc: 'Gece çevresini aydınlatır. Dekor +0,5.',
     buildMinutes: 0,
+    buildable: true,
+  },
+  feeder: {
+    type: 'feeder',
+    name: 'Otomatik yem makinesi',
+    w: 1,
+    h: 1,
+    cost: 2500,
+    category: 'besleme',
+    solidRows: 'all',
+    desc: 'Her saat 8 kare içindeki yem kaplarına kilerden 2 porsiyon koyar. Kiler boşsa durur.',
+    buildMinutes: 120,
     buildable: true,
   },
   bin: {

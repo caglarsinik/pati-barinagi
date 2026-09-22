@@ -57,9 +57,35 @@ export function drawBuilding(type: BuildingType, variant = 0, rot: 0 | 1 = 0): P
   const bottom = y0 + size.h * T; // taban alt kenarı (dışlayıcı)
   switch (type) {
     case 'office':
+      // variant = ofis seviyesi - 1 (lisansla büyür): Sv2 bayrak + yan pencere, Sv3 çatı penceresi + yıldızlı tabela.
       drawHouse(p, 0, y0, W, size.h * T, C.wall, C.wallDark, C.roof, C.roofDark, C.roofLight, true);
       p.fillRect(Math.floor(W / 2) - 7, y0 + 10, 14, 5, C.sign);
       p.fillRect(Math.floor(W / 2) - 6, y0 + 12, 12, 1, P.outline);
+      if (variant >= 1) {
+        p.fillRect(W - 9, y0 - 12, 1, 12, C.metalDark);
+        p.fillRect(W - 8, y0 - 12, 6, 4, C.bowlRed);
+        p.fillRect(4, bottom - 18, 7, 6, P.waterLight);
+        p.fillRect(4, bottom - 15, 7, 1, C.wallDark);
+      }
+      if (variant >= 2) {
+        p.fillRect(Math.floor(W / 2) - 4, y0 - 6, 8, 5, P.waterLight);
+        p.fillRect(Math.floor(W / 2) - 5, y0 - 7, 10, 1, C.roofDark);
+        p.set(Math.floor(W / 2), y0 + 11, C.lampGlow);
+        p.set(Math.floor(W / 2) - 1, y0 + 12, C.lampGlow);
+        p.set(Math.floor(W / 2) + 1, y0 + 12, C.lampGlow);
+        p.fillRect(W - 15, bottom - 18, 7, 6, P.waterLight);
+        p.fillRect(W - 15, bottom - 15, 7, 1, C.wallDark);
+      }
+      break;
+    case 'feeder':
+      // Hazne (üstte yem görünür), boru ve altta küçük kap.
+      p.fillRect(3, y0 - 4, 10, 10, C.metal);
+      p.fillRect(3, y0 - 4, 10, 1, C.metalLight);
+      p.fillRect(3, y0 + 5, 10, 1, C.metalDark);
+      p.fillRect(5, y0 - 3, 6, 2, C.kibble);
+      p.fillRect(7, y0 + 6, 2, 5, C.metalDark);
+      p.ellipse(8, y0 + 12, 5, 2.5, C.bowlRed);
+      p.ellipse(8, y0 + 11.5, 3.5, 1.5, C.kibble);
       break;
     case 'kennelSmall':
     case 'kennelLarge': {

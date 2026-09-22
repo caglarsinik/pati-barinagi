@@ -42,7 +42,8 @@ import { type NavGoal, PlayerNav } from './systems/PlayerNav';
 import { rebuildMessSet } from './systems/MessSystem';
 import { NeedsSystem } from './systems/NeedsSystem';
 import { tickNests } from './systems/NestSystem';
-import { StaffSystem } from './systems/StaffSystem';
+import { StaffSystem, maxStaff } from './systems/StaffSystem';
+import { tickFeeders } from './systems/FeederSystem';
 import { TaskBoard } from './systems/TaskBoard';
 import { type AchievementDef, AchievementSystem } from './systems/Achievements';
 import { EventSystem, type GameEvent } from './systems/EventSystem';
@@ -468,6 +469,8 @@ export class Sim {
       const cap = BALANCE.shelter.troughCapacity;
       for (const b of this.buildings) if (b.type === 'trough' && isReady(b)) b.water = Math.min(cap, b.water + BALANCE.shelter.kitchenWaterPerHour);
     }
+    // Otomatik yem makinesi: menzildeki kaplar kilerden dolar.
+    tickFeeders(this);
     if (h === BALANCE.time.passOutHour && this.mode === 'avatar' && !this.world.inPlot(this.player.tileX, this.player.tileY)) {
       this.passOut();
     }
@@ -1447,7 +1450,7 @@ export class Sim {
     if (Array.isArray(data.staff)) {
       for (const raw of data.staff) {
         const s = Staff.fromJSON(raw);
-        if (!s || sim.staff.length >= BALANCE.staff.maxStaff) continue;
+        if (!s || sim.staff.length >= maxStaff(sim)) continue;
         if (s.state !== 'offDuty' && world.isSolid(s.tileX, s.tileY)) {
           s.x = world.spawn.x;
           s.y = world.spawn.y;

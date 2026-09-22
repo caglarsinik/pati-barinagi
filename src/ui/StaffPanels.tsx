@@ -16,6 +16,7 @@ import {
 } from '../sim/entities/Staff';
 import { formatMoney } from './HUD';
 import { showToast, store } from './store';
+import { maxStaff } from '../sim/systems/StaffSystem';
 
 const STATE_TR: Record<Staff['state'], string> = {
   offDuty: 'Mesai dışı',
@@ -82,7 +83,7 @@ export function StaffPanel() {
     <div class="overlay">
       <div class="menu-card panel wide">
         <div class="panel-head">
-          <h2>{t('Personel ({n}/{max}) · haftalık maaş {wages}', { n: sim.staff.length, max: BALANCE.staff.maxStaff, wages: formatMoney(sim.weeklyWages()) })}</h2>
+          <h2>{t('Personel ({n}/{max}) · haftalık maaş {wages}', { n: sim.staff.length, max: maxStaff(sim), wages: formatMoney(sim.weeklyWages()) })}</h2>
           <button class="btn small" onClick={() => (store.panel.value = 'deployment')}>
             {t('Görevlendirme')}
           </button>
@@ -123,7 +124,7 @@ export function StaffPanel() {
               <div class="staff-head">
                 <b>{c.name}</b> <span class={`role role-${c.role}`}>{t(ROLE_NAMES_TR[c.role])}</span>
                 <span class="spacer" />
-                <button class="btn small primary" disabled={sim.staff.length >= BALANCE.staff.maxStaff} onClick={() => run(sim.command({ type: 'hire', candidateId: c.id }))}>
+                <button class="btn small primary" disabled={sim.staff.length >= maxStaff(sim)} onClick={() => run(sim.command({ type: 'hire', candidateId: c.id }))}>
                   {t('İşe al · {wage}/hafta', { wage: formatMoney(c.wage) })}
                 </button>
               </div>
