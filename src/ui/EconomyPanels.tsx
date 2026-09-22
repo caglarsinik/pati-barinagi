@@ -17,6 +17,33 @@ function run(r: { ok: boolean; message?: string }): void {
 }
 
 /** Ofis: lisans, uyku, olaylar, kısayollar. */
+/** Ofiste zafer hedefi: iki çubuk ya da kazanıldı satırı. */
+function GoalProgress() {
+  const sim = app.sim;
+  if (!sim) return null;
+  const V = BALANCE.victory;
+  const adopted = Math.min(sim.stats.adopted, V.adoptions);
+  const rep = Math.min(Math.round(sim.reputation), V.reputation);
+  return (
+    <div class="goal">
+      <h4>{t('Hedef: Yılın Barınağı')}</h4>
+      {sim.victory && <p class="good">{t('🏆 Kazanıldı ({day}. gün)', { day: sim.victory.day })}</p>}
+      <div class="goal-row">
+        <span>{t('Sahiplendirme {n}/{max}', { n: adopted, max: V.adoptions })}</span>
+        <div class="bar mini">
+          <div class="fill" style={{ width: `${(100 * adopted) / V.adoptions}%` }} />
+        </div>
+      </div>
+      <div class="goal-row">
+        <span>{t('İtibar {n}/{max}', { n: rep, max: V.reputation })}</span>
+        <div class="bar mini">
+          <div class="fill" style={{ width: `${(100 * rep) / V.reputation}%` }} />
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export function OfficePanel() {
   store.tick.value;
   const sim = app.sim;
@@ -51,6 +78,7 @@ export function OfficePanel() {
           <p class="muted">{t('Lisans en üst seviyede.')}</p>
         )}
         <p class="muted small-text">{t('İtibar {rep}/100 · toplam {n} sahiplendirme', { rep: Math.round(sim.reputation), n: sim.stats.adopted })}</p>
+        <GoalProgress />
         <div class="row">
           {sim.loan > 0 ? (
             <button

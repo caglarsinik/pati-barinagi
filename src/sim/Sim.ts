@@ -60,6 +60,12 @@ export type Difficulty = 'easy' | 'normal' | 'hard';
 export const DIFFICULTIES: readonly Difficulty[] = ['easy', 'normal', 'hard'];
 export const DIFFICULTY_NAMES_TR: Record<Difficulty, string> = { easy: 'Kolay', normal: 'Normal', hard: 'Zor' };
 
+/** Zafer "Yılın Barınağı": kazanıldığı gün ve hafta. */
+export interface VictoryInfo {
+  day: number;
+  week: number;
+}
+
 /** Oyun sonu: iflas. Kayda yazılır; yüklemede ekran yeniden açılır. */
 export interface GameOverInfo {
   reason: 'bankrupt';
@@ -102,6 +108,8 @@ export interface SimEvents extends Record<string, unknown> {
   gate: { x: number; y: number; open: boolean };
   /** İflas: oyun durur, arayüz son ekranı açar. */
   gameOver: GameOverInfo;
+  /** Zafer: bir kez; oyun sürer, arayüz zafer ekranını açar. */
+  victory: VictoryInfo;
 }
 
 export type Command =
@@ -264,6 +272,8 @@ export class Sim {
   /** Kasanın art arda kaç hafta iflas eşiğinin altında kaldığı. */
   negativeWeeks = 0;
   gameOver: GameOverInfo | null = null;
+  /** Zafer "Yılın Barınağı" (bir kez). */
+  victory: VictoryInfo | null = null;
   money: number;
   tool: Tool = 'pet';
   dogs: Dog[] = [];
@@ -407,10 +417,21 @@ export class Sim {
       this.refreshCandidatesIfNewDay();
       this.tasks.refresh();
       this.alerts.refresh();
+      this.checkVictory();
       this.achievements.check();
     }
     this.staffSystem.update(dtMin);
     this.gates.update(0);
+  }
+
+  /** Zafer: sahiplendirme ve itibar eşikleri birlikte sağlanınca bir kez tetiklenir; oyun sürer. */
+  private checkVictory(): void {
+    if (this.victory) return;
+    const V = BALANCE.victory;
+    if (this.stats.adopted < V.adoptions || this.reputation < V.reputation) return;
+    this.victory = { day: this.clock.day, week: this.clock.week };
+    this.events.emit('victory', this.victory);
+    this.events.emit('message', t('🏆 Yılın Barınağı seçildin!'));
   }
 
   private revealPlayer(force: boolean): void {
@@ -1138,6 +1159,7 @@ export class Sim {
       loan: this.loan,
       negativeWeeks: this.negativeWeeks,
       gameOver: this.gameOver,
+      victory: this.victory,
       tool: this.tool,
       foodStock: this.foodStock,
       treats: this.treats,
@@ -1209,6 +1231,8 @@ export class Sim {
     sim.negativeWeeks = Math.floor(numOr(data.negativeWeeks, 0, 0));
     const go = data.gameOver as Partial<GameOverInfo> | null | undefined;
     sim.gameOver = go && go.reason === 'bankrupt' && typeof go.week === 'number' ? { reason: 'bankrupt', week: go.week } : null;
+    const vi = data.victory as Partial<VictoryInfo> | null | undefined;
+    sim.victory = vi && typeof vi.day === 'number' && typeof vi.week === 'number' ? { day: vi.day, week: vi.week } : null;
     const speeds = BALANCE.time.speeds as readonly number[];
     sim.speed = speeds.includes(data.speed) && data.speed !== 0 ? (data.speed as Speed) : 1;
     sim.lastRunningSpeed = sim.speed;

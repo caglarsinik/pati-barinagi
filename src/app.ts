@@ -234,6 +234,13 @@ class AppController {
         syncStore(sim);
         audio.play('error');
       }),
+      sim.events.on('victory', (info) => {
+        store.victory.value = info;
+        store.victorySeen.value = false;
+        if (!sim.paused) sim.togglePause();
+        syncStore(sim);
+        audio.play('adopt');
+      }),
       sim.events.on('adopterArrived', () => audio.play('alert')),
       sim.events.on('slept', () => audio.play('sleep')),
       sim.events.on('buildingReady', () => audio.play('build')),
@@ -250,6 +257,9 @@ class AppController {
     store.screen.value = 'game';
     this.applyDevice();
     store.gameOver.value = sim.gameOver;
+    // Kazanılmış bir kayıt yüklenince zafer ekranı yeniden açılmaz.
+    store.victory.value = sim.victory;
+    store.victorySeen.value = sim.victory !== null;
     syncStore(sim);
   }
 
@@ -276,6 +286,7 @@ class AppController {
     store.settingsOpen.value = false;
     store.pauseMenu.value = false;
     store.gameOver.value = null;
+    store.victory.value = null;
     store.screen.value = 'menu';
   }
 

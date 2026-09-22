@@ -1,7 +1,7 @@
 import { canRotate, type Rotation } from '../sim/entities/Building';
 import { signal } from '@preact/signals';
 import { BUILDING_DEFS, type BuildingType, TILE_TOOL_DEFS, type TileTool } from '../content/buildings';
-import { type Mode, type Sim, type GameOverInfo } from '../sim/Sim';
+import { type Mode, type Sim, type GameOverInfo, type VictoryInfo } from '../sim/Sim';
 import { ZONE_NAMES_TR, Zone } from '../sim/world/tiles';
 import type { Alert } from '../sim/systems/AlertSystem';
 import type { WeekSummary } from '../sim/systems/EconomySystem';
@@ -67,6 +67,9 @@ export const store = {
   report: signal<WeekSummary | null>(null),
   /** İflas ekranı (sim.gameOver yansıması). */
   gameOver: signal<GameOverInfo | null>(null),
+  /** Zafer ekranı (sim.victory yansıması) ve görüldü mü (Devam et). */
+  victory: signal<VictoryInfo | null>(null),
+  victorySeen: signal(false),
   settingsOpen: signal(false),
   /** Tarayıcının "Ana ekrana ekle" istemi (Chrome/Edge); null ise düğme gösterilmez. */
   installPrompt: signal<BeforeInstallPromptEvent | null>(null),

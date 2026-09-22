@@ -57,6 +57,16 @@
   köpek paneli, araç şeridi, alt menü listesi, ana menü, Ayarlar: çakışma yok, taşma yok. Alt menü açılır listesi köpek
   panelinin üstüne gelebilir (geçici popover, üstte kalır) — kabul edildi. Gerçek cihaz testi kullanıcıda.
 
+## 0.14.0 — Zafer hedefi "Yılın Barınağı" (M12 ilk dilimi; Claude, 2026-09-22)
+- `BALANCE.victory = { adoptions: 50, reputation: 90 }`; `Sim.victory: VictoryInfo | null` (`{ day, week }`, kayıtta,
+  bozuk kayıtta null); `stepSim` dakika bloğunda `checkVictory()` (achievements.check'ten önce) → bir kez `victory` olayı +
+  mesaj; oyun sürer (gameOver gibi durdurmaz). Başarım `year-shelter`.
+- Arayüz: `src/ui/VictoryPanel.tsx` (olay gelince app oyunu duraklatır; "Devam et" → `store.victorySeen`, duraklatma kalkar);
+  yüklenen kazanılmış oyunda panel yeniden açılmaz. `OfficePanel`'de "Hedef: Yılın Barınağı" iki çubuk (sahiplendirme, itibar)
+  ve kazanıldıysa 🏆 satırı.
+- Belge: `docs/PLAN.md` §7 kurtarılan M11–M14 ayrıntıları + M12 dilim tablosu; §6 zafer satırı; README Durum/Başarımlar.
+- Testler: `tests/unit/victory.test.ts` (3).
+
 ## 0.13.5 — Uçtan uca dokunma senaryoları (ertelenen 0.12.5 dilimi; Claude, 2026-09-22)
 - Test kancası `src/debug/touchDebug.ts`, yalnız `?debug=1` ile `window.__pati.debug`: `tapTile, longPressTile, startPinch,
   pinch, cancelTouches, stuckPointer, snapshot, runTouchScenarios`. Dokunuşlar `WorldScene.pointerInput` → TouchGestures →

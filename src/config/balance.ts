@@ -373,6 +373,11 @@ export const BALANCE = {
     stuckSeconds: 0.6,
     maxReplans: 2,
   },
+  /** Zafer "Yılın Barınağı": iki eşik birlikte sağlanınca bir kez (oyun sürer). */
+  victory: {
+    adoptions: 50,
+    reputation: 90,
+  },
   /** Oyuncu otopilotu (Autopilot.ts). Süreler gerçek saniye. */
   autopilot: {
     /** Boştayken görev tahtasına bu aralıkla bakılır. */

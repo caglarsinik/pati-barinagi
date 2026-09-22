@@ -14,6 +14,7 @@ export interface SaveData {
   loan?: number;
   negativeWeeks?: number;
   gameOver?: unknown;
+  victory?: unknown;
   tool?: string;
   autopilot?: boolean;
   foodStock?: number;

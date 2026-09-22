@@ -186,7 +186,7 @@ Lisans gerektirenleri README'de anmayı unutma.
 
 ## Başarımlar
 
-H tuşu ya da ofis panelinden 24 başarımın listesi açılır (ilk yumurta, 10 sahiplendirme, 95+ eşleşme, 1,4 denetim çarpanı, 20.000 ₺, efsanevi köpek, bir yıl dayanmak...). Her başarım açıldığında itibar +1 verir; kayıtla korunur.
+H tuşu ya da ofis panelinden 25 başarımın listesi açılır (ilk yumurta, 10 sahiplendirme, 95+ eşleşme, 1,4 denetim çarpanı, 20.000 ₺, efsanevi köpek, bir yıl dayanmak...). Her başarım açıldığında itibar +1 verir; kayıtla korunur.
 
 ## Dil
 
@@ -217,7 +217,9 @@ Bilgisayar değiştirirken ya da yedek almak için kullan.
 - [x] 0.12.0 Telefon HUD yeniden düzeni: alt rıhtım (araç / menü / E-Koş tek flex satırı), telefonda tek araç düğmesi, kaydırılabilir üst şerit ve kısa hız/mod düğmeleri, ölçülen yüksekliklerle konumlanan köpek paneli, kutu modeli border-box, iki sütunlu ana menü, yerleşim bütçe testi
 - [x] 0.12.1–0.12.3 Dokunma düzeltmeleri: HUD dokunuşları dünyaya sızmaz, takılı pinch/kaçan touchend sıfırlanır, düğme odağı klavyeyi kilitlemez; kuluçkadan alınan yumurtanın süresi korunur; köpeğin dibindeyken çevre dokunuşu yürüyüştür, meşgulken "Şu an meşgul"
 - [x] 0.13.x Otopilot: 🤖 / T ile karakter barınağın işlerini kendisi yapar (bakım, köpek işleri, yumurta, böğürtlen, gece uykusu, koşu), durum satırı, elle müdahalede kapanır, 3 günlük başsız koşu testi
-- [ ] Sonraki paketler (`docs/PLAN.md` §7): M11 Yaşayan Dünya, M12 İlerleme ve Son Oyun, M13 Sahiplendirme Hikâyeleri, M14 Soy
+- [x] 0.14.0 Yılın Barınağı: 50 sahiplendirme ve 90 itibar → zafer ekranı (bir kez, oyun sürer), ofiste hedef çubukları, başarım
+- [ ] M12 İlerleme ve Son Oyun (0.14.1–0.14.6: yükseltmeler, personel seviye/moral, kurs/gönüllü, finans grafiği, 3 kayıt yuvası)
+- [ ] Sonraki paketler (`docs/PLAN.md` §7): M14 Soy, M11 Yaşayan Dünya, M13 Sahiplendirme Hikâyeleri
 
 ## Geliştirme
 

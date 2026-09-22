@@ -431,26 +431,49 @@ Her taşın sonunda oyun çalışır hâlde olur, testler yeşildir, commit atı
 - **Build:** `npm run build` → `dist/index.html` çift tıkla açılıyor mu, kayıt localStorage'da kalıyor mu.
 - **Kod kalitesi:** `tsc --noEmit` temiz, eslint temel kurallar.
 
-## 7. Yol haritası (M11–M14, 2026-09-13 kararı; M10 Kapı, Tuvalet ve Zorluk tamamlandı)
+## 7. Yol haritası (M11–M14; 2026-09-13 kararı, 2026-09-22 ayrıntılar geri eklendi)
 
-Ayrıntılı tasarım notları plan dosyasında; burada özet. Sırası değiştirilebilir, her paket tek başına oynanabilir sürüm verir.
+Her paket tek başına oynanabilir sürümler verir; paketler küçük sürümlere (oturum başına bir sürüm) bölünerek yapılır.
+Aşağıdaki ayrıntılar M8 döneminde yazılan tasarım notlarından kurtarıldı (o zamanki numaralar M9–M12 idi). Zorluk seviyesi,
+iflas/kredi ve bina döndürme M10'da yapıldı.
 
-- **M11 Yaşayan Dünya:** sokak köpeği inleri mevsimlik yeniden dolar; terk edilmiş ev POI'si; harita kenarında köy
-  (yem toptancısı, oyuncak/ilaç dükkânı, pazar günü); köylülerden görevler; keşfedilmiş yol tabelaları arası hızlı seyahat,
-  bisiklet yükseltmesi; taş/odun toplama → inşa indirimi; tam ekran harita (M); dışarıda hava etkisi.
-- **M12 İlerleme ve Son Oyun:** yükseltme ağacı (kuluçka Sv2 6 yuva/2 gün, sırt çantası 6, ofis Sv2/Sv3 binası, otomatik yem
-  makinesi); personel XP/moral/eğitim kursu/gönüllü; 50 sahiplendirme + itibar 90 → "Yılın Barınağı" zafer ekranı;
-  finans 8 haftalık grafik + nakit projeksiyonu; 3 kayıt yuvası. (Zorluk seviyesi, iflas/kredi ve bina döndürme M10'da yapıldı.)
-- **M13 Sahiplendirme Hikâyeleri:** 100+ isim ve 6 kişilik tipi, tekrar gelen sahiplenici; sahiplendirme sonrası mektup/fotoğraf;
-  "Mezunlar" albümü; sahiplendirme günü etkinliği; bağış kampanyası; ikili (bonded pair) sahiplendirme (M8 dostluk puanı).
-- **M14 Soy (üreme/kalıtım):** `inheritGenome(a, b, rng)` (alanlar %50/50, %10 mutasyon, nadirlik ebeveynlerin en yükseği, %15 bir
-  kademe üstü); "Yuva evi" 3×3 2.500 ₺: dostluğu ≥ 60 iki yetişkin köpek → 5 günde yumurta → kuluçka; köpek başına 4 hafta bekleme;
-  panelde soy ağacı; "İlk soy" / "Efsanevi soy" başarımları.
+### M12 İlerleme ve Son Oyun (sürüyor: 0.14.x)
+
+| Sürüm | Konu |
+|---|---|
+| 0.14.0 ✅ | Zafer hedefi "Yılın Barınağı": 50 sahiplendirme + itibar 90 → zafer ekranı (bir kez, oyun sürer), ofiste hedef çubukları, başarım |
+| 0.14.1 | Yükseltmeler 1: kuluçka Sv2 (6 yuva, 2 günde çatlar, 2.000 ₺; içerideki yumurtaların kalan süresi 2/3), büyük çanta (6, ofisten 1.500 ₺) |
+| 0.14.2 | Yükseltmeler 2: otomatik yem makinesi (1×1, 2.500 ₺, saatte 8 kare içindeki kapları kilerden doldurur); ofis seviyesi = lisans seviyesi (görsel büyüme, Sv3'te personel sınırı 16) |
+| 0.14.3 | Personel deneyim/seviye (görev başına XP, en çok Sv5, seviyede ana nitelik +1) ve moral (yorgunluk, mola, ödenmemiş maaş, iş yükü; <30 verim ×0,8; 3 gün <10 istifa) |
+| 0.14.4 | Eğitim kursu (800 ₺, 1 gün izin, en az bir seviye) ve gönüllüler (maaşsız, hafta sonu, verim ×0,6, 2 hafta, itibar +1) |
+| 0.14.5 | Finans: 8 haftalık çubuk grafik + nakit tahmini ("x hafta sonra kasa eksiye düşer") |
+| 0.14.6 | 3 kayıt yuvası (ana menüde kartlar; mevcut kayıt yuva 1) + haftalık otomatik kayıt |
+
+### M14 Soy (üreme/kalıtım; kullanıcı istedi)
+- `DogGenome.inheritGenome(a, b, rng)`: her alan %50/50 ebeveynden, %10 mutasyon; nadirlik ebeveynlerin en yükseği, %15 bir
+  kademe üstü; `secondary` ebeveynin `coat`'undan.
+- Yeni bina "Yuva evi" 3×3, 2.500 ₺: iki yetişkin köpek atanır (dostluk ≥ 60, sağlık ≥ 70, ikisi de yaşlı değil) → 5 gün →
+  binada yumurta belirir (E ile çantaya, kuluçkaya) → köpek başına 4 hafta bekleme; lisans sınırı sayar.
+- Köpek panelinde "Soy ağacı" satırı (anne/baba adı); başarımlar "İlk soy", "Efsanevi soy".
+
+### M11 Yaşayan Dünya
+- Sokak köpeği inleri mevsimlik yeniden dolar; terk edilmiş ev POI'si.
+- Köy: harita kenarında kasaba — yem toptancısı (ucuz çuval), oyuncak/ilaç dükkânı, pazar günü.
+- Görevler: köylülerden istekler ("kayıp köpeğimi bul", "şu renkte yavru") → para/itibar.
+- Hızlı seyahat: keşfedilmiş yol tabelaları arası; bisiklet yükseltmesi (koşu ×1,5).
+- Taş/odun toplama → inşa indirimi; tam ekran harita (M), tıklanabilir, işaret koyma.
+- Dışarıda hava etkisi: fırtınada dayanıklılık düşer, kışın gece görüş daralır.
+
+### M13 Sahiplendirme Hikâyeleri
+- Sahiplenici kimliği: 100+ isim, 6 kişilik tipi, tekrar gelen sahiplenici.
+- Sahiplendirme sonrası mektup/fotoğraf (3–7 gün sonra: köpeğin durumu, küçük bağış, itibar).
+- "Mezunlar" albümü paneli; sahiplendirme günü etkinliği (300 ₺, o gün 3× sahiplenici); bağış kampanyası (haftada 1).
+- İkili (bonded pair) sahiplendirme — M8'deki dostluk puanına dayanır.
 
 ## 6. Varsayımlar ve açık noktalar
 
 - Tek oyunculu, çevrimdışı; klavye + fare ve dokunmatik (M9).
 - Sayılar (para, hızlar, eşikler) ilk tahmindir; hepsi `balance.ts` içinde ve M6'da simülasyonla ayarlanır.
-- Kaybetme durumu: iflas ekranı (M10); zafer ekranı M12'de.
+- Kaybetme durumu: iflas ekranı (M10); zafer ekranı "Yılın Barınağı" (0.14.0, oyun sürer).
 - Gerçek ses dosyaları istenirse M6'da `SoundSource` üzerinden dosya yükleme eklenir; lisans uyarıları README'de.
 - Git deposu projede başlatılır ve her kilometre taşında commit atılır (uzak depo yok, istenirse GitHub'a bağlanır).

@@ -441,6 +441,23 @@ body {
   background: #a66bd6;
 }
 
+.goal h4 {
+  margin: 10px 0 4px;
+}
+
+.goal-row {
+  margin: 4px 0;
+  font-size: 0.85rem;
+}
+
+.goal-row .bar.mini .fill {
+  background: var(--accent-2);
+}
+
+.victory h2 {
+  color: var(--accent-2);
+}
+
 .row {
   display: flex;
   gap: 6px;
