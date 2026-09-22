@@ -375,6 +375,15 @@ export const BALANCE = {
     failCooldownSec: 30,
     /** Yem siparişinden sonra bekleme. */
     orderWaitSec: 10,
+    /** Keşfedilmiş yumurtalı yuva bu kadar kare içindeyse gidilir. */
+    nestRadius: 40,
+    /** Keşfedilmiş böğürtlen çalısı bu kadar kare içindeyse gidilir. */
+    bushRadius: 25,
+    /** Koşu: dayanıklılık bunun üstünde ve kalan yol runMinTiles'tan uzunsa başlar... */
+    runAboveStamina: 60,
+    /** ...bunun altına inince yürümeye döner (histerezis). */
+    runStopStamina: 40,
+    runMinTiles: 6,
   },
   /** Dünya üstü balonların eşikleri (Emotes.ts). */
   emotes: {

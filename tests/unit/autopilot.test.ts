@@ -7,6 +7,7 @@ import type { Dog } from '../../src/sim/entities/Dog';
 import { Sim } from '../../src/sim/Sim';
 import { PILOT_ID } from '../../src/sim/systems/Autopilot';
 import { placeMess } from '../../src/sim/systems/MessSystem';
+import { harvestNest } from '../../src/sim/systems/NestSystem';
 import { Obj } from '../../src/sim/world/tiles';
 
 function runSeconds(sim: Sim, sec: number): void {
@@ -286,5 +287,105 @@ describe('Otopilot 2: köpek işleri', () => {
     expect(sim.stats.petted).toBeLessThanOrEqual(dogs.length);
     expect(sim.tool).toBe('pet');
     for (const d of dogs) expect(d.petsToday).toBeLessThanOrEqual(1);
+  });
+});
+
+/** Oyuncunun doğusunda, arsa içinde, pislik konabilen uzak bir kare. */
+function farMessTile(sim: Sim, minDist: number): { x: number; y: number } {
+  const p = sim.player;
+  for (let dx = minDist; dx < minDist + 12; dx++) {
+    for (const dy of [0, 1, -1, 2, -2]) {
+      const t = placeMess(sim, p.tileX + dx, p.tileY + dy);
+      if (t) return t;
+    }
+  }
+  throw new Error('uzak kare yok');
+}
+
+describe('Otopilot 3: yumurta, böğürtlen, uyku, koşu', () => {
+  it('çantadaki yumurtayı kuluçkaya koyar', () => {
+    const sim = pilotOn(1330);
+    calmDogs(sim);
+    const inc = sim.buildings.find((b) => b.type === 'incubator')!;
+    const nest = sim.world.nests.find((n) => sim.world.objectAt(n.x, n.y) === Obj.NestEggs)!;
+    const egg = harvestNest(sim, nest.x, nest.y)!;
+    sim.backpack.push(egg);
+    runSeconds(sim, 40);
+    // Çantadaki yumurta kuluçkada; sonrasında yakın yuvadan yenisini toplayıp onu da koymuş olabilir.
+    expect(inc.eggs.some((e) => e.id === egg.id)).toBe(true);
+    expect(sim.backpack.some((e) => e.id === egg.id)).toBe(false);
+  });
+
+  it('keşfedilmiş yakın yuvadan yumurta alır, keşfedilmemiş yuvaya gitmez', () => {
+    const sim = pilotOn(1331);
+    calmDogs(sim);
+    const w = sim.world;
+    const nest = w.nests.find((n) => w.objectAt(n.x, n.y) === Obj.NestEggs && Math.hypot(n.x - sim.player.x, n.y - sim.player.y) < BALANCE.autopilot.nestRadius)!;
+    expect(nest).toBeTruthy();
+    for (const n of w.nests) w.explored[w.idx(n.x, n.y)] = 0;
+    runSeconds(sim, 5);
+    expect(sim.stats.eggsFound).toBe(0);
+    w.explored[w.idx(nest.x, nest.y)] = 1;
+    runSeconds(sim, 60);
+    expect(sim.stats.eggsFound).toBe(1);
+    expect(w.objectAt(nest.x, nest.y)).toBe(Obj.Nest);
+  });
+
+  it('ödül maması azken keşfedilmiş çalıdan böğürtlen toplar, doluyken toplamaz', () => {
+    const sim = pilotOn(1332);
+    calmDogs(sim);
+    const w = sim.world;
+    const p = sim.player;
+    let bush: { x: number; y: number } | null = null;
+    for (let dx = 4; dx < 12 && !bush; dx++) {
+      const x = p.tileX + dx;
+      const y = p.tileY;
+      if (w.inBounds(x, y) && !w.isSolid(x, y) && w.buildingIdAt(x, y) === -1 && w.objectAt(x, y) === Obj.None) bush = { x, y };
+    }
+    expect(bush).not.toBeNull();
+    w.setObject(bush!.x, bush!.y, Obj.BerryBush);
+    w.explored[w.idx(bush!.x, bush!.y)] = 1;
+    sim.treats = BALANCE.eggs.treatsMax;
+    runSeconds(sim, 5);
+    expect(w.objectAt(bush!.x, bush!.y)).toBe(Obj.BerryBush);
+    sim.treats = 0;
+    runSeconds(sim, 30);
+    expect(sim.treats).toBeGreaterThan(0);
+    expect(w.objectAt(bush!.x, bush!.y)).toBe(Obj.Bush);
+  });
+
+  it('gece ofise gidip sabaha kadar uyur; gündüz uyumaz; boş kap varsa önce onu doldurur', () => {
+    const sim = pilotOn(1333);
+    calmDogs(sim);
+    sim.clock.totalMinutes = 12 * 60;
+    runSeconds(sim, 10);
+    expect(sim.stats.slept).toBe(0);
+    sim.clock.totalMinutes = 21 * 60;
+    const bowl = sim.buildings.find((b) => b.type === 'bowl')!;
+    bowl.food = 0;
+    sim.tasks.refresh();
+    runSeconds(sim, 60);
+    expect(sim.stats.bowlsFilled).toBeGreaterThanOrEqual(1);
+    expect(sim.stats.slept).toBe(1);
+    // Uyandıktan sonra koşu sürdüğü için saat 06:00'yı biraz geçmiş olabilir.
+    expect(sim.clock.hour).toBeGreaterThanOrEqual(BALANCE.time.nightEndHour);
+    expect(sim.clock.hour).toBeLessThan(BALANCE.time.nightEndHour + 4);
+    expect(sim.pilot.blockedFor('sleep')).toBe(0);
+    expect(sim.autopilot).toBe(true);
+  });
+
+  it('uzak hedefe koşar, dayanıklılık düşünce yürür', () => {
+    const sim = pilotOn(1334);
+    calmDogs(sim);
+    farMessTile(sim, 10);
+    sim.tasks.refresh();
+    runSeconds(sim, 0.5);
+    expect(sim.pilot.current?.key.startsWith('clean:')).toBe(true);
+    expect(sim.nav.path.length).toBeGreaterThan(BALANCE.autopilot.runMinTiles);
+    expect(sim.player.running).toBe(true);
+    sim.player.stamina = BALANCE.autopilot.runStopStamina - 5;
+    runSeconds(sim, 0.2);
+    expect(sim.player.running).toBe(false);
+    expect(sim.pilot.run()).toBe(false);
   });
 });

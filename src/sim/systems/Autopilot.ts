@@ -1,7 +1,10 @@
 import { BALANCE } from '../../config/balance';
-import { type Building, isReady } from '../entities/Building';
+import { type Building, buildingDoorTile, isReady } from '../entities/Building';
 import type { Dog } from '../entities/Dog';
 import type { Sim } from '../Sim';
+import type { TilePos } from '../world/TileWorld';
+import { Obj } from '../world/tiles';
+import { incubatorSlots } from './IncubatorSystem';
 import { type ActionOutcome, type Tool, nearestDogToBuilding, trainingSkill } from './Interaction';
 import type { NavGoal } from './PlayerNav';
 import type { Task } from './TaskBoard';
@@ -10,16 +13,18 @@ import { t } from '../../i18n';
 /** Görev tahtasında otopilotun sahip kimliği (personel kimlikleri pozitif). */
 export const PILOT_ID = -1;
 
-/** Üstlenilen görev türleri: bakım (0.13.0) + köpek işleri (0.13.1). Yumurta ve uyku sonraki sürümde. */
+/** Tahtadan üstlenilen görev türleri: bakım (0.13.0) + köpek işleri (0.13.1). Yumurta/böğürtlen/uyku tahtada değil (0.13.2). */
 const PILOT_TASKS: ReadonlySet<Task['type']> = new Set<Task['type']>(['feed', 'water', 'clean', 'play', 'train', 'groom', 'treat']);
 
 /** Bir işin yürütme planı: nereye gidilecek, hangi araçla (E'nin yapacağı iş araca bağlı). */
 interface Plan {
   goal: NavGoal;
   tool?: Tool;
+  /** Kare hedefi için varış eylemi (E yerine): true = başarı. Kuluçkaya yumurta koymak, ofiste uyumak. */
+  onArrive?: () => boolean;
 }
 
-/** Üstlenilen iş: tahtadaki görev ya da boşta sevme (task null). */
+/** Üstlenilen iş: tahtadaki görev ya da tahta dışı iş (task null: sevme, yumurta, böğürtlen, uyku). */
 interface Job {
   key: string;
   task: Task | null;
@@ -27,8 +32,9 @@ interface Job {
 }
 
 /**
- * Oyuncu otopilotu: avatar boştayken görev tahtasından iş seçer, dokun-git ile gider, varınca E yapar; iş yoksa bugün
- * sevilmemiş en düşük sadakatli köpeği sever. Personelle aynı tahtayı kullanır (görevi PILOT_ID ile üstlenir, bitince
+ * Oyuncu otopilotu: avatar boştayken görev tahtasından iş seçer, dokun-git ile gider, varınca E yapar. Tahta boşsa
+ * sırayla: gece ofiste uyku, çantadaki yumurtayı kuluçkaya koyma, keşfedilmiş yuvadan yumurta / çalıdan böğürtlen,
+ * bugün sevilmemiş köpeği sevme. Uzak hedefe dayanıklılık yettiği sürece koşar. Personelle aynı tahtayı kullanır (görevi PILOT_ID ile üstlenir, bitince
  * düşürür ya da bırakır); elle girdi otopilotu kapatır (Sim.update ve UI komutları). Phaser'sız, test edilebilir.
  */
 export class Autopilot {
@@ -40,6 +46,8 @@ export class Autopilot {
   private nextCheckAt = 0;
   /** Başarısız hedefler: iş anahtarı → yeniden denenebileceği an. */
   private readonly blocked = new Map<string, number>();
+  /** Koşu histerezisi: eşik üstünde başlar, alt eşikte biter. */
+  private running = false;
 
   constructor(private readonly sim: Sim) {
     sim.events.on('interacted', (e) => {
@@ -65,6 +73,18 @@ export class Autopilot {
     }
     this.current = null;
     this.lastResult = null;
+    this.running = false;
+  }
+
+  /** Bu karede koşulsun mu: iş var, yol uzun ve dayanıklılık yetiyor (Sim.update nav girdisiyle birleştirir). */
+  run(): boolean {
+    const A = BALANCE.autopilot;
+    const p = this.sim.player;
+    if (!this.current || !this.sim.nav.active) return (this.running = false);
+    const left = this.sim.nav.path.length;
+    if (this.running) this.running = p.stamina > A.runStopStamina && left > 1;
+    else this.running = p.stamina > A.runAboveStamina && left > A.runMinTiles;
+    return this.running;
   }
 
   /** Kapatma: işi bırak, yürüyüşü durdur. */
@@ -87,7 +107,7 @@ export class Autopilot {
     if (this.timeSec < this.nextCheckAt) return;
     this.nextCheckAt = this.timeSec + BALANCE.autopilot.idleRecheckSec;
     if (this.tryOrderFood()) return;
-    const job = this.pickJob() ?? this.idlePet();
+    const job = this.pickJob() ?? this.sleepJob() ?? this.placeEggJob() ?? this.nestJob() ?? this.berryJob() ?? this.idlePet();
     if (job) this.start(job);
   }
 
@@ -131,6 +151,96 @@ export class Autopilot {
       if (!best || d.needs.loyalty < best.needs.loyalty) best = d;
     }
     return best ? { key: `pet:${best.id}`, task: null, plan: { goal: { kind: 'dog', id: best.id }, tool: 'pet' } } : null;
+  }
+
+  private isNight(): boolean {
+    const h = this.sim.clock.hour;
+    return h >= BALANCE.time.sleepFromHour || h < BALANCE.time.nightEndHour;
+  }
+
+  /** Oyuncu kapının önünde mi (varış eylemleri yanlış yerde çalışmasın: yol kesilmiş olabilir). */
+  private atDoor(door: TilePos): boolean {
+    const p = this.sim.player;
+    return Math.hypot(p.x - (door.x + 0.5), p.y - (door.y + 0.7)) <= 2;
+  }
+
+  private doorJob(key: string, b: Building, onArrive: () => boolean): Job {
+    const door = buildingDoorTile(b);
+    return { key, task: null, plan: { goal: { kind: 'tile', tile: door }, onArrive: () => this.atDoor(door) && onArrive() } };
+  }
+
+  /** Gece (sleepFromHour…nightEndHour) ve tahtada sahipsiz yem/su işi yoksa: ofis kapısına git, sabaha kadar uyu. */
+  private sleepJob(): Job | null {
+    if (!this.isNight() || this.blocked.has('sleep')) return null;
+    if (this.sim.tasks.tasks.some((t) => t.claimedBy === null && (t.type === 'feed' || t.type === 'water'))) return null;
+    const office = this.sim.buildings.find((b) => b.type === 'office' && isReady(b));
+    if (!office) return null;
+    return this.doorJob('sleep', office, () => {
+      const r = this.sim.command({ type: 'sleep' });
+      if (r.message) this.sim.events.emit('message', r.message);
+      return r.ok;
+    });
+  }
+
+  /** Çantada yumurta ve boş yuvalı hazır kuluçka varsa: kapısına git, sığan yumurtaları koy. */
+  private placeEggJob(): Job | null {
+    const sim = this.sim;
+    if (sim.backpack.length === 0) return null;
+    const inc = sim.buildings.find((b) => b.type === 'incubator' && isReady(b) && b.eggs.length < incubatorSlots(b) && !this.blocked.has(`egg:${b.id}`));
+    if (!inc) return null;
+    return this.doorJob(`egg:${inc.id}`, inc, () => {
+      let placed = 0;
+      for (const egg of [...sim.backpack]) {
+        if (inc.eggs.length >= incubatorSlots(inc)) break;
+        if (sim.command({ type: 'placeEgg', buildingId: inc.id, eggId: egg.id }).ok) placed++;
+      }
+      if (placed > 0) sim.events.emit('message', t('Yumurta kuluçkaya kondu'));
+      return placed > 0;
+    });
+  }
+
+  /** Çanta dolu değilse: keşfedilmiş, yumurtalı en yakın yuva (nestRadius içinde). */
+  private nestJob(): Job | null {
+    const sim = this.sim;
+    if (sim.backpack.length >= sim.backpackSlots()) return null;
+    const w = sim.world;
+    const tile = this.nearestObject(sim.world.nests.filter((n) => w.objectAt(n.x, n.y) === Obj.NestEggs), BALANCE.autopilot.nestRadius, 'nest');
+    return tile ? { key: `nest:${w.idx(tile.x, tile.y)}`, task: null, plan: { goal: { kind: 'object', tile } } } : null;
+  }
+
+  /** Ödül maması dolu değilse: keşfedilmiş en yakın böğürtlen çalısı (bushRadius içinde, oyuncunun çevresi taranır). */
+  private berryJob(): Job | null {
+    const sim = this.sim;
+    if (sim.treats >= BALANCE.eggs.treatsMax) return null;
+    const w = sim.world;
+    const p = sim.player;
+    const R = BALANCE.autopilot.bushRadius;
+    const cands: TilePos[] = [];
+    for (let y = p.tileY - R; y <= p.tileY + R; y++) {
+      for (let x = p.tileX - R; x <= p.tileX + R; x++) {
+        if (w.inBounds(x, y) && w.objectAt(x, y) === Obj.BerryBush) cands.push({ x, y });
+      }
+    }
+    const tile = this.nearestObject(cands, R, 'bush');
+    return tile ? { key: `bush:${w.idx(tile.x, tile.y)}`, task: null, plan: { goal: { kind: 'object', tile } } } : null;
+  }
+
+  /** Keşfedilmiş, kara listede olmayan, yarıçap içindeki en yakın kare. */
+  private nearestObject(tiles: TilePos[], radius: number, prefix: string): TilePos | null {
+    const w = this.sim.world;
+    const p = this.sim.player;
+    let best: TilePos | null = null;
+    let bestD = radius;
+    for (const tile of tiles) {
+      const i = w.idx(tile.x, tile.y);
+      if (!w.explored[i] || this.blocked.has(`${prefix}:${i}`)) continue;
+      const d = Math.hypot(tile.x + 0.5 - p.x, tile.y + 0.5 - p.y);
+      if (d < bestD) {
+        bestD = d;
+        best = tile;
+      }
+    }
+    return best;
   }
 
   private taskDog(task: Task): Dog | null {
@@ -193,9 +303,10 @@ export class Autopilot {
   private finish(): void {
     const job = this.current;
     if (!job) return;
-    const ok = this.lastResult?.ok === true;
+    const ok = job.plan.onArrive ? job.plan.onArrive() : this.lastResult?.ok === true;
     this.current = null;
     this.lastResult = null;
+    this.running = false;
     const live = job.task ? this.sim.tasks.byId(job.task.id) : undefined;
     if (ok) {
       if (live) this.sim.tasks.remove(live);

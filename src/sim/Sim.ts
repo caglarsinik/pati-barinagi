@@ -378,7 +378,7 @@ export class Sim {
       if (manual && this.autopilot) this.setAutopilot(false);
       if (manual && this.nav.active) this.nav.cancel();
       this.pilot.tick(dtSec);
-      const inp = !manual && this.nav.active ? this.nav.inputFor(dtSec, input.run) : input;
+      const inp = !manual && this.nav.active ? this.nav.inputFor(dtSec, input.run || this.pilot.run()) : input;
       this.player.update(dtSec, inp, this.world);
       this.revealPlayer(false);
       this.brain.updateNearPlayer(dtSec);

@@ -57,6 +57,17 @@
   köpek paneli, araç şeridi, alt menü listesi, ana menü, Ayarlar: çakışma yok, taşma yok. Alt menü açılır listesi köpek
   panelinin üstüne gelebilir (geçici popover, üstte kalır) — kabul edildi. Gerçek cihaz testi kullanıcıda.
 
+## 0.13.2 — Otopilot 3: yumurta, böğürtlen, uyku, koşu (Claude, 2026-09-22)
+- Tahta boşken sıra: **uyku** (saat ≥ `time.sleepFromHour` 20 ya da < `nightEndHour` 6, tahtada sahipsiz yem/su işi yoksa →
+  ofis kapısı → `command sleep`) → **kuluçka** (çantada yumurta + boş yuvalı hazır kuluçka → kapıya git → sığan her yumurta
+  `placeEgg`) → **yuva** (çanta dolu değilse keşfedilmiş `Obj.NestEggs`, `autopilot.nestRadius` 40 → `pickEgg`) → **çalı**
+  (ödül maması < `eggs.treatsMax`, keşfedilmiş `Obj.BerryBush`, `bushRadius` 25 → `berries`) → sevme.
+- Kapı hedefleri `goTo` (kare) + `Plan.onArrive` ile yürür (E yerine; kuluçka/ofis paneli açılmaz); `atDoor` (≤2 kare)
+  yol kesilmişse eylemi engeller. Başarısız iş anahtarı (`sleep`, `egg:id`, `nest:idx`, `bush:idx`) 30 sn kara listede.
+- Koşu: `Autopilot.run()` histerezisli (`runAboveStamina` 60 üstünde ve kalan yol > `runMinTiles` 6 → başlar; `runStopStamina`
+  40 altında biter); `Sim.update` nav girdisine `input.run || pilot.run()` verir. i18n: yeni anahtar yok.
+- Testler: autopilot.test.ts +5 → 253 test. Sonraki 0.13.3: durum metni, yardım/README, 3 günlük başsız koşu.
+
 ## 0.13.1 — Otopilot 2: köpek işleri (Claude, 2026-09-22)
 - `Autopilot` görev türleri += **play / train / groom / treat**; iş yoksa **pet** (bugün sevilmemiş, uyanık, en düşük
   sadakatli barınak köpeği; `petsToday` sayesinde günde bir kez). İş = `{ goal, tool? }`: varıştan önce `setTool`
