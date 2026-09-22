@@ -37,7 +37,7 @@ export const EN: Record<string, string> = {
   'Yönetim (Tab)': 'Manage (Tab)',
   'Otopilot': 'Autopilot',
   'Otopilot (T): barınağın işlerini kendiliğinden yapar': 'Autopilot (T): does shelter chores on its own',
-  '🤖 Otopilot açık: yem, su ve temizlik işlerini kendisi yapar': '🤖 Autopilot on: handles food, water and cleaning',
+  '🤖 Otopilot açık: bakım ve köpek işlerini kendisi yapar': '🤖 Autopilot on: handles chores and dog care',
   'Otopilot kapalı': 'Autopilot off',
   '🤖 Yem bitti: 1 çuval sipariş edildi': '🤖 Out of food: ordered 1 bag',
   'Avatar (Tab)': 'Avatar (Tab)',

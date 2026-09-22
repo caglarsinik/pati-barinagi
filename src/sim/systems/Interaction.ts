@@ -384,7 +384,7 @@ export function performAction(sim: Sim): ActionOutcome {
   }
 }
 
-function nearestDogToBuilding(sim: Sim, b: Building, radius: number): Dog | null {
+export function nearestDogToBuilding(sim: Sim, b: Building, radius: number): Dog | null {
   const fp = buildingFootprint(b);
   const cx = b.x + fp.w / 2;
   const cy = b.y + fp.h / 2;

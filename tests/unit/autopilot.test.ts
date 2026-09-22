@@ -2,9 +2,12 @@ import { describe, expect, it } from 'vitest';
 import { BALANCE } from '../../src/config/balance';
 import { SaveManager } from '../../src/core/SaveManager';
 import { IDLE_INPUT } from '../../src/sim/entities/Player';
+import type { Building } from '../../src/sim/entities/Building';
+import type { Dog } from '../../src/sim/entities/Dog';
 import { Sim } from '../../src/sim/Sim';
 import { PILOT_ID } from '../../src/sim/systems/Autopilot';
 import { placeMess } from '../../src/sim/systems/MessSystem';
+import { Obj } from '../../src/sim/world/tiles';
 
 function runSeconds(sim: Sim, sec: number): void {
   for (let i = 0; i < Math.ceil(sec * 30); i++) sim.update(1 / 30, IDLE_INPUT);
@@ -149,5 +152,139 @@ describe('Otopilot 1: bakım', () => {
     expect(back.autopilot).toBe(true);
     const off = Sim.create(1311);
     expect(Sim.fromJSON(SaveManager.parse(JSON.stringify(off.toJSON()))!).autopilot).toBe(false);
+  });
+});
+
+/** Arsa içinde w×h boş kare bulur (build.test.ts deseni). */
+function freeSpot(sim: Sim, w: number, h: number): { x: number; y: number } {
+  const p = sim.world.plotInterior();
+  for (let y = p.y + 2; y < p.y + p.h - h - 2; y++) {
+    for (let x = p.x + 2; x < p.x + p.w - w - 2; x++) {
+      let ok = true;
+      for (let yy = y - 1; yy <= y + h + 1 && ok; yy++) {
+        for (let xx = x - 1; xx <= x + w && ok; xx++) {
+          if (sim.world.isSolid(xx, yy) || sim.world.buildingIdAt(xx, yy) !== -1 || sim.world.objectAt(xx, yy) !== Obj.None) ok = false;
+        }
+      }
+      if (ok && !sim.dogs.some((d) => d.tileX >= x - 1 && d.tileX <= x + w && d.tileY >= y - 1 && d.tileY <= y + h + 1)) return { x, y };
+    }
+  }
+  throw new Error('boş yer yok');
+}
+
+/** Köpekleri yerinde tutar ve bütün ihtiyaçlarını doyurur; test tek bir ihtiyacı açar. */
+function calmDogs(sim: Sim): Dog[] {
+  const dogs = sim.shelterDogs();
+  for (const d of dogs) {
+    d.state = 'sit';
+    d.stateTimer = 9999;
+    d.needs.play = 100;
+    d.needs.hygiene = 100;
+    d.needs.health = 100;
+    d.needs.energy = 100;
+    d.petsToday = 1;
+  }
+  sim.policies.trainTarget = 0;
+  return dogs;
+}
+
+/** Hazır bina yerleştirir (para verilir, inşaat anında biter). */
+function placeReady(sim: Sim, type: 'groomStation' | 'vetClinic', w: number, h: number): Building {
+  sim.money = 20000;
+  const spot = freeSpot(sim, w, h);
+  expect(sim.command({ type: 'placeBuilding', building: type, x: spot.x, y: spot.y }).ok).toBe(true);
+  const b = sim.buildings.find((x) => x.type === type)!;
+  b.buildLeft = 0;
+  return b;
+}
+
+describe('Otopilot 2: köpek işleri', () => {
+  it('keyfi düşük köpekle oynar (araç: oyna)', () => {
+    const sim = pilotOn(1320);
+    const [dog] = calmDogs(sim);
+    dog.needs.play = 10;
+    sim.tasks.refresh();
+    runSeconds(sim, 30);
+    expect(sim.stats.played).toBeGreaterThanOrEqual(1);
+    expect(sim.tool).toBe('play');
+  });
+
+  it('eğitim hedefi olan köpeği eğitir (araç: eğit)', () => {
+    const sim = pilotOn(1321);
+    calmDogs(sim);
+    sim.policies.trainTarget = 6;
+    sim.tasks.refresh();
+    runSeconds(sim, 30);
+    expect(sim.stats.trained).toBeGreaterThanOrEqual(1);
+    expect(sim.tool).toBe('train');
+  });
+
+  it('uyuyan ya da bitkin köpeğe oyun/eğitim görevi almaz, ceza da vermez', () => {
+    const sim = pilotOn(1322);
+    const [dog] = calmDogs(sim);
+    dog.needs.play = 10;
+    dog.needs.energy = 5; // playMinEnergy altı
+    sim.tasks.refresh();
+    runSeconds(sim, 5);
+    expect(sim.stats.played).toBe(0);
+    expect(sim.pilot.blockedFor(`play:${dog.id}`)).toBe(0);
+    expect(sim.tasks.tasks.some((t) => t.claimedBy === PILOT_ID)).toBe(false);
+  });
+
+  it('kirli köpeği istasyon yoksa fırçalar (araç: temizle)', () => {
+    const sim = pilotOn(1323);
+    const [dog] = calmDogs(sim);
+    dog.needs.hygiene = 10;
+    sim.tasks.refresh();
+    runSeconds(sim, 30);
+    expect(sim.stats.groomed).toBeGreaterThanOrEqual(1);
+    expect(sim.tool).toBe('clean');
+    expect(dog.needs.hygiene).toBeGreaterThan(10);
+  });
+
+  it('tımar istasyonunun yanındaki kirli köpeği istasyonda yıkar', () => {
+    const sim = pilotOn(1324);
+    const [dog] = calmDogs(sim);
+    const st = placeReady(sim, 'groomStation', 2, 2);
+    dog.x = st.x + 1.5;
+    dog.y = st.y + 3.5;
+    dog.needs.hygiene = 10;
+    sim.tasks.refresh();
+    runSeconds(sim, 40);
+    expect(sim.stats.groomed).toBeGreaterThanOrEqual(1);
+    expect(dog.needs.hygiene).toBeGreaterThan(90); // yıkama 100 yapar, fırçalama bu kadar çıkaramaz
+  });
+
+  it('hasta köpeği klinik varsa tedavi eder; klinik yoksa görevi atlar, kara listeye almaz', () => {
+    const sim = pilotOn(1325);
+    const [dog] = calmDogs(sim);
+    dog.needs.health = 40;
+    sim.tasks.refresh();
+    runSeconds(sim, 5);
+    expect(sim.stats.treated).toBe(0);
+    expect(sim.pilot.blockedFor(`treat:${dog.id}`)).toBe(0);
+    expect(sim.tasks.tasks.find((t) => t.type === 'treat')?.claimedBy ?? null).toBeNull();
+
+    const clinic = placeReady(sim, 'vetClinic', 3, 3);
+    const m0 = sim.money;
+    dog.x = clinic.x + 1.5;
+    dog.y = clinic.y + 4.5;
+    sim.tasks.refresh();
+    runSeconds(sim, 40);
+    expect(sim.stats.treated).toBeGreaterThanOrEqual(1);
+    expect(sim.money).toBeLessThan(m0);
+    expect(dog.needs.health).toBeGreaterThan(40);
+  });
+
+  it('iş yokken bugün sevilmemiş köpekleri birer kez sever (araç: sev)', () => {
+    const sim = pilotOn(1326);
+    const dogs = calmDogs(sim);
+    for (const d of dogs) d.petsToday = 0;
+    sim.command({ type: 'setTool', tool: 'call' });
+    runSeconds(sim, 40);
+    expect(sim.stats.petted).toBeGreaterThanOrEqual(1);
+    expect(sim.stats.petted).toBeLessThanOrEqual(dogs.length);
+    expect(sim.tool).toBe('pet');
+    for (const d of dogs) expect(d.petsToday).toBeLessThanOrEqual(1);
   });
 });

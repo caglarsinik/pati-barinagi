@@ -783,7 +783,7 @@ export class Sim {
     if (on) {
       this.setMode('avatar');
       this.pilot.wake();
-      this.events.emit('message', t('🤖 Otopilot açık: yem, su ve temizlik işlerini kendisi yapar'));
+      this.events.emit('message', t('🤖 Otopilot açık: bakım ve köpek işlerini kendisi yapar'));
     } else {
       this.pilot.stop();
       this.events.emit('message', t('Otopilot kapalı'));

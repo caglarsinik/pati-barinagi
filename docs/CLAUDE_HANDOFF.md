@@ -57,6 +57,18 @@
   köpek paneli, araç şeridi, alt menü listesi, ana menü, Ayarlar: çakışma yok, taşma yok. Alt menü açılır listesi köpek
   panelinin üstüne gelebilir (geçici popover, üstte kalır) — kabul edildi. Gerçek cihaz testi kullanıcıda.
 
+## 0.13.1 — Otopilot 2: köpek işleri (Claude, 2026-09-22)
+- `Autopilot` görev türleri += **play / train / groom / treat**; iş yoksa **pet** (bugün sevilmemiş, uyanık, en düşük
+  sadakatli barınak köpeği; `petsToday` sayesinde günde bir kez). İş = `{ goal, tool? }`: varıştan önce `setTool`
+  (play/train/clean/pet) — E'nin yapacağı iş araca bağlı (`resolveAction`), araç varışta korunur.
+- Uygunluk (`planFor`): uyuyan ya da `playMinEnergy/trainMinEnergy` altındaki köpek, öğreneceği beceri kalmayan köpek,
+  klinik olmayan/parasız tedavi → görev **atlanır, kara listeye girmez** (personel alabilir). `groom`: köpek hazır tımar
+  istasyonunun `stationRadius` içindeyse istasyona gidip yıkar, yoksa fırçalar; `treat`: yalnız köpek hazır kliniğin
+  yakınındayken (klinik yakınında olmayan köpek 0.13.2+ için aday: "köpeği çağır/kliniğe götür" yok).
+  `nearestDogToBuilding` dışa açıldı (Interaction.ts).
+- Testler: autopilot.test.ts +7 (oyna, eğit, bitkin köpek atlanır, fırçala, istasyonda yıka, klinikli/kliniksiz tedavi,
+  boşta sev) → 248 test.
+
 ## 0.13.0 — Otopilot 1: altyapı + bakım (Claude, 2026-09-22)
 - 0.12.4 (TouchGestures) ve 0.12.5 (uçtan uca senaryolar) kullanıcı kararıyla ertelendi; otopilot öne alındı.
 - `src/sim/systems/Autopilot.ts`: `Sim.autopilot` açıkken, avatar boştayken (`busy===0`, nav yok) görev tahtasından
