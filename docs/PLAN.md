@@ -445,7 +445,7 @@ iflas/kredi ve bina döndürme M10'da yapıldı.
 | 0.14.1 ✅ | Yükseltmeler 1: kuluçka Sv2 (6 yuva, 2 günde çatlar, 2.000 ₺; içerideki yumurtaların kalan süresi 2/3), büyük çanta (6, ofisten 1.500 ₺) |
 | 0.14.2 ✅ | Yükseltmeler 2: otomatik yem makinesi (1×1, 2.500 ₺, saatte 8 kare içindeki kapları kilerden doldurur); ofis seviyesi = lisans seviyesi (görsel büyüme, Sv3'te personel sınırı 16) |
 | 0.14.3 ✅ | Personel deneyim/seviye (görev başına XP, en çok Sv5, seviyede ana nitelik +1) ve moral (yorgunluk, mola, ödenmemiş maaş, iş yükü; <30 verim ×0,8; 3 gün <10 istifa) |
-| 0.14.4 | Eğitim kursu (800 ₺, 1 gün izin, en az bir seviye) ve gönüllüler (maaşsız, hafta sonu, verim ×0,6, 2 hafta, itibar +1) |
+| 0.14.4 ✅ | Eğitim kursu (800 ₺, 1 gün izin, en az bir seviye) ve gönüllüler (maaşsız, hafta sonu, verim ×0,6, 2 hafta, itibar +1) |
 | 0.14.5 | Finans: 8 haftalık çubuk grafik + nakit tahmini ("x hafta sonra kasa eksiye düşer") |
 | 0.14.6 | 3 kayıt yuvası (ana menüde kartlar; mevcut kayıt yuva 1) + haftalık otomatik kayıt |
 

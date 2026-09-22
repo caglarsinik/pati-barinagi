@@ -168,6 +168,9 @@ yeniden denemez. Otopilot inşaat, işe alım ve sahiplendirme kararı vermez.
   niteliği (bakıcıda çalışkanlık, eğitmen/veterinerde beceri) artar. Moral yorgun çalışmak, iş yükü ve ödenmemiş maaşla
   düşer; mola odası, izin ve seviye atlamak yükseltir. Moral 30'un altındayken verim %20 düşer, 3 gün 10'un altında kalan
   personel istifa eder. Kartta "Sv2 ★★", deneyim ve moral çubuğu görünür.
+- **Kurs ve gönüllüler:** kartta "Kursa gönder" (800 ₺) personeli bir günlüğüne kursa yollar, dönünce bir seviye atlar.
+  Her Cuma bir gönüllü başvurur (Pazartesiye kadar): maaşsızdır, yalnız hafta sonu çalışır, verimi %40 düşüktür; iki maaş
+  günü sonra teşekkür edip ayrılır ve itibar +1 verir.
 
 ## Ses
 
@@ -228,7 +231,8 @@ Bilgisayar değiştirirken ya da yedek almak için kullan.
 - [x] 0.14.1 Yükseltmeler 1: kuluçka Sv2 (6 yuva, 2 gün) ve büyük çanta (6 yumurta)
 - [x] 0.14.2 Otomatik yem makinesi (saatte 8 kare içindeki kaplara 2 porsiyon) ve lisansla büyüyen ofis (Sv3: 16 personel)
 - [x] 0.14.3 Personel deneyim/seviye (görev başına deneyim, Sv5'e kadar, seviyede ana nitelik +1) ve moral (yorgunluk, iş yükü, maaş; düşük moral verimi düşürür, uzun süre dipte kalan istifa eder)
-- [ ] M12 İlerleme ve Son Oyun (0.14.4–0.14.6: kurs/gönüllü, finans grafiği, 3 kayıt yuvası)
+- [x] 0.14.4 Eğitim kursu (800 ₺, bir gün, bir seviye) ve gönüllüler (Cuma başvurur, maaşsız, hafta sonu, 2 hafta, itibar +1)
+- [ ] M12 İlerleme ve Son Oyun (0.14.5–0.14.6: finans grafiği, 3 kayıt yuvası)
 - [ ] Sonraki paketler (`docs/PLAN.md` §7): M14 Soy, M11 Yaşayan Dünya, M13 Sahiplendirme Hikâyeleri
 
 ## Geliştirme

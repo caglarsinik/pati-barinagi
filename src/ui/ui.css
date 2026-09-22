@@ -441,6 +441,10 @@ body {
   background: #a66bd6;
 }
 
+.role.role-volunteer {
+  background: #3b7a57;
+}
+
 .staff-level {
   color: var(--accent-2);
   font-size: 0.8rem;

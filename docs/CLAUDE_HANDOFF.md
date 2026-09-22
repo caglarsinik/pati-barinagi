@@ -57,6 +57,18 @@
   köpek paneli, araç şeridi, alt menü listesi, ana menü, Ayarlar: çakışma yok, taşma yok. Alt menü açılır listesi köpek
   panelinin üstüne gelebilir (geçici popover, üstte kalır) — kabul edildi. Gerçek cihaz testi kullanıcıda.
 
+## 0.14.4 — Eğitim kursu ve gönüllüler (Claude, 2026-09-22)
+- Kurs: komut `sendToCourse { staffId }` (`BALANCE.staff.course` 800 ₺, 1 gün; defter `wages` "Kurs: ad"); `Staff.courseUntil`
+  (toplam dakika, kayıtta). Kurstayken `updateStaff` vardiyayı 0 sayar (eve gider); süre dolunca `finishCourse` → bir seviye
+  (`gainXp` eşiğe tamamlanır) + mesaj. Sv5'te, gönüllüde, parasızken ve zaten kurstayken ret.
+- Gönüllü: `Sim.volunteerOffer` (kayıtta); `StaffSystem.onDay` Cuma (`volunteer.offerWeekday` 4) ayrı RNG ile
+  (`hash3(seed, week, …)`, ana RNG sırası değişmez) başvuru üretir, Pazartesi siler. Komut `acceptVolunteer` (sınır denetimi,
+  ortak `admit`). `Staff.volunteer` + `volunteerWeeksLeft` (2): maaş 0, verim × 0,6, yalnız Cumartesi–Pazar çalışır; her maaş
+  gününde −1, 0'da teşekkür mesajı + itibar +1 ile ayrılır; ödenmemiş maaş denetimine girmez.
+- Arayüz: personel kartında "Kursa gönder (800 ₺)" / "Kursta", Gönüllü rozeti ve kalan hafta; aday listesinin üstünde
+  gönüllü başvurusu kartı ("Kabul et").
+- Testler: `tests/unit/course-volunteer.test.ts` (7).
+
 ## 0.14.3 — Personel deneyim/seviye ve moral (Claude, 2026-09-22)
 - `Staff`: `xp`, `level` (1–5), `morale` (0–100, başlangıç 70), `lowMoraleDays` — hepsi kayıtta, eski kayıtta varsayılan.
   `xpForLevel(level)` = 100 × seviye; `ROLE_MAIN_ATTRS` (bakıcı: çalışkanlık → hız → dayanıklılık; eğitmen/veteriner:

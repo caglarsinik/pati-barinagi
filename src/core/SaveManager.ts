@@ -16,6 +16,7 @@ export interface SaveData {
   gameOver?: unknown;
   victory?: unknown;
   backpackLevel?: number;
+  volunteerOffer?: unknown;
   tool?: string;
   autopilot?: boolean;
   foodStock?: number;

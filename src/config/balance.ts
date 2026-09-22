@@ -88,6 +88,10 @@ export const BALANCE = {
     quitAfterUnpaidWeeks: 2,
     /** Mutfak hazırsa yem/su görev süresi çarpanı. */
     kitchenPrepMul: 0.6,
+    /** Eğitim kursu: ücret ve süre (gün); dönüşte en az bir seviye. */
+    course: { cost: 800, days: 1 },
+    /** Gönüllü: Cuma başvurur (weekday 4), maaşsız, yalnız hafta sonu, verim düşük, 2 maaş günü sonra ayrılır. */
+    volunteer: { weeks: 2, efficiencyMul: 0.6, reputationGain: 1, offerWeekday: 4 },
     /** Deneyim: görev başına xp; seviye eşiği xpPerLevel × seviye. */
     progress: { xpPerTask: 10, xpPerLevel: 100, maxLevel: 5, levelUpMorale: 5 },
     /** Moral (0-100): saatlik değişimler, düşük moral cezası ve istifa. */

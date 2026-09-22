@@ -13,6 +13,7 @@ import { trainingZoneFactor } from './Interaction';
 import { cleanMess, cleanMinutesMul } from './MessSystem';
 import type { Task } from './TaskBoard';
 import { t } from '../../i18n';
+import { Rng, hash3 } from '../../core/Rng';
 
 /** Personelin çalışma ritmi: vardiya, mola, görev seçimi, iş yapma. */
 /** Personel sınırı: ofis Sv3 (lisans 3) daha kalabalık kadro alır. */
@@ -46,6 +47,24 @@ export class StaffSystem {
     if (idx === -1) return { ok: false, message: t('Aday artık yok') };
     if (sim.staff.length >= maxStaff(sim)) return { ok: false, message: t('En fazla {n} personel', { n: maxStaff(sim) }) };
     const s = sim.candidates.splice(idx, 1)[0];
+    this.admit(s);
+    return { ok: true, message: t('{name} işe alındı ({wage} ₺/hafta)', { name: s.name, wage: s.wage }) };
+  }
+
+  /** Gönüllü başvurusunu kabul et (maaşsız, yalnız hafta sonu, birkaç hafta). */
+  acceptVolunteer(): { ok: boolean; message?: string } {
+    const sim = this.sim;
+    const s = sim.volunteerOffer;
+    if (!s) return { ok: false, message: t('Gönüllü başvurusu yok') };
+    if (sim.staff.length >= maxStaff(sim)) return { ok: false, message: t('En fazla {n} personel', { n: maxStaff(sim) }) };
+    sim.volunteerOffer = null;
+    this.admit(s);
+    return { ok: true, message: t('{name} gönüllü olarak katıldı: {n} hafta, hafta sonları çalışır', { name: s.name, n: s.volunteerWeeksLeft }) };
+  }
+
+  /** Kadroya ekle: kapının dışında başlar, vardiyasında içeri girer. */
+  private admit(s: Staff): void {
+    const sim = this.sim;
     const at = this.entryOutside();
     s.x = at.x + 0.5;
     s.y = at.y + 0.5;
@@ -54,7 +73,39 @@ export class StaffSystem {
     sim.staff.push(s);
     sim.stats.hired++;
     sim.events.emit('staffHired', s);
-    return { ok: true, message: t('{name} işe alındı ({wage} ₺/hafta)', { name: s.name, wage: s.wage }) };
+  }
+
+  /** Eğitim kursu: ücret, bir gün yokluk; dönüşte en az bir seviye. */
+  sendToCourse(staffId: number): { ok: boolean; message?: string } {
+    const sim = this.sim;
+    const C = BALANCE.staff.course;
+    const s = sim.staff.find((x) => x.id === staffId);
+    if (!s) return { ok: false };
+    if (s.volunteer) return { ok: false, message: t('Gönüllüler kursa gönderilmez') };
+    if (s.level >= BALANCE.staff.progress.maxLevel) return { ok: false, message: t('{name} zaten en üst seviyede', { name: s.name }) };
+    if (s.courseUntil !== null) return { ok: false, message: t('{name} zaten kursta', { name: s.name }) };
+    if (sim.money < C.cost) return { ok: false, message: t('Yeterli para yok') };
+    sim.addExpense('wages', C.cost, t('Kurs: {name}', { name: s.name }));
+    s.courseUntil = sim.clock.totalMinutes + C.days * 24 * 60;
+    return { ok: true, message: t('{name} kursa gitti; {n} gün sonra döner', { name: s.name, n: C.days }) };
+  }
+
+  private finishCourse(s: Staff): void {
+    s.courseUntil = null;
+    this.sim.events.emit('message', t('{name} kurstan döndü', { name: s.name }));
+    this.gainXp(s, Math.max(1, xpForLevel(s.level) - s.xp));
+  }
+
+  /** Cuma gelen gönüllü adayı (ayrı RNG: ana rastgele sıra değişmez). */
+  private makeVolunteer(): Staff {
+    const sim = this.sim;
+    const rng = new Rng(hash3(sim.seed, sim.clock.week, 0x5601));
+    const role = rng.pick(STAFF_ROLES);
+    const s = randomCandidate(rng, sim.nextId++, role, rng.pick(PERSON_NAMES), sim.clock.day);
+    s.wage = 0;
+    s.volunteer = true;
+    s.volunteerWeeksLeft = BALANCE.staff.volunteer.weeks;
+    return s;
   }
 
   fire(staffId: number): { ok: boolean; message?: string } {
@@ -84,6 +135,14 @@ export class StaffSystem {
   afterPayday(): void {
     const sim = this.sim;
     for (const s of [...sim.staff]) {
+      if (s.volunteer) {
+        s.volunteerWeeksLeft--;
+        if (s.volunteerWeeksLeft <= 0) {
+          sim.reputation = Math.min(100, sim.reputation + BALANCE.staff.volunteer.reputationGain);
+          this.removeStaff(s, t('{name} gönüllülüğünü tamamladı, teşekkürler! (itibar +{n})', { name: s.name, n: BALANCE.staff.volunteer.reputationGain }));
+        }
+        continue;
+      }
       if (sim.money < 0) {
         s.unpaidWeeks++;
         s.morale = Math.max(0, s.morale - BALANCE.staff.morale.unpaidLoss);
@@ -131,9 +190,12 @@ export class StaffSystem {
     }
   }
 
-  /** Gün başı: moral uzun süre dipte kalan istifa eder. */
+  /** Gün başı: gönüllü başvurusu (Cuma gelir, Pazartesi düşer); moral uzun süre dipte kalan istifa eder. */
   onDay(): void {
     const M = BALANCE.staff.morale;
+    const wd = this.sim.clock.weekday;
+    if (wd === 0) this.sim.volunteerOffer = null;
+    if (wd === BALANCE.staff.volunteer.offerWeekday && !this.sim.volunteerOffer) this.sim.volunteerOffer = this.makeVolunteer();
     for (const s of [...this.sim.staff]) {
       s.lowMoraleDays = s.morale < M.quitBelow ? s.lowMoraleDays + 1 : 0;
       if (s.lowMoraleDays >= M.quitAfterDays) this.removeStaff(s, t('{name} morali çöktüğü için istifa etti', { name: s.name }));
@@ -166,7 +228,10 @@ export class StaffSystem {
 
   private updateStaff(s: Staff, dtMin: number): void {
     const sim = this.sim;
-    const shift = s.schedule[sim.clock.hour];
+    // Kurs bitti mi; kurstaki ya da hafta içindeki gönüllü vardiya dışı sayılır.
+    if (s.courseUntil !== null && sim.clock.totalMinutes >= s.courseUntil) this.finishCourse(s);
+    const away = s.courseUntil !== null || (s.volunteer && sim.clock.weekday < 5);
+    const shift = away ? 0 : s.schedule[sim.clock.hour];
     s.moving = false;
     s.decisionTimer -= dtMin;
 

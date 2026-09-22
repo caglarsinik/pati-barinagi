@@ -132,6 +132,8 @@ export type Command =
   | { type: 'declineAdopter'; adopterId: number }
   | { type: 'upgradeLicense' }
   | { type: 'upgradeBuilding'; buildingId: number }
+  | { type: 'sendToCourse'; staffId: number }
+  | { type: 'acceptVolunteer' }
   | { type: 'buyBackpack' }
   | { type: 'takeLoan' }
   | { type: 'repayLoan' }
@@ -302,6 +304,8 @@ export class Sim {
   staff: Staff[] = [];
   candidates: Staff[] = [];
   candidatesDay = 0;
+  /** Cuma gelen gönüllü başvurusu (Pazartesi düşer). */
+  volunteerOffer: Staff | null = null;
   policies: Policies = defaultPolicies();
   stats: SimStats = emptyStats();
   nextId = 1;
@@ -673,6 +677,10 @@ export class Sim {
         return { ok: this.adoption.decline(cmd.adopterId) };
       case 'hire':
         return this.staffSystem.hire(cmd.candidateId);
+      case 'sendToCourse':
+        return this.staffSystem.sendToCourse(cmd.staffId);
+      case 'acceptVolunteer':
+        return this.staffSystem.acceptVolunteer();
       case 'fire':
         return this.staffSystem.fire(cmd.staffId);
       case 'setShift': {
@@ -1245,6 +1253,7 @@ export class Sim {
       staff: this.staff.map((s) => s.toJSON()),
       candidates: this.candidates.map((s) => s.toJSON()),
       candidatesDay: this.candidatesDay,
+      volunteerOffer: this.volunteerOffer ? this.volunteerOffer.toJSON() : null,
       policies: { ...this.policies },
       weather: this.weatherSys.toJSON(),
       eventLog: this.eventSys.toJSON(),
@@ -1471,6 +1480,9 @@ export class Sim {
       }
     }
     sim.candidatesDay = typeof data.candidatesDay === 'number' ? data.candidatesDay : 0;
+    const vo = data.volunteerOffer ? Staff.fromJSON(data.volunteerOffer) : null;
+    sim.volunteerOffer = vo && vo.volunteer ? vo : null;
+    if (sim.volunteerOffer) maxId = Math.max(maxId, sim.volunteerOffer.id);
     if (data.policies && typeof data.policies === 'object') {
       const p = data.policies as Partial<Policies>;
       if (typeof p.autoOrderFood === 'boolean') sim.policies.autoOrderFood = p.autoOrderFood;

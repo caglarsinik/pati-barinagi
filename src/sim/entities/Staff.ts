@@ -95,6 +95,9 @@ export interface StaffSave {
   level?: number;
   morale?: number;
   lowMoraleDays?: number;
+  courseUntil?: number | null;
+  volunteer?: boolean;
+  volunteerWeeksLeft?: number;
 }
 
 export class Staff {
@@ -127,6 +130,11 @@ export class Staff {
   /** Moral 0-100: düşükse verim düşer, uzun süre dipte kalırsa istifa. */
   morale: number = BALANCE.staff.morale.start;
   lowMoraleDays = 0;
+  /** Kurstan dönüş anı (toplam oyun dakikası); kursta değilse null. */
+  courseUntil: number | null = null;
+  /** Gönüllü: maaşsız, yalnız hafta sonu, kalan maaş günü sayısı kadar kalır. */
+  volunteer = false;
+  volunteerWeeksLeft = 0;
 
   constructor(id: number, name: string, role: StaffRole, attrs: StaffAttrs, traits: StaffTrait[], wage: number, look: number, x: number, y: number) {
     this.id = id;
@@ -164,7 +172,13 @@ export class Staff {
     const role = ROLE_EFFICIENCY[this.role][type];
     if (role <= 0) return 0;
     const M = BALANCE.staff.morale;
-    return role * (0.7 + this.attrs.diligence * 0.08) * (0.85 + this.attrs.skill * 0.05) * (this.morale < M.lowBelow ? M.lowEfficiencyMul : 1);
+    return (
+      role *
+      (0.7 + this.attrs.diligence * 0.08) *
+      (0.85 + this.attrs.skill * 0.05) *
+      (this.morale < M.lowBelow ? M.lowEfficiencyMul : 1) *
+      (this.volunteer ? BALANCE.staff.volunteer.efficiencyMul : 1)
+    );
   }
 
   canDo(type: TaskType): boolean {
@@ -196,6 +210,9 @@ export class Staff {
       level: this.level,
       morale: this.morale,
       lowMoraleDays: this.lowMoraleDays,
+      courseUntil: this.courseUntil,
+      volunteer: this.volunteer,
+      volunteerWeeksLeft: this.volunteerWeeksLeft,
     };
   }
 
@@ -228,6 +245,10 @@ export class Staff {
     s.xp = num(d.xp) ? Math.max(0, d.xp) : 0;
     s.morale = num(d.morale) ? Math.max(0, Math.min(100, d.morale)) : BALANCE.staff.morale.start;
     s.lowMoraleDays = num(d.lowMoraleDays) ? Math.max(0, Math.floor(d.lowMoraleDays)) : 0;
+    s.courseUntil = num(d.courseUntil) ? d.courseUntil : null;
+    s.volunteer = d.volunteer === true;
+    s.volunteerWeeksLeft = s.volunteer && num(d.volunteerWeeksLeft) ? Math.max(0, Math.floor(d.volunteerWeeksLeft)) : 0;
+    if (s.volunteer) s.wage = 0;
     s.state = d.offDuty === false ? 'idle' : 'offDuty';
     return s;
   }

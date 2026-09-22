@@ -75,6 +75,8 @@ export function StaffPanel() {
   const sim = app.sim;
   if (!sim) return null;
   const task = (s: Staff): string => {
+    if (s.courseUntil !== null) return t('Kursta');
+    if (s.volunteer && !s.onDuty && sim.clock.weekday < 5) return t('Hafta sonu gelir');
     const tk = s.taskId !== null ? sim.tasks.byId(s.taskId) : undefined;
     if (!tk) return t(STATE_TR[s.state]);
     const target = tk.targetId !== null ? sim.dogById(tk.targetId)?.name ?? (sim.buildingById(tk.targetId) ? t('yem kabı') : '') : `(${tk.tile.x},${tk.tile.y})`;
@@ -101,8 +103,9 @@ export function StaffPanel() {
                 <span class="staff-level" title={t('Seviye: görev tamamladıkça deneyim kazanır; her seviyede ana niteliği artar')}>
                   {t('Sv{n}', { n: s.level })} {'★'.repeat(s.level)}
                 </span>
+                {s.volunteer && <span class="role role-volunteer">{t('Gönüllü')}</span>}
                 <span class="spacer" />
-                <span class="muted small-text">{t('{wage}/hafta', { wage: formatMoney(s.wage) })}</span>
+                <span class="muted small-text">{s.volunteer ? t('maaşsız · {n} hafta kaldı', { n: s.volunteerWeeksLeft }) : t('{wage}/hafta', { wage: formatMoney(s.wage) })}</span>
                 <button class="btn small danger" onClick={() => run(sim.command({ type: 'fire', staffId: s.id }))} title={t('1 haftalık tazminat ödenir')}>
                   {t('İşten çıkar')}
                 </button>
@@ -122,13 +125,44 @@ export function StaffPanel() {
                 </div>
                 <span class="need-value">{Math.round(s.morale)}</span>
               </div>
-              {s.level < BALANCE.staff.progress.maxLevel && <div class="muted small-text">{t('Deneyim {xp}/{need}', { xp: Math.floor(s.xp), need: xpForLevel(s.level) })}</div>}
+              {s.level < BALANCE.staff.progress.maxLevel && (
+                <div class="row">
+                  <span class="muted small-text">{t('Deneyim {xp}/{need}', { xp: Math.floor(s.xp), need: xpForLevel(s.level) })}</span>
+                  {!s.volunteer &&
+                    (s.courseUntil !== null ? (
+                      <span class="muted small-text">{t('Kursta: yarın döner')}</span>
+                    ) : (
+                      <button class="btn small" disabled={sim.money < BALANCE.staff.course.cost} title={t('Bir gün yok olur, dönünce bir seviye atlar')} onClick={() => run(sim.command({ type: 'sendToCourse', staffId: s.id }))}>
+                        {t('Kursa gönder ({cost})', { cost: formatMoney(BALANCE.staff.course.cost) })}
+                      </button>
+                    ))}
+                </div>
+              )}
               <Attrs attrs={s.attrs} />
               <Traits staff={s} />
               {s.unpaidWeeks > 0 && <div class="bad small-text">{t('Maaşı ödenmedi: istifa edebilir')}</div>}
             </div>
           ))}
         </div>
+        {sim.volunteerOffer && (
+          <>
+            <h4>{t('Gönüllü başvurusu (Pazartesiye kadar)')}</h4>
+            <div class="staff-list">
+              <div class="staff-card candidate">
+                <div class="staff-head">
+                  <b>{sim.volunteerOffer.name}</b> <span class={`role role-${sim.volunteerOffer.role}`}>{t(ROLE_NAMES_TR[sim.volunteerOffer.role])}</span>{' '}
+                  <span class="role role-volunteer">{t('Gönüllü')}</span>
+                  <span class="spacer" />
+                  <button class="btn small primary" disabled={sim.staff.length >= maxStaff(sim)} onClick={() => run(sim.command({ type: 'acceptVolunteer' }))}>
+                    {t('Kabul et · maaşsız, {n} hafta, hafta sonları', { n: BALANCE.staff.volunteer.weeks })}
+                  </button>
+                </div>
+                <Attrs attrs={sim.volunteerOffer.attrs} />
+                <Traits staff={sim.volunteerOffer} />
+              </div>
+            </div>
+          </>
+        )}
         <h4>{t('Bugünün adayları (her sabah yenilenir)')}</h4>
         <div class="staff-list">
           {sim.candidates.map((c) => (
