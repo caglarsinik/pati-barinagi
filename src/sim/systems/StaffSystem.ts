@@ -3,7 +3,7 @@ import { PERSON_NAMES } from '../../content/names';
 import { buildingDoorTile, isReady } from '../entities/Building';
 import { type Dog, clamp100 } from '../entities/Dog';
 import type { Facing } from '../entities/Player';
-import { STAFF_ROLES, Staff, type StaffRole, randomCandidate } from '../entities/Staff';
+import { ROLE_MAIN_ATTRS, STAFF_ROLES, Staff, type StaffRole, randomCandidate, xpForLevel } from '../entities/Staff';
 import { findPath } from '../world/Pathfinder';
 import type { TilePos } from '../world/TileWorld';
 import { entryPoint } from '../world/gates';
@@ -86,12 +86,57 @@ export class StaffSystem {
     for (const s of [...sim.staff]) {
       if (sim.money < 0) {
         s.unpaidWeeks++;
+        s.morale = Math.max(0, s.morale - BALANCE.staff.morale.unpaidLoss);
         if (s.unpaidWeeks >= BALANCE.staff.quitAfterUnpaidWeeks) {
           this.removeStaff(s, t('{name} maaşını alamadığı için istifa etti', { name: s.name }));
         } else {
           sim.events.emit('message', t('{name} maaşını alamadı; bir hafta daha sabreder', { name: s.name }));
         }
       } else s.unpaidWeeks = 0;
+    }
+  }
+
+  /** Görev deneyimi: eşikte seviye atlar (en çok 5), rolün ana niteliği +1, moral artar. */
+  gainXp(s: Staff, amount: number): void {
+    const P = BALANCE.staff.progress;
+    if (s.level >= P.maxLevel) return;
+    s.xp += amount;
+    while (s.level < P.maxLevel && s.xp >= xpForLevel(s.level)) {
+      s.xp -= xpForLevel(s.level);
+      s.level++;
+      const attr = ROLE_MAIN_ATTRS[s.role].find((k) => s.attrs[k] < 5);
+      if (attr) s.attrs[attr]++;
+      s.morale = Math.min(100, s.morale + P.levelUpMorale);
+      this.sim.events.emit('message', t('{name} seviye atladı: Sv{lvl}', { name: s.name, lvl: s.level }));
+    }
+    if (s.level >= P.maxLevel) s.xp = 0;
+  }
+
+  /** Saat başı moral: yorgunluk ve iş yükü düşürür, mola (özellikle mola odası) ve izin toparlar. */
+  onHour(): void {
+    const sim = this.sim;
+    const M = BALANCE.staff.morale;
+    const onDuty = sim.staff.filter((s) => s.onDuty).length;
+    const open = sim.tasks.tasks.filter((x) => x.claimedBy === null).length;
+    const overloaded = onDuty > 0 && open / onDuty > M.overloadPerStaff;
+    for (const s of sim.staff) {
+      let d = 0;
+      if (!s.onDuty) d = M.offDutyGain;
+      else if (s.state === 'resting') d = this.restRate(s) === BALANCE.staff.restRegenRoom ? M.restRoomGain : M.restGain;
+      else {
+        d = s.energy < M.tiredBelowEnergy ? -M.tiredLoss : M.workGain;
+        if (overloaded) d -= M.overloadLoss;
+      }
+      s.morale = Math.max(0, Math.min(100, s.morale + d));
+    }
+  }
+
+  /** Gün başı: moral uzun süre dipte kalan istifa eder. */
+  onDay(): void {
+    const M = BALANCE.staff.morale;
+    for (const s of [...this.sim.staff]) {
+      s.lowMoraleDays = s.morale < M.quitBelow ? s.lowMoraleDays + 1 : 0;
+      if (s.lowMoraleDays >= M.quitAfterDays) this.removeStaff(s, t('{name} morali çöktüğü için istifa etti', { name: s.name }));
     }
   }
 
@@ -353,6 +398,7 @@ export class StaffSystem {
         break;
     }
     sim.stats.staffTasks++;
+    this.gainXp(s, BALANCE.staff.progress.xpPerTask);
     sim.tasks.remove(task);
     s.taskId = null;
     s.state = 'idle';

@@ -57,6 +57,17 @@
   köpek paneli, araç şeridi, alt menü listesi, ana menü, Ayarlar: çakışma yok, taşma yok. Alt menü açılır listesi köpek
   panelinin üstüne gelebilir (geçici popover, üstte kalır) — kabul edildi. Gerçek cihaz testi kullanıcıda.
 
+## 0.14.3 — Personel deneyim/seviye ve moral (Claude, 2026-09-22)
+- `Staff`: `xp`, `level` (1–5), `morale` (0–100, başlangıç 70), `lowMoraleDays` — hepsi kayıtta, eski kayıtta varsayılan.
+  `xpForLevel(level)` = 100 × seviye; `ROLE_MAIN_ATTRS` (bakıcı: çalışkanlık → hız → dayanıklılık; eğitmen/veteriner:
+  beceri → şefkat → çalışkanlık). `efficiency()` moral < 30 iken × 0,8.
+- `StaffSystem.gainXp(s, n)`: tamamlanan her görev +10 (`completeTask`); eşikte seviye, ilk 5'in altındaki ana nitelik +1,
+  moral +5, mesaj. `onHour()` (Sim `hour` olayı): yorgun (enerji < 20) çalışma −3, mola odasında dinlenme +4, başka yerde
+  dinlenme ya da izin +1, normal çalışma +0,5, iş yükü (sahipsiz görev / görevdeki personel > 3) −2. `afterPayday`: maaş
+  ödenmezse −15. `onDay()` (Sim `day` olayı): moral < 10 üç gün sürerse istifa (mesaj). Sayılar `BALANCE.staff.progress/morale`.
+- Arayüz: personel kartında "Sv2 ★★", deneyim satırı ve moral çubuğu (düşükse kırmızı, ipucunda nedenler).
+- Testler: `tests/unit/staff-progress.test.ts` (7).
+
 ## 0.14.2 — Otomatik yem makinesi + ofis seviyesi (Claude, 2026-09-22)
 - Yeni bina `feeder` "Otomatik yem makinesi" (1×1, katı, 2.500 ₺, 120 dk, Besleme): `src/sim/systems/FeederSystem.ts`
   `tickFeeders` her saat başı (`Sim.onHour`, mutfak dolumunun yanında) `BALANCE.feeder.radius` (8 kare) içindeki hazır

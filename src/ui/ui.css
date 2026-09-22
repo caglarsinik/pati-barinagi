@@ -441,6 +441,11 @@ body {
   background: #a66bd6;
 }
 
+.staff-level {
+  color: var(--accent-2);
+  font-size: 0.8rem;
+}
+
 .goal h4 {
   margin: 10px 0 4px;
 }

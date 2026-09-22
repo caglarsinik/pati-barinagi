@@ -88,6 +88,26 @@ export const BALANCE = {
     quitAfterUnpaidWeeks: 2,
     /** Mutfak hazırsa yem/su görev süresi çarpanı. */
     kitchenPrepMul: 0.6,
+    /** Deneyim: görev başına xp; seviye eşiği xpPerLevel × seviye. */
+    progress: { xpPerTask: 10, xpPerLevel: 100, maxLevel: 5, levelUpMorale: 5 },
+    /** Moral (0-100): saatlik değişimler, düşük moral cezası ve istifa. */
+    morale: {
+      start: 70,
+      tiredBelowEnergy: 20,
+      tiredLoss: 3,
+      restRoomGain: 4,
+      restGain: 1,
+      offDutyGain: 1,
+      workGain: 0.5,
+      /** Görevdeki personel başına sahipsiz görev bundan fazlaysa iş yükü cezası. */
+      overloadPerStaff: 3,
+      overloadLoss: 2,
+      unpaidLoss: 15,
+      lowBelow: 30,
+      lowEfficiencyMul: 0.8,
+      quitBelow: 10,
+      quitAfterDays: 3,
+    },
   },
   adoption: {
     dailyBase: 0.6,

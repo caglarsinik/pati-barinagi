@@ -27,6 +27,7 @@ describe('Uzun koşu', () => {
     sim.addDog(sim.dogs[0].genome, 'egg', 1, sim.dogs[0].x + 1, sim.dogs[0].y + 1);
 
     const dogs = sim.shelterDogs();
+    const age0 = new Map(dogs.map((d) => [d.id, d.ageWeeks]));
     const health: number[] = [];
     for (let day = 0; day < 28; day++) {
       runHours(sim, 24);
@@ -55,8 +56,12 @@ describe('Uzun koşu', () => {
     expect(aid).toBeGreaterThan(0);
     expect(wages).toBe(staff.wage * 4);
     expect(sim.money).toBeGreaterThan(1500);
-    // Yavru büyüdü.
-    expect(dogs[1].stage).toBe('young');
+    // Barınakta kalan köpekler 4 hafta yaşlandı; yavru kalmışsa gençleşti. (Rastgele "kaçan köpek" olayı
+    // yavruyu götürebilir: kaçan köpek dünyada vahşi olur, yaşlanmaz; 0.14.3'te personel hızlanınca bu tohumda oldu.)
+    const stayed = dogs.filter((d) => sim.shelterDogs().includes(d));
+    expect(stayed.length).toBeGreaterThan(0);
+    for (const d of stayed) expect(d.ageWeeks).toBe(age0.get(d.id)! + 4);
+    if (stayed.includes(dogs[1])) expect(dogs[1].stage).toBe('young');
     // Hastalık barınağı ele geçirmedi.
     expect(sim.shelterDogs().filter((d) => d.illness).length).toBeLessThanOrEqual(Math.ceil(sim.shelterDogs().length / 2));
     console.log(`4 hafta sonu: kasa ${Math.round(sim.money)}, yardım ${aid}, maaş ${wages}, görev ${sim.stats.staffTasks}, min sağlık ${Math.min(...health).toFixed(0)}`);

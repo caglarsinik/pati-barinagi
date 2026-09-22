@@ -58,6 +58,18 @@ export const ATTR_NAMES_TR: Record<keyof StaffAttrs, string> = {
   skill: 'Beceri',
 };
 
+/** Seviye atlayınca artan nitelikler (sırayla; 5'e ulaşan atlanır). */
+export const ROLE_MAIN_ATTRS: Record<StaffRole, Array<keyof StaffAttrs>> = {
+  caretaker: ['diligence', 'speed', 'stamina'],
+  trainer: ['skill', 'empathy', 'diligence'],
+  vet: ['skill', 'empathy', 'diligence'],
+};
+
+/** Bu seviyeden bir sonrakine gereken deneyim. */
+export function xpForLevel(level: number): number {
+  return BALANCE.staff.progress.xpPerLevel * level;
+}
+
 /** 0 izin, 1 çalış, 2 mola. */
 export type ShiftKind = 0 | 1 | 2;
 
@@ -79,6 +91,10 @@ export interface StaffSave {
   unpaidWeeks: number;
   hiredDay: number;
   offDuty: boolean;
+  xp?: number;
+  level?: number;
+  morale?: number;
+  lowMoraleDays?: number;
 }
 
 export class Staff {
@@ -105,6 +121,12 @@ export class Staff {
   decisionTimer = 0;
   unpaidWeeks = 0;
   hiredDay = 1;
+  /** Deneyim (seviye içinde) ve seviye (1-5). */
+  xp = 0;
+  level = 1;
+  /** Moral 0-100: düşükse verim düşer, uzun süre dipte kalırsa istifa. */
+  morale: number = BALANCE.staff.morale.start;
+  lowMoraleDays = 0;
 
   constructor(id: number, name: string, role: StaffRole, attrs: StaffAttrs, traits: StaffTrait[], wage: number, look: number, x: number, y: number) {
     this.id = id;
@@ -141,7 +163,8 @@ export class Staff {
   efficiency(type: TaskType): number {
     const role = ROLE_EFFICIENCY[this.role][type];
     if (role <= 0) return 0;
-    return role * (0.7 + this.attrs.diligence * 0.08) * (0.85 + this.attrs.skill * 0.05);
+    const M = BALANCE.staff.morale;
+    return role * (0.7 + this.attrs.diligence * 0.08) * (0.85 + this.attrs.skill * 0.05) * (this.morale < M.lowBelow ? M.lowEfficiencyMul : 1);
   }
 
   canDo(type: TaskType): boolean {
@@ -169,6 +192,10 @@ export class Staff {
       unpaidWeeks: this.unpaidWeeks,
       hiredDay: this.hiredDay,
       offDuty: this.state === 'offDuty',
+      xp: this.xp,
+      level: this.level,
+      morale: this.morale,
+      lowMoraleDays: this.lowMoraleDays,
     };
   }
 
@@ -196,6 +223,11 @@ export class Staff {
     }
     s.unpaidWeeks = typeof d.unpaidWeeks === 'number' ? d.unpaidWeeks : 0;
     s.hiredDay = typeof d.hiredDay === 'number' ? d.hiredDay : 1;
+    const num = (v: unknown): v is number => typeof v === 'number' && Number.isFinite(v);
+    s.level = num(d.level) ? Math.max(1, Math.min(BALANCE.staff.progress.maxLevel, Math.floor(d.level))) : 1;
+    s.xp = num(d.xp) ? Math.max(0, d.xp) : 0;
+    s.morale = num(d.morale) ? Math.max(0, Math.min(100, d.morale)) : BALANCE.staff.morale.start;
+    s.lowMoraleDays = num(d.lowMoraleDays) ? Math.max(0, Math.floor(d.lowMoraleDays)) : 0;
     s.state = d.offDuty === false ? 'idle' : 'offDuty';
     return s;
   }

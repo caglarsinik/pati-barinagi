@@ -17,6 +17,7 @@ import {
 import { formatMoney } from './HUD';
 import { showToast, store } from './store';
 import { maxStaff } from '../sim/systems/StaffSystem';
+import { xpForLevel } from '../sim/entities/Staff';
 
 const STATE_TR: Record<Staff['state'], string> = {
   offDuty: 'Mesai dışı',
@@ -96,7 +97,10 @@ export function StaffPanel() {
           {sim.staff.map((s) => (
             <div key={s.id} class="staff-card">
               <div class="staff-head">
-                <b>{s.name}</b> <span class={`role role-${s.role}`}>{t(ROLE_NAMES_TR[s.role])}</span>
+                <b>{s.name}</b> <span class={`role role-${s.role}`}>{t(ROLE_NAMES_TR[s.role])}</span>{' '}
+                <span class="staff-level" title={t('Seviye: görev tamamladıkça deneyim kazanır; her seviyede ana niteliği artar')}>
+                  {t('Sv{n}', { n: s.level })} {'★'.repeat(s.level)}
+                </span>
                 <span class="spacer" />
                 <span class="muted small-text">{t('{wage}/hafta', { wage: formatMoney(s.wage) })}</span>
                 <button class="btn small danger" onClick={() => run(sim.command({ type: 'fire', staffId: s.id }))} title={t('1 haftalık tazminat ödenir')}>
@@ -111,6 +115,14 @@ export function StaffPanel() {
                 </div>
                 <span class="need-value">{Math.round(s.energy)}</span>
               </div>
+              <div class="need" title={t('Moral: yorgun çalışmak, iş yükü ve ödenmemiş maaşla düşer; mola odası, izin ve seviye atlamak yükseltir. 30 altında verim düşer, 3 gün 10 altında kalan istifa eder.')}>
+                <span class="need-label">{t('Moral')}</span>
+                <div class="bar">
+                  <div class={'fill' + (s.morale < BALANCE.staff.morale.lowBelow ? ' bad' : '')} style={{ width: `${s.morale}%` }} />
+                </div>
+                <span class="need-value">{Math.round(s.morale)}</span>
+              </div>
+              {s.level < BALANCE.staff.progress.maxLevel && <div class="muted small-text">{t('Deneyim {xp}/{need}', { xp: Math.floor(s.xp), need: xpForLevel(s.level) })}</div>}
               <Attrs attrs={s.attrs} />
               <Traits staff={s} />
               {s.unpaidWeeks > 0 && <div class="bad small-text">{t('Maaşı ödenmedi: istifa edebilir')}</div>}

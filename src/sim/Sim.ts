@@ -333,6 +333,8 @@ export class Sim {
     this.gates = new GateSystem(this);
     this.events.on('day', (d) => this.needs.onDay(d));
     this.events.on('day', () => this.illness.onDay());
+    this.events.on('day', () => this.staffSystem.onDay());
+    this.events.on('hour', () => this.staffSystem.onHour());
     this.events.on('hour', () => this.illness.onHour());
     this.events.on('hour', (h) => this.eventSys.onHour(h));
     this.events.on('week', (w) => this.onWeek(w));
