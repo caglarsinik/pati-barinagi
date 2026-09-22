@@ -10,7 +10,7 @@ export function TouchControls() {
   store.lang.value;
   if (!store.touch.value || store.screen.value !== 'game' || store.mode.value !== 'avatar') return null;
   const hint = store.hint.value;
-  const m = /^E: (.+)$/.exec(hint);
+  const m = /(?:^|· )E: (.+)$/.exec(hint); // otopilot açıkken ipucu '🤖 … · E: …' olur
   const label = m ? m[1] : null;
   return (
     <div class="touch-controls">

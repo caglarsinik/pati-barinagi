@@ -16,6 +16,7 @@ const ROWS: Array<[string, string, string]> = [
   ['R', '–', 'Seçili binayı döndür (kare olmayan binalar)'],
   ['I / O / N / P / F / H', 'Köpekler / Sahiplendirme / Finans / Personel / Görevlendirme / Başarımlar', 'Aynı'],
   ['L', 'İsim etiketlerini aç/kapa', 'Aynı'],
+  ['T', 'Otopilot aç/kapa: barınağın işlerini kendisi yapar (elle müdahale kapatır)', 'Aynı'],
   ['Space', 'Duraklat / devam', 'Aynı'],
   ['+ / -', 'Hız artır / azalt', 'Aynı'],
   ['Esc', 'Paneli kapat / menü', 'Aracı bırak / paneli kapat / menü'],
@@ -28,6 +29,7 @@ const TOUCH_ROWS: Array<[string, string]> = [
   ['Uzun bas', 'Köpeği seç (panel açılır)'],
   ['E düğmesi', 'Baktığın işi yap (düğme işi yazar)'],
   ['Koş düğmesi', 'Koşarak yürü (dayanıklılık harcar)'],
+  ['🤖 düğmesi (üst şerit)', 'Otopilot: yem, su, temizlik, köpek işleri, yumurta, gece uykusu; haritaya dokununca kapanır'],
   ['İki parmak', 'Yakınlaştır · yönetim modunda kaydır'],
   ['Sürükle (yönetim)', 'Kamerayı kaydır · araç seçiliyse çit/yol/bölge çiz'],
 ];

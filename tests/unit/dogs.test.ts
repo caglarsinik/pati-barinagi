@@ -217,27 +217,22 @@ describe('Kayıt', () => {
 });
 
 describe('Headless koşu', () => {
-  it('3 gün bot bakımıyla köpek sağlıklı kalır, sayılar bozulmaz', () => {
+  it('3 gün otopilot bakımıyla köpek sağlıklı kalır, sayılar bozulmaz', () => {
+    // Hile eden bot yerine gerçek otopilot: yürür, doldurur, temizler, gece ofiste uyur (saat ileri sarar).
     const sim = Sim.create(51);
     const dog = sim.dogs[0];
-    const totalMinutes = 3 * 24 * 60;
-    let elapsed = 0;
-    while (elapsed < totalMinutes) {
-      // Bot: kap boşsa doldur, kiler azsa sipariş, pislik varsa temizle, arada sev.
-      const bowl = sim.buildings.find((b) => b.type === 'bowl')!;
-      if (bowl.food < 1 && sim.foodStock > 0) bowl.food = Math.min(4, bowl.food + sim.foodStock);
-      if (sim.foodStock < 5) sim.command({ type: 'orderFood', bags: 1 });
-      if (dog.needs.hygiene < 40) dog.needs.hygiene += BALANCE.dogs.groomGain; // fırçalama
-      for (const t of [...sim.messTiles]) {
-        const x = t % sim.world.width;
-        const y = Math.floor(t / sim.world.width);
-        sim.world.setObject(x, y, Obj.None);
-        sim.messTiles.delete(t);
-      }
-      runMinutes(sim, 60);
-      elapsed += 60;
-      for (const v of Object.values(dog.needs)) expect(Number.isNaN(v)).toBe(false);
+    sim.setSpeed(4);
+    sim.command({ type: 'setAutopilot', on: true });
+    const end = sim.clock.totalMinutes + 3 * 24 * 60;
+    let step = 0;
+    while (sim.clock.totalMinutes < end) {
+      sim.update(0.1);
+      if (++step % 100 === 0) for (const v of Object.values(dog.needs)) expect(Number.isNaN(v)).toBe(false);
+      if (step > 20000) throw new Error('koşu bitmedi');
     }
+    expect(sim.autopilot).toBe(true);
+    expect(sim.stats.slept).toBeGreaterThanOrEqual(2);
+    expect(sim.stats.bowlsFilled + sim.stats.watered).toBeGreaterThan(0);
     expect(dog.needs.health).toBeGreaterThan(50);
     expect(sim.money).toBeGreaterThan(0);
     expect(sim.stats.fed).toBeGreaterThan(3);

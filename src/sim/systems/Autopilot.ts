@@ -29,6 +29,8 @@ interface Job {
   key: string;
   task: Task | null;
   plan: Plan;
+  /** Durum satırı metni ("🤖 Yem kabını dolduruyor"). */
+  text: string;
 }
 
 /**
@@ -58,6 +60,12 @@ export class Autopilot {
   /** İş anahtarı kara listedeyse kalan süre (sn), değilse 0. */
   blockedFor(key: string): number {
     return Math.max(0, (this.blocked.get(key) ?? 0) - this.timeSec);
+  }
+
+  /** Durum satırı: otopilot açıkken ne yaptığı; kapalıyken boş. */
+  statusText(): string {
+    if (!this.sim.autopilot) return '';
+    return this.current?.text ?? t('🤖 Otopilot: iş bekliyor');
   }
 
   /** Açılınca ilk kontrol hemen yapılır. */
@@ -137,7 +145,7 @@ export class Autopilot {
       const score = task.urgency / (1 + dist / 20);
       if (score > bestScore) {
         bestScore = score;
-        best = { key: task.key, task, plan };
+        best = { key: task.key, task, plan, text: this.textFor(task, plan) };
       }
     }
     return best;
@@ -150,7 +158,7 @@ export class Autopilot {
       if (d.petsToday > 0 || d.isAsleep() || d.walking || this.blocked.has(`pet:${d.id}`)) continue;
       if (!best || d.needs.loyalty < best.needs.loyalty) best = d;
     }
-    return best ? { key: `pet:${best.id}`, task: null, plan: { goal: { kind: 'dog', id: best.id }, tool: 'pet' } } : null;
+    return best ? { key: `pet:${best.id}`, task: null, plan: { goal: { kind: 'dog', id: best.id }, tool: 'pet' }, text: t("🤖 {name}'i seviyor", { name: best.name }) } : null;
   }
 
   private isNight(): boolean {
@@ -164,9 +172,32 @@ export class Autopilot {
     return Math.hypot(p.x - (door.x + 0.5), p.y - (door.y + 0.7)) <= 2;
   }
 
-  private doorJob(key: string, b: Building, onArrive: () => boolean): Job {
+  private doorJob(key: string, b: Building, text: string, onArrive: () => boolean): Job {
     const door = buildingDoorTile(b);
-    return { key, task: null, plan: { goal: { kind: 'tile', tile: door }, onArrive: () => this.atDoor(door) && onArrive() } };
+    return { key, task: null, plan: { goal: { kind: 'tile', tile: door }, onArrive: () => this.atDoor(door) && onArrive() }, text };
+  }
+
+  /** Tahta görevinin durum metni. */
+  private textFor(task: Task, plan: Plan): string {
+    const name = this.taskDog(task)?.name ?? '';
+    switch (task.type) {
+      case 'feed':
+        return t('🤖 Yem kabını dolduruyor');
+      case 'water':
+        return t('🤖 Yalağı dolduruyor');
+      case 'clean':
+        return t('🤖 Pisliği temizliyor');
+      case 'play':
+        return t('🤖 {name} ile oynuyor', { name });
+      case 'train':
+        return t("🤖 {name}'i eğitiyor", { name });
+      case 'groom':
+        return plan.goal.kind === 'building' ? t("🤖 {name}'i yıkıyor", { name }) : t("🤖 {name}'i fırçalıyor", { name });
+      case 'treat':
+        return t("🤖 {name}'i tedavi ediyor", { name });
+      default:
+        return t('🤖 Otopilot: iş bekliyor');
+    }
   }
 
   /** Gece (sleepFromHour…nightEndHour) ve tahtada sahipsiz yem/su işi yoksa: ofis kapısına git, sabaha kadar uyu. */
@@ -175,7 +206,7 @@ export class Autopilot {
     if (this.sim.tasks.tasks.some((t) => t.claimedBy === null && (t.type === 'feed' || t.type === 'water'))) return null;
     const office = this.sim.buildings.find((b) => b.type === 'office' && isReady(b));
     if (!office) return null;
-    return this.doorJob('sleep', office, () => {
+    return this.doorJob('sleep', office, t('🤖 Ofise uyumaya gidiyor'), () => {
       const r = this.sim.command({ type: 'sleep' });
       if (r.message) this.sim.events.emit('message', r.message);
       return r.ok;
@@ -188,7 +219,7 @@ export class Autopilot {
     if (sim.backpack.length === 0) return null;
     const inc = sim.buildings.find((b) => b.type === 'incubator' && isReady(b) && b.eggs.length < incubatorSlots(b) && !this.blocked.has(`egg:${b.id}`));
     if (!inc) return null;
-    return this.doorJob(`egg:${inc.id}`, inc, () => {
+    return this.doorJob(`egg:${inc.id}`, inc, t('🤖 Yumurtayı kuluçkaya götürüyor'), () => {
       let placed = 0;
       for (const egg of [...sim.backpack]) {
         if (inc.eggs.length >= incubatorSlots(inc)) break;
@@ -205,7 +236,7 @@ export class Autopilot {
     if (sim.backpack.length >= sim.backpackSlots()) return null;
     const w = sim.world;
     const tile = this.nearestObject(sim.world.nests.filter((n) => w.objectAt(n.x, n.y) === Obj.NestEggs), BALANCE.autopilot.nestRadius, 'nest');
-    return tile ? { key: `nest:${w.idx(tile.x, tile.y)}`, task: null, plan: { goal: { kind: 'object', tile } } } : null;
+    return tile ? { key: `nest:${w.idx(tile.x, tile.y)}`, task: null, plan: { goal: { kind: 'object', tile } }, text: t('🤖 Yuvadan yumurta alıyor') } : null;
   }
 
   /** Ödül maması dolu değilse: keşfedilmiş en yakın böğürtlen çalısı (bushRadius içinde, oyuncunun çevresi taranır). */
@@ -222,7 +253,7 @@ export class Autopilot {
       }
     }
     const tile = this.nearestObject(cands, R, 'bush');
-    return tile ? { key: `bush:${w.idx(tile.x, tile.y)}`, task: null, plan: { goal: { kind: 'object', tile } } } : null;
+    return tile ? { key: `bush:${w.idx(tile.x, tile.y)}`, task: null, plan: { goal: { kind: 'object', tile } }, text: t('🤖 Böğürtlen topluyor') } : null;
   }
 
   /** Keşfedilmiş, kara listede olmayan, yarıçap içindeki en yakın kare. */

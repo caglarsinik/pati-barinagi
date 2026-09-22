@@ -7,6 +7,7 @@ export type MenuAction =
   | { kind: 'settings' }
   | { kind: 'save' }
   | { kind: 'pause' }
+  | { kind: 'autopilot' }
   | { kind: 'mainMenu' };
 
 export interface MenuItem {
@@ -66,6 +67,7 @@ export const MENU_GROUPS: MenuGroup[] = [
     icon: '☰',
     label: 'Menü',
     items: [
+      { id: 'autopilot', icon: '🤖', label: 'Otopilot', key: 'T', action: { kind: 'autopilot' } },
       { id: 'help', icon: '🎮', label: 'Kontroller', action: { kind: 'panel', panel: 'help' } },
       { id: 'settings', icon: '⚙️', label: 'Ayarlar', action: { kind: 'settings' } },
       { id: 'save', icon: '💾', label: 'Kaydet', action: { kind: 'save' } },

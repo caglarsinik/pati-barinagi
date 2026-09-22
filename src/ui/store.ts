@@ -216,6 +216,8 @@ function hintFor(sim: Sim): string {
   }
   if (sim.player.exhausted) return t('Nefesin kesildi, biraz yürü');
   const action = resolveAction(sim);
+  // Otopilot açıkken durum metni; önünde yapılacak iş varsa E etiketi de kalsın (TouchControls 'E:' arar).
+  if (sim.autopilot) return action.hint.startsWith('E:') ? `${sim.autopilotText} · ${action.hint}` : sim.autopilotText;
   if (action.hint) return action.hint;
   return t('WASD: yürü · Shift: koş · 1-5: araç · E: etkileşim · I: köpek listesi · Tab: yönetim');
 }

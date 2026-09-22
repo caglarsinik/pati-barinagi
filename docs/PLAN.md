@@ -409,6 +409,16 @@ Her taşın sonunda oyun çalışır hâlde olur, testler yeşildir, commit atı
   `minmax(0,1fr)` sütunlar, kaydırılabilir çip şeridi, telefonda ⏸ + döngülü hız ve ikonlu mod düğmesi, kısa saat; alt menü
   öğeleri esnek; ≤340 px yükseklik ve ≤719 px genişlik kademeleri; ana menü kısa ekranda iki sütun (`.menu-intro`/`.menu-form`);
   `src/ui/layout.ts` (classifyLayout, hudSizes, dockFits) + `tests/unit/layout.test.ts`.
+- **0.12.1–0.12.3 Dokunma düzeltmeleri (2026-09-18/19):** #ui üstünde başlayan işaretçiler dünya girdisi sayılmaz
+  (`ui/uiTarget.ts`), pinch iki taze parmak yoksa bırakılır, `pointerupoutside`/`touchcancel`/`blur`/gizlenme sıfırlar;
+  klavye ayrımı yalnız metin girişlerinde, düğmeler tıklamadan sonra odağı bırakır; kuluçkadan alınan yumurtanın süresi
+  korunur (`Egg.hatchLeft`); `scenes/tapTarget.ts` (köpeğin dibindeyken çevre dokunuşu yürüyüş), meşgulken ve yönetim
+  modunda sessiz ret yerine mesaj.
+- **0.13.0–0.13.3 Otopilot (2026-09-22):** `sim/systems/Autopilot.ts` — `Sim.autopilot` açıkken avatar boştayken görev
+  tahtasından iş seçer (`PILOT_ID = -1` ile üstlenir; personelle paylaşım), dokun-git ile gider, varınca E; araç işe göre
+  seçilir; kiler boşsa yem siparişi; tahta boşken gece uyku, kuluçka, keşfedilmiş yuva/çalı, sevme; histerezisli koşu;
+  başarısız hedef 30 sn kara liste; elle girdi ve UI yürüme komutları kapatır; TopBar 🤖, T, Menü → Otopilot, durum satırı
+  (`Sim.autopilotText`), kayıt alanı `autopilot`; `tests/unit/autopilot.test.ts` + 3 günlük başsız otopilot koşusu.
 
 ## 5. Doğrulama
 

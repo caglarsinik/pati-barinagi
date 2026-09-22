@@ -776,6 +776,11 @@ export class Sim {
     this.events.emit('modeChanged', mode);
   }
 
+  /** Durum satırı için otopilotun o anki işi; kapalıyken boş. */
+  get autopilotText(): string {
+    return this.pilot.statusText();
+  }
+
   /** Otopilotu açar/kapatır; açılınca avatar moduna geçer, kapanınca üstlenilen iş bırakılır ve yürüyüş durur. */
   setAutopilot(on: boolean): void {
     if (on === this.autopilot) return;

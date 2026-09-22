@@ -22,6 +22,9 @@ function runAction(a: MenuAction): void {
     case 'pause':
       app.openPauseMenu();
       break;
+    case 'autopilot':
+      if (app.sim) app.sim.command({ type: 'setAutopilot', on: !app.sim.autopilot });
+      break;
     case 'mainMenu':
       app.toMenu();
       break;

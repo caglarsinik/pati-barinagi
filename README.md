@@ -55,6 +55,7 @@ Yerel ağdan denemek için `npm run build` sonra `npm run preview -- --host` ve 
 | Sol tık | Köpeği seç (panel açılır) | Köpeği seç |
 | I / O / N / P / F / H | Köpek listesi / Sahiplendirme / Finans / Personel / Görevlendirme / Başarımlar | Aynı |
 | L | Dünya üstü isim etiketlerini aç/kapa (seçili köpekte her zaman görünür) | Aynı |
+| T | Otopilot aç/kapa (üst şeritteki 🤖 ya da Menü → Otopilot); bkz. "Otopilot" | Aynı |
 | Alt menü çubuğu | Barınak {Köpekler, Sahiplendirme} · Yönetim {Finans, Personel, Görevlendirme} · İnşa · Başarımlar · Menü {Kontroller, Ayarlar, Kaydet, Duraklat, Ana menü}; açılır listelerde tuşlar yazar | Aynı |
 | B | İnşa çubuğu (yönetim moduna geçer) | İnşa çubuğu |
 | X / Z | – | Yık aracı / Bölge boyama |
@@ -79,6 +80,7 @@ kendiliğinden açılır; Ayarlar → Dokunmatik kontroller ile Otomatik / Açı
 - **Dokun:** avatar oraya yürür (yol bulur). **Köpeğe / binaya / yuvaya dokun:** yanına gidip işini yapar (sev, kabı doldur,
   yumurta al, temizle). **Uzun bas:** köpeği seçer. Klavye girişi ya da yönetim modu yolu iptal eder.
 - **E düğmesi** (sağ alt) baktığın işi yazar ve yapar; **Koş** anahtarı koşarak yürütür.
+- **🤖 (üst şerit):** otopilotu açar; karakter barınağın işlerini kendisi yapar, haritaya dokununca kapanır (bkz. "Otopilot").
 - **İki parmak:** yakınlaştırır, yönetim modunda kaydırır. **Sürükle (yönetim):** kamerayı kaydırır; araç seçiliyken çit/yol/bölge çizer;
   aracı bırakmak için ipucu satırındaki İptal, kare olmayan binayı döndürmek için Döndür.
 - Paneller telefonda tam ekran sayfa olur; görevlendirme ızgarası parmakla boyanır, öncelikler +/− adımlayıcıdır;
@@ -89,6 +91,18 @@ kendiliğinden açılır; Ayarlar → Dokunmatik kontroller ile Otomatik / Açı
   (568×320'den itibaren); üst şerit ve rıhtım yükseklikleri ölçülür, köpek paneli aralarına sığar. Ana menü kısa
   ekranda iki sütun olur.
 - Yüksek çözünürlüklü ekranlarda piksel sanatı tam ölçekte (cihaz piksel oranı 2'ye kadar) çizilir.
+
+## Otopilot
+
+Üst şeritteki **🤖** düğmesi, **T** tuşu ya da Menü → Otopilot ile açılır; açılınca avatar moduna geçer. Karakter boşta
+kaldıkça personelle aynı görev tahtasından iş seçer (aciliyet / mesafe): boş yem kabı ve yalak, pislik; sonra köpek işleri
+(keyfi düşük köpekle oyna, eğitim hedefindeki köpeği eğit, kirli köpeği tımar istasyonu yakınsa yıka yoksa fırçala, hasta
+köpeği klinik yakınındaysa ve para varsa tedavi et). Kiler boşsa ve para varsa bir çuval yem sipariş eder. Tahta boşken
+sırayla: gece (20:00–06:00) ofise gidip sabaha kadar uyur; çantadaki yumurtayı kuluçkaya koyar; keşfedilmiş yakın yuvadan
+yumurta, çalıdan böğürtlen toplar; bugün sevilmemiş köpeği sever. Uzak hedefe dayanıklılık yettiği sürece koşar. Alt
+satır o an ne yaptığını yazar ("🤖 Yem kabını dolduruyor"). **Elle müdahale kapatır:** WASD, haritaya/köpeğe dokunma, E.
+Yönetim moduna geçince bekler, avatara dönünce sürer. Uyuyan ya da bitkin köpekle oynamaz; ulaşamadığı hedefi 30 saniye
+yeniden denemez. Otopilot inşaat, işe alım ve sahiplendirme kararı vermez.
 
 ## Köpek bakımı
 
@@ -201,6 +215,8 @@ Bilgisayar değiştirirken ya da yedek almak için kullan.
 - [x] 0.10.1 bakım (2026-09-16): kapalı kapıdan geçiş kontrolü ve uykuda kapılar, telefon dikey yönde duraklatma, metin alanlarında klavye ayrımı (ayrıntı ve doğrulama notları: `docs/CLAUDE_HANDOFF.md`)
 - [x] 0.11.0 Telefona kurulum: PWA (manifest, kodla üretilen ikonlar, service worker ile çevrimdışı, "Ana ekrana ekle", Şimdi yenile), GitHub Pages iş akışı
 - [x] 0.12.0 Telefon HUD yeniden düzeni: alt rıhtım (araç / menü / E-Koş tek flex satırı), telefonda tek araç düğmesi, kaydırılabilir üst şerit ve kısa hız/mod düğmeleri, ölçülen yüksekliklerle konumlanan köpek paneli, kutu modeli border-box, iki sütunlu ana menü, yerleşim bütçe testi
+- [x] 0.12.1–0.12.3 Dokunma düzeltmeleri: HUD dokunuşları dünyaya sızmaz, takılı pinch/kaçan touchend sıfırlanır, düğme odağı klavyeyi kilitlemez; kuluçkadan alınan yumurtanın süresi korunur; köpeğin dibindeyken çevre dokunuşu yürüyüştür, meşgulken "Şu an meşgul"
+- [x] 0.13.x Otopilot: 🤖 / T ile karakter barınağın işlerini kendisi yapar (bakım, köpek işleri, yumurta, böğürtlen, gece uykusu, koşu), durum satırı, elle müdahalede kapanır, 3 günlük başsız koşu testi
 - [ ] Sonraki paketler (`docs/PLAN.md` §7): M11 Yaşayan Dünya, M12 İlerleme ve Son Oyun, M13 Sahiplendirme Hikâyeleri, M14 Soy
 
 ## Geliştirme

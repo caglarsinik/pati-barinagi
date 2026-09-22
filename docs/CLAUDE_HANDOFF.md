@@ -57,6 +57,18 @@
   köpek paneli, araç şeridi, alt menü listesi, ana menü, Ayarlar: çakışma yok, taşma yok. Alt menü açılır listesi köpek
   panelinin üstüne gelebilir (geçici popover, üstte kalır) — kabul edildi. Gerçek cihaz testi kullanıcıda.
 
+## 0.13.3 — Otopilot cilası (Claude, 2026-09-22)
+- Durum satırı: `Job.text` + `Autopilot.statusText()` → `Sim.autopilotText`; `store.ts hintFor` otopilot açıkken bunu gösterir
+  ("🤖 Yem kabını dolduruyor", "🤖 Susam'ı eğitiyor", "🤖 Ofise uyumaya gidiyor", iş yoksa "🤖 Otopilot: iş bekliyor").
+- Menü → Otopilot (T) (`menu.ts` `{kind:'autopilot'}`, `BottomNav`), HelpSheet ROWS (T) ve TOUCH_ROWS (🤖 düğmesi), README:
+  Kontroller satırı, Dokunmatik maddesi, yeni "Otopilot" bölümü, Durum listesi; `docs/PLAN.md` §4 0.12.x ve 0.13.x kayıtları.
+- `tests/unit/dogs.test.ts` "Headless koşu": hile eden bot yerine otopilotla 3 gün (speed 4, 0,1 sn adım; gece uykusu saati
+  sarar) → sağlık > 50, para > 0, fed > 3, en az 2 uyku. i18n: 18 yeni anahtar.
+- Bu koşunun ortaya çıkardığı hata: `PlayerNav.inputFor` kare başına adım `nav.arriveDist`in iki katını aşınca (0,1 sn adım ya da
+  koşu) düğüm çevresinde sonsuz salınıyordu (hareket var, ilerleme yok → takılma mantığı tetiklenmiyor). Düzeltme: `nodeDist` —
+  hareket ettiği hâlde düğüme yaklaşamıyorsa düğüm geçilmiş sayılır. Oyunda 30 fps altı cihazlarda da koruma sağlar.
+- Otopilot dilimleri (0.13.0–0.13.3) tamam. Sırada: ertelenen 0.12.4/0.12.5 ya da M11+ (kullanıcı kararı).
+
 ## 0.13.2 — Otopilot 3: yumurta, böğürtlen, uyku, koşu (Claude, 2026-09-22)
 - Tahta boşken sıra: **uyku** (saat ≥ `time.sleepFromHour` 20 ya da < `nightEndHour` 6, tahtada sahipsiz yem/su işi yoksa →
   ofis kapısı → `command sleep`) → **kuluçka** (çantada yumurta + boş yuvalı hazır kuluçka → kapıya git → sığan her yumurta

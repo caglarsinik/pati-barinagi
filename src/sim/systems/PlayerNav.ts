@@ -33,6 +33,8 @@ export class PlayerNav {
   private lastX = 0;
   private lastY = 0;
   private replans = 0;
+  /** Sıradaki düğüme son karedeki uzaklık; -1 = yeni düğüm. Salınım tespiti için. */
+  private nodeDist = -1;
 
   constructor(private readonly sim: Sim) {}
 
@@ -45,6 +47,7 @@ export class PlayerNav {
     this.path = [];
     this.stuckSec = 0;
     this.replans = 0;
+    this.nodeDist = -1;
   }
 
   /** Kareye yürü; kare geçilmezse yanına. Yol yoksa false ve mesaj. */
@@ -110,6 +113,7 @@ export class PlayerNav {
     this.path = path;
     this.stuckSec = 0;
     this.replans = 0;
+    this.nodeDist = -1;
     this.lastX = sim.player.x;
     this.lastY = sim.player.y;
     if (path.length === 0) this.arrive();
@@ -134,8 +138,9 @@ export class PlayerNav {
     if (!this.goal) return IDLE_INPUT;
     if (p.busy > 0) return IDLE_INPUT;
     const N = BALANCE.nav;
+    let moved = 0;
     if (this.path.length > 0) {
-      const moved = Math.hypot(p.x - this.lastX, p.y - this.lastY);
+      moved = Math.hypot(p.x - this.lastX, p.y - this.lastY);
       this.lastX = p.x;
       this.lastY = p.y;
       if (moved < 0.005) {
@@ -152,10 +157,20 @@ export class PlayerNav {
       const ty = n.y + 0.7; // ayak noktası: tileY = floor(y - 0.2) → n.y
       const ex = tx - p.x;
       const ey = ty - p.y;
-      if (Math.hypot(ex, ey) < N.arriveDist) {
+      const dist = Math.hypot(ex, ey);
+      if (dist < N.arriveDist) {
         this.path.shift();
+        this.nodeDist = -1;
         continue;
       }
+      // Kare başına adım varış yarıçapını aşınca (düşük kare hızı, koşu) düğüm çevresinde salınım olur: hareket ettiği
+      // hâlde düğüme yaklaşamıyorsa geçilmiş say. Hiç hareket yoksa yukarıdaki takılma mantığı (yeniden planla) devreye girer.
+      if (moved >= 0.005 && this.nodeDist >= 0 && dist >= this.nodeDist - 1e-6) {
+        this.path.shift();
+        this.nodeDist = -1;
+        continue;
+      }
+      this.nodeDist = dist;
       const dx = Math.abs(ex) > N.axisDead ? Math.sign(ex) : 0;
       const dy = Math.abs(ey) > N.axisDead ? Math.sign(ey) : 0;
       if (dx === 0 && dy === 0) {
@@ -185,6 +200,7 @@ export class PlayerNav {
       return false;
     }
     this.path = path;
+    this.nodeDist = -1;
     return true;
   }
 
@@ -210,6 +226,7 @@ export class PlayerNav {
         const path = this.plan({ x: p.tileX, y: p.tileY }, target.tile, false);
         if (path && path.length > 0) {
           this.path = path;
+          this.nodeDist = -1;
           return;
         }
       }
