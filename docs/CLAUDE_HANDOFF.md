@@ -57,6 +57,17 @@
   köpek paneli, araç şeridi, alt menü listesi, ana menü, Ayarlar: çakışma yok, taşma yok. Alt menü açılır listesi köpek
   panelinin üstüne gelebilir (geçici popover, üstte kalır) — kabul edildi. Gerçek cihaz testi kullanıcıda.
 
+## 0.15.2 — Soy ağacı, başarımlar, otopilot (M14 son dilimi; Claude, 2026-09-23)
+- `src/sim/systems/Lineage.ts` `lineageOf(sim, dog)` (saf): anne-baba (ad, barınakta mı), dede-nine (ebeveyn hâlâ kayıttaysa
+  onun `parentNames`'i), barınaktaki yavrular. Köpek panelinde "Soy" bölümü (Kulübe'den önce): barınaktaki anne-baba ve yavrular
+  düğme (dokununca o köpeğin paneli), barınakta olmayan ebeveyn gri ad.
+- `stats.bredHatched` / `stats.bredLegendary` (kuluçkada soylu yumurta çatlayınca); başarımlar `lineage-1` "İlk soy" ve
+  `lineage-legend` "Efsanevi soy" (toplam 27).
+- Otopilot: tahta boşken uykudan sonra `nurseryEggJob` — yuva evinde yumurta varsa ve çantada yer varsa kapıya gidip alır
+  (sonra mevcut `placeEggJob` kuluçkaya koyar); durum metni "🤖 Yuva evinden yumurta alıyor".
+- M14 Soy tamam (0.15.0–0.15.2). Sıradaki paket M15 İç Mekânlar (0.16.x).
+- Testler: `tests/unit/lineage.test.ts` (3).
+
 ## 0.15.1 — Yuva evi (M14 ikinci dilimi; Claude, 2026-09-23)
 - Yeni bina `nursery` "Yuva evi" (3×3, 2.500 ₺, 240 dk, Büyüme; `eggSlots: 1` — yüklemede yumurtası kırpılmasın diye).
   `Building.pair` (0–2 köpek id) ve `breedLeft` (dk) kayıtta; `Dog.breedReadyAt` (toplam dk) kayıtta.

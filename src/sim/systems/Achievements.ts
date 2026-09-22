@@ -29,6 +29,8 @@ export const ACHIEVEMENTS: AchievementDef[] = [
   { id: 'bff', name: 'Can dostlar', desc: 'İki köpek 50 dostluk puanına ulaşsın.', check: (s) => s.shelterDogs().some((d) => Object.values(d.friends).some((v) => v >= 50)) },
   { id: 'walker', name: 'Gezgin dost', desc: 'Tasma bilen köpeklerle 10 gezinti yap.', check: (s) => s.stats.walks >= 10 },
   { id: 'year-shelter', name: 'Yılın Barınağı', desc: '50 sahiplendirme ve 90 itibara ulaş.', check: (s) => s.victory !== null },
+  { id: 'lineage-1', name: 'İlk soy', desc: 'Yuva evinden gelen ilk yavru doğsun.', check: (s) => s.stats.bredHatched >= 1 },
+  { id: 'lineage-legend', name: 'Efsanevi soy', desc: 'Yuva evinden efsanevi bir yavru doğsun.', check: (s) => s.stats.bredLegendary >= 1 },
   { id: 'healer', name: 'Şifacı', desc: '10 hastalığı tedaviyle geçir.', check: (s) => s.stats.cured >= 10 },
   { id: 'builder', name: 'Mimar', desc: '10 inşaat yap.', check: (s) => s.stats.built >= 10 },
   { id: 'explorer', name: 'Kâşif', desc: 'Haritanın yarısını keşfet.', check: (s) => s.exploredCount >= s.world.width * s.world.height * 0.5 },

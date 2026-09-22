@@ -115,7 +115,7 @@ export class Autopilot {
     if (this.timeSec < this.nextCheckAt) return;
     this.nextCheckAt = this.timeSec + BALANCE.autopilot.idleRecheckSec;
     if (this.tryOrderFood()) return;
-    const job = this.pickJob() ?? this.sleepJob() ?? this.placeEggJob() ?? this.nestJob() ?? this.berryJob() ?? this.idlePet();
+    const job = this.pickJob() ?? this.sleepJob() ?? this.nurseryEggJob() ?? this.placeEggJob() ?? this.nestJob() ?? this.berryJob() ?? this.idlePet();
     if (job) this.start(job);
   }
 
@@ -211,6 +211,15 @@ export class Autopilot {
       if (r.message) this.sim.events.emit('message', r.message);
       return r.ok;
     });
+  }
+
+  /** Yuva evinde hazır yumurta varsa ve çantada yer varsa: kapıya git, yumurtayı al (sonra kuluçkaya götürülür). */
+  private nurseryEggJob(): Job | null {
+    const sim = this.sim;
+    if (sim.backpack.length >= sim.backpackSlots()) return null;
+    const n = sim.buildings.find((b) => b.type === 'nursery' && isReady(b) && b.eggs.length > 0 && !this.blocked.has(`nursery:${b.id}`));
+    if (!n) return null;
+    return this.doorJob(`nursery:${n.id}`, n, t('🤖 Yuva evinden yumurta alıyor'), () => sim.command({ type: 'takeNurseryEgg', buildingId: n.id }).ok);
   }
 
   /** Çantada yumurta ve boş yuvalı hazır kuluçka varsa: kapısına git, sığan yumurtaları koy. */

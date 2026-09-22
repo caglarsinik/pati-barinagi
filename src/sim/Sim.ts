@@ -194,6 +194,9 @@ export interface SimStats {
   hatched: number;
   /** Yuva evinde verilen soylu yumurta sayısı. */
   bred: number;
+  /** Kuluçkada çatlayan soylu yavrular ve bunların efsanevi olanları. */
+  bredHatched: number;
+  bredLegendary: number;
   strays: number;
   adopted: number;
   staffTasks: number;
@@ -230,6 +233,8 @@ function emptyStats(): SimStats {
     eggsFound: 0,
     hatched: 0,
     bred: 0,
+    bredHatched: 0,
+    bredLegendary: 0,
     strays: 0,
     adopted: 0,
     staffTasks: 0,

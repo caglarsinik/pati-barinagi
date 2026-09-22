@@ -16,6 +16,7 @@ import {
 } from '../sim/entities/DogGenome';
 import { DogPortrait } from './DogPortrait';
 import { showToast, store } from './store';
+import { lineageOf } from '../sim/systems/Lineage';
 
 export function Bar({ label, value, danger = 30 }: { label: string; value: number; danger?: number }) {
   const v = Math.round(value);
@@ -70,6 +71,7 @@ export function DogPanel() {
   const bf = dog.bestFriend();
   const friend = bf ? sim.dogById(bf.id) : undefined;
   const why = adoptable(dog);
+  const lin = lineageOf(sim, dog);
   const close = (): void => {
     store.panel.value = 'none';
     store.selectedDogId.value = null;
@@ -165,6 +167,41 @@ export function DogPanel() {
         ))}
         <div class="muted small-text">{t('Odak seçmezsen önce tuvalet eğitimi çalışılır.')}</div>
       </div>
+
+      {(lin.parents.length > 0 || lin.children.length > 0) && (
+        <>
+          <h4>{t('Soy')}</h4>
+          <div class="lineage small-text">
+            {lin.parents.length > 0 && (
+              <div class="row wrap">
+                <span class="muted">{t('Anne-baba:')}</span>
+                {lin.parents.map((p, i) =>
+                  p.here ? (
+                    <button key={i} class="btn small" onClick={() => (store.selectedDogId.value = p.id)}>
+                      {p.name}
+                    </button>
+                  ) : (
+                    <span key={i} class="muted">
+                      {p.name}
+                    </span>
+                  ),
+                )}
+              </div>
+            )}
+            {lin.grandparents.length > 0 && <div class="muted">{t('Dede-nine: {names}', { names: lin.grandparents.join(', ') })}</div>}
+            {lin.children.length > 0 && (
+              <div class="row wrap">
+                <span class="muted">{t('Yavruları ({n}):', { n: lin.children.length })}</span>
+                {lin.children.map((c) => (
+                  <button key={c.id} class="btn small" onClick={() => (store.selectedDogId.value = c.id)}>
+                    {c.name}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        </>
+      )}
 
       <h4>{t('Kulübe')}</h4>
       <div class="row">

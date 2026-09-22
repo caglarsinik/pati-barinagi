@@ -143,7 +143,9 @@ yeniden denemez. Otopilot inşaat, işe alım ve sahiplendirme kararı vermez.
 - **Soy (Yuva evi):** Büyüme kategorisinden Yuva evi (2.500 ₺) kur, önünde E ile iki yetişkin köpek seç. Sağlıkları 70+,
   birbirlerine dostlukları 60+ (birlikte oynadıkça artar) ise 5 günde binada soylu bir yumurta çıkar; E → "Yumurtayı al",
   sonra kuluçkaya koy. Yavru her özelliği iki ebeveynden birinden alır (%10 mutasyon), nadirliği en az ebeveynlerin
-  yükseği kadardır, bazen bir kademe çıkar. Çift sonra 4 hafta dinlenir; koşul bozulursa sayaç durur.
+  yükseği kadardır, bazen bir kademe çıkar. Çift sonra 4 hafta dinlenir; koşul bozulursa sayaç durur. Köpek panelinin
+  "Soy" bölümü anne-baba, dede-nine ve barınaktaki yavruları gösterir (dokununca o köpeğe geçer); otopilot yuva evindeki
+  yumurtayı alıp kuluçkaya koyar. Başarımlar: "İlk soy", "Efsanevi soy".
 - Uzaktaki inlerde (turuncu nokta) sokak köpekleri yaşar. Böğürtlen çalısından ödül maması topla, köpeğe 3 kez ver (cesur huyluya 2); peşine takılır, barınağa girince katılır.
 - Gece 20:00'den sonra ofisin önünde E ile sabaha kadar uyursun. Dışarıda 02:00'ye kadar kalırsan bayılıp ofiste uyanırsın.
 
@@ -200,7 +202,7 @@ Lisans gerektirenleri README'de anmayı unutma.
 
 ## Başarımlar
 
-H tuşu ya da ofis panelinden 25 başarımın listesi açılır (ilk yumurta, 10 sahiplendirme, 95+ eşleşme, 1,4 denetim çarpanı, 20.000 ₺, efsanevi köpek, bir yıl dayanmak...). Her başarım açıldığında itibar +1 verir; kayıtla korunur.
+H tuşu ya da ofis panelinden 27 başarımın listesi açılır (ilk yumurta, 10 sahiplendirme, 95+ eşleşme, 1,4 denetim çarpanı, 20.000 ₺, efsanevi köpek, bir yıl dayanmak...). Her başarım açıldığında itibar +1 verir; kayıtla korunur.
 
 ## Dil
 
@@ -247,7 +249,8 @@ Bilgisayar değiştirirken ya da yedek almak için kullan.
 - [x] 0.14.6 3 kayıt yuvası (ana menüde kartlar, Devam/Sil/Yeni oyun) ve haftalık otomatik kayıt — M12 İlerleme ve Son Oyun tamam
 - [x] 0.15.0 Kalıtım (yavru özellikleri ebeveynlerden, %10 mutasyon, nadirlik yükselebilir) ve köpek panelinde köken/soy satırı
 - [x] 0.15.1 Yuva evi: iki dost yetişkin köpek 5 günde soylu yumurta verir, 4 hafta dinlenir
-- [ ] M14 Soy (0.15.2: soy ağacı ve başarımlar), sonra M15 İç Mekânlar ve Personel Konforu (0.16.x)
+- [x] 0.15.2 Soy ağacı (anne-baba, dede-nine, yavrular), "İlk soy"/"Efsanevi soy" başarımları, otopilot yuva evi yumurtası — M14 Soy tamam
+- [ ] M15 İç Mekânlar ve Personel Konforu (0.16.x): binalara girme, ofis eşyaları, personel WC, dinlenme odası
 - [ ] Sonraki paketler (`docs/PLAN.md` §7): M11 Yaşayan Dünya, M13 Sahiplendirme Hikâyeleri
 
 ## Geliştirme

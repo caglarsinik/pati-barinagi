@@ -449,13 +449,13 @@ iflas/kredi ve bina döndürme M10'da yapıldı.
 | 0.14.5 ✅ | Finans: 8 haftalık çubuk grafik + nakit tahmini ("x hafta sonra kasa eksiye düşer") |
 | 0.14.6 ✅ | 3 kayıt yuvası (ana menüde kartlar; mevcut kayıt yuva 1) + haftalık otomatik kayıt |
 
-### M14 Soy (üreme/kalıtım; kullanıcı istedi; sürüyor: 0.15.x)
+### M14 Soy (üreme/kalıtım; kullanıcı istedi; tamamlandı: 0.15.0–0.15.2)
 
 | Sürüm | Konu |
 |---|---|
 | 0.15.0 ✅ | Kalıtım çekirdeği (`inheritGenome`) ve soy bilgisi (yumurta/köpek "Anne × Baba", köken satırı) |
 | 0.15.1 ✅ | "Yuva evi": çift seçimi, koşullar (yetişkin, sağlık ≥ 70, karşılıklı dostluk ≥ 60, bekleme), 5 gün, yumurta, 4 hafta bekleme |
-| 0.15.2 | Soy ağacı, "İlk soy"/"Efsanevi soy" başarımları, otopilot yuva evi yumurtası |
+| 0.15.2 ✅ | Soy ağacı, "İlk soy"/"Efsanevi soy" başarımları, otopilot yuva evi yumurtası |
 
 - `DogGenome.inheritGenome(a, b, rng)`: her alan %50/50 ebeveynden, %10 mutasyon; nadirlik ebeveynlerin en yükseği, %15 bir
   kademe üstü; `secondary` ebeveynin `coat`'undan.

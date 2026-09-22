@@ -61,6 +61,8 @@ export function tickIncubators(sim: Sim, dtMin: number): void {
       if (egg.parents) {
         dog.parents = [egg.parents[0], egg.parents[1]];
         dog.parentNames = egg.parentNames ? [egg.parentNames[0], egg.parentNames[1]] : null;
+        sim.stats.bredHatched++;
+        if (egg.genome.rarity === 'legendary') sim.stats.bredLegendary++;
       }
       sim.stats.hatched++;
       sim.events.emit('dogHatched', dog);
