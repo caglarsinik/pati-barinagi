@@ -241,7 +241,9 @@ Bilgisayar değiştirirken ya da yedek almak için kullan.
 - [x] 0.14.4 Eğitim kursu (800 ₺, bir gün, bir seviye) ve gönüllüler (Cuma başvurur, maaşsız, hafta sonu, 2 hafta, itibar +1)
 - [x] 0.14.5 Finans: 8 haftalık gelir/gider grafiği ve nakit tahmini
 - [x] 0.14.6 3 kayıt yuvası (ana menüde kartlar, Devam/Sil/Yeni oyun) ve haftalık otomatik kayıt — M12 İlerleme ve Son Oyun tamam
-- [ ] Sonraki paketler (`docs/PLAN.md` §7): M14 Soy, M11 Yaşayan Dünya, M13 Sahiplendirme Hikâyeleri
+- [x] 0.15.0 Kalıtım (yavru özellikleri ebeveynlerden, %10 mutasyon, nadirlik yükselebilir) ve köpek panelinde köken/soy satırı
+- [ ] M14 Soy (0.15.1–0.15.2: Yuva evi, soy ağacı ve başarımlar), sonra M15 İç Mekânlar ve Personel Konforu (0.16.x)
+- [ ] Sonraki paketler (`docs/PLAN.md` §7): M11 Yaşayan Dünya, M13 Sahiplendirme Hikâyeleri
 
 ## Geliştirme
 

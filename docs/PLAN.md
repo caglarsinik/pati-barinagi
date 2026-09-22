@@ -449,7 +449,14 @@ iflas/kredi ve bina döndürme M10'da yapıldı.
 | 0.14.5 ✅ | Finans: 8 haftalık çubuk grafik + nakit tahmini ("x hafta sonra kasa eksiye düşer") |
 | 0.14.6 ✅ | 3 kayıt yuvası (ana menüde kartlar; mevcut kayıt yuva 1) + haftalık otomatik kayıt |
 
-### M14 Soy (üreme/kalıtım; kullanıcı istedi)
+### M14 Soy (üreme/kalıtım; kullanıcı istedi; sürüyor: 0.15.x)
+
+| Sürüm | Konu |
+|---|---|
+| 0.15.0 ✅ | Kalıtım çekirdeği (`inheritGenome`) ve soy bilgisi (yumurta/köpek "Anne × Baba", köken satırı) |
+| 0.15.1 | "Yuva evi": çift seçimi, koşullar (yetişkin, sağlık ≥ 70, karşılıklı dostluk ≥ 60, bekleme), 5 gün, yumurta, 4 hafta bekleme |
+| 0.15.2 | Soy ağacı, "İlk soy"/"Efsanevi soy" başarımları, otopilot yuva evi yumurtası |
+
 - `DogGenome.inheritGenome(a, b, rng)`: her alan %50/50 ebeveynden, %10 mutasyon; nadirlik ebeveynlerin en yükseği, %15 bir
   kademe üstü; `secondary` ebeveynin `coat`'undan.
 - Yeni bina "Yuva evi" 3×3, 2.500 ₺: iki yetişkin köpek atanır (dostluk ≥ 60, sağlık ≥ 70, ikisi de yaşlı değil) → 5 gün →
@@ -463,6 +470,14 @@ iflas/kredi ve bina döndürme M10'da yapıldı.
 - Hızlı seyahat: keşfedilmiş yol tabelaları arası; bisiklet yükseltmesi (koşu ×1,5).
 - Taş/odun toplama → inşa indirimi; tam ekran harita (M), tıklanabilir, işaret koyma.
 - Dışarıda hava etkisi: fırtınada dayanıklılık düşer, kışın gece görüş daralır.
+
+### M15 İç Mekânlar ve Personel Konforu (M14'ten sonra; 2026-09-23 kullanıcı isteği)
+
+Binalara girilir (ayrı iç oda, kapıdan girince ekran içeri geçer, zaman akar); iç oda küçük ayrı bir `TileWorld`, WorldScene
+harita dışına ofsetle çizer. 0.16.0 altyapı + ofise gir/çık; 0.16.1 ofis eşyaları (masa-bilgisayar, lisans panosu, yatak,
+kahve makinesi, telefon, kitaplık); 0.16.2 personel tuvalet ihtiyacı + Personel WC; 0.16.3 dinlenme odası içi (satın alınan
+kanepe, kahve köşesi, TV; molada personel içeride); 0.16.4 cila (otopilot, dokunma senaryoları). Veteriner, mutfak, kiler,
+kuluçka iç mekânları sonra.
 
 ### M13 Sahiplendirme Hikâyeleri
 - Sahiplenici kimliği: 100+ isim, 6 kişilik tipi, tekrar gelen sahiplenici.

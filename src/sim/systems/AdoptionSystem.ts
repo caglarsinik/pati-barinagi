@@ -232,6 +232,8 @@ export class AdoptionSystem {
       const at = entryPoint(sim.world, 'east')?.inside ?? { x: Math.floor(sim.world.spawn.x), y: Math.floor(sim.world.spawn.y) };
       const back = sim.addDog(dog.genome, dog.origin, dog.ageWeeks, at.x + 0.5, at.y + 0.5, dog.name);
       back.skills = { ...dog.skills };
+      back.parents = dog.parents;
+      back.parentNames = dog.parentNames;
       back.needs.loyalty = Math.max(0, dog.needs.loyalty - 15);
       sim.reputation = clamp100(sim.reputation - BALANCE.adoption.repReturn);
       sim.events.emit('message', t("{person} {dog}'i geri getirdi: uyum sağlayamamış (itibar -{n})", { person: r.adopterName, dog: dog.name, n: BALANCE.adoption.repReturn }));

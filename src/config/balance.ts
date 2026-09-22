@@ -301,6 +301,11 @@ export const BALANCE = {
       walk: { playGain: 40, loyaltyGain: 5, hygieneLoss: 10, energyCost: 15 },
     },
   },
+  /** Soy (M14): kalıtımda mutasyon ve nadirlik yükselme olasılıkları. */
+  breeding: {
+    mutation: 0.1,
+    rarityUp: 0.15,
+  },
   eggs: {
     hatchDays: 3,
     nestRespawnDays: 2,

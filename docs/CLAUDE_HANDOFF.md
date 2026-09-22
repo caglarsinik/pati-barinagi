@@ -57,6 +57,16 @@
   köpek paneli, araç şeridi, alt menü listesi, ana menü, Ayarlar: çakışma yok, taşma yok. Alt menü açılır listesi köpek
   panelinin üstüne gelebilir (geçici popover, üstte kalır) — kabul edildi. Gerçek cihaz testi kullanıcıda.
 
+## 0.15.0 — Kalıtım çekirdeği ve soy bilgisi (M14 ilk dilimi; Claude, 2026-09-23)
+- `DogGenome.inheritGenome(a, b, rng)` (saf): görünüş ve huy alanları ebeveynlerden biri, `BALANCE.breeding.mutation` (0,1)
+  olasılıkla o alanın rastgele değeri; ana renk seçilen ebeveynden (mutasyonda nadirliğe uygun renk), ikincil renk öbür
+  ebeveynin ana rengi; zekâ/enerji ebeveynlerden biri, mutasyonda ±1; nadirlik ebeveynlerin yükseği, `rarityUp` (0,15)
+  olasılıkla bir kademe üstü. Üreten kod (0.15.1 yuva evi) ayrı RNG kullanacak.
+- Soy alanları: `Egg.parents/parentNames` (isteğe bağlı, kayıtta, `eggFromJSON` doğrular), `Dog.parents/parentNames`
+  (varsayılan null, kayıtta); kuluçkadan çıkan yavru yumurtanın soyunu taşır; geri getirilen sahiplendirilmiş köpek de korur.
+  Yumurta açıklamasında ve köpek panelinde köken satırı ("Soy: A × B" / "Yuvadan bulunan yumurta" / "Sokaktan geldi").
+- Testler: `tests/unit/inherit.test.ts` (5).
+
 ## 0.14.6 — 3 kayıt yuvası ve haftalık otomatik kayıt (M12 son dilimi; Claude, 2026-09-23)
 - `GAME.saveSlots = 3`; `SaveManager.listSlots()`, `summary` += `difficulty`, `victory`; `lastSlot()/setLastSlot()`
   (`pati-barinagi.lastSlot`, geçersizse 0). Anahtarlar değişmedi: eski tek kayıt (`…save.0`) "Yuva 1" olarak görünür, göç yok.

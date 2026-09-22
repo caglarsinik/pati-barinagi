@@ -1,3 +1,4 @@
+import { BALANCE } from '../../config/balance';
 import type { Rng } from '../../core/Rng';
 
 export type SizeClass = 'S' | 'M' | 'L';
@@ -104,6 +105,42 @@ export function randomGenome(rng: Rng, rarity: Rarity = 'common'): DogGenome {
     temperament: rng.pick(TEMPERAMENTS),
     intelligence: Math.min(5, rng.int(1, 4) + (rng.chance(0.25 * bonus) ? 1 : 0)),
     energy: Math.min(5, rng.int(1, 4) + (rng.chance(0.25 * bonus) ? 1 : 0)),
+    rarity,
+  };
+}
+
+const RARITY_LIST: Rarity[] = ['common', 'uncommon', 'rare', 'legendary'];
+
+/**
+ * Kalıtım: her görünüş/huy alanı ebeveynlerden birinden, `BALANCE.breeding.mutation` olasılıkla o alanın rastgele değeri.
+ * Ana renk seçilen ebeveynden (mutasyonda nadirliğe uygun rastgele renk), ikincil renk öbür ebeveynin ana rengi. Zekâ ve
+ * enerji ebeveynlerden biri, mutasyonda ±1. Nadirlik ebeveynlerin yükseği, `rarityUp` olasılıkla bir kademe üstü.
+ */
+export function inheritGenome(a: DogGenome, b: DogGenome, rng: Rng): DogGenome {
+  const B = BALANCE.breeding;
+  const pick = <T>(x: T, y: T, all: readonly T[]): T => (rng.chance(B.mutation) ? rng.pick(all as T[]) : rng.chance(0.5) ? x : y);
+  const stat = (x: number, y: number): number => {
+    const v = rng.chance(0.5) ? x : y;
+    return rng.chance(B.mutation) ? Math.max(1, Math.min(5, v + (rng.chance(0.5) ? 1 : -1))) : v;
+  };
+  const top = RARITY_ORDER[a.rarity] >= RARITY_ORDER[b.rarity] ? a.rarity : b.rarity;
+  const rarity = rng.chance(B.rarityUp) ? RARITY_LIST[Math.min(3, RARITY_ORDER[top] + 1)] : top;
+  const fromA = rng.chance(0.5);
+  const main = fromA ? a : b;
+  const other = fromA ? b : a;
+  const coat = rng.chance(B.mutation) ? rng.pick(coatChoices(rarity)) : main.coat;
+  const secondary = other.coat !== coat ? other.coat : main.secondary;
+  return {
+    size: pick(a.size, b.size, SIZES),
+    body: pick(a.body, b.body, BODIES),
+    ears: pick(a.ears, b.ears, EARS),
+    tail: pick(a.tail, b.tail, TAILS),
+    coat,
+    pattern: pick(a.pattern, b.pattern, PATTERNS),
+    secondary,
+    temperament: pick(a.temperament, b.temperament, TEMPERAMENTS),
+    intelligence: stat(a.intelligence, b.intelligence),
+    energy: stat(a.energy, b.energy),
     rarity,
   };
 }

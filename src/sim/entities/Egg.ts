@@ -23,6 +23,9 @@ export interface Egg {
   foundDay: number;
   /** Kalan kuluçka süresi (oyun dakikası); hiç kuluçkaya girmediyse -1. Çantadayken sayaç durur, silinmez. */
   hatchLeft: number;
+  /** Soy (yuva evinden): ebeveyn köpek id'leri ve adları; doğada bulunan yumurtada yok. */
+  parents?: [number, number];
+  parentNames?: [string, string];
 }
 
 export interface EggSave {
@@ -30,6 +33,12 @@ export interface EggSave {
   genome: DogGenome;
   foundDay: number;
   hatchLeft: number;
+  parents?: [number, number];
+  parentNames?: [string, string];
+}
+
+function pairOf<T>(v: unknown, type: 'number' | 'string'): [T, T] | undefined {
+  return Array.isArray(v) && v.length === 2 && typeof v[0] === type && typeof v[1] === type ? [v[0] as T, v[1] as T] : undefined;
 }
 
 export function createEgg(id: number, rng: Rng, rarity: Rarity, foundDay: number): Egg {
@@ -44,6 +53,8 @@ export function eggFromJSON(data: unknown): Egg | null {
     genome: d.genome,
     foundDay: typeof d.foundDay === 'number' ? d.foundDay : 1,
     hatchLeft: typeof d.hatchLeft === 'number' && Number.isFinite(d.hatchLeft) && d.hatchLeft >= 0 ? Math.min(d.hatchLeft, hatchMinutes()) : -1,
+    parents: pairOf<number>(d.parents, 'number'),
+    parentNames: pairOf<string>(d.parentNames, 'string'),
   };
 }
 
@@ -110,7 +121,7 @@ export function eggDescription(egg: Egg): string {
     pattern: t(l.patternName).toLowerCase(),
     rarity: t(l.rarityName),
     body: t(BODY_NAMES_TR[egg.genome.body]).toLowerCase(),
-  });
+  }) + (egg.parentNames ? ` · ${t('Soy: {a} × {b}', { a: egg.parentNames[0], b: egg.parentNames[1] })}` : '');
 }
 
 export function hatchMinutes(days: number = BALANCE.eggs.hatchDays): number {

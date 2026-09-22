@@ -58,6 +58,10 @@ export function tickIncubators(sim: Sim, dtMin: number): void {
       b.eggs = b.eggs.filter((e) => e.id !== egg.id);
       const door = buildingDoorTile(b);
       const dog = sim.addDog(egg.genome, 'egg', 0, door.x + 0.5, door.y + 0.5);
+      if (egg.parents) {
+        dog.parents = [egg.parents[0], egg.parents[1]];
+        dog.parentNames = egg.parentNames ? [egg.parentNames[0], egg.parentNames[1]] : null;
+      }
       sim.stats.hatched++;
       sim.events.emit('dogHatched', dog);
       sim.events.emit('message', t('Yumurta çatladı: {name} doğdu!', { name: dog.name }));

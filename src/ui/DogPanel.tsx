@@ -115,6 +115,9 @@ export function DogPanel() {
             {dog.illness ? ` · ${t('HASTA')}: ${t(ILLNESS_NAMES_TR[dog.illness.kind])}` : dog.sick ? ` · ${t('HASTA')}` : ''}
           </div>
           <div class="muted">{friend && bf ? t('En yakın dostu: {name} (+{score})', { name: friend.name, score: Math.round(bf.score) }) : t('Henüz dostu yok')}</div>
+          <div class="muted">
+            {dog.parentNames ? t('Soy: {a} × {b}', { a: dog.parentNames[0], b: dog.parentNames[1] }) : dog.origin === 'stray' ? t('Sokaktan geldi') : t('Yuvadan bulunan yumurta')}
+          </div>
         </div>
         <button class="btn small close" onClick={close} title={t('Kapat (Esc)')}>
           ✕
