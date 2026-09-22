@@ -140,6 +140,10 @@ yeniden denemez. Otopilot inşaat, işe alım ve sahiplendirme kararı vermez.
 - Kuluçkanın önünde E: yumurtayı yerleştir, 3 günde yavru doğar. Yavru 4 haftada genç, 12 haftada yetişkin olur.
 - Yükseltmeler: kuluçka panelinden **Sv2** (2.000 ₺: 6 yuva, 2 günde çatlar; içerideki yumurtalar da hızlanır), ofisten
   **büyük çanta** (1.500 ₺: 6 yumurta).
+- **Soy (Yuva evi):** Büyüme kategorisinden Yuva evi (2.500 ₺) kur, önünde E ile iki yetişkin köpek seç. Sağlıkları 70+,
+  birbirlerine dostlukları 60+ (birlikte oynadıkça artar) ise 5 günde binada soylu bir yumurta çıkar; E → "Yumurtayı al",
+  sonra kuluçkaya koy. Yavru her özelliği iki ebeveynden birinden alır (%10 mutasyon), nadirliği en az ebeveynlerin
+  yükseği kadardır, bazen bir kademe çıkar. Çift sonra 4 hafta dinlenir; koşul bozulursa sayaç durur.
 - Uzaktaki inlerde (turuncu nokta) sokak köpekleri yaşar. Böğürtlen çalısından ödül maması topla, köpeğe 3 kez ver (cesur huyluya 2); peşine takılır, barınağa girince katılır.
 - Gece 20:00'den sonra ofisin önünde E ile sabaha kadar uyursun. Dışarıda 02:00'ye kadar kalırsan bayılıp ofiste uyanırsın.
 
@@ -242,7 +246,8 @@ Bilgisayar değiştirirken ya da yedek almak için kullan.
 - [x] 0.14.5 Finans: 8 haftalık gelir/gider grafiği ve nakit tahmini
 - [x] 0.14.6 3 kayıt yuvası (ana menüde kartlar, Devam/Sil/Yeni oyun) ve haftalık otomatik kayıt — M12 İlerleme ve Son Oyun tamam
 - [x] 0.15.0 Kalıtım (yavru özellikleri ebeveynlerden, %10 mutasyon, nadirlik yükselebilir) ve köpek panelinde köken/soy satırı
-- [ ] M14 Soy (0.15.1–0.15.2: Yuva evi, soy ağacı ve başarımlar), sonra M15 İç Mekânlar ve Personel Konforu (0.16.x)
+- [x] 0.15.1 Yuva evi: iki dost yetişkin köpek 5 günde soylu yumurta verir, 4 hafta dinlenir
+- [ ] M14 Soy (0.15.2: soy ağacı ve başarımlar), sonra M15 İç Mekânlar ve Personel Konforu (0.16.x)
 - [ ] Sonraki paketler (`docs/PLAN.md` §7): M11 Yaşayan Dünya, M13 Sahiplendirme Hikâyeleri
 
 ## Geliştirme

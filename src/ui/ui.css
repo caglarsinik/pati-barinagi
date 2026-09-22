@@ -174,6 +174,29 @@ body {
   background: var(--bg-solid);
 }
 
+.nursery-pair {
+  flex: none;
+  display: flex;
+  gap: 8px;
+  align-items: flex-end;
+  flex-wrap: wrap;
+}
+
+.nursery-pair .field {
+  flex: 1 1 150px;
+}
+
+.nursery-heart {
+  color: var(--danger);
+  font-size: 1.3rem;
+  padding-bottom: 6px;
+}
+
+.nursery-status,
+.nursery-egg {
+  flex: none;
+}
+
 .slot-list {
   display: flex;
   flex-direction: column;

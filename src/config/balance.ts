@@ -305,6 +305,13 @@ export const BALANCE = {
   breeding: {
     mutation: 0.1,
     rarityUp: 0.15,
+    /** Yuva evi: tam ve uygun çift bu kadar günde bir yumurta verir. */
+    days: 5,
+    /** Yumurtadan sonra iki köpeğin dinlenme süresi (hafta). */
+    cooldownWeeks: 4,
+    minHealth: 70,
+    /** Karşılıklı dostluk (iki yönün küçüğü) en az. */
+    minAffinity: 60,
   },
   eggs: {
     hatchDays: 3,

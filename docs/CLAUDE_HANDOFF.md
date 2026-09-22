@@ -57,6 +57,18 @@
   köpek paneli, araç şeridi, alt menü listesi, ana menü, Ayarlar: çakışma yok, taşma yok. Alt menü açılır listesi köpek
   panelinin üstüne gelebilir (geçici popover, üstte kalır) — kabul edildi. Gerçek cihaz testi kullanıcıda.
 
+## 0.15.1 — Yuva evi (M14 ikinci dilimi; Claude, 2026-09-23)
+- Yeni bina `nursery` "Yuva evi" (3×3, 2.500 ₺, 240 dk, Büyüme; `eggSlots: 1` — yüklemede yumurtası kırpılmasın diye).
+  `Building.pair` (0–2 köpek id) ve `breedLeft` (dk) kayıtta; `Dog.breedReadyAt` (toplam dk) kayıtta.
+- `src/sim/systems/BreedingSystem.ts`: `breedingIssues` (barınakta, yetişkin — yavru/genç/yaşlı değil, sağlık ≥ 70,
+  dinlenme bitmiş, başka yuva evinde değil, karşılıklı dostluk `mutualAffinity` ≥ 60), `setNurseryPair` (değişince sayaç
+  baştan), `tickNurseries` (`stepSim`, kuluçkanın yanında; koşul bozulunca sayaç durur, sıfırlanmaz; bitince
+  `new Rng(hash3(seed, bina, stats.bred))` ile `inheritGenome` → soylu yumurta binada, ikisine 4 hafta dinlenme,
+  `stats.bred++`, mesaj), `takeNurseryEgg`. Komutlar `setNurseryPair`, `takeNurseryEgg`. Ana RNG sırası değişmez (testli).
+- Arayüz: yuva evi önünde E → `NurseryPanel` (iki seçici — seçenekte karşılıklı dostluk puanı, koşul listesi ✗, ilerleme
+  çubuğu ve kalan gün, "Yumurtayı al"). Doku: pembe çatılı, kalpli tabelalı ev. Yıkımda binadaki yumurta çantaya döner.
+- Testler: `tests/unit/breeding.test.ts` (5).
+
 ## 0.15.0 — Kalıtım çekirdeği ve soy bilgisi (M14 ilk dilimi; Claude, 2026-09-23)
 - `DogGenome.inheritGenome(a, b, rng)` (saf): görünüş ve huy alanları ebeveynlerden biri, `BALANCE.breeding.mutation` (0,1)
   olasılıkla o alanın rastgele değeri; ana renk seçilen ebeveynden (mutasyonda nadirliğe uygun renk), ikincil renk öbür

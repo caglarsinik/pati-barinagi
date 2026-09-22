@@ -427,6 +427,7 @@ export class WorldScene extends Phaser.Scene {
         shed: 'click',
         kennel: 'click',
         incubator: 'click',
+        nursery: 'click',
         office: 'click',
       };
       const name = sfx[kind];
@@ -444,6 +445,9 @@ export class WorldScene extends Phaser.Scene {
     } else if (r.open === 'office' && r.building) {
       store.panelBuildingId.value = r.building.id;
       store.panel.value = 'office';
+    } else if (r.open === 'nursery' && r.building) {
+      store.panelBuildingId.value = r.building.id;
+      store.panel.value = 'nursery';
     }
   }
 

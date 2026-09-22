@@ -454,7 +454,7 @@ iflas/kredi ve bina döndürme M10'da yapıldı.
 | Sürüm | Konu |
 |---|---|
 | 0.15.0 ✅ | Kalıtım çekirdeği (`inheritGenome`) ve soy bilgisi (yumurta/köpek "Anne × Baba", köken satırı) |
-| 0.15.1 | "Yuva evi": çift seçimi, koşullar (yetişkin, sağlık ≥ 70, karşılıklı dostluk ≥ 60, bekleme), 5 gün, yumurta, 4 hafta bekleme |
+| 0.15.1 ✅ | "Yuva evi": çift seçimi, koşullar (yetişkin, sağlık ≥ 70, karşılıklı dostluk ≥ 60, bekleme), 5 gün, yumurta, 4 hafta bekleme |
 | 0.15.2 | Soy ağacı, "İlk soy"/"Efsanevi soy" başarımları, otopilot yuva evi yumurtası |
 
 - `DogGenome.inheritGenome(a, b, rng)`: her alan %50/50 ebeveynden, %10 mutasyon; nadirlik ebeveynlerin en yükseği, %15 bir

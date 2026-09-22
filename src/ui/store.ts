@@ -24,6 +24,7 @@ export type Panel =
   | 'shed'
   | 'kennel'
   | 'incubator'
+  | 'nursery'
   | 'egg'
   | 'office'
   | 'adoption'

@@ -43,6 +43,7 @@ import { rebuildMessSet } from './systems/MessSystem';
 import { NeedsSystem } from './systems/NeedsSystem';
 import { tickNests } from './systems/NestSystem';
 import { StaffSystem, maxStaff } from './systems/StaffSystem';
+import { breedMinutes, setNurseryPair, takeNurseryEgg, tickNurseries } from './systems/BreedingSystem';
 import { tickFeeders } from './systems/FeederSystem';
 import { TaskBoard } from './systems/TaskBoard';
 import { type AchievementDef, AchievementSystem } from './systems/Achievements';
@@ -133,6 +134,8 @@ export type Command =
   | { type: 'upgradeLicense' }
   | { type: 'upgradeBuilding'; buildingId: number }
   | { type: 'sendToCourse'; staffId: number }
+  | { type: 'setNurseryPair'; buildingId: number; dogIds: number[] }
+  | { type: 'takeNurseryEgg'; buildingId: number }
   | { type: 'acceptVolunteer' }
   | { type: 'buyBackpack' }
   | { type: 'takeLoan' }
@@ -189,6 +192,8 @@ export interface SimStats {
   built: number;
   eggsFound: number;
   hatched: number;
+  /** Yuva evinde verilen soylu yumurta sayısı. */
+  bred: number;
   strays: number;
   adopted: number;
   staffTasks: number;
@@ -224,6 +229,7 @@ function emptyStats(): SimStats {
     built: 0,
     eggsFound: 0,
     hatched: 0,
+    bred: 0,
     strays: 0,
     adopted: 0,
     staffTasks: 0,
@@ -421,6 +427,7 @@ export class Sim {
     tickConstruction(this, dtMin);
     tickNests(this, dtMin);
     tickIncubators(this, dtMin);
+    tickNurseries(this, dtMin);
     this.adoption.update(dtMin);
     this.minuteAcc += dtMin;
     if (this.minuteAcc >= 1) {
@@ -677,6 +684,16 @@ export class Sim {
         return { ok: this.adoption.decline(cmd.adopterId) };
       case 'hire':
         return this.staffSystem.hire(cmd.candidateId);
+      case 'setNurseryPair': {
+        const b = this.buildingById(cmd.buildingId);
+        if (!b) return { ok: false };
+        return setNurseryPair(this, b, cmd.dogIds);
+      }
+      case 'takeNurseryEgg': {
+        const b = this.buildingById(cmd.buildingId);
+        if (!b) return { ok: false };
+        return takeNurseryEgg(this, b);
+      }
       case 'sendToCourse':
         return this.staffSystem.sendToCourse(cmd.staffId);
       case 'acceptVolunteer':
@@ -1066,6 +1083,8 @@ export class Sim {
       buildLeft: Math.max(0, buildMinutes),
       eggs: [],
       level: 1,
+      pair: [],
+      breedLeft: type === 'nursery' ? breedMinutes() : 0,
     };
     this.buildings.push(b);
     this.buildingMap.set(b.id, b);
@@ -1224,6 +1243,8 @@ export class Sim {
         buildLeft: b.buildLeft,
         eggs: b.eggs.map(eggSave),
         level: b.level,
+        pair: [...b.pair],
+        breedLeft: b.breedLeft,
       })),
       dogs: this.dogs.map((d) => d.toJSON()),
       backpack: this.backpack.map(eggSave),
@@ -1405,6 +1426,8 @@ export class Sim {
           buildLeft: numOr(raw.buildLeft, 0, 0),
           eggs,
           level: Math.min(2, Math.max(1, Math.floor(numOr(raw.level, 1, 1)))),
+          pair: Array.isArray(raw.pair) ? raw.pair.filter((x): x is number => Number.isInteger(x)).slice(0, 2) : [],
+          breedLeft: raw.type === 'nursery' ? Math.min(breedMinutes(), numOr(raw.breedLeft, breedMinutes(), 0)) : 0,
         };
         b.eggs = b.eggs.slice(0, incubatorSlots(b));
         sim.buildings.push(b);

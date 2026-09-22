@@ -1,5 +1,6 @@
 import { DogList } from './DogList';
 import { EggPanel, IncubatorPanel } from './EggPanels';
+import { NurseryPanel } from './NurseryPanel';
 import { AdoptionDesk, FinancePanel, OfficePanel, WeeklyReport } from './EconomyPanels';
 import { DeploymentPanel, StaffPanel } from './StaffPanels';
 import { SettingsPanel } from './SettingsPanel';
@@ -30,6 +31,7 @@ export function App() {
           {panel === 'shed' && <ShedPanel />}
           {panel === 'kennel' && <KennelPanel />}
           {panel === 'incubator' && <IncubatorPanel />}
+          {panel === 'nursery' && <NurseryPanel />}
           {panel === 'egg' && <EggPanel />}
           {panel === 'office' && <OfficePanel />}
           {panel === 'adoption' && <AdoptionDesk />}

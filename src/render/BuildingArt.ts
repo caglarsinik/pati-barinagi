@@ -17,6 +17,9 @@ const C = {
   roofBlue: hex(0x4b6f9e),
   roofBlueDark: hex(0x35516f),
   roofGreen: hex(0x4f8a4a),
+  roofPink: hex(0xd9738f),
+  roofPinkDark: hex(0xa8506a),
+  heart: hex(0xe4514f),
   roofGreenDark: hex(0x376334),
   door: hex(0x4a2f1c),
   glass: hex(0xbfe6f5),
@@ -170,6 +173,21 @@ export function drawBuilding(type: BuildingType, variant = 0, rot: 0 | 1 = 0): P
       p.fillRect(Math.floor(W / 2) - 1, y0 + 8, 3, 9, C.cross);
       p.fillRect(Math.floor(W / 2) - 4, y0 + 11, 9, 3, C.cross);
       break;
+    case 'nursery': {
+      // Pembe çatılı küçük ev, kalpli tabela, iki kapı ve önünde minder.
+      drawHouse(p, 0, y0, W, size.h * T - 6, C.wall, C.wallDark, C.roofPink, C.roofPinkDark, C.roofPink, false);
+      const cx = Math.floor(W / 2);
+      p.ellipse(cx - 2, y0 + 12, 2.5, 2.5, C.heart);
+      p.ellipse(cx + 2, y0 + 12, 2.5, 2.5, C.heart);
+      p.fillRect(cx - 4, y0 + 12, 9, 2, C.heart);
+      p.fillRect(cx - 3, y0 + 14, 7, 2, C.heart);
+      p.fillRect(cx - 1, y0 + 16, 3, 2, C.heart);
+      p.ellipse(W / 4, bottom - 12, 3.5, 5, C.door);
+      p.ellipse((3 * W) / 4, bottom - 12, 3.5, 5, C.door);
+      p.fillRect(4, bottom - 5, W - 8, 4, C.mat);
+      p.fillRect(5, bottom - 4, W - 10, 2, C.matDark);
+      break;
+    }
     case 'incubator':
       p.fillRect(2, y0 + 12, W - 4, T + 2, C.metal);
       p.fillRect(2, y0 + T + 8, W - 4, 4, C.metalDark);

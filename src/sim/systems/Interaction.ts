@@ -42,6 +42,7 @@ export type ActionKind =
   | 'shed'
   | 'kennel'
   | 'incubator'
+  | 'nursery'
   | 'pickEgg'
   | 'berries'
   | 'treatWild'
@@ -142,6 +143,7 @@ export function resolveAction(sim: Sim): ResolvedAction {
       return { kind: 'kennel', hint: t('E: {name}{who}', { name: t(def.name), who: names ? ` (${names})` : t(' (boş)') }), building };
     }
     if (building.type === 'incubator') return { kind: 'incubator', hint: t('E: kuluçka'), building };
+    if (building.type === 'nursery') return { kind: 'nursery', hint: building.eggs.length > 0 ? t('E: yuva evi (yumurta hazır)') : t('E: yuva evi'), building };
   }
 
   // Çağır aracı: yakındaki "Gel" bilen köpekler.
@@ -217,7 +219,7 @@ export interface ActionOutcome {
   ok: boolean;
   message?: string;
   /** UI'nın açması gereken panel. */
-  open?: 'shed' | 'kennel' | 'incubator' | 'office';
+  open?: 'shed' | 'kennel' | 'incubator' | 'office' | 'nursery';
   building?: Building;
   dog?: Dog;
 }
@@ -379,6 +381,8 @@ export function performAction(sim: Sim): ActionOutcome {
       return { ok: true, open: 'kennel', building: r.building };
     case 'incubator':
       return { ok: true, open: 'incubator', building: r.building };
+    case 'nursery':
+      return { ok: true, open: 'nursery', building: r.building };
     default:
       return { ok: false };
   }

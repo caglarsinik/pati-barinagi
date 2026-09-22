@@ -19,7 +19,8 @@ export type BuildingType =
   | 'flower'
   | 'bench'
   | 'sign'
-  | 'feeder';
+  | 'feeder'
+  | 'nursery';
 
 export type BuildingCategory = 'altyapi' | 'barinma' | 'besleme' | 'bakim' | 'buyume' | 'oyun' | 'personel' | 'yonetim' | 'dekor';
 
@@ -186,6 +187,19 @@ export const BUILDING_DEFS: Record<BuildingType, BuildingDef> = {
     buildable: true,
     eggSlots: 3,
     upgrade: { cost: 2000, eggSlots: 6, hatchDays: 2 },
+  },
+  nursery: {
+    type: 'nursery',
+    name: 'Yuva evi',
+    w: 3,
+    h: 3,
+    cost: 2500,
+    category: 'buyume',
+    solidRows: 'all',
+    desc: 'İki dost yetişkin köpek 5 günde bir soylu yumurta verir; yavru özelliklerini ikisinden alır.',
+    buildMinutes: 240,
+    buildable: true,
+    eggSlots: 1,
   },
   toyBall: {
     type: 'toyBall',

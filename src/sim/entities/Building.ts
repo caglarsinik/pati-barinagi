@@ -25,6 +25,9 @@ export interface Building {
   eggs: Egg[];
   /** Yükseltme seviyesi (1 ya da 2; bkz. BuildingDef.upgrade). */
   level: number;
+  /** Yuva evi: atanan çift (0-2 köpek id) ve yumurtaya kalan süre (dk). */
+  pair: number[];
+  breedLeft: number;
 }
 
 export interface BuildingSave {
@@ -39,6 +42,8 @@ export interface BuildingSave {
   buildLeft?: number;
   eggs?: EggSave[];
   level?: number;
+  pair?: number[];
+  breedLeft?: number;
 }
 
 export function buildingDef(b: Building | BuildingType): BuildingDef {
