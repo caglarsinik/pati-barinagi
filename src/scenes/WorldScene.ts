@@ -2,6 +2,7 @@ import Phaser from 'phaser';
 import { isUiKeyboardTarget } from '../ui/keyboard';
 import { isUiTarget } from '../ui/uiTarget';
 import { pickTapDog } from './tapTarget';
+import { type GestureEvent, type GesturePointer, TouchGestures } from './TouchGestures';
 import { BALANCE } from '../config/balance';
 import { GAME } from '../config/game';
 import { BUILDING_DEFS } from '../content/buildings';
@@ -68,14 +69,18 @@ export class WorldScene extends Phaser.Scene {
   private ghostGfx!: Phaser.GameObjects.Graphics;
   private keys!: Keys;
   private zoomTarget: number = BALANCE.camera.avatarZoom * DPR;
-  /** İki parmak: başlangıç mesafesi/zoomu ve orta nokta. */
-  private pinch: { dist: number; zoom: number; mid: { x: number; y: number } } | null = null;
+  /** Dokunma/fare jestleri (saf modül, tests/unit/touchGestures.test.ts). */
+  private readonly gestures = new TouchGestures({
+    touchSlop: BALANCE.touch.tapSlopPx * DPR,
+    mouseSlop: BALANCE.touch.mouseSlopPx,
+    longPressMs: BALANCE.touch.longPressMs,
+    staleMs: BALANCE.touch.stalePointerMs,
+  });
+  /** Pinch başındaki zoom (ölçek buna uygulanır). */
+  private pinchZoomBase = 0;
   private waterTimer = 0;
   private waterFrame: 0 | 1 = 0;
   private syncTimer = 0;
-  private dragLast: { x: number; y: number } | null = null;
-  private dragMoved = false;
-  private dragButton = 0;
   private dragStartTile: TilePos | null = null;
   private hoverTile: TilePos = { x: 0, y: 0 };
   private unsub: Array<() => void> = [];
@@ -83,13 +88,6 @@ export class WorldScene extends Phaser.Scene {
   private barkTimer = 4;
   /** Havlama durumuna girdiği görülen köpekler (bir kez ses için). */
   private barkSeen = new Set<number>();
-  /** Dokunmatik uzun basış: köpek seçimi. */
-  private longPressTimer: Phaser.Time.TimerEvent | null = null;
-  private longPressed = false;
-  /** #ui üstünde başlayan işaretçiler (Phaser pencere düzeyinde de dinler): dünya girdisi sayılmaz. */
-  private uiPointers = new Set<number>();
-  /** İşaretçinin son olay zamanı (ms): basılı kalmış görünen bayat işaretçi pinch'i tetiklemesin. */
-  private pointerSeen = new Map<number, number>();
   private touchTipShown = false;
   private lightMap!: Phaser.GameObjects.RenderTexture;
   private rain!: Phaser.GameObjects.Particles.ParticleEmitter;
@@ -287,9 +285,9 @@ export class WorldScene extends Phaser.Scene {
       const f = dy > 0 ? 1 / 1.15 : 1.15;
       this.setZoomTarget(this.zoomTarget * f);
     });
-    this.input.on('pointerdown', (ptr: Phaser.Input.Pointer) => this.onPointerDown(ptr));
-    this.input.on('pointermove', (ptr: Phaser.Input.Pointer) => this.onPointerMove(ptr));
-    this.input.on('pointerup', (ptr: Phaser.Input.Pointer) => this.onPointerUp(ptr));
+    this.input.on('pointerdown', (ptr: Phaser.Input.Pointer) => this.pointerInput('down', this.gesturePointer(ptr)));
+    this.input.on('pointermove', (ptr: Phaser.Input.Pointer) => this.pointerInput('move', this.gesturePointer(ptr)));
+    this.input.on('pointerup', (ptr: Phaser.Input.Pointer) => this.pointerInput('up', this.gesturePointer(ptr)));
     // Kaçan "parmak kalktı" olaylarına karşı: tuval dışında bırakma, dokunma iptali, odak/sekme kaybı durumu sıfırlar.
     this.input.on('pointerupoutside', () => this.resetPointerState(false));
     const softReset = (): void => this.resetPointerState(false);
@@ -321,8 +319,6 @@ export class WorldScene extends Phaser.Scene {
       this.dogGenomes.clear();
       this.game.events.off('ui:focus-tile', this.focusTile, this);
       this.game.events.off('ui:interact', this.onUiInteract, this);
-      this.longPressTimer?.remove(false);
-      this.longPressTimer = null;
       this.buildingImages.clear();
       this.dogSprites.clear();
       this.adopterSprites.clear();
@@ -334,8 +330,8 @@ export class WorldScene extends Phaser.Scene {
 
   override update(_time: number, deltaMs: number): void {
     const dt = Math.min(deltaMs / 1000, 0.05);
-    // Emniyet: pinch açık kalmış ama iki parmak basılı değilse bırak (yoksa tüm dokunuşlar yutulur).
-    if (this.pinch && this.activeTouches() < 2) this.pinch = null;
+    // Bayat pinch'i bitir (kaçan touchend tüm dokunuşları yutmasın), süresi dolan uzun basışı işle.
+    this.handleGestures(this.gestures.update(this.time.now));
     this.handleHotkeys();
     const input = this.readInput();
     this.sim.update(dt, input);
@@ -465,9 +461,8 @@ export class WorldScene extends Phaser.Scene {
   // Fare
   // ---------------------------------------------------------------------------
 
-  private tileAt(ptr: Phaser.Input.Pointer): TilePos {
-    const T = GAME.tile;
-    return { x: Math.floor(ptr.worldX / T), y: Math.floor(ptr.worldY / T) };
+  private static tileOf(wx: number, wy: number): TilePos {
+    return { x: Math.floor(wx), y: Math.floor(wy) };
   }
 
   /** Kamera zoom hedefi (arka tampon ölçeğinde; sınırlar BALANCE.camera × DPR). */
@@ -483,148 +478,98 @@ export class WorldScene extends Phaser.Scene {
     return z * DPR;
   }
 
-  private isUiEvent(ptr: Phaser.Input.Pointer): boolean {
-    return isUiTarget((ptr.event as Event | undefined)?.target);
+  /** Phaser işaretçisini jest girdisine çevirir. */
+  private gesturePointer(ptr: Phaser.Input.Pointer): GesturePointer {
+    const T = GAME.tile;
+    return {
+      id: ptr.id,
+      x: ptr.x,
+      y: ptr.y,
+      wx: ptr.worldX / T,
+      wy: ptr.worldY / T,
+      button: ptr.button,
+      touch: ptr.wasTouch,
+      ui: isUiTarget((ptr.event as Event | undefined)?.target),
+      isDown: ptr.isDown,
+      now: this.time.now,
+      longPress: ptr.wasTouch && this.sim.mode === 'avatar',
+    };
   }
 
-  /** Dünya için geçerli, basılı ve taze (son birkaç saniyede olay üretmiş) dokunma işaretçisi sayısı. */
-  private activeTouches(): number {
-    const now = this.time.now;
-    let n = 0;
-    for (const p of [this.input.pointer1, this.input.pointer2]) {
-      if (!p || !p.isDown || this.uiPointers.has(p.id)) continue;
-      if (now - (this.pointerSeen.get(p.id) ?? Number.NEGATIVE_INFINITY) > BALANCE.touch.stalePointerMs) continue;
-      n++;
-    }
-    return n;
+  /** Tek giriş kapısı: Phaser olayları ve (?debug=1) test kancası buradan geçer. */
+  pointerInput(kind: 'down' | 'move' | 'up', p: GesturePointer): void {
+    const events = kind === 'down' ? this.gestures.down(p) : kind === 'move' ? this.gestures.move(p) : this.gestures.up(p);
+    if (kind === 'move' && !p.ui && !this.gestures.pinching) this.hoverTile = WorldScene.tileOf(p.wx, p.wy);
+    this.handleGestures(events);
   }
 
   /** Dokunma durumunu sıfırlar (iptal, odak kaybı, sahne kapanışı). hard: Phaser işaretçilerini de bırakır. */
   private resetPointerState(hard: boolean): void {
-    this.pinch = null;
-    this.dragLast = null;
+    this.handleGestures(this.gestures.reset());
     this.dragStartTile = null;
-    this.dragMoved = false;
-    this.longPressTimer?.remove(false);
-    this.longPressTimer = null;
-    this.longPressed = false;
-    this.uiPointers.clear();
-    this.pointerSeen.clear();
     if (hard) for (const p of this.input.manager.pointers) p.reset();
   }
 
-  /** İki parmak: mesafe oranı zoom, orta nokta kayması yönetim modunda pan. */
-  private handlePinch(p1: Phaser.Input.Pointer, p2: Phaser.Input.Pointer): void {
-    const dist = Math.max(1, Phaser.Math.Distance.Between(p1.x, p1.y, p2.x, p2.y));
-    const mid = { x: (p1.x + p2.x) / 2, y: (p1.y + p2.y) / 2 };
-    if (!this.pinch) {
-      this.pinch = { dist, zoom: this.zoomTarget, mid };
-      this.dragStartTile = null;
-      this.dragLast = null;
-      this.dragMoved = true;
-      return;
-    }
-    this.setZoomTarget(this.pinch.zoom * (dist / this.pinch.dist));
-    if (this.sim.mode === 'manage') {
-      const cam = this.cameras.main;
-      cam.scrollX -= (mid.x - this.pinch.mid.x) / cam.zoom;
-      cam.scrollY -= (mid.y - this.pinch.mid.y) / cam.zoom;
-    }
-    this.pinch.mid = mid;
+  private handleGestures(events: GestureEvent[]): void {
+    for (const e of events) this.handleGesture(e);
   }
 
-  private onPointerDown(ptr: Phaser.Input.Pointer): void {
-    // #ui düğmelerine dokunuş/tıklama (Phaser pencere dinleyicisinden gelir) dünya girdisi değildir.
-    if (this.isUiEvent(ptr)) {
-      this.uiPointers.add(ptr.id);
-      return;
-    }
-    this.uiPointers.delete(ptr.id);
-    this.pointerSeen.set(ptr.id, this.time.now);
-    if (this.pinch && this.activeTouches() < 2) this.pinch = null;
-    if (this.pinch) return;
-    this.dragLast = { x: ptr.x, y: ptr.y };
-    this.dragMoved = false;
-    this.dragButton = ptr.button;
-    this.hoverTile = this.tileAt(ptr);
-    // Dokunmatik uzun basış: köpeği seç (kısa dokunuş dokun-git).
-    this.longPressed = false;
-    this.longPressTimer?.remove(false);
-    this.longPressTimer = null;
-    if (ptr.wasTouch && this.sim.mode === 'avatar') {
-      const T = GAME.tile;
-      const wx = ptr.worldX / T;
-      const wy = ptr.worldY / T;
-      this.longPressTimer = this.time.delayedCall(450, () => {
-        this.longPressTimer = null;
-        if (this.dragMoved || !this.dragLast) return;
-        this.longPressed = true;
-        this.selectDogAt(wx, wy);
-      });
-    }
+  private handleGesture(e: GestureEvent): void {
     const tool = store.build.value;
-    if (ptr.button === 2) {
-      // Sağ tık: inşa aracını bırak (sürükleme kaydırma olarak devam eder).
-      if (tool.kind !== 'none') store.build.value = { kind: 'none' };
-      return;
+    switch (e.type) {
+      case 'press':
+        this.hoverTile = WorldScene.tileOf(e.wx, e.wy);
+        if (e.button === 2) {
+          // Sağ tık: inşa aracını bırak (sürükleme kaydırma olarak devam eder).
+          if (tool.kind !== 'none') store.build.value = { kind: 'none' };
+          return;
+        }
+        if (e.button === 0 && this.sim.mode === 'manage' && (tool.kind === 'tile' || tool.kind === 'zone')) this.dragStartTile = { ...this.hoverTile };
+        return;
+      case 'drag': {
+        const painting = this.dragStartTile !== null && e.button === 0;
+        const panAllowed = this.sim.mode === 'manage' && (e.button === 2 || (e.button === 0 && tool.kind === 'none'));
+        if (!painting && panAllowed) {
+          const cam = this.cameras.main;
+          cam.scrollX -= e.dx / cam.zoom;
+          cam.scrollY -= e.dy / cam.zoom;
+        }
+        return;
+      }
+      case 'longPress':
+        // Dokunmatik uzun basış: köpeği seç (kısa dokunuş dokun-git).
+        if (this.sim.mode === 'avatar') this.selectDogAt(e.wx, e.wy);
+        return;
+      case 'release': {
+        const start = this.dragStartTile;
+        this.dragStartTile = null;
+        if (e.button !== 0) return;
+        if (this.sim.mode === 'manage' && tool.kind !== 'none') {
+          this.applyBuildTool(tool, start, WorldScene.tileOf(e.wx, e.wy));
+          return;
+        }
+        if (!e.moved) this.onClick(e);
+        return;
+      }
+      case 'pinchStart':
+        this.pinchZoomBase = this.zoomTarget;
+        this.dragStartTile = null;
+        return;
+      case 'pinch':
+        // İki parmak: mesafe oranı zoom, orta nokta kayması yönetim modunda pan.
+        this.setZoomTarget(this.pinchZoomBase * e.scale);
+        if (this.sim.mode === 'manage') {
+          const cam = this.cameras.main;
+          cam.scrollX -= e.dx / cam.zoom;
+          cam.scrollY -= e.dy / cam.zoom;
+        }
+        return;
+      case 'cancel':
+        this.dragStartTile = null;
+        return;
+      default:
+        return;
     }
-    if (ptr.button !== 0 || this.sim.mode !== 'manage') return;
-    if (tool.kind === 'tile' || tool.kind === 'zone') this.dragStartTile = { ...this.hoverTile };
-  }
-
-  private onPointerMove(ptr: Phaser.Input.Pointer): void {
-    if (this.uiPointers.has(ptr.id)) {
-      if (ptr.isDown) return;
-      this.uiPointers.delete(ptr.id); // bırakma olayı kaçmış: bayat kaydı temizle
-    }
-    this.pointerSeen.set(ptr.id, this.time.now);
-    const p1 = this.input.pointer1;
-    const p2 = this.input.pointer2;
-    if (p1 && p2 && this.activeTouches() === 2) {
-      this.handlePinch(p1, p2);
-      return;
-    }
-    if (this.pinch) return; // ikinci parmak kalkana kadar tek parmak hareketi yok sayılır
-    this.hoverTile = this.tileAt(ptr);
-    if (!this.dragLast || !ptr.isDown) return;
-    const dx = ptr.x - this.dragLast.x;
-    const dy = ptr.y - this.dragLast.y;
-    // Parmakla dokunuş titrer: dokunmatikte daha geniş eşik.
-    if (Math.abs(dx) + Math.abs(dy) > (ptr.wasTouch ? 8 * DPR : 3)) this.dragMoved = true;
-    const painting = this.dragStartTile !== null && this.dragButton === 0;
-    const panAllowed = this.sim.mode === 'manage' && (this.dragButton === 2 || (this.dragButton === 0 && store.build.value.kind === 'none'));
-    if (!painting && panAllowed) {
-      const cam = this.cameras.main;
-      cam.scrollX -= dx / cam.zoom;
-      cam.scrollY -= dy / cam.zoom;
-    }
-    this.dragLast = { x: ptr.x, y: ptr.y };
-  }
-
-  private onPointerUp(ptr: Phaser.Input.Pointer): void {
-    if (this.uiPointers.delete(ptr.id)) return; // UI üstünde başlayan dokunuş: dünya tıklaması değil
-    this.longPressTimer?.remove(false);
-    this.longPressTimer = null;
-    if (this.pinch) {
-      // Parmaklardan biri kalkınca pinch biter; kalan parmağın dragLast'ı yok, dokunuş sayılmaz.
-      if (this.activeTouches() < 2) this.pinch = null;
-      this.dragLast = null;
-      this.dragStartTile = null;
-      return;
-    }
-    const tool = store.build.value;
-    const start = this.dragStartTile;
-    this.dragStartTile = null;
-    const wasDrag = this.dragLast !== null;
-    this.dragLast = null;
-    if (!wasDrag) return;
-    if (this.dragButton !== 0) return;
-    const tile = this.tileAt(ptr);
-    if (this.sim.mode === 'manage' && tool.kind !== 'none') {
-      this.applyBuildTool(tool, start, tile);
-      return;
-    }
-    if (!this.dragMoved) this.onClick(ptr);
   }
 
   private applyBuildTool(tool: Exclude<typeof store.build.value, { kind: 'none' }>, start: TilePos | null, end: TilePos): void {
@@ -656,15 +601,12 @@ export class WorldScene extends Phaser.Scene {
   }
 
   /** Tıklama: fare köpek seçer; dokunma avatar modunda dokun-git (uzun basış seçim). */
-  private onClick(ptr: Phaser.Input.Pointer): void {
-    const T = GAME.tile;
-    const wx = ptr.worldX / T;
-    const wy = ptr.worldY / T;
-    if (ptr.wasTouch && this.sim.mode === 'avatar') {
-      if (!this.longPressed) this.touchTap(wx, wy);
+  private onClick(e: { wx: number; wy: number; touch: boolean; longPressed: boolean }): void {
+    if (e.touch && this.sim.mode === 'avatar') {
+      if (!e.longPressed) this.touchTap(e.wx, e.wy);
       return;
     }
-    this.selectDogAt(wx, wy);
+    this.selectDogAt(e.wx, e.wy);
   }
 
   /** Dokunma: köpek → yanına gidip işini yap; bina/yuva/çalı/pislik → yanına git ve E; boş kare → yürü. */

@@ -350,6 +350,12 @@ export const BALANCE = {
   touch: {
     /** Bu süredir olay üretmeyen "basılı" işaretçi bayat sayılır; pinch'i tetiklemez (kaçan touchend koruması). */
     stalePointerMs: 3000,
+    /** Dokunmada tap sayılmak için basış noktasından en çok kayma (CSS pikseli; sahnede DPR ile çarpılır). */
+    tapSlopPx: 8,
+    /** Farede aynı eşik (tuval pikseli). */
+    mouseSlopPx: 3,
+    /** Uzun basış (köpek seçimi) süresi. */
+    longPressMs: 450,
     /** Dokunuş köpeğe bu kadar yakınsa (kare) köpek aday olur. */
     dogSnapTiles: 1.1,
     /** Bu kadar yakınsa dokunuş doğrudan köpeğin üstüdür: oyuncu dibinde olsa da köpeğe gider. */

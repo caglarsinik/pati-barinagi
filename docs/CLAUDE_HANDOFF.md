@@ -57,6 +57,16 @@
   köpek paneli, araç şeridi, alt menü listesi, ana menü, Ayarlar: çakışma yok, taşma yok. Alt menü açılır listesi köpek
   panelinin üstüne gelebilir (geçici popover, üstte kalır) — kabul edildi. Gerçek cihaz testi kullanıcıda.
 
+## 0.13.4 — Dokunma jestleri saf modülde (ertelenen 0.12.4 dilimi; Claude, 2026-09-22)
+- Yeni `src/scenes/TouchGestures.ts` (Phaser'sız): `down/move/up/update/reset` → `press, drag, longPress, release, pinchStart,
+  pinch, pinchEnd, cancel`. 0.12.1'in yamaları (`uiPointers`, `pointerSeen`, `activeTouches`, pinch emniyeti, uzun basış
+  sayacı) buraya taşındı; `WorldScene` yalnız `pointerInput(kind, p)` → `handleGesture` ile uygular (kamera, dokun-git,
+  seçim, inşa). `pointerInput` public: 0.13.5 test kancası aynı yoldan besleyecek.
+- Bilinçli küçük farklar: ikinci parmak inince pinch hemen başlar (eskiden ilk harekette) → iki parmakla dokunuş artık
+  yürüme üretmez; tap eşiği basış noktasından toplam kaymayla ölçülür (eskiden hareket başına; yavaş sürükleme tap sayılıyordu);
+  uzun basış `update()` ile (Phaser `delayedCall` yerine). Eşikler `BALANCE.touch.tapSlopPx/mouseSlopPx/longPressMs`.
+- Testler: `tests/unit/touchGestures.test.ts` (12).
+
 ## 0.13.3 — Otopilot cilası (Claude, 2026-09-22)
 - Durum satırı: `Job.text` + `Autopilot.statusText()` → `Sim.autopilotText`; `store.ts hintFor` otopilot açıkken bunu gösterir
   ("🤖 Yem kabını dolduruyor", "🤖 Susam'ı eğitiyor", "🤖 Ofise uyumaya gidiyor", iş yoksa "🤖 Otopilot: iş bekliyor").
