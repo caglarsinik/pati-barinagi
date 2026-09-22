@@ -57,6 +57,18 @@
   köpek paneli, araç şeridi, alt menü listesi, ana menü, Ayarlar: çakışma yok, taşma yok. Alt menü açılır listesi köpek
   panelinin üstüne gelebilir (geçici popover, üstte kalır) — kabul edildi. Gerçek cihaz testi kullanıcıda.
 
+## 0.14.6 — 3 kayıt yuvası ve haftalık otomatik kayıt (M12 son dilimi; Claude, 2026-09-23)
+- `GAME.saveSlots = 3`; `SaveManager.listSlots()`, `summary` += `difficulty`, `victory`; `lastSlot()/setLastSlot()`
+  (`pati-barinagi.lastSlot`, geçersizse 0). Anahtarlar değişmedi: eski tek kayıt (`…save.0`) "Yuva 1" olarak görünür, göç yok.
+  Ayar anahtarları (`${SaveManager.key(0)}.guideHidden` vb.) genel kalır.
+- `app.ts`: sabit `SLOT` yerine `store.saveSlot`; `newGame(seed, difficulty, slot)` seçili yuvaya hemen kaydeder,
+  `continueGame(slot)`, `deleteSlot(slot)`, içe aktarma seçili yuvaya yazar; `refreshSlots()` → `store.slots` + `hasSave`.
+  Kayıt her sabah 06:00 ve çıkışta sessiz (önceden de vardı) + her hafta başında "Otomatik kaydedildi · yuva n" bildirimi.
+- `MainMenu.tsx`: 3 yuva kartı (gün, kasa, zorluk, 🏆, kayıt zamanı; dokununca seçilir), kartta Devam ve iki adımlı Sil;
+  "Yeni oyun (yuva n)" dolu yuvada iki adımlı üzerine yazma onayı. Kartlar `flex: none` (menü dikey flex, büzülmesin).
+- Plan sapması: Ayarlar'da otomatik kaydı kapatma anahtarı eklenmedi (kayıp riskine karşı her zaman açık).
+- Testler: `tests/unit/save-slots.test.ts` (4; Map tabanlı sahte localStorage).
+
 ## 0.14.5 — Finans grafiği ve nakit tahmini (Claude, 2026-09-23)
 - Saf `EconomySystem.projectCash(sim, weeks = 4)`: son 3 haftanın maaş ve faiz dışı net ortalaması (geçmiş yoksa 0) − bugünkü
   haftalık maaş − bugünkü kredi faizi = `weeklyNet`; `points` hafta hafta kasa; `weeksUntilNegative` ilk eksi hafta ya da null.

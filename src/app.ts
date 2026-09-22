@@ -17,7 +17,6 @@ import { OverlayScene } from './scenes/OverlayScene';
 import { Sim, DIFFICULTIES, type Difficulty } from './sim/Sim';
 import { showToast, store, syncStore } from './ui/store';
 
-const SLOT = 0;
 
 /** Görünür pencere boyutu; gizli/henüz yerleşmemiş pencerede 0 döner. */
 function viewport(): { w: number; h: number } {
@@ -95,7 +94,8 @@ class AppController {
       this.setLabels(!store.labels.value);
       showToast(store.labels.value ? t('İsim etiketleri açık (L)') : t('İsim etiketleri kapalı (L)'));
     });
-    store.hasSave.value = SaveManager.has(SLOT);
+    store.saveSlot.value = SaveManager.lastSlot();
+    this.refreshSlots();
     window.addEventListener('beforeunload', () => this.save(true));
     // Ses: ilk kullanıcı hareketinde açılır; arayüz düğmeleri tık sesi verir.
     const unlock = (): void => audio.unlock();
@@ -185,7 +185,25 @@ class AppController {
     }
   }
 
-  newGame(seedInput: string, difficulty: Difficulty = 'normal'): void {
+  /** Ana menü yuva özetlerini yeniler. */
+  refreshSlots(): void {
+    store.slots.value = SaveManager.listSlots();
+    store.hasSave.value = store.slots.value.some((s) => s !== null);
+  }
+
+  private useSlot(slot: number): void {
+    store.saveSlot.value = Math.max(0, Math.min(GAME.saveSlots - 1, Math.floor(slot)));
+    SaveManager.setLastSlot(store.saveSlot.value);
+  }
+
+  deleteSlot(slot: number): void {
+    SaveManager.remove(slot);
+    this.refreshSlots();
+    showToast(t('Yuva {n} silindi', { n: slot + 1 }));
+  }
+
+  newGame(seedInput: string, difficulty: Difficulty = 'normal', slot: number = store.saveSlot.value): void {
+    this.useSlot(slot);
     const seed = parseSeed(seedInput);
     try {
       localStorage.setItem(`${SaveManager.key(0)}.difficulty`, difficulty);
@@ -193,13 +211,15 @@ class AppController {
       /* yoksay */
     }
     this.start(Sim.create(seed, difficulty));
-    showToast(t('Yeni dünya · tohum {seed}', { seed }));
+    this.save(true);
+    showToast(t('Yeni dünya · tohum {seed} · yuva {n}', { seed, n: store.saveSlot.value + 1 }));
   }
 
-  continueGame(): boolean {
-    const data = SaveManager.read(SLOT);
+  continueGame(slot: number = store.saveSlot.value): boolean {
+    this.useSlot(slot);
+    const data = SaveManager.read(store.saveSlot.value);
     if (!data) {
-      store.hasSave.value = false;
+      this.refreshSlots();
       showToast(t('Kayıt bulunamadı'));
       return false;
     }
@@ -218,6 +238,9 @@ class AppController {
     this.unsub.push(
       sim.events.on('hour', (h) => {
         if (h === 6) this.save(true);
+      }),
+      sim.events.on('week', () => {
+        if (this.save(true)) showToast(t('Otomatik kaydedildi · yuva {n}', { n: store.saveSlot.value + 1 }));
       }),
       sim.events.on('speedChanged', (s) => {
         store.speed.value = s;
@@ -270,8 +293,8 @@ class AppController {
 
   save(silent = false): boolean {
     if (!this.sim) return false;
-    const ok = SaveManager.write(SLOT, this.sim.toJSON());
-    if (ok) store.hasSave.value = true;
+    const ok = SaveManager.write(store.saveSlot.value, this.sim.toJSON());
+    if (ok) this.refreshSlots();
     if (!silent) showToast(ok ? t('Oyun kaydedildi') : t('Kayıt yazılamadı'));
     return ok;
   }
@@ -423,7 +446,8 @@ class AppController {
     }
     try {
       const sim = Sim.fromJSON(data);
-      SaveManager.write(SLOT, sim.toJSON());
+      SaveManager.write(store.saveSlot.value, sim.toJSON());
+      this.refreshSlots();
       store.settingsOpen.value = false;
       this.start(sim);
       showToast(t('Kayıt içe aktarıldı'));

@@ -204,6 +204,13 @@ Ana menüden ya da Ayarlar'dan Türkçe / English seçilir; seçim tarayıcıda 
 çevrilir (Türkçe kaynak metin → İngilizce). Yeni bir dil eklemek için aynı biçimde bir sözlük yazıp `src/i18n/index.ts` içine bağlaman yeterli;
 `tests/unit/i18n.test.ts` koddaki her metnin sözlükte olduğunu denetler.
 
+## Kayıt yuvaları
+
+Ana menüde 3 kayıt yuvası vardır: her kart gün, kasa, zorluk, kazanıldıysa 🏆 ve kayıt zamanını gösterir. Karta dokununca
+yuva seçilir; **Devam et** o yuvayı açar, **Sil** iki adımda siler, **Yeni oyun** seçili yuvaya başlar (doluysa üzerine yazma
+onayı ister). Oyun her sabah 06:00'da, her hafta başında ("Otomatik kaydedildi") ve çıkarken seçili yuvaya kaydedilir. Eski
+tek kayıt "Yuva 1" olarak görünür.
+
 ## Kayıt aktarımı
 
 Ayarlar panelinden kaydı JSON olarak panoya kopyalayabilir, dosya olarak indirebilir ya da yapıştırıp/dosyadan yükleyebilirsin.
@@ -233,7 +240,7 @@ Bilgisayar değiştirirken ya da yedek almak için kullan.
 - [x] 0.14.3 Personel deneyim/seviye (görev başına deneyim, Sv5'e kadar, seviyede ana nitelik +1) ve moral (yorgunluk, iş yükü, maaş; düşük moral verimi düşürür, uzun süre dipte kalan istifa eder)
 - [x] 0.14.4 Eğitim kursu (800 ₺, bir gün, bir seviye) ve gönüllüler (Cuma başvurur, maaşsız, hafta sonu, 2 hafta, itibar +1)
 - [x] 0.14.5 Finans: 8 haftalık gelir/gider grafiği ve nakit tahmini
-- [ ] M12 İlerleme ve Son Oyun (0.14.6: 3 kayıt yuvası ve haftalık otomatik kayıt)
+- [x] 0.14.6 3 kayıt yuvası (ana menüde kartlar, Devam/Sil/Yeni oyun) ve haftalık otomatik kayıt — M12 İlerleme ve Son Oyun tamam
 - [ ] Sonraki paketler (`docs/PLAN.md` §7): M14 Soy, M11 Yaşayan Dünya, M13 Sahiplendirme Hikâyeleri
 
 ## Geliştirme

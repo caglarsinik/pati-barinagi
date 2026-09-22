@@ -14,6 +14,7 @@ import { type Tool, resolveAction } from '../sim/systems/Interaction';
 export type Screen = 'menu' | 'game';
 /** Cihaz sınıfı: pencere boyutundan (app.ts) belirlenir. */
 import type { Layout } from './layout';
+import type { SaveSummary } from '../core/SaveManager';
 export type { Layout };
 export type TouchMode = 'auto' | 'on' | 'off';
 export type Panel =
@@ -51,6 +52,9 @@ export const store = {
   screen: signal<Screen>('menu'),
   booted: signal(false),
   hasSave: signal(false),
+  /** Seçili kayıt yuvası (0-2) ve yuva özetleri (ana menü). */
+  saveSlot: signal(0),
+  slots: signal<Array<SaveSummary | null>>([null, null, null]),
   pauseMenu: signal(false),
   /** Bir metin kutusu odaktayken oyun tuşları devre dışı kalır. */
   inputFocused: signal(false),

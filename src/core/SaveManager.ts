@@ -61,6 +61,8 @@ export interface SaveSummary {
   savedAt: number;
   day: number;
   money: number;
+  difficulty: string | null;
+  victory: boolean;
 }
 
 type Migration = (data: Record<string, unknown>) => Record<string, unknown>;
@@ -84,6 +86,31 @@ function storage(): Storage | null {
 export const SaveManager = {
   key(slot: number): string {
     return `${GAME.saveKeyPrefix}${slot}`;
+  },
+
+  /** Son kullanılan yuvanın saklandığı anahtar. */
+  lastSlotKey: 'pati-barinagi.lastSlot',
+
+  lastSlot(): number {
+    try {
+      const v = Number(storage()?.getItem(this.lastSlotKey));
+      return Number.isInteger(v) && v >= 0 && v < GAME.saveSlots ? v : 0;
+    } catch {
+      return 0;
+    }
+  },
+
+  setLastSlot(slot: number): void {
+    try {
+      storage()?.setItem(this.lastSlotKey, String(slot));
+    } catch {
+      /* yoksay */
+    }
+  },
+
+  /** Tüm yuvaların özeti (boş ya da bozuk yuva null). */
+  listSlots(n: number = GAME.saveSlots): Array<SaveSummary | null> {
+    return Array.from({ length: n }, (_, i) => this.summary(i));
   },
 
   has(slot: number): boolean {
@@ -144,7 +171,14 @@ export const SaveManager = {
     if (!d) return null;
     const clock = d.clock as { totalMinutes?: number } | null;
     const minutes = typeof clock?.totalMinutes === 'number' ? clock.totalMinutes : 0;
-    return { slot, savedAt: d.savedAt, day: Math.floor(minutes / 1440) + 1, money: d.money };
+    return {
+      slot,
+      savedAt: d.savedAt,
+      day: Math.floor(minutes / 1440) + 1,
+      money: d.money,
+      difficulty: typeof d.difficulty === 'string' ? d.difficulty : null,
+      victory: !!d.victory,
+    };
   },
 
   /** Kullanıcının indirmesi için JSON metni. */
