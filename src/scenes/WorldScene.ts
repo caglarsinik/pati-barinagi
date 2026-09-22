@@ -331,7 +331,7 @@ export class WorldScene extends Phaser.Scene {
   override update(_time: number, deltaMs: number): void {
     const dt = Math.min(deltaMs / 1000, 0.05);
     // Bayat pinch'i bitir (kaçan touchend tüm dokunuşları yutmasın), süresi dolan uzun basışı işle.
-    this.handleGestures(this.gestures.update(this.time.now));
+    this.gestureTick();
     this.handleHotkeys();
     const input = this.readInput();
     this.sim.update(dt, input);
@@ -501,6 +501,20 @@ export class WorldScene extends Phaser.Scene {
     const events = kind === 'down' ? this.gestures.down(p) : kind === 'move' ? this.gestures.move(p) : this.gestures.up(p);
     if (kind === 'move' && !p.ui && !this.gestures.pinching) this.hoverTile = WorldScene.tileOf(p.wx, p.wy);
     this.handleGestures(events);
+  }
+
+  /** Jest zamanlayıcıları (uzun basış, bayat pinch): her karede update(), test kancası da çağırır. */
+  gestureTick(now: number = this.time.now): void {
+    this.handleGestures(this.gestures.update(now));
+  }
+
+  /** Dokunma iptali ile aynı yol (test kancası). */
+  resetTouches(): void {
+    this.resetPointerState(false);
+  }
+
+  get touchPinching(): boolean {
+    return this.gestures.pinching;
   }
 
   /** Dokunma durumunu sıfırlar (iptal, odak kaybı, sahne kapanışı). hard: Phaser işaretçilerini de bırakır. */

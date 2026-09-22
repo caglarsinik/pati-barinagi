@@ -227,6 +227,11 @@ npm run typecheck # tsc --noEmit
 npm run build     # dist/index.html
 ```
 
+Dokunma testleri: oyunu `?touch=1&debug=1` ile açıp yeni oyun başlatınca konsolda
+`__pati.debug.runTouchScenarios()` 8 senaryoyu (eğit → yürü, E düğmesi, pinch + iptal, takılı parmak, yönetim modu,
+uzun basış, köpeğin dibinde dokunuş, otopilot) koşar ve `{ summary, results }` döndürür; `__pati.debug.snapshot()` o anki
+dokunma/yürüyüş durumunu verir. `?debug=1` olmadan kanca bağlanmaz. Gerçek cihaz kontrol listesi: `docs/CLAUDE_HANDOFF.md`.
+
 Kod yapısı:
 
 ```

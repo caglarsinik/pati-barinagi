@@ -57,6 +57,35 @@
   köpek paneli, araç şeridi, alt menü listesi, ana menü, Ayarlar: çakışma yok, taşma yok. Alt menü açılır listesi köpek
   panelinin üstüne gelebilir (geçici popover, üstte kalır) — kabul edildi. Gerçek cihaz testi kullanıcıda.
 
+## 0.13.5 — Uçtan uca dokunma senaryoları (ertelenen 0.12.5 dilimi; Claude, 2026-09-22)
+- Test kancası `src/debug/touchDebug.ts`, yalnız `?debug=1` ile `window.__pati.debug`: `tapTile, longPressTile, startPinch,
+  pinch, cancelTouches, stuckPointer, snapshot, runTouchScenarios`. Dokunuşlar `WorldScene.pointerInput` → TouchGestures →
+  `handleGesture` yolundan geçer (yalnız Phaser DOM→Pointer çevirisi atlanır); uzun basış ve bayat parmak `now` geriye
+  tarihlenerek, sim `sim.update(1/30)` ile ilerletilir. WorldScene'e public `gestureTick/resetTouches/touchPinching`.
+- Sonuç (uygulama içi tarayıcı, 812×375 `?touch=1&debug=1`, 2026-09-22): **8/8 ok**
+
+  | # | Senaryo | Sonuç |
+  |---|---|---|
+  | 1 | Eğit → 4 kare uzağa dokun → yürür | ✅ eğitildi, hedef kare, 3,0 kare yürüdü |
+  | 2 | E düğmesine iki kez → hayalet yol yok | ✅ yol yok |
+  | 3 | Pinch + dokunma iptali → sonraki dokunuş yürütür | ✅ |
+  | 4 | Takılı (bayat) parmak → yeni dokunuş pinch değil, yürür | ✅ |
+  | 5 | Yönetim modu: boş kare yürümez, köpeğe dokunuş seçer | ✅ |
+  | 6 | Uzun basış köpeği seçer, yürümez | ✅ |
+  | 7 | Köpeğin dibinde: çevre yürür, üstü sever, meşgulken "Şu an meşgul" | ✅ |
+  | 8 | Otopilot açıkken dokunuş → kapanır ve yürür | ✅ |
+
+- **Gerçek cihaz kontrol listesi** (telefonda elle, her büyük dokunma değişikliğinden sonra):
+  1. Köpeğe dokun (Eğit aracı) → eğitim biter → uzak boş kareye dokun: karakter yürüyor.
+  2. E düğmesine art arda iki kez bas: karakter düğmenin altına yürümüyor.
+  3. İki parmakla yakınlaştır, bırak, hemen tek parmakla dokun: yürüyor; iki parmakla dokunup kaldırmak yürütmüyor.
+  4. Uygulamayı arka plana al / bildirim çek, geri dön, dokun: yürüyor.
+  5. Yönetim modunda sürükle: harita kayıyor; çit aracıyla sürükle: çizgi çiziliyor.
+  6. Köpeğe uzun bas: köpek paneli açılıyor, karakter yürümüyor.
+  7. Köpeğin dibindeyken yanındaki boş kareye dokun: yürüyor; üstüne dokun: seviyor; iş sürerken tek "Şu an meşgul".
+  8. 🤖 açıkken haritaya dokun: "Otopilot kapalı" ve dokunulan yere yürüyor.
+- Testler: `tests/unit/touchDebug.test.ts` (3: `?debug` ayrıştırma, özet, boş kare seçici) → 268 test.
+
 ## 0.13.4 — Dokunma jestleri saf modülde (ertelenen 0.12.4 dilimi; Claude, 2026-09-22)
 - Yeni `src/scenes/TouchGestures.ts` (Phaser'sız): `down/move/up/update/reset` → `press, drag, longPress, release, pinchStart,
   pinch, pinchEnd, cancel`. 0.12.1'in yamaları (`uiPointers`, `pointerSeen`, `activeTouches`, pinch emniyeti, uzun basış
