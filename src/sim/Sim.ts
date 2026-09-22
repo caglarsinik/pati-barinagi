@@ -35,6 +35,7 @@ import {
 } from './systems/EconomySystem';
 import { packExplored, revealAround, unpackExplored } from './systems/Exploration';
 import { placeEgg, takeEgg, tickIncubators } from './systems/IncubatorSystem';
+import { Autopilot } from './systems/Autopilot';
 import { IllnessSystem } from './systems/IllnessSystem';
 import { type ActionKind, type ActionOutcome, TOOL_DEFS, type Tool, performAction } from './systems/Interaction';
 import { type NavGoal, PlayerNav } from './systems/PlayerNav';
@@ -134,7 +135,8 @@ export type Command =
   | { type: 'setKeep'; dogId: number; keep: boolean }
   | { type: 'goTo'; x: number; y: number }
   | { type: 'goInteract'; goal: NavGoal }
-  | { type: 'cancelNav' };
+  | { type: 'cancelNav' }
+  | { type: 'setAutopilot'; on: boolean };
 
 export interface Policies {
   autoOrderFood: boolean;
@@ -249,6 +251,9 @@ export class Sim {
   readonly achievements: AchievementSystem;
   readonly illness: IllnessSystem;
   readonly nav: PlayerNav;
+  readonly pilot: Autopilot;
+  /** Oyuncu otopilotu açık mı (T / 🤖). Elle girdi kapatır. */
+  autopilot = false;
   readonly gates: GateSystem;
   flags: SimFlags = { foodDiscountDay: 0, extraAdoptersDay: 0, growlUntil: 0, growlA: '', growlB: '' };
   speed: Speed = 1;
@@ -309,6 +314,7 @@ export class Sim {
     this.achievements = new AchievementSystem(this);
     this.illness = new IllnessSystem(this);
     this.nav = new PlayerNav(this);
+    this.pilot = new Autopilot(this);
     this.gates = new GateSystem(this);
     this.events.on('day', (d) => this.needs.onDay(d));
     this.events.on('day', () => this.illness.onDay());
@@ -369,7 +375,9 @@ export class Sim {
     if (this.mode === 'avatar') {
       // Klavye girişi dokun-git yolunu iptal eder; girdi yoksa yol takibi girdiyi üretir.
       const manual = input.dx !== 0 || input.dy !== 0;
+      if (manual && this.autopilot) this.setAutopilot(false);
       if (manual && this.nav.active) this.nav.cancel();
+      this.pilot.tick(dtSec);
       const inp = !manual && this.nav.active ? this.nav.inputFor(dtSec, input.run) : input;
       this.player.update(dtSec, inp, this.world);
       this.revealPlayer(false);
@@ -554,6 +562,7 @@ export class Sim {
     if (this.gameOver) return { ok: false, message: t('Oyun bitti') };
     switch (cmd.type) {
       case 'interact':
+        this.setAutopilot(false);
         return performAction(this);
       case 'setTool':
         if (TOOL_DEFS.some((t) => t.id === cmd.tool) && cmd.tool !== this.tool) {
@@ -695,14 +704,20 @@ export class Sim {
       }
       case 'goTo': {
         if (this.mode !== 'avatar') return { ok: false, message: t('Yürümek için Avatar moduna geç') };
+        this.setAutopilot(false);
         return { ok: this.nav.goTo({ x: Math.floor(cmd.x), y: Math.floor(cmd.y) }) };
       }
       case 'goInteract': {
         if (this.mode !== 'avatar') return { ok: false, message: t('Yürümek için Avatar moduna geç') };
+        this.setAutopilot(false);
         return { ok: this.nav.goInteract(cmd.goal) };
       }
       case 'cancelNav':
+        this.setAutopilot(false);
         this.nav.cancel();
+        return { ok: true };
+      case 'setAutopilot':
+        this.setAutopilot(cmd.on);
         return { ok: true };
       case 'takeLoan': {
         const L = BALANCE.economy.loan;
@@ -754,8 +769,25 @@ export class Sim {
   setMode(mode: Mode): void {
     if (mode === this.mode) return;
     this.mode = mode;
-    if (mode === 'manage') this.nav.cancel();
+    if (mode === 'manage') {
+      this.pilot.abandon();
+      this.nav.cancel();
+    }
     this.events.emit('modeChanged', mode);
+  }
+
+  /** Otopilotu açar/kapatır; açılınca avatar moduna geçer, kapanınca üstlenilen iş bırakılır ve yürüyüş durur. */
+  setAutopilot(on: boolean): void {
+    if (on === this.autopilot) return;
+    this.autopilot = on;
+    if (on) {
+      this.setMode('avatar');
+      this.pilot.wake();
+      this.events.emit('message', t('🤖 Otopilot açık: yem, su ve temizlik işlerini kendisi yapar'));
+    } else {
+      this.pilot.stop();
+      this.events.emit('message', t('Otopilot kapalı'));
+    }
   }
 
   toggleMode(): void {
@@ -1097,6 +1129,7 @@ export class Sim {
       mode: this.mode,
       money: this.money,
       difficulty: this.difficulty,
+      autopilot: this.autopilot,
       loan: this.loan,
       negativeWeeks: this.negativeWeeks,
       gameOver: this.gameOver,
@@ -1166,6 +1199,7 @@ export class Sim {
     const money = typeof data.money === 'number' && Number.isFinite(data.money) ? data.money : BALANCE.difficulty[difficulty].startMoney;
     const sim = new Sim(data.seed >>> 0, world, clock, player, money);
     sim.difficulty = difficulty;
+    sim.autopilot = data.autopilot === true;
     sim.loan = numOr(data.loan, 0, 0);
     sim.negativeWeeks = Math.floor(numOr(data.negativeWeeks, 0, 0));
     const go = data.gameOver as Partial<GameOverInfo> | null | undefined;

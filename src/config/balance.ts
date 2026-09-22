@@ -367,6 +367,15 @@ export const BALANCE = {
     stuckSeconds: 0.6,
     maxReplans: 2,
   },
+  /** Oyuncu otopilotu (Autopilot.ts). Süreler gerçek saniye. */
+  autopilot: {
+    /** Boştayken görev tahtasına bu aralıkla bakılır. */
+    idleRecheckSec: 3,
+    /** Ulaşılamayan/başarısız hedef bu süre yeniden denenmez. */
+    failCooldownSec: 30,
+    /** Yem siparişinden sonra bekleme. */
+    orderWaitSec: 10,
+  },
   /** Dünya üstü balonların eşikleri (Emotes.ts). */
   emotes: {
     hungerAbove: 70,

@@ -108,6 +108,7 @@ export const store = {
   weekText: signal(''),
   speed: signal<number>(1),
   mode: signal<Mode>('avatar'),
+  autopilot: signal(false),
   tool: signal<Tool>('pet'),
   hint: signal(''),
   stamina: signal(100),
@@ -147,6 +148,7 @@ export function syncStore(sim: Sim): void {
   store.weekText.value = t('{week}. Hafta', { week: sim.clock.week });
   store.speed.value = sim.speed;
   store.mode.value = sim.mode;
+  store.autopilot.value = sim.autopilot;
   store.tool.value = sim.tool;
   store.stamina.value = Math.round(sim.player.stamina);
   store.exhausted.value = sim.player.exhausted;

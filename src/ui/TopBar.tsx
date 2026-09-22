@@ -14,6 +14,7 @@ export function TopBar() {
   store.lang.value;
   const speed = store.speed.value as Speed;
   const mode = store.mode.value;
+  const autopilot = store.autopilot.value;
   const phone = store.layout.value === 'phone';
   const running: Speed = speed === 0 ? RUN_SPEEDS[0] : speed;
   const nextSpeed = RUN_SPEEDS[(RUN_SPEEDS.indexOf(running) + 1) % RUN_SPEEDS.length];
@@ -120,6 +121,9 @@ export function TopBar() {
       <div class="tb-right">
         {phoneChips}
         {speedControls}
+        <button class={'btn small' + (autopilot ? ' active' : '')} title={t('Otopilot (T): barınağın işlerini kendiliğinden yapar')} onClick={() => app.sim?.command({ type: 'setAutopilot', on: !autopilot })}>
+          🤖{phone ? '' : ` ${t('Otopilot')}`}
+        </button>
         <button class={'btn small' + (mode === 'manage' ? ' active' : '')} title={t('Avatar ve yönetim modu arasında geçiş (Tab)')} onClick={() => app.toggleMode()}>
           {phone ? (mode === 'avatar' ? `🛠 ${t('Yönet')}` : `🧍 ${t('Avatar')}`) : mode === 'avatar' ? t('Yönetim (Tab)') : t('Avatar (Tab)')}
         </button>

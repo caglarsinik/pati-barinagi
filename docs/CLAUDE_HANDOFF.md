@@ -57,6 +57,18 @@
   köpek paneli, araç şeridi, alt menü listesi, ana menü, Ayarlar: çakışma yok, taşma yok. Alt menü açılır listesi köpek
   panelinin üstüne gelebilir (geçici popover, üstte kalır) — kabul edildi. Gerçek cihaz testi kullanıcıda.
 
+## 0.13.0 — Otopilot 1: altyapı + bakım (Claude, 2026-09-22)
+- 0.12.4 (TouchGestures) ve 0.12.5 (uçtan uca senaryolar) kullanıcı kararıyla ertelendi; otopilot öne alındı.
+- `src/sim/systems/Autopilot.ts`: `Sim.autopilot` açıkken, avatar boştayken (`busy===0`, nav yok) görev tahtasından
+  **feed/water/clean** seçer (puan `urgency/(1+dist/20)`), `tasks.claim(task, PILOT_ID=-1)`, `nav.goInteract` (kap/yalak →
+  building, pislik → object); `interacted` sonucu ok → `tasks.remove`, değilse `release` + anahtar
+  `BALANCE.autopilot.failCooldownSec` (30 sn) kara liste. Kiler boş + kap yarıdan az + para varsa `orderFood 1` ve 10 sn bekler.
+- `Sim`: `setAutopilot(on)` (açılınca avatar moduna geçer; kapanınca görev bırakılır, nav durur), komut `setAutopilot`;
+  elle WASD, `goTo/goInteract/interact/cancelNav` komutları kapatır; yönetim moduna geçiş görevi cezasız bırakır (bayrak
+  açık kalır). Kayıt: `autopilot` alanı (sürüm artmadı). Personel aynı tahtayı kullanır; `-1` sahipli görev personele gitmez.
+- Arayüz asgari: TopBar 🤖 düğmesi (telefonda yalnız simge), klavye **T**, `store.autopilot`, açılış/kapanış toast'u.
+  Durum metni/yardım/README 0.13.3'te. Testler: `tests/unit/autopilot.test.ts` (10).
+
 ## 0.12.3 — Yakın köpek yeniden hedefleme ve sessiz retler (Claude, 2026-09-19)
 - `src/scenes/tapTarget.ts` `pickTapDog` (saf, testli): dokunuş köpeğin üstündeyse (`BALANCE.touch.dogDirectTiles` 0,5) her
   zaman köpeğe gider; çevresindeyse (`dogSnapTiles` 1,1) yalnız oyuncu köpekten `nav.reachDist`'ten uzaksa kilitlenir.

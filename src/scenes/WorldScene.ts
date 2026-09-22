@@ -26,12 +26,12 @@ import { t } from '../i18n';
 
 type KeyName =
   | 'W' | 'A' | 'S' | 'D' | 'UP' | 'DOWN' | 'LEFT' | 'RIGHT' | 'SHIFT' | 'E' | 'I' | 'B' | 'X' | 'Z' | 'O' | 'N' | 'P' | 'F' | 'TAB' | 'SPACE' | 'ESC'
-  | 'PLUS' | 'MINUS' | 'NUMPAD_ADD' | 'NUMPAD_SUBTRACT' | 'ONE' | 'TWO' | 'THREE' | 'FOUR' | 'FIVE' | 'SIX' | 'H' | 'L' | 'R';
+  | 'PLUS' | 'MINUS' | 'NUMPAD_ADD' | 'NUMPAD_SUBTRACT' | 'ONE' | 'TWO' | 'THREE' | 'FOUR' | 'FIVE' | 'SIX' | 'H' | 'L' | 'R' | 'T';
 type Keys = Record<KeyName, Phaser.Input.Keyboard.Key>;
 
 const KEY_LIST: KeyName[] = [
   'W', 'A', 'S', 'D', 'UP', 'DOWN', 'LEFT', 'RIGHT', 'SHIFT', 'E', 'I', 'B', 'X', 'Z', 'O', 'N', 'P', 'F', 'TAB', 'SPACE', 'ESC',
-  'PLUS', 'MINUS', 'NUMPAD_ADD', 'NUMPAD_SUBTRACT', 'ONE', 'TWO', 'THREE', 'FOUR', 'FIVE', 'SIX', 'H', 'L', 'R',
+  'PLUS', 'MINUS', 'NUMPAD_ADD', 'NUMPAD_SUBTRACT', 'ONE', 'TWO', 'THREE', 'FOUR', 'FIVE', 'SIX', 'H', 'L', 'R', 'T',
 ];
 
 const TOOL_KEYS: Array<[KeyName, Tool]> = [
@@ -387,6 +387,7 @@ export class WorldScene extends Phaser.Scene {
     if (JustDown(k.H)) store.panel.value = store.panel.value === 'achievements' ? 'none' : 'achievements';
     if (JustDown(k.B)) this.game.events.emit('ui:build-toggle');
     if (JustDown(k.L)) this.game.events.emit('ui:labels-toggle');
+    if (JustDown(k.T)) this.sim.command({ type: 'setAutopilot', on: !this.sim.autopilot });
     if (this.sim.mode === 'manage') {
       if (JustDown(k.X)) store.build.value = store.build.value.kind === 'demolish' ? { kind: 'none' } : { kind: 'demolish' };
       if (JustDown(k.Z)) store.build.value = store.build.value.kind === 'zone' ? { kind: 'none' } : { kind: 'zone', zone: Zone.Toilet };
