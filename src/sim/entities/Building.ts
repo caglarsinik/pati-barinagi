@@ -23,6 +23,8 @@ export interface Building {
   buildLeft: number;
   /** Kuluçka: içindeki yumurtalar. */
   eggs: Egg[];
+  /** Yükseltme seviyesi (1 ya da 2; bkz. BuildingDef.upgrade). */
+  level: number;
 }
 
 export interface BuildingSave {
@@ -36,6 +38,7 @@ export interface BuildingSave {
   occupants?: number[];
   buildLeft?: number;
   eggs?: EggSave[];
+  level?: number;
 }
 
 export function buildingDef(b: Building | BuildingType): BuildingDef {

@@ -1,9 +1,10 @@
 import { app } from '../app';
-import { BALANCE } from '../config/balance';
 import { t } from '../i18n';
 import { buildingDef, isReady } from '../sim/entities/Building';
 import { type Egg, eggLook } from '../sim/entities/Egg';
 import { EggIcon } from './EggIcon';
+import { formatMoney } from './format';
+import { incubatorHatchDays, incubatorSlots } from '../sim/systems/IncubatorSystem';
 import { showToast, store } from './store';
 
 function EggDetails({ egg }: { egg: Egg }) {
@@ -96,9 +97,11 @@ export function IncubatorPanel() {
   const b = sim && id !== null ? sim.buildingById(id) : undefined;
   if (!sim || !b || b.type !== 'incubator') return null;
   const def = buildingDef(b);
-  const slots = def.eggSlots ?? 0;
+  const slots = incubatorSlots(b);
   const ready = isReady(b);
   const dayMin = 24 * 60;
+  const days = incubatorHatchDays(b);
+  const up = def.upgrade;
   const run = (r: { ok: boolean; message?: string }): void => {
     if (r.message) showToast(r.message);
   };
@@ -106,13 +109,23 @@ export function IncubatorPanel() {
     <div class="overlay">
       <div class="menu-card panel wide">
         <div class="panel-head">
-          <h2>{t('Kuluçka')}</h2>
+          <h2>
+            {t('Kuluçka')}
+            {b.level >= 2 ? ` · ${t('Sv{n}', { n: b.level })}` : ''}
+          </h2>
           <button class="btn small close" onClick={() => (store.panel.value = 'none')}>
             ✕
           </button>
         </div>
         {!ready && <p class="muted">{t('Kuluçka henüz inşa ediliyor.')}</p>}
-        <p class="muted small-text">{t('Yumurtalar {days} günde çatlar. Çıkan yavru kuluçkanın kapısında bekler; kulübe varsa otomatik atanır.', { days: BALANCE.eggs.hatchDays })}</p>
+        <p class="muted small-text">{t('Yumurtalar {days} günde çatlar. Çıkan yavru kuluçkanın kapısında bekler; kulübe varsa otomatik atanır.', { days })}</p>
+        {up && b.level < 2 && (
+          <div class="row">
+            <button class="btn" disabled={!ready || sim.money < up.cost} onClick={() => run(sim.command({ type: 'upgradeBuilding', buildingId: b.id }))}>
+              {t('Yükselt: {slots} yuva, {days} günde çatlar ({cost})', { slots: up.eggSlots ?? slots, days: up.hatchDays ?? days, cost: formatMoney(up.cost) })}
+            </button>
+          </div>
+        )}
         <div class="incubator-slots">
           {Array.from({ length: slots }, (_, i) => {
             const egg = b.eggs[i];
@@ -131,7 +144,7 @@ export function IncubatorPanel() {
                   <div>{t('{color} yumurta', { color: t(eggLook(egg).colorName) })}</div>
                   <div class="muted small-text">{daysLeft < 0.05 ? t('Çatlamak üzere') : t('{days} gün kaldı', { days: daysLeft.toFixed(1) })}</div>
                   <div class="bar mini">
-                    <div class="fill" style={{ width: `${100 * (1 - egg.hatchLeft / (BALANCE.eggs.hatchDays * dayMin))}%` }} />
+                    <div class="fill" style={{ width: `${Math.max(0, Math.min(100, 100 * (1 - egg.hatchLeft / (days * dayMin))))}%` }} />
                   </div>
                 </div>
                 <div class="row">

@@ -34,7 +34,7 @@ import {
   licenseUpgradeCost,
 } from './systems/EconomySystem';
 import { packExplored, revealAround, unpackExplored } from './systems/Exploration';
-import { placeEgg, takeEgg, tickIncubators } from './systems/IncubatorSystem';
+import { incubatorHatchDays, incubatorSlots, placeEgg, takeEgg, tickIncubators } from './systems/IncubatorSystem';
 import { Autopilot } from './systems/Autopilot';
 import { IllnessSystem } from './systems/IllnessSystem';
 import { type ActionKind, type ActionOutcome, TOOL_DEFS, type Tool, performAction } from './systems/Interaction';
@@ -130,6 +130,8 @@ export type Command =
   | { type: 'adopt'; adopterId: number; dogId: number }
   | { type: 'declineAdopter'; adopterId: number }
   | { type: 'upgradeLicense' }
+  | { type: 'upgradeBuilding'; buildingId: number }
+  | { type: 'buyBackpack' }
   | { type: 'takeLoan' }
   | { type: 'repayLoan' }
   | { type: 'hire'; candidateId: number }
@@ -274,6 +276,8 @@ export class Sim {
   gameOver: GameOverInfo | null = null;
   /** Zafer "Yılın Barınağı" (bir kez). */
   victory: VictoryInfo | null = null;
+  /** Çanta seviyesi (2: büyük çanta). */
+  backpackLevel = 1;
   money: number;
   tool: Tool = 'pet';
   dogs: Dog[] = [];
@@ -367,7 +371,7 @@ export class Sim {
   }
 
   backpackSlots(): number {
-    return BALANCE.player.backpackSlots;
+    return this.backpackLevel >= 2 ? BALANCE.upgrades.backpack.slots : BALANCE.player.backpackSlots;
   }
 
   // ---------------------------------------------------------------------------
@@ -755,6 +759,30 @@ export class Sim {
         this.addExpense('loan', n, t('Kredi ödemesi'));
         return { ok: true, message: this.loan > 0 ? t('{n} ₺ ödendi, kalan borç {rest} ₺', { n, rest: this.loan }) : t('Kredi kapatıldı') };
       }
+      case 'upgradeBuilding': {
+        const b = this.buildingById(cmd.buildingId);
+        if (!b) return { ok: false };
+        const def = buildingDef(b);
+        const up = def.upgrade;
+        if (!up) return { ok: false, message: t('Bu bina yükseltilemez') };
+        if (!isReady(b)) return { ok: false, message: t('Bina henüz inşa ediliyor') };
+        if (b.level >= 2) return { ok: false, message: t('Zaten en üst seviyede') };
+        if (this.money < up.cost) return { ok: false, message: t('Yeterli para yok') };
+        const oldDays = b.type === 'incubator' ? incubatorHatchDays(b) : 0;
+        this.addExpense('building', up.cost, t('{name} yükseltmesi', { name: t(def.name) }));
+        b.level = 2;
+        // Kuluçka hızlandı: içerideki yumurtaların kalan süresi aynı oranda kısalır.
+        if (b.type === 'incubator') for (const egg of b.eggs) egg.hatchLeft = Math.ceil((egg.hatchLeft * incubatorHatchDays(b)) / oldDays);
+        return { ok: true, message: t('{name} yükseltildi', { name: t(def.name) }) };
+      }
+      case 'buyBackpack': {
+        const C = BALANCE.upgrades.backpack;
+        if (this.backpackLevel >= 2) return { ok: false, message: t('Çanta zaten büyük') };
+        if (this.money < C.cost) return { ok: false, message: t('Yeterli para yok') };
+        this.addExpense('building', C.cost, t('Büyük çanta'));
+        this.backpackLevel = 2;
+        return { ok: true, message: t('Çanta büyüdü: {n} yumurta sığar', { n: C.slots }) };
+      }
       case 'upgradeLicense': {
         const cost = licenseUpgradeCost(this.licenseLevel);
         if (cost === null) return { ok: false, message: t('Lisans en üst seviyede') };
@@ -1024,6 +1052,7 @@ export class Sim {
       occupants: [],
       buildLeft: Math.max(0, buildMinutes),
       eggs: [],
+      level: 1,
     };
     this.buildings.push(b);
     this.buildingMap.set(b.id, b);
@@ -1160,6 +1189,7 @@ export class Sim {
       negativeWeeks: this.negativeWeeks,
       gameOver: this.gameOver,
       victory: this.victory,
+      backpackLevel: this.backpackLevel,
       tool: this.tool,
       foodStock: this.foodStock,
       treats: this.treats,
@@ -1180,6 +1210,7 @@ export class Sim {
         occupants: [...b.occupants],
         buildLeft: b.buildLeft,
         eggs: b.eggs.map(eggSave),
+        level: b.level,
       })),
       dogs: this.dogs.map((d) => d.toJSON()),
       backpack: this.backpack.map(eggSave),
@@ -1227,6 +1258,8 @@ export class Sim {
     const sim = new Sim(data.seed >>> 0, world, clock, player, money);
     sim.difficulty = difficulty;
     sim.autopilot = data.autopilot === true;
+    // Çanta yumurtalarından önce: büyük çantadaki 4–6. yumurta yüklemede kaybolmasın.
+    sim.backpackLevel = data.backpackLevel === 2 ? 2 : 1;
     sim.loan = numOr(data.loan, 0, 0);
     sim.negativeWeeks = Math.floor(numOr(data.negativeWeeks, 0, 0));
     const go = data.gameOver as Partial<GameOverInfo> | null | undefined;
@@ -1356,8 +1389,10 @@ export class Sim {
           water: Math.min(BALANCE.shelter.troughCapacity, numOr(raw.water, raw.type === 'trough' ? BALANCE.shelter.troughCapacity : 0, 0)),
           occupants: [],
           buildLeft: numOr(raw.buildLeft, 0, 0),
-          eggs: eggs.slice(0, BUILDING_DEFS[raw.type].eggSlots ?? 0),
+          eggs,
+          level: Math.min(2, Math.max(1, Math.floor(numOr(raw.level, 1, 1)))),
         };
+        b.eggs = b.eggs.slice(0, incubatorSlots(b));
         sim.buildings.push(b);
         sim.buildingMap.set(b.id, b);
         stampBuilding(world, b);

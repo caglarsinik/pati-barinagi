@@ -77,6 +77,21 @@ export function OfficePanel() {
         ) : (
           <p class="muted">{t('Lisans en üst seviyede.')}</p>
         )}
+        {sim.backpackLevel < 2 ? (
+          <button
+            class="btn"
+            disabled={sim.money < BALANCE.upgrades.backpack.cost}
+            onClick={() => {
+              const r = sim.command({ type: 'buyBackpack' });
+              run(r);
+              if (r.ok) audio.play('coin');
+            }}
+          >
+            {t('Büyük çanta: {n} yumurta ({cost})', { n: BALANCE.upgrades.backpack.slots, cost: formatMoney(BALANCE.upgrades.backpack.cost) })}
+          </button>
+        ) : (
+          <p class="muted small-text">{t('Büyük çanta alındı ({n} yumurta).', { n: sim.backpackSlots() })}</p>
+        )}
         <p class="muted small-text">{t('İtibar {rep}/100 · toplam {n} sahiplendirme', { rep: Math.round(sim.reputation), n: sim.stats.adopted })}</p>
         <GoalProgress />
         <div class="row">

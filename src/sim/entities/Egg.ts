@@ -113,6 +113,6 @@ export function eggDescription(egg: Egg): string {
   });
 }
 
-export function hatchMinutes(): number {
-  return BALANCE.eggs.hatchDays * 24 * 60;
+export function hatchMinutes(days: number = BALANCE.eggs.hatchDays): number {
+  return days * 24 * 60;
 }

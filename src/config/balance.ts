@@ -373,6 +373,11 @@ export const BALANCE = {
     stuckSeconds: 0.6,
     maxReplans: 2,
   },
+  /** Satın alınan yükseltmeler (bina yükseltmeleri content/buildings.ts `upgrade` alanında). */
+  upgrades: {
+    /** Büyük çanta: ofisten alınır. */
+    backpack: { cost: 1500, slots: 6 },
+  },
   /** Zafer "Yılın Barınağı": iki eşik birlikte sağlanınca bir kez (oyun sürer). */
   victory: {
     adoptions: 50,

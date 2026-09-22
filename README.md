@@ -137,6 +137,8 @@ yeniden denemez. Otopilot inşaat, işe alım ve sahiplendirme kararı vermez.
 - Dünyadaki yuvalarda (mini haritada sarı nokta) yumurta bulunur; önünde E ile çantaya alınır (3 yuva). Yuva birkaç günde yeniden dolar.
 - Yumurtanın boyu köpeğin boyutunu, şekli gövde tipini, rengi ve deseni tüyünü belirler; huy ve zekâ sadece ipucu olarak sezilir.
 - Kuluçkanın önünde E: yumurtayı yerleştir, 3 günde yavru doğar. Yavru 4 haftada genç, 12 haftada yetişkin olur.
+- Yükseltmeler: kuluçka panelinden **Sv2** (2.000 ₺: 6 yuva, 2 günde çatlar; içerideki yumurtalar da hızlanır), ofisten
+  **büyük çanta** (1.500 ₺: 6 yumurta).
 - Uzaktaki inlerde (turuncu nokta) sokak köpekleri yaşar. Böğürtlen çalısından ödül maması topla, köpeğe 3 kez ver (cesur huyluya 2); peşine takılır, barınağa girince katılır.
 - Gece 20:00'den sonra ofisin önünde E ile sabaha kadar uyursun. Dışarıda 02:00'ye kadar kalırsan bayılıp ofiste uyanırsın.
 
@@ -218,7 +220,8 @@ Bilgisayar değiştirirken ya da yedek almak için kullan.
 - [x] 0.12.1–0.12.3 Dokunma düzeltmeleri: HUD dokunuşları dünyaya sızmaz, takılı pinch/kaçan touchend sıfırlanır, düğme odağı klavyeyi kilitlemez; kuluçkadan alınan yumurtanın süresi korunur; köpeğin dibindeyken çevre dokunuşu yürüyüştür, meşgulken "Şu an meşgul"
 - [x] 0.13.x Otopilot: 🤖 / T ile karakter barınağın işlerini kendisi yapar (bakım, köpek işleri, yumurta, böğürtlen, gece uykusu, koşu), durum satırı, elle müdahalede kapanır, 3 günlük başsız koşu testi
 - [x] 0.14.0 Yılın Barınağı: 50 sahiplendirme ve 90 itibar → zafer ekranı (bir kez, oyun sürer), ofiste hedef çubukları, başarım
-- [ ] M12 İlerleme ve Son Oyun (0.14.1–0.14.6: yükseltmeler, personel seviye/moral, kurs/gönüllü, finans grafiği, 3 kayıt yuvası)
+- [x] 0.14.1 Yükseltmeler 1: kuluçka Sv2 (6 yuva, 2 gün) ve büyük çanta (6 yumurta)
+- [ ] M12 İlerleme ve Son Oyun (0.14.2–0.14.6: yem makinesi ve ofis seviyesi, personel seviye/moral, kurs/gönüllü, finans grafiği, 3 kayıt yuvası)
 - [ ] Sonraki paketler (`docs/PLAN.md` §7): M14 Soy, M11 Yaşayan Dünya, M13 Sahiplendirme Hikâyeleri
 
 ## Geliştirme

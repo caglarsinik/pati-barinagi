@@ -54,6 +54,8 @@ export interface BuildingDef {
   foodCapacity?: number;
   /** Kuluçka: kaç yumurta. */
   eggSlots?: number;
+  /** Seviye 2 yükseltmesi (bina paneli "Yükselt"): fiyat ve yeni değerler. */
+  upgrade?: { cost: number; eggSlots?: number; hatchDays?: number };
   /** Oyuncak: kendi kendine oyunda keyif kazancı. */
   playGain?: number;
 }
@@ -182,6 +184,7 @@ export const BUILDING_DEFS: Record<BuildingType, BuildingDef> = {
     buildMinutes: 120,
     buildable: true,
     eggSlots: 3,
+    upgrade: { cost: 2000, eggSlots: 6, hatchDays: 2 },
   },
   toyBall: {
     type: 'toyBall',

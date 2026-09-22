@@ -57,6 +57,17 @@
   köpek paneli, araç şeridi, alt menü listesi, ana menü, Ayarlar: çakışma yok, taşma yok. Alt menü açılır listesi köpek
   panelinin üstüne gelebilir (geçici popover, üstte kalır) — kabul edildi. Gerçek cihaz testi kullanıcıda.
 
+## 0.14.1 — Yükseltmeler 1: kuluçka Sv2 + büyük çanta (Claude, 2026-09-22)
+- `Building.level` (1–2, kayıtta, varsayılan 1); `BuildingDef.upgrade?: { cost, eggSlots?, hatchDays? }` — kuluçka
+  `{ cost: 2000, eggSlots: 6, hatchDays: 2 }`. Genel komut `upgradeBuilding { buildingId }` (hazır bina, para, tek seviye;
+  defter `building`). Yükseltmede içerideki yumurtaların kalan süresi `yeniGün / eskiGün` oranında kısalır (3 → 2 gün: ×2/3).
+- `IncubatorSystem`: `incubatorSlots(b)` ve `incubatorHatchDays(b)` seviyeye göre; `placeEgg` süreyi ilk girişte kurar,
+  ilerlemiş yumurtayı o kuluçkanın tam süresiyle sınırlar. `Egg.hatchMinutes(days)`. Kayıt yüklemede kuluçka yumurtaları
+  seviyeye göre kırpılır; `backpackLevel` çanta yumurtalarından önce okunur (6 yumurta kaybolmaz).
+- Büyük çanta: `Sim.backpackLevel`, komut `buyBackpack` (`BALANCE.upgrades.backpack` 1.500 ₺, 6 yuva). Arayüz: kuluçka panelinde
+  "Yükselt" satırı ve Sv2 başlığı, ilerleme çubuğu kuluçkanın süresine göre; ofiste "Büyük çanta" düğmesi.
+- Testler: `tests/unit/upgrades.test.ts` (5).
+
 ## 0.14.0 — Zafer hedefi "Yılın Barınağı" (M12 ilk dilimi; Claude, 2026-09-22)
 - `BALANCE.victory = { adoptions: 50, reputation: 90 }`; `Sim.victory: VictoryInfo | null` (`{ day, week }`, kayıtta,
   bozuk kayıtta null); `stepSim` dakika bloğunda `checkVictory()` (achievements.check'ten önce) → bir kez `victory` olayı +

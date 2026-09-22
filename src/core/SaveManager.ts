@@ -15,6 +15,7 @@ export interface SaveData {
   negativeWeeks?: number;
   gameOver?: unknown;
   victory?: unknown;
+  backpackLevel?: number;
   tool?: string;
   autopilot?: boolean;
   foodStock?: number;

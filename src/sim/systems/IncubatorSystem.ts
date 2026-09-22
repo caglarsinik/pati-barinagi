@@ -1,3 +1,4 @@
+import { BALANCE } from '../../config/balance';
 import { type Building, buildingDef, buildingDoorTile, isReady } from '../entities/Building';
 import { type Egg, hatchMinutes } from '../entities/Egg';
 import type { Sim } from '../Sim';
@@ -9,7 +10,13 @@ export interface IncubatorResult {
 }
 
 export function incubatorSlots(b: Building): number {
-  return buildingDef(b).eggSlots ?? 0;
+  const def = buildingDef(b);
+  return (b.level >= 2 ? def.upgrade?.eggSlots : undefined) ?? def.eggSlots ?? 0;
+}
+
+/** Bu kuluçkada bir yumurtanın tam çatlama süresi (gün). */
+export function incubatorHatchDays(b: Building): number {
+  return (b.level >= 2 ? buildingDef(b).upgrade?.hatchDays : undefined) ?? BALANCE.eggs.hatchDays;
 }
 
 /** Çantadaki yumurtayı kuluçkaya koyar. */
@@ -20,8 +27,10 @@ export function placeEgg(sim: Sim, building: Building, eggId: number): Incubator
   const idx = sim.backpack.findIndex((e) => e.id === eggId);
   if (idx === -1) return { ok: false, message: t('Yumurta çantada değil') };
   const egg = sim.backpack.splice(idx, 1)[0];
-  // Daha önce kuluçkada kalmış yumurta kaldığı yerden devam eder; süre yalnız ilk girişte kurulur.
-  if (egg.hatchLeft < 0) egg.hatchLeft = hatchMinutes();
+  // Daha önce kuluçkada kalmış yumurta kaldığı yerden devam eder (bu kuluçkanın tam süresini aşmadan);
+  // süre yalnız ilk girişte kurulur.
+  const full = hatchMinutes(incubatorHatchDays(building));
+  egg.hatchLeft = egg.hatchLeft < 0 ? full : Math.min(egg.hatchLeft, full);
   building.eggs.push(egg);
   return { ok: true, message: t('Yumurta kuluçkaya kondu') };
 }
