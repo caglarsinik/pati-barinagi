@@ -124,7 +124,7 @@ export class DogBrain {
       return;
     }
     if (dog.stateTimer > 0) return;
-    const p = this.sim.player;
+    const p = this.sim.playerOutside;
     const den = dog.den ?? { x: dog.tileX, y: dog.tileY };
     const nearPlayer = Math.hypot(p.x - dog.x, p.y - dog.y) < 5;
     if (nearPlayer) {
@@ -158,7 +158,8 @@ export class DogBrain {
 
   private followPlayer(dog: Dog, dtMin: number): void {
     const sim = this.sim;
-    const p = sim.player;
+    // İç odadayken peşindeki köpekler bina kapısının önünde bekler.
+    const p = sim.playerOutside;
     const w = sim.world;
     const inside = w.inPlotInterior(dog.tileX, dog.tileY);
     if (dog.walking) {
@@ -546,7 +547,7 @@ export class DogBrain {
         best = { x, y };
       }
     };
-    if (sim.mode === 'avatar') consider(sim.player.x, sim.player.y - 0.2);
+    if (sim.mode === 'avatar' && !sim.interior) consider(sim.player.x, sim.player.y - 0.2);
     for (const s of sim.staff) if (s.onDuty) consider(s.x, s.y);
     for (const a of sim.adopters) consider(a.x, a.y);
     return best;

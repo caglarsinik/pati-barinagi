@@ -63,7 +63,7 @@ export class PlayerNav {
   /** Hedefin varış karesi: etkileşim hedeflerinde oyuncuya en yakın yürünebilir 4-komşu (E'nin baktığı kare hedef olsun). */
   private resolveTarget(goal: NavGoal): Target | null {
     const sim = this.sim;
-    const w = sim.world;
+    const w = sim.playerWorld;
     const p = sim.player;
     if (goal.kind === 'tile') return { tile: goal.tile, face: null };
     let anchor: TilePos;
@@ -122,7 +122,7 @@ export class PlayerNav {
 
   /** Önce arsa içi (ucuz), olmazsa tüm harita. */
   private plan(from: TilePos, to: TilePos, adjacentOk: boolean): TilePos[] | null {
-    const w = this.sim.world;
+    const w = this.sim.playerWorld;
     const N = BALANCE.nav;
     if (from.x === to.x && from.y === to.y) return [];
     if (w.inPlotInterior(from.x, from.y) && w.inPlotInterior(to.x, to.y)) {

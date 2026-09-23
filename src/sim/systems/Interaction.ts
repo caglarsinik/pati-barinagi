@@ -9,6 +9,7 @@ import { eggDescription } from '../entities/Egg';
 import { cleanMess } from './MessSystem';
 import { harvestBerries, harvestNest } from './NestSystem';
 import { t } from '../../i18n';
+import { interiorItemAt } from '../interior/Interiors';
 
 export type Tool = 'pet' | 'play' | 'train' | 'feed' | 'clean' | 'call';
 
@@ -48,6 +49,7 @@ export type ActionKind =
   | 'treatWild'
   | 'call'
   | 'office'
+  | 'enter'
   | 'none';
 
 export interface ResolvedAction {
@@ -78,6 +80,23 @@ function nearestDog(sim: Sim, x: number, y: number, radius: number): Dog | null 
   return best;
 }
 
+/** İç mekânda E: baktığı eşya (0.16.0'da ofis masası = ofis paneli); boşta çıkış ipucu. */
+function resolveInterior(sim: Sim, tile: TilePos): ResolvedAction {
+  const it = sim.interior!;
+  const item = interiorItemAt(it, tile.x, tile.y);
+  if (item?.type === 'desk') {
+    const waiting = sim.adopters.filter((a) => a.state === 'waiting').length;
+    const building = sim.buildingById(it.buildingId);
+    return {
+      kind: 'office',
+      hint: waiting > 0 ? t('E: masa · ofis işleri ({n} sahiplenici bekliyor)', { n: waiting }) : t('E: masa · ofis işleri (lisans, kredi, uyku)'),
+      building,
+      tile,
+    };
+  }
+  return { kind: 'none', hint: t('Ofis içi · masaya bakıp E · çıkmak için kapıya yürü'), tile };
+}
+
 /**
  * Aynı fonksiyon hem alt çubuktaki ipucunu hem E'nin yapacağı işi belirler; ikisi asla ayrışmaz.
  */
@@ -85,6 +104,7 @@ export function resolveAction(sim: Sim): ResolvedAction {
   if (sim.mode !== 'avatar') return { kind: 'none', hint: '' };
   const fp = facingPoint(sim);
   const tile = { x: Math.floor(fp.x), y: Math.floor(fp.y) };
+  if (sim.interior) return resolveInterior(sim, tile);
   const w = sim.world;
 
   // Pislik her araçla temizlenir.
@@ -136,7 +156,7 @@ export function resolveAction(sim: Sim): ResolvedAction {
     if (building.type === 'shed') return { kind: 'shed', hint: t('E: kiler ({n} porsiyon)', { n: Math.floor(sim.foodStock) }), building };
     if (building.type === 'office') {
       const waiting = sim.adopters.filter((a) => a.state === 'waiting').length;
-      return { kind: 'office', hint: waiting > 0 ? t('E: ofis ({n} sahiplenici bekliyor)', { n: waiting }) : t('E: ofis (lisans, uyku)'), building };
+      return { kind: 'enter', hint: waiting > 0 ? t('E: ofise gir ({n} sahiplenici bekliyor)', { n: waiting }) : t('E: ofise gir'), building };
     }
     if (building.type === 'kennelSmall' || building.type === 'kennelLarge') {
       const names = building.occupants.map((id) => sim.dogById(id)?.name ?? '?').join(', ');
@@ -373,6 +393,8 @@ export function performAction(sim: Sim): ActionOutcome {
       p.setBusy(0.5, 'call');
       return { ok: true, message: t('{n} köpek geliyor', { n }) };
     }
+    case 'enter':
+      return r.building ? sim.enterBuilding(r.building.id) : { ok: false };
     case 'office':
       return { ok: true, open: 'office', building: r.building };
     case 'shed':

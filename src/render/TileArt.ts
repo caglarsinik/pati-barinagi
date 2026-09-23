@@ -20,6 +20,19 @@ import { P } from './palette';
 
 export const TILE = 16;
 
+/** İç mekân renkleri (M15). */
+const IN = {
+  rug: hex(0x9e3d4f),
+  rugDot: hex(0xd9a441),
+  rugDark: hex(0x7f2f3f),
+  wallTop: hex(0x4a3f5c),
+  wallTopLight: hex(0x5d5173),
+  paper: hex(0xe8d9b5),
+  paperStripe: hex(0xd8c59b),
+  mat: hex(0x6b8e4e),
+  matDark: hex(0x557a3c),
+};
+
 /**
  * Tüm zemin ve nesne karelerini tek bir tileset görseline çizer.
  * frame=1 sadece su karelerinde farklıdır; tileset görseli değiştirilerek tüm su birlikte kıpırdar.
@@ -301,6 +314,41 @@ export function drawGround(g: Ground, frame: 0 | 1): Pixels {
     case Ground.Dirt:
       p.fill(P.dirt);
       speckle(p, rng, 6, [P.dirtDark, P.path]);
+      break;
+    case Ground.Floor:
+      // Ahşap döşeme: yatay tahtalar, kaydırmalı ek yerleri.
+      p.fill(P.plank);
+      for (let r = 0; r < 4; r++) {
+        p.fillRect(0, r * 4 + 3, TILE, 1, P.plankDark);
+        p.fillRect((r * 7 + 3) % TILE, r * 4, 1, 3, P.plankDark);
+      }
+      speckle(p, rng, 3, [P.trunkLight]);
+      break;
+    case Ground.Carpet:
+      p.fill(IN.rug);
+      for (let y = 1; y < TILE; y += 4) {
+        for (let x = (y >> 2) % 2 === 0 ? 1 : 3; x < TILE; x += 4) p.fillRect(x, y, 2, 2, IN.rugDot);
+      }
+      p.fillRect(0, TILE - 1, TILE, 1, IN.rugDark);
+      break;
+    case Ground.Wall:
+      p.fill(IN.wallTop);
+      p.fillRect(0, 0, TILE, 2, IN.wallTopLight);
+      speckle(p, rng, 4, [IN.wallTopLight]);
+      break;
+    case Ground.WallFace:
+      // Duvar kâğıdı: dikey çizgiler, altta süpürgelik.
+      p.fill(IN.paper);
+      for (let x = 2; x < TILE; x += 4) p.fillRect(x, 0, 1, TILE - 3, IN.paperStripe);
+      p.fillRect(0, TILE - 3, TILE, 3, P.plankDark);
+      p.fillRect(0, TILE - 3, TILE, 1, P.trunkLight);
+      break;
+    case Ground.Doorway:
+      // Kapı eşiği: döşeme üstünde paspas.
+      p.fill(P.plank);
+      p.fillRect(1, 2, 14, 12, IN.matDark);
+      p.fillRect(2, 3, 12, 10, IN.mat);
+      for (let x = 3; x < 13; x += 3) p.fillRect(x, 4, 1, 8, IN.matDark);
       break;
     default:
       p.fill(P.grass);

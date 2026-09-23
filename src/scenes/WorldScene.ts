@@ -20,6 +20,8 @@ import { showToast, store, syncStore, rotateBuildTool } from '../ui/store';
 import { audio } from '../audio/audio';
 import { resolveAction } from '../sim/systems/Interaction';
 import { drawLightDisc } from '../render/LightArt';
+import { drawInteriorItem, interiorItemTextureKey } from '../render/InteriorArt';
+import { type ActiveInterior, interiorItemAt } from '../sim/interior/Interiors';
 import { DPR } from '../render/dpr';
 import { Pixels, hex } from '../render/Pixels';
 import { SEASON_TINT } from '../sim/systems/WeatherSystem';
@@ -93,6 +95,8 @@ export class WorldScene extends Phaser.Scene {
   private rain!: Phaser.GameObjects.Particles.ParticleEmitter;
   private snow!: Phaser.GameObjects.Particles.ParticleEmitter;
   private weatherZone = new Phaser.Geom.Rectangle(0, 0, 800, 4);
+  /** İç oda çizimi (M15): dış haritanın sağ dışında ayrı küçük tilemap ve eşya görselleri. */
+  private interiorView: { map: Phaser.Tilemaps.Tilemap; items: Phaser.GameObjects.Image[] } | null = null;
   private buildingImages = new Map<number, Phaser.GameObjects.Image>();
   private dogSprites = new Map<number, Phaser.GameObjects.Sprite>();
   /** Doku temizliği için köpek id → genom. */
@@ -184,6 +188,7 @@ export class WorldScene extends Phaser.Scene {
         if (g && !this.sim.dogs.some((d) => genomeKey(d.genome) === genomeKey(g))) releaseDogTextures(this, g);
       }),
       this.sim.events.on('modeChanged', (m) => this.applyMode(m)),
+      this.sim.events.on('interiorChanged', (it) => this.showInterior(it)),
       this.sim.events.on('message', (m) => showToast(m)),
       this.sim.events.on('slept', () => this.cameras.main.flash(600, 10, 8, 20)),
       this.sim.events.on('dogHatched', (d) => {
@@ -344,6 +349,7 @@ export class WorldScene extends Phaser.Scene {
     this.syncGhost();
     if (this.sim.mode === 'manage') this.panCamera(dt, input);
     this.updateZoom(dt);
+    this.fitInteriorBounds();
     this.updateWater(dt);
     this.updateNight();
     this.updateSounds(dt);
@@ -429,6 +435,7 @@ export class WorldScene extends Phaser.Scene {
         incubator: 'click',
         nursery: 'click',
         office: 'click',
+        enter: 'click',
       };
       const name = sfx[kind];
       if (name) audio.play(name);
@@ -489,7 +496,7 @@ export class WorldScene extends Phaser.Scene {
       id: ptr.id,
       x: ptr.x,
       y: ptr.y,
-      wx: ptr.worldX / T,
+      wx: (ptr.worldX - this.interiorOffsetX()) / T,
       wy: ptr.worldY / T,
       button: ptr.button,
       touch: ptr.wasTouch,
@@ -630,6 +637,10 @@ export class WorldScene extends Phaser.Scene {
   /** Dokunma: köpek → yanına gidip işini yap; bina/yuva/çalı/pislik → yanına git ve E; boş kare → yürü. */
   private touchTap(wx: number, wy: number): void {
     const sim = this.sim;
+    if (sim.interior) {
+      this.interiorTap(Math.floor(wx), Math.floor(wy));
+      return;
+    }
     const pick = pickTapDog(sim.dogs, sim.player, wx, wy);
     const tx = Math.floor(wx);
     const ty = Math.floor(wy);
@@ -652,6 +663,7 @@ export class WorldScene extends Phaser.Scene {
 
   /** Köpek seç; boşluğa tıklayınca seçimi kaldır. */
   private selectDogAt(wx: number, wy: number): void {
+    if (this.sim.interior) return;
     let best: Dog | null = null;
     let bestD = 1.1;
     for (const dog of this.sim.dogs) {
@@ -731,7 +743,8 @@ export class WorldScene extends Phaser.Scene {
     const T = GAME.tile;
     const p = this.sim.player;
     const s = this.playerSprite;
-    s.setPosition(Math.round(p.x * T), Math.round(p.y * T));
+    const ox = this.interiorOffsetX();
+    s.setPosition(ox + Math.round(p.x * T), Math.round(p.y * T));
     s.setDepth(100 + p.y * T);
     if (p.moving && this.sim.mode === 'avatar' && !this.sim.paused) {
       s.anims.play(`player-walk-${p.facing}`, true);
@@ -743,7 +756,7 @@ export class WorldScene extends Phaser.Scene {
     this.busyBar.clear();
     if (p.busy > 0 && p.busyTotal > 0) {
       const w = 14;
-      const x = Math.round(p.x * T) - w / 2;
+      const x = ox + Math.round(p.x * T) - w / 2;
       const y = Math.round(p.y * T) - 30;
       const t = 1 - p.busy / p.busyTotal;
       this.busyBar.fillStyle(0x24203a, 0.9).fillRect(x - 1, y - 1, w + 2, 4);
@@ -938,6 +951,14 @@ export class WorldScene extends Phaser.Scene {
   }
 
   private updateNight(): void {
+    if (this.sim.interior) {
+      // İçerisi hep aydınlık; yağmur/kar yok.
+      this.nightRect.setVisible(false);
+      this.lightMap.setVisible(false);
+      this.rain.emitting = false;
+      this.snow.emitting = false;
+      return;
+    }
     const [tr, tg, tb] = this.sim.clock.tint();
     const [sr, sg, sb] = SEASON_TINT[this.sim.weatherSys.season];
     const w = this.sim.weatherSys.weather;
@@ -1065,6 +1086,76 @@ export class WorldScene extends Phaser.Scene {
       if (z === Zone.Toilet) this.toiletLayer.putTileAt(TOILET_TILE, x, y);
       else this.toiletLayer.removeTileAt(x, y);
     }
+  }
+
+  // ---------------------------------------------------------------------------
+  // İç mekân (M15)
+  // ---------------------------------------------------------------------------
+
+  /** İç oda dış haritanın sağında, geniş boşlukla çizilir (en uzak zoomda bile dışarısı görünmez). */
+  private interiorOffsetX(): number {
+    return this.sim.interior ? (this.sim.world.width + 200) * GAME.tile : 0;
+  }
+
+  /** Odaya girince iç haritayı kurar, çıkınca kaldırır; kamera odaya kısılır/haritaya döner. */
+  private showInterior(it: ActiveInterior | null): void {
+    const T = GAME.tile;
+    const cam = this.cameras.main;
+    if (this.interiorView) {
+      for (const img of this.interiorView.items) img.destroy();
+      this.interiorView.map.destroy();
+      this.interiorView = null;
+    }
+    if (it) {
+      const ox = this.interiorOffsetX();
+      const map = this.make.tilemap({ tileWidth: T, tileHeight: T, width: it.world.width, height: it.world.height });
+      const ts = must(map.addTilesetImage('tiles', TEX.tiles0, T, T, 0, 0));
+      const layer = must(map.createBlankLayer('interior', ts, ox, 0)).setDepth(0);
+      const rows: number[][] = [];
+      for (let y = 0; y < it.world.height; y++) {
+        const row: number[] = [];
+        for (let x = 0; x < it.world.width; x++) row.push(it.world.ground[it.world.idx(x, y)]);
+        rows.push(row);
+      }
+      layer.putTilesAt(rows, 0, 0, false);
+      const items = it.items.map((item) => {
+        const key = interiorItemTextureKey(item.type);
+        if (!this.textures.exists(key)) this.textures.addCanvas(key, drawInteriorItem(item.type).toCanvas());
+        const bottom = (item.y + item.h) * T;
+        return this.add.image(ox + item.x * T, bottom, key).setOrigin(0, 1).setDepth(100 + bottom - 1);
+      });
+      this.interiorView = { map, items };
+    } else {
+      cam.setBounds(0, 0, this.sim.world.width * T, this.sim.world.height * T);
+    }
+    this.syncPlayerSprite();
+    this.fitInteriorBounds();
+    cam.centerOn(this.playerSprite.x, this.playerSprite.y - 8);
+  }
+
+  /** İçerideyken kamera sınırı: oda görüşten küçükse ortalanır (her karede; zoom değişebilir). */
+  private fitInteriorBounds(): void {
+    const it = this.sim.interior;
+    if (!it) return;
+    const T = GAME.tile;
+    const cam = this.cameras.main;
+    const rw = it.world.width * T;
+    const rh = it.world.height * T;
+    const bw = Math.max(rw, cam.width / cam.zoom);
+    // Üst çubuk ve alt menü odanın kenarlarını (kapıyı) örtmesin: dikeyde pay; kamera oyuncuyu izleyerek kayar.
+    const padTop = (44 * DPR) / cam.zoom;
+    const padBottom = (76 * DPR) / cam.zoom;
+    const needH = rh + padTop + padBottom;
+    const bh = Math.max(needH, cam.height / cam.zoom);
+    cam.setBounds(this.interiorOffsetX() - (bw - rw) / 2, -padTop - (bh - needH) / 2, bw, bh);
+  }
+
+  /** İçeride dokunuş: eşyaya → yanına git ve E; boş kare → yürü (kapı karesi dışarı çıkarır). */
+  private interiorTap(tx: number, ty: number): void {
+    const it = this.sim.interior;
+    if (!it || !it.world.inBounds(tx, ty)) return;
+    if (interiorItemAt(it, tx, ty)) this.sim.command({ type: 'goInteract', goal: { kind: 'object', tile: { x: tx, y: ty } } });
+    else this.sim.command({ type: 'goTo', x: tx, y: ty });
   }
 
   private applyMode(mode: Mode): void {

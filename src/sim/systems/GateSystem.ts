@@ -104,7 +104,8 @@ export class GateSystem {
     const x1 = p.x + hw / 2 - 0.001;
     const y0 = p.y - hh;
     const y1 = p.y - 0.001;
-    out.push({
+    // İç odadayken oyuncu dış kapıları açmaz (koordinatları oda koordinatı).
+    if (!sim.interior) out.push({
       x: p.x,
       y: p.y - hh / 2,
       allowed: true,

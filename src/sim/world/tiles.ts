@@ -19,7 +19,13 @@ export enum Ground {
   Bridge = 13,
   Plot = 14,
   Dirt = 15,
-  COUNT = 16,
+  // İç mekân (M15): ahşap döşeme, halı, duvar üstü ve yüzü (katı), kapı eşiği.
+  Floor = 16,
+  Carpet = 17,
+  Wall = 18,
+  WallFace = 19,
+  Doorway = 20,
+  COUNT = 21,
 }
 
 export enum Obj {
@@ -132,6 +138,8 @@ export const ZONE_COLORS: Record<number, number> = {
 export const GROUND_SOLID: Readonly<Record<number, boolean>> = {
   [Ground.Water]: true,
   [Ground.Mountain]: true,
+  [Ground.Wall]: true,
+  [Ground.WallFace]: true,
 };
 
 export interface ObjInfo {

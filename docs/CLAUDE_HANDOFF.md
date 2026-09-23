@@ -57,6 +57,30 @@
   köpek paneli, araç şeridi, alt menü listesi, ana menü, Ayarlar: çakışma yok, taşma yok. Alt menü açılır listesi köpek
   panelinin üstüne gelebilir (geçici popover, üstte kalır) — kabul edildi. Gerçek cihaz testi kullanıcıda.
 
+## 0.16.0 — İç mekân altyapısı: ofise gir/çık (M15 ilk dilimi; Claude, 2026-09-23)
+- `src/sim/interior/Interiors.ts`: metin ızgara şablonları (`#` duvar üstü, `=` duvar yüzü, `.` döşeme, `c` halı, `D` kapı),
+  `buildInterior(kind)` → ayrı küçük `TileWorld` (ofis 12×8) + kapı + giriş noktası + eşyalar; `interiorItemAt`,
+  `interiorKindFor(type)` (şimdilik yalnız ofis), `ActiveInterior` (+ `buildingId`, `back` = dış kapı önü).
+- Yeni zemin karoları `Ground.Floor/Carpet/Wall/WallFace/Doorway` (16–20; duvarlar `GROUND_SOLID`). Nesne değil zemin:
+  `Obj` 16'dan sonra `OBJ_TILE_OFFSET + o` çit karolarıyla (48–63) çakışırdı. Eşyalar `buildingSolid` ile katı.
+- `Sim`: `interior`, `playerWorld` (oyuncu yürüyüşü + `PlayerNav`), `playerOutside` (içerideyken dış kapı önü: köpek takibi,
+  vahşi köpek merakı, mini harita), `enterBuilding(id)` (komut `enterBuilding`), `exitInterior()`, olay `interiorChanged`.
+  İçerideyken `revealPlayer`/`brain.updateNearPlayer` atlanır, `GateSystem` oyuncuyu aktör saymaz, 02:00 bayılma olmaz.
+  Kapı karesine basınca çıkış. `setMode('manage')` ve otopilot açılınca önce çıkar; otopilot açıkken girilmez.
+  `toJSON` içerideyken oyuncuyu kapı önüne yazar (iç mekân kaydedilmez, kayıt sürümü 2).
+- `Interaction`: ofis kapısında `enter` ("E: ofise gir"); içeride `resolveInterior` — masa (`desk`, 2×1) = `office` eylemi
+  (ofis paneli: lisans, kredi, hedef, uyku), boşta ipucu. Planda eşyalar 0.16.1'deydi; masa bu sürüme alındı ki ofis paneli
+  kapıdan kalkınca erişilemez olmasın.
+- `WorldScene`: iç oda ayrı tilemap, x = `(world.width + 200) × 16` px; `showInterior` (olayla kur/kaldır, kamera ortalar),
+  `fitInteriorBounds` (her kare: oda görüşten küçükse ortalanır; üst çubuk 44 / alt menü 76 css px dikey pay, kamera
+  oyuncuyu izleyerek kayar → kapı alt menünün altında kalmaz), `interiorTap` (eşya → goInteract object, boş → goTo),
+  `gesturePointer` oda ofsetini çıkarır, `selectDogAt` içeride kapalı, gece/ışık/yağmur içeride gizli.
+  `src/render/InteriorArt.ts` `drawInteriorItem('desk')` (bilgisayarlı masa, doku `int-desk`).
+- Testler `tests/unit/interior.test.ts` (5); `eggs.test.ts` uyku testi yeni akışa (kapı → gir → masa) güncellendi. 317 test.
+- Tarayıcı (812×375 `?touch=1&debug=1`): ofise dokun → kapıya yürüyüp girer; masaya dokun → ofis paneli; gece yağmurda
+  içerisi aydınlık, yağmur yok; kapıya dokun → dışarı, kamera sınırı haritaya döner; `runTouchScenarios` 8/8.
+- Sıradaki: 0.16.1 ofis eşyaları (lisans panosu, yatak, kahve makinesi, telefon, kitaplık; masa-bilgisayar seçim menüsü).
+
 ## 0.15.2 — Soy ağacı, başarımlar, otopilot (M14 son dilimi; Claude, 2026-09-23)
 - `src/sim/systems/Lineage.ts` `lineageOf(sim, dog)` (saf): anne-baba (ad, barınakta mı), dede-nine (ebeveyn hâlâ kayıttaysa
   onun `parentNames`'i), barınaktaki yavrular. Köpek panelinde "Soy" bölümü (Kulübe'den önce): barınaktaki anne-baba ve yavrular

@@ -479,6 +479,14 @@ kahve makinesi, telefon, kitaplık); 0.16.2 personel tuvalet ihtiyacı + Persone
 kanepe, kahve köşesi, TV; molada personel içeride); 0.16.4 cila (otopilot, dokunma senaryoları). Veteriner, mutfak, kiler,
 kuluçka iç mekânları sonra.
 
+| Sürüm | Konu |
+|---|---|
+| 0.16.0 ✅ | İç mekân altyapısı: ofise gir/çık, iç oda (12×8), dokun-yürü, masa = ofis paneli |
+| 0.16.1 | Ofis eşyaları |
+| 0.16.2 | Personel tuvalet ihtiyacı + Personel WC |
+| 0.16.3 | Dinlenme odası içi |
+| 0.16.4 | Cila: otopilot iç mekânda, dokunma senaryoları 9–10, yardım |
+
 ### M13 Sahiplendirme Hikâyeleri
 - Sahiplenici kimliği: 100+ isim, 6 kişilik tipi, tekrar gelen sahiplenici.
 - Sahiplendirme sonrası mektup/fotoğraf (3–7 gün sonra: köpeğin durumu, küçük bağış, itibar).

@@ -52,6 +52,7 @@ import { GateSystem } from './systems/GateSystem';
 import type { EmoteEvent } from './systems/Emotes';
 import { type Weather, WeatherSystem } from './systems/WeatherSystem';
 import type { TilePos, TileWorld } from './world/TileWorld';
+import { type ActiveInterior, buildInterior, interiorKindFor } from './interior/Interiors';
 import { generateWorld } from './world/WorldGen';
 import { Biome, Ground, Obj, Zone } from './world/tiles';
 import { t } from '../i18n';
@@ -112,6 +113,8 @@ export interface SimEvents extends Record<string, unknown> {
   gameOver: GameOverInfo;
   /** Zafer: bir kez; oyun sürer, arayüz zafer ekranını açar. */
   victory: VictoryInfo;
+  /** İç odaya girildi (oda) ya da çıkıldı (null); render iç haritayı kurar/kaldırır. */
+  interiorChanged: ActiveInterior | null;
 }
 
 export type Command =
@@ -152,7 +155,8 @@ export type Command =
   | { type: 'goTo'; x: number; y: number }
   | { type: 'goInteract'; goal: NavGoal }
   | { type: 'cancelNav' }
-  | { type: 'setAutopilot'; on: boolean };
+  | { type: 'setAutopilot'; on: boolean }
+  | { type: 'enterBuilding'; buildingId: number };
 
 export interface Policies {
   autoOrderFood: boolean;
@@ -278,6 +282,8 @@ export class Sim {
   readonly pilot: Autopilot;
   /** Oyuncu otopilotu açık mı (T / 🤖). Elle girdi kapatır. */
   autopilot = false;
+  /** İçinde bulunulan bina odası (M15); dışarıdayken null. Kayda yazılmaz (içerideyken kapı önü kaydedilir). */
+  interior: ActiveInterior | null = null;
   readonly gates: GateSystem;
   flags: SimFlags = { foodDiscountDay: 0, extraAdoptersDay: 0, growlUntil: 0, growlA: '', growlB: '' };
   speed: Speed = 1;
@@ -411,9 +417,15 @@ export class Sim {
       if (manual && this.nav.active) this.nav.cancel();
       this.pilot.tick(dtSec);
       const inp = !manual && this.nav.active ? this.nav.inputFor(dtSec, input.run || this.pilot.run()) : input;
-      this.player.update(dtSec, inp, this.world);
-      this.revealPlayer(false);
-      this.brain.updateNearPlayer(dtSec);
+      this.player.update(dtSec, inp, this.playerWorld);
+      if (this.interior) {
+        // Kapı karesine basınca dışarı (dokun-yürü kapıya varınca da).
+        const d = this.interior.door;
+        if (this.player.tileX === d.x && this.player.tileY === d.y) this.exitInterior();
+      } else {
+        this.revealPlayer(false);
+        this.brain.updateNearPlayer(dtSec);
+      }
     }
   }
 
@@ -489,7 +501,7 @@ export class Sim {
     }
     // Otomatik yem makinesi: menzildeki kaplar kilerden dolar.
     tickFeeders(this);
-    if (h === BALANCE.time.passOutHour && this.mode === 'avatar' && !this.world.inPlot(this.player.tileX, this.player.tileY)) {
+    if (h === BALANCE.time.passOutHour && this.mode === 'avatar' && !this.interior && !this.world.inPlot(this.player.tileX, this.player.tileY)) {
       this.passOut();
     }
   }
@@ -776,6 +788,9 @@ export class Sim {
         this.setAutopilot(false);
         this.nav.cancel();
         return { ok: true };
+      case 'enterBuilding':
+        this.setAutopilot(false);
+        return this.enterBuilding(cmd.buildingId);
       case 'setAutopilot':
         this.setAutopilot(cmd.on);
         return { ok: true };
@@ -852,6 +867,8 @@ export class Sim {
 
   setMode(mode: Mode): void {
     if (mode === this.mode) return;
+    // Yönetim modu dış haritayı gösterir: önce odadan çık.
+    if (mode === 'manage') this.exitInterior();
     this.mode = mode;
     if (mode === 'manage') {
       this.pilot.abandon();
@@ -871,6 +888,7 @@ export class Sim {
     this.autopilot = on;
     if (on) {
       this.setMode('avatar');
+      this.exitInterior();
       this.pilot.wake();
       this.events.emit('message', t('🤖 Otopilot açık: bakım ve köpek işlerini kendisi yapar'));
     } else {
@@ -881,6 +899,53 @@ export class Sim {
 
   toggleMode(): void {
     this.setMode(this.mode === 'avatar' ? 'manage' : 'avatar');
+  }
+
+  // ---------------------------------------------------------------------------
+  // İç mekânlar (M15)
+  // ---------------------------------------------------------------------------
+
+  /** Oyuncunun yürüdüğü dünya: iç odadayken oda, değilse harita. */
+  get playerWorld(): TileWorld {
+    return this.interior?.world ?? this.world;
+  }
+
+  /** Oyuncunun dış dünyadaki yeri (iç odadayken bina kapısının önü): köpekler, kapılar ve mini harita bunu kullanır. */
+  get playerOutside(): { x: number; y: number; tileX: number; tileY: number } {
+    const it = this.interior;
+    if (!it) return { x: this.player.x, y: this.player.y, tileX: this.player.tileX, tileY: this.player.tileY };
+    return { x: it.back.x, y: it.back.y, tileX: Math.floor(it.back.x), tileY: Math.floor(it.back.y - 0.2) };
+  }
+
+  /** Binaya gir (kapıda E ya da dokunuş): oyuncu iç odanın kapısının üstüne geçer; dışarıda zaman akmaya devam eder. */
+  enterBuilding(id: number): ActionOutcome {
+    if (this.mode !== 'avatar' || this.interior || this.autopilot) return { ok: false };
+    const b = this.buildingById(id);
+    if (!b || !isReady(b)) return { ok: false };
+    const kind = interiorKindFor(b.type);
+    if (!kind) return { ok: false, message: t('Bu binaya girilemez') };
+    const map = buildInterior(kind);
+    const door = buildingDoorTile(b);
+    this.nav.cancel();
+    this.interior = { ...map, buildingId: b.id, back: { x: door.x + 0.5, y: door.y + 0.9 } };
+    this.player.x = map.spawn.x;
+    this.player.y = map.spawn.y;
+    this.player.facing = 3;
+    this.events.emit('interiorChanged', this.interior);
+    return { ok: true };
+  }
+
+  /** İç odadan çık: oyuncu binanın kapı önüne, yüzü aşağı. Dışarıdayken bir şey yapmaz. */
+  exitInterior(): void {
+    const it = this.interior;
+    if (!it) return;
+    this.interior = null;
+    this.nav.cancel();
+    this.player.x = it.back.x;
+    this.player.y = it.back.y;
+    this.player.facing = 0;
+    this.lastRevealTile = -1;
+    this.events.emit('interiorChanged', null);
   }
 
   // ---------------------------------------------------------------------------
@@ -1216,7 +1281,7 @@ export class Sim {
       seed: this.seed,
       objectChanges,
       clock: this.clock.toJSON(),
-      player: this.player.toJSON(),
+      player: this.interior ? { ...this.player.toJSON(), x: this.interior.back.x, y: this.interior.back.y, facing: 0 } : this.player.toJSON(),
       speed: this.speed,
       mode: this.mode,
       money: this.money,

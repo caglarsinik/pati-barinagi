@@ -147,7 +147,10 @@ yeniden denemez. Otopilot inşaat, işe alım ve sahiplendirme kararı vermez.
   "Soy" bölümü anne-baba, dede-nine ve barınaktaki yavruları gösterir (dokununca o köpeğe geçer); otopilot yuva evindeki
   yumurtayı alıp kuluçkaya koyar. Başarımlar: "İlk soy", "Efsanevi soy".
 - Uzaktaki inlerde (turuncu nokta) sokak köpekleri yaşar. Böğürtlen çalısından ödül maması topla, köpeğe 3 kez ver (cesur huyluya 2); peşine takılır, barınağa girince katılır.
-- Gece 20:00'den sonra ofisin önünde E ile sabaha kadar uyursun. Dışarıda 02:00'ye kadar kalırsan bayılıp ofiste uyanırsın.
+- **Ofise girmek (0.16.0):** ofisin kapısında E'ye bas ya da ofise dokun; ayrı bir iç odaya geçersin (dışarıda zaman akar,
+  içerisi gece de aydınlık). İçerideki masaya bakıp E (ya da masaya dokun) ofis panelini açar: lisans, kredi, hedef, uyku.
+  Çıkmak için alttaki paspaslı kapı karesine yürü ya da dokun. Yönetim moduna geçmek ve otopilotu açmak seni dışarı çıkarır.
+- Gece 20:00'den sonra ofisteki masadan sabaha kadar uyursun. Dışarıda 02:00'ye kadar kalırsan bayılıp ofiste uyanırsın.
 
 ## Ekonomi ve sahiplendirme
 
@@ -250,7 +253,8 @@ Bilgisayar değiştirirken ya da yedek almak için kullan.
 - [x] 0.15.0 Kalıtım (yavru özellikleri ebeveynlerden, %10 mutasyon, nadirlik yükselebilir) ve köpek panelinde köken/soy satırı
 - [x] 0.15.1 Yuva evi: iki dost yetişkin köpek 5 günde soylu yumurta verir, 4 hafta dinlenir
 - [x] 0.15.2 Soy ağacı (anne-baba, dede-nine, yavrular), "İlk soy"/"Efsanevi soy" başarımları, otopilot yuva evi yumurtası — M14 Soy tamam
-- [ ] M15 İç Mekânlar ve Personel Konforu (0.16.x): binalara girme, ofis eşyaları, personel WC, dinlenme odası
+- [x] 0.16.0 İç mekân altyapısı: ofise gir/çık (ayrı iç oda), içeride dokun-yürü, masa = ofis paneli
+- [ ] M15 İç Mekânlar ve Personel Konforu (0.16.x): ofis eşyaları, personel WC, dinlenme odası
 - [ ] Sonraki paketler (`docs/PLAN.md` §7): M11 Yaşayan Dünya, M13 Sahiplendirme Hikâyeleri
 
 ## Geliştirme

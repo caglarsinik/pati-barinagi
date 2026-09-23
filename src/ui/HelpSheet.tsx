@@ -5,7 +5,7 @@ import { store } from './store';
 const ROWS: Array<[string, string, string]> = [
   ['WASD / ok tuşları', 'Yürü', 'Kamerayı kaydır'],
   ['Shift', 'Koş (dayanıklılık harcar)', '–'],
-  ['E', 'Baktığın şeye göre iş yap: köpeği sev/oyna/eğit/fırçala, kabı ve yalağı doldur, pisliği temizle, kileri/ofisi aç', '–'],
+  ['E', 'Baktığın şeye göre iş yap: köpeği sev/oyna/eğit/fırçala, kabı ve yalağı doldur, pisliği temizle, kileri aç, ofise gir (içeride masa)', '–'],
   ['1-6', 'Araç seç: Sev, Oyna, Eğit, Yem, Temizle, Çağır', '–'],
   ['Sol tık', 'Köpeği seç (panel açılır)', 'Köpeği seç · seçili aracı yerleştir · çit/yol/bölge sürükle'],
   ['Sağ tık sürükle', '–', 'Kamerayı kaydır (aracı bırakır)'],

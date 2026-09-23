@@ -176,8 +176,10 @@ export function syncStore(sim: Sim): void {
   store.walkingDog.value = sim.dogs.find((d) => d.walking)?.name ?? null;
   store.adoptionsOpen.value = sim.policies.adoptionsOpen;
   if (store.alerts.value !== sim.alerts.alerts) store.alerts.value = sim.alerts.alerts;
-  const tx = sim.player.tileX;
-  const ty = sim.player.tileY;
+  // Mini harita: iç odadayken bina kapısının önü.
+  const po = sim.playerOutside;
+  const tx = po.tileX;
+  const ty = po.tileY;
   const cur = store.playerTile.value;
   if (cur.x !== tx || cur.y !== ty) store.playerTile.value = { x: tx, y: ty };
   store.hint.value = hintFor(sim);
