@@ -27,6 +27,14 @@ export function drawInteriorItem(type: InteriorItemType): Pixels {
       return drawBed();
     case 'plant':
       return drawPlant();
+    case 'restBoard':
+      return drawNotice();
+    case 'sofa':
+      return drawSofa();
+    case 'tv':
+      return drawTv();
+    case 'fridge':
+      return drawFridge();
   }
 }
 
@@ -196,6 +204,75 @@ function drawPlant(): Pixels {
   p.fillRect(7, 11, 2, 4, P.leafDark);
   p.fillRect(9, 3, 3, 3, P.flowerPink);
   p.set(10, 4, P.flowerYellow);
+  p.outline(P.outline);
+  return p;
+}
+
+/** Duyuru panosu (dinlenme odası, duvarda): mantar pano, renkli notlar ve kahve fincanı çizimi. */
+function drawNotice(): Pixels {
+  const p = new Pixels(TILE * 2, TILE);
+  p.fillRect(1, 1, 30, 11, P.trunk);
+  p.fillRect(2, 2, 28, 9, CORK);
+  p.fillRect(4, 3, 7, 6, PAPER);
+  p.fillRect(5, 4, 5, 1, hex(0xbabcc1));
+  p.fillRect(5, 6, 4, 1, hex(0xbabcc1));
+  p.fillRect(13, 4, 6, 5, P.flowerYellow);
+  p.fillRect(21, 3, 7, 6, hex(0xa3d5e9));
+  p.fillRect(23, 5, 3, 2, P.trunkDark);
+  p.set(26, 5, P.trunkDark);
+  p.set(7, 3, P.flowerRed);
+  p.set(15, 4, P.flowerBlue);
+  p.outline(P.outline);
+  return p;
+}
+
+/** Kanepe (arkadan: TV'ye bakar): koltuk minderleri, alçak sırt ve kolçaklar (2 kare). */
+function drawSofa(): Pixels {
+  const p = new Pixels(TILE * 2, 18);
+  const fab = hex(0x7a5c9e);
+  const fabDark = hex(0x5d4580);
+  const fabLight = hex(0x9a7cc0);
+  p.fillRect(3, 2, 26, 7, fabLight);
+  p.fillRect(15, 2, 2, 7, fab);
+  p.fillRect(0, 2, 4, 15, fab);
+  p.fillRect(28, 2, 4, 15, fab);
+  p.fillRect(2, 8, 28, 9, fab);
+  p.fillRect(2, 8, 28, 2, fabLight);
+  p.fillRect(2, 15, 28, 2, fabDark);
+  p.fillRect(1, 2, 2, 1, fabLight);
+  p.fillRect(29, 2, 2, 1, fabLight);
+  p.outline(P.outline);
+  return p;
+}
+
+/** TV: ahşap sehpa üstünde ekran (2 kare, duvara taşar). */
+function drawTv(): Pixels {
+  const p = new Pixels(TILE * 2, 26);
+  p.fillRect(1, 16, 30, 10, P.trunk);
+  p.fillRect(1, 16, 30, 2, P.trunkLight);
+  p.fillRect(4, 20, 10, 4, P.trunkDark);
+  p.fillRect(18, 20, 10, 4, P.trunkDark);
+  p.fillRect(3, 1, 26, 14, SCREEN);
+  p.fillRect(5, 3, 22, 10, hex(0x4fb3e8));
+  p.fillRect(5, 9, 22, 4, P.grassLight);
+  p.fillRect(18, 4, 4, 4, P.flowerYellow);
+  p.fillRect(7, 4, 6, 1, GLASS_LIGHT);
+  p.fillRect(14, 15, 4, 1, SCREEN);
+  p.outline(P.outline);
+  return p;
+}
+
+/** Buzdolabı: iki kapılı beyaz dolap, kulplar ve bir magnet (duvara taşar). */
+function drawFridge(): Pixels {
+  const p = new Pixels(TILE, 30);
+  p.fillRect(1, 0, 14, 30, hex(0xe8ecf0));
+  p.fillRect(13, 0, 2, 30, hex(0xc4cad3));
+  p.fillRect(1, 11, 14, 1, METAL_DARK);
+  p.fillRect(3, 4, 1, 5, METAL_DARK);
+  p.fillRect(3, 14, 1, 7, METAL_DARK);
+  p.fillRect(8, 3, 3, 3, P.flowerRed);
+  p.fillRect(7, 17, 3, 2, P.flowerYellow);
+  p.fillRect(1, 28, 14, 2, METAL);
   p.outline(P.outline);
   return p;
 }

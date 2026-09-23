@@ -57,6 +57,28 @@
   köpek paneli, araç şeridi, alt menü listesi, ana menü, Ayarlar: çakışma yok, taşma yok. Alt menü açılır listesi köpek
   panelinin üstüne gelebilir (geçici popover, üstte kalır) — kabul edildi. Gerçek cihaz testi kullanıcıda.
 
+## 0.16.3 — Dinlenme odası içi (M15; Claude, 2026-09-23)
+- "Personel odası" → **Dinlenme odası** (`staffRoom` adı/açıklaması; tür anahtarı aynı, kayıt uyumlu). Kapıda E → içeri
+  (`interiorKindFor('staffRoom') = 'restRoom'`, şablon 10×7, halılı oturma alanı).
+- Satın alınan eşyalar: `Building.furniture: string[]` (kayıtta; yüklemede `sanitizeFurniture`: bilinen türler, üst sınır).
+  `BALANCE.staff.rest`: kanepe 300 ₺ (en çok 2, 2 kişilik), kahve köşesi 250 ₺, TV 400 ₺, buzdolabı 200 ₺. Şablon öğeleri
+  `buy`/`slot` alanıyla: `buildInterior(kind, owned)` yalnız alınanları koyar. Komut `buyFurniture { buildingId, item }`
+  (hazır oda, sınır, para; gider "İnşaat"); oyuncu o odadaysa `refreshInterior` odayı yeniden kurar ve `interiorChanged`.
+- İçeride duvardaki pano (`restBoard`) → `RestRoomPanel` (`src/ui/RestRoomPanel.tsx`, panel `'restRoom'`): eşya listesi,
+  n/max, "Al (₺)", moladakiler ve kanepe yeri. Kahve köşesi oyuncuya da kahve verir (ofisteki ile ortak günde bir).
+- Etkiler (`StaffSystem`): `restRoomOf(s)` (hazır odanın kapısına < 3 kare), `restingIn(room)` (moladakiler, personel
+  sırası), `seatsIn(room)` = kanepe × 2; `restRate` ilk `seatsIn` kişiye ×1,25; `onHour` odada molada moral +4 (eski) +
+  kahve 2 + TV 1; `restUntilFor` buzdolabıyla 100 (yoksa 80). `Staff.insideId` her karede belirlenir (kayda yazılmaz).
+- Görsel: moladaki personel dışarıda gizli (üstündeki "zzz" balonu kapıda kalır); oyuncu o odadaysa `restSpotInside`
+  ile kanepelerde TV'ye dönük oturur (kanepe sırtı bacakları örter), yer yoksa ayakta. Çizimler: pano, mor kanepe (arkadan),
+  sehpalı TV, buzdolabı.
+- Testler `tests/unit/rest-room.test.ts` (3): alım/sınır/para/hazırlık/kayıt/temizleme; giriş, pano paneli, içerideyken
+  alınan eşyanın anında görünmesi, tam odada katılık ve çizimler; kanepe 2 kişiye +%25, kahve+TV moral, buzdolabı eşiği.
+  327 test. Tarayıcı (812×375): odaya dokun-gir, panodan alım, 5 eşya yerinde, 3 moladaki kanepelerde (rate 31,25),
+  dışarıda gizli, `runTouchScenarios` 8/8.
+- Not: gizli tarayıcı bölmesinde Preact paneli `store.tick` ile yenilenir; RAF duruksa panel eski kalır (test artefaktı).
+- Sıradaki: 0.16.4 cila (otopilot iç mekânda, uyku yatağa, dokunma senaryoları 9–10, yardım/README/PLAN).
+
 ## 0.16.2 — Personel tuvalet ihtiyacı + Personel WC (M15; Claude, 2026-09-23)
 - `BALANCE.staff.toilet = { perHour 12, goAbove 70, minutes 8, penaltyAbove 90, moraleLossPerHour 4, moraleFloor 25,
   efficiencyMul 0.9 }`. Plandaki 9/saat değiştirildi: 10 saatlik gündüz vardiyasında 90'a hiç ulaşmıyordu.

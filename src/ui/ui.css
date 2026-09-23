@@ -1318,3 +1318,22 @@ select,
   gap: 8px;
   flex: none;
 }
+
+/* Dinlenme odası eşyaları (0.16.3) */
+.furniture-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex: none;
+}
+
+.furniture-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: none;
+}
+
+.furniture-info {
+  flex: 1;
+}

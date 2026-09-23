@@ -26,6 +26,7 @@ import { DPR } from '../render/dpr';
 import { Pixels, hex } from '../render/Pixels';
 import { SEASON_TINT } from '../sim/systems/WeatherSystem';
 import { t } from '../i18n';
+import type { Staff } from '../sim/entities/Staff';
 
 type KeyName =
   | 'W' | 'A' | 'S' | 'D' | 'UP' | 'DOWN' | 'LEFT' | 'RIGHT' | 'SHIFT' | 'E' | 'I' | 'B' | 'X' | 'Z' | 'O' | 'N' | 'P' | 'F' | 'TAB' | 'SPACE' | 'ESC'
@@ -440,6 +441,7 @@ export class WorldScene extends Phaser.Scene {
         order: 'click',
         books: 'click',
         coffee: 'pick',
+        restShop: 'click',
       };
       const name = sfx[kind];
       if (name) audio.play(name);
@@ -462,6 +464,10 @@ export class WorldScene extends Phaser.Scene {
     } else if (r.open === 'computer') store.panel.value = 'computer';
     else if (r.open === 'order') store.panel.value = 'shed';
     else if (r.open === 'help') store.panel.value = 'help';
+    else if (r.open === 'restRoom' && r.building) {
+      store.panelBuildingId.value = r.building.id;
+      store.panel.value = 'restRoom';
+    }
   }
 
   private readInput(): PlayerInput {
@@ -868,6 +874,18 @@ export class WorldScene extends Phaser.Scene {
       sp.setAlpha(s.state === 'working' ? 1 : s.state === 'resting' ? 0.85 : 1);
       // Tuvaletteyken WC'nin içinde: görünmez.
       sp.setVisible(s.state !== 'toilet');
+      // Molada dinlenme odasında: dışarıda görünmez; oyuncu o odadaysa kanepede (ya da ayakta) görünür (0.16.3).
+      if (s.insideId !== null) {
+        const spot = this.restSpotInside(s);
+        if (spot) {
+          sp.anims.stop();
+          sp.setFrame(spot.frame);
+          sp.setPosition(spot.x, spot.y);
+          sp.setDepth(spot.depth);
+          sp.setAlpha(1);
+        }
+        sp.setVisible(spot !== null);
+      }
     }
     for (const [id, sp] of this.staffSprites) {
       if (!seen.has(id)) {
@@ -1156,6 +1174,37 @@ export class WorldScene extends Phaser.Scene {
     const needH = rh + padTop + padBottom;
     const bh = Math.max(needH, cam.height / cam.zoom);
     cam.setBounds(this.interiorOffsetX() - (bw - rw) / 2, -padTop - (bh - needH) / 2, bw, bh);
+  }
+
+  /** Oyuncu dinlenme odasındayken moladaki personelin yeri: önce kanepe koltukları (TV'ye bakar), sonra ayakta. */
+  private restSpotInside(s: Staff): { x: number; y: number; depth: number; frame: number } | null {
+    const it = this.sim.interior;
+    if (!it || it.buildingId !== s.insideId) return null;
+    const room = this.sim.buildingById(it.buildingId);
+    if (!room) return null;
+    const i = this.sim.staffSystem.restingIn(room).indexOf(s);
+    if (i < 0) return null;
+    const T = GAME.tile;
+    const ox = this.interiorOffsetX();
+    const seats: TilePos[] = [];
+    for (const item of it.items) if (item.type === 'sofa') for (let k = 0; k < item.w; k++) seats.push({ x: item.x + k, y: item.y });
+    if (i < seats.length) {
+      const py = seats[i].y * T + 12;
+      return { x: ox + (seats[i].x + 0.5) * T, y: py, depth: 100 + py, frame: 9 };
+    }
+    const stand: TilePos[] = [
+      { x: 5, y: 3 },
+      { x: 2, y: 3 },
+      { x: 7, y: 3 },
+      { x: 4, y: 3 },
+      { x: 6, y: 3 },
+      { x: 3, y: 3 },
+      { x: 1, y: 3 },
+      { x: 8, y: 3 },
+    ];
+    const p = stand[(i - seats.length) % stand.length];
+    const py = (p.y + 1) * T - 2;
+    return { x: ox + (p.x + 0.5) * T, y: py, depth: 100 + py, frame: 0 };
   }
 
   /** İçeride dokunuş: eşyaya → yanına git ve E; boş kare → yürü (kapı karesi dışarı çıkarır). */

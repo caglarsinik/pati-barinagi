@@ -138,6 +138,8 @@ export class Staff {
   volunteerWeeksLeft = 0;
   /** Tuvalet ihtiyacı 0-100 (0.16.2): vardiyada artar, Personel WC'de sıfırlanır. */
   bladder = 0;
+  /** Molada içinde olduğu dinlenme odası (kayda yazılmaz; StaffSystem her karede belirler). */
+  insideId: number | null = null;
 
   constructor(id: number, name: string, role: StaffRole, attrs: StaffAttrs, traits: StaffTrait[], wage: number, look: number, x: number, y: number) {
     this.id = id;

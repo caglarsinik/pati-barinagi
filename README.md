@@ -176,7 +176,11 @@ yeniden denemez. Otopilot inşaat, işe alım ve sahiplendirme kararı vermez.
 - Ofisten ya da P tuşuyla personel paneli: her sabah 3 aday (bakıcı, eğitmen, veteriner) gelir; nitelikleri (hız, çalışkanlık, şefkat, dayanıklılık, beceri) ve huyları farklıdır. Maaşlar her Pazartesi ödenir; kasa iki hafta eksideyse personel istifa eder.
 - F tuşu görevlendirme ekranı: **Vardiya** sekmesinde 24 saatlik çizelgeyi boyarsın (çalış/mola/izin), **Öncelikler** sekmesinde her personel için görev türlerine 0-5 öncelik verirsin (bakıcı tedavi yapamaz, veteriner en iyi tedaviyi yapar), **Politikalar** sekmesinde otomatik yem siparişi, eğitim hedefi ve hasta köpeği karantinada tutma seçeneği vardır.
 - Görev tahtası barınağın ihtiyaçlarından otomatik dolar: boş yem kabı, boş su yalağı, pislik, sıkılan/kirli/hasta köpek, eğitim. Personel aciliyet, verim, öncelik ve mesafeye göre iş seçer; oyuncu işi yaparsa görev düşer. Görevler saatlerce beklerse darboğaz uyarısı çıkar.
-- Personel enerjisi bitince personel odasında (yoksa personel bölgesinde ya da ofis önünde) mola verir.
+- Personel enerjisi bitince dinlenme odasında (yoksa personel bölgesinde ya da ofis önünde) mola verir.
+- **Dinlenme odası (0.16.3):** kapısında E ile içeri girilir. Duvardaki panodan eşya alınır: **kanepe** (300 ₺, en çok 2;
+  her biri 2 kişi oturur, oturanın dinlenmesi +%25), **kahve köşesi** (250 ₺; molada moral saatte +2, sen de günde bir kahve
+  içebilirsin), **TV** (400 ₺; molada moral saatte +1), **buzdolabı** (200 ₺; personel moladan enerjisi tam dolunca döner).
+  Moladaki personel dışarıda görünmez; odaya girersen kanepelerde oturduklarını görürsün.
 - **Personel WC (0.16.2):** personelin tuvalet ihtiyacı vardiyada saatte 12 artar; 70 olunca en yakın Personel WC'ye
   (1×2, 400 ₺, Personel kategorisi) gidip 8 dakikada boşaltır ve işine döner. WC yoksa 90 üstünde saatte moral −4 ve verim
   ×0,9 (sıkışma morali 25 altına indirmez, yalnız WC yüzünden istifa olmaz); uyarı listesinde "Personel tuvaleti yok"
@@ -264,6 +268,7 @@ Bilgisayar değiştirirken ya da yedek almak için kullan.
 - [x] 0.16.0 İç mekân altyapısı: ofise gir/çık (ayrı iç oda), içeride dokun-yürü, masa = ofis paneli
 - [x] 0.16.1 Ofis eşyaları: bilgisayar menüsü, lisans panosu, yatak, kahve makinesi, telefon, kitaplık, pencere/saksı
 - [x] 0.16.2 Personel tuvalet ihtiyacı + "Personel WC" binası, uyarı ve personel kartında Tuvalet çubuğu
+- [x] 0.16.3 Dinlenme odası içi: panodan kanepe/kahve köşesi/TV/buzdolabı, molada personel kanepede
 - [ ] M15 İç Mekânlar ve Personel Konforu (0.16.x): ofis eşyaları, personel WC, dinlenme odası
 - [ ] Sonraki paketler (`docs/PLAN.md` §7): M11 Yaşayan Dünya, M13 Sahiplendirme Hikâyeleri
 

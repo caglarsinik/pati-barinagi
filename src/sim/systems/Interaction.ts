@@ -56,6 +56,7 @@ export type ActionKind =
   | 'coffee'
   | 'order'
   | 'books'
+  | 'restShop'
   | 'none';
 
 export interface ResolvedAction {
@@ -123,7 +124,16 @@ function resolveInterior(sim: Sim, tile: TilePos): ResolvedAction {
       return { kind: 'none', hint: t('Pencere: dışarıda hava {w}', { w: t(WEATHER_NAMES_TR[sim.weatherSys.weather]).toLocaleLowerCase('tr') }), tile };
     case 'plant':
       return { kind: 'none', hint: t('Saksı çiçeği ofise renk katıyor'), tile };
+    case 'restBoard':
+      return { kind: 'restShop', hint: t('E: pano · eşya al (kanepe, kahve, TV, buzdolabı)'), building: sim.buildingById(it.buildingId), tile };
+    case 'sofa':
+      return { kind: 'none', hint: t('Kanepe: molada iki kişi oturur, dinlenme +%25'), tile };
+    case 'tv':
+      return { kind: 'none', hint: t('TV: molada moral saatte +1'), tile };
+    case 'fridge':
+      return { kind: 'none', hint: t('Buzdolabı: personel moladan enerjisi tam dolunca döner'), tile };
     default:
+      if (it.kind === 'restRoom') return { kind: 'none', hint: t('Dinlenme odası · panoya bakıp E: eşya al · çıkmak için kapıya yürü'), tile };
       return { kind: 'none', hint: t('Ofis içi · eşyaya bakıp E · çıkmak için kapıya yürü'), tile };
   }
 }
@@ -194,6 +204,7 @@ export function resolveAction(sim: Sim): ResolvedAction {
       return { kind: 'kennel', hint: t('E: {name}{who}', { name: t(def.name), who: names ? ` (${names})` : t(' (boş)') }), building };
     }
     if (building.type === 'incubator') return { kind: 'incubator', hint: t('E: kuluçka'), building };
+    if (building.type === 'staffRoom') return { kind: 'enter', hint: t('E: dinlenme odasına gir'), building };
     if (building.type === 'nursery') return { kind: 'nursery', hint: building.eggs.length > 0 ? t('E: yuva evi (yumurta hazır)') : t('E: yuva evi'), building };
   }
 
@@ -270,7 +281,7 @@ export interface ActionOutcome {
   ok: boolean;
   message?: string;
   /** UI'nın açması gereken panel. */
-  open?: 'shed' | 'kennel' | 'incubator' | 'office' | 'nursery' | 'computer' | 'order' | 'help';
+  open?: 'shed' | 'kennel' | 'incubator' | 'office' | 'nursery' | 'computer' | 'order' | 'help' | 'restRoom';
   building?: Building;
   dog?: Dog;
 }
@@ -432,6 +443,8 @@ export function performAction(sim: Sim): ActionOutcome {
       return { ok: true, open: 'order' };
     case 'books':
       return { ok: true, open: 'help' };
+    case 'restShop':
+      return { ok: true, open: 'restRoom', building: r.building };
     case 'sleep':
       if (!canSleepAt(sim.clock.hour)) return { ok: false, message: t("Henüz erken: {h}:00'den sonra uyunabilir", { h: BALANCE.time.sleepFromHour }) };
       return sim.command({ type: 'sleep' });

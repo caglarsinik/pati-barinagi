@@ -1,6 +1,6 @@
 import { BALANCE } from '../../config/balance';
 import { PERSON_NAMES } from '../../content/names';
-import { buildingDoorTile, isReady } from '../entities/Building';
+import { type Building, buildingDoorTile, isReady } from '../entities/Building';
 import { type Dog, clamp100 } from '../entities/Dog';
 import type { Facing } from '../entities/Player';
 import { ROLE_MAIN_ATTRS, STAFF_ROLES, Staff, type StaffRole, randomCandidate, xpForLevel } from '../entities/Staff';
@@ -181,7 +181,10 @@ export class StaffSystem {
     for (const s of sim.staff) {
       let d = 0;
       if (!s.onDuty) d = M.offDutyGain;
-      else if (s.state === 'resting') d = this.restRate(s) === BALANCE.staff.restRegenRoom ? M.restRoomGain : M.restGain;
+      else if (s.state === 'resting') {
+        const room = this.restRoomOf(s);
+        d = room ? M.restRoomGain + this.roomMoraleBonus(room) : M.restGain;
+      }
       else {
         d = s.energy < M.tiredBelowEnergy ? -M.tiredLoss : M.workGain;
         if (overloaded) d -= M.overloadLoss;
@@ -243,6 +246,7 @@ export class StaffSystem {
 
     // Vardiya dışı: işi bırak, kapıya yürü, kaybol.
     if (shift === 0) {
+      s.insideId = null;
       if (s.state === 'offDuty') return;
       if (s.state !== 'leaving') this.startLeaving(s);
       this.followPath(s, dtMin);
@@ -323,7 +327,7 @@ export class StaffSystem {
           s.decisionTimer = BALANCE.staff.decisionIntervalMin;
           if (this.goToilet(s)) break;
         }
-        if (shift === 1 && s.energy >= BALANCE.staff.restUntil) s.state = 'idle';
+        if (shift === 1 && s.energy >= this.restUntilFor(s)) s.state = 'idle';
         break;
       case 'toToilet':
         this.followPath(s, dtMin);
@@ -344,14 +348,48 @@ export class StaffSystem {
       default:
         s.state = 'idle';
     }
+    // Molada dinlenme odasının kapısındaysa içeride sayılır: dışarıda görünmez, oyuncu odadaysa kanepede görünür.
+    s.insideId = s.state === 'resting' ? (this.restRoomOf(s)?.id ?? null) : null;
   }
 
-  private restRate(s: Staff): number {
-    const room = this.sim.buildings.find((b) => b.type === 'staffRoom' && isReady(b));
+  /** Molada olduğu dinlenme odası: hazır odanın kapısına 3 kareden yakın. */
+  restRoomOf(s: Staff): Building | undefined {
+    for (const room of this.sim.buildings) {
+      if (room.type !== 'staffRoom' || !isReady(room)) continue;
+      const door = buildingDoorTile(room);
+      if (Math.hypot(s.x - (door.x + 0.5), s.y - (door.y + 0.5)) < 3) return room;
+    }
+    return undefined;
+  }
+
+  /** Odadaki moladakiler (personel listesi sırasıyla); ilk `seatsIn` kadarı kanepede oturur. */
+  restingIn(room: Building): Staff[] {
+    return this.sim.staff.filter((x) => x.state === 'resting' && x.insideId === room.id);
+  }
+
+  seatsIn(room: Building): number {
+    return room.furniture.filter((f) => f === 'sofa').length * BALANCE.staff.rest.seatsPerSofa;
+  }
+
+  /** Mola yenilenmesi (enerji/saat): oda + kanepede yer varsa +%25; oda yoksa dışarıda yavaş. */
+  restRate(s: Staff): number {
+    const room = this.restRoomOf(s);
     if (!room) return BALANCE.staff.restRegenOutside;
-    const door = buildingDoorTile(room);
-    const near = Math.hypot(s.x - (door.x + 0.5), s.y - (door.y + 0.5)) < 3;
-    return near ? BALANCE.staff.restRegenRoom : BALANCE.staff.restRegenOutside;
+    const i = this.restingIn(room).indexOf(s);
+    const seated = i >= 0 && i < this.seatsIn(room);
+    return BALANCE.staff.restRegenRoom * (seated ? 1 + BALANCE.staff.rest.sofaRegenBonus : 1);
+  }
+
+  /** Kahve köşesi ve TV'nin molada saatlik moral eki. */
+  private roomMoraleBonus(room: Building): number {
+    const R = BALANCE.staff.rest;
+    return (room.furniture.includes('coffee') ? R.coffeeMoralePerHour : 0) + (room.furniture.includes('tv') ? R.tvMoralePerHour : 0);
+  }
+
+  /** Moladan dönüş eşiği: buzdolabı olan odada enerji tam dolar. */
+  private restUntilFor(s: Staff): number {
+    const room = this.restRoomOf(s);
+    return room?.furniture.includes('fridge') ? BALANCE.staff.rest.fridgeRestUntil : BALANCE.staff.restUntil;
   }
 
   // ---------------------------------------------------------------------------

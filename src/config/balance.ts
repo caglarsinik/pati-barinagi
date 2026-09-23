@@ -127,6 +127,22 @@ export const BALANCE = {
       moraleFloor: 25,
       efficiencyMul: 0.9,
     },
+    /** Dinlenme odası eşyaları (0.16.3): içerideki panodan alınır; etkiler yalnız o odada molada olanlara. */
+    rest: {
+      furniture: {
+        sofa: { cost: 300, max: 2 },
+        coffee: { cost: 250, max: 1 },
+        tv: { cost: 400, max: 1 },
+        fridge: { cost: 200, max: 1 },
+      },
+      seatsPerSofa: 2,
+      /** Kanepede oturanın mola yenilenmesi çarpanı eki (+%25). */
+      sofaRegenBonus: 0.25,
+      coffeeMoralePerHour: 2,
+      tvMoralePerHour: 1,
+      /** Buzdolabı: moladan enerji bu değere dolunca dönülür (yoksa restUntil). */
+      fridgeRestUntil: 100,
+    },
   },
   adoption: {
     dailyBase: 0.6,

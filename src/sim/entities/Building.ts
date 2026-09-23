@@ -28,6 +28,8 @@ export interface Building {
   /** Yuva evi: atanan çift (0-2 köpek id) ve yumurtaya kalan süre (dk). */
   pair: number[];
   breedLeft: number;
+  /** Dinlenme odası: satın alınan eşyalar (0.16.3). */
+  furniture: string[];
 }
 
 export interface BuildingSave {
@@ -44,6 +46,7 @@ export interface BuildingSave {
   level?: number;
   pair?: number[];
   breedLeft?: number;
+  furniture?: string[];
 }
 
 export function buildingDef(b: Building | BuildingType): BuildingDef {

@@ -36,7 +36,8 @@ export type Panel =
   | 'alerts'
   | 'backpack'
   | 'map'
-  | 'computer';
+  | 'computer'
+  | 'restRoom';
 
 export type BuildTool =
   | { kind: 'none' }

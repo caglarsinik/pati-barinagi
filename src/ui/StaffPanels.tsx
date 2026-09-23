@@ -327,7 +327,7 @@ export function DeploymentPanel() {
                 </>
               ))}
             </div>
-            <p class="muted small-text">{t('Mesai dışı personel görünmez; vardiya başlayınca kapıdan gelir. Enerjisi bitince personel odasında mola verir.')}</p>
+            <p class="muted small-text">{t('Mesai dışı personel görünmez; vardiya başlayınca kapıdan gelir. Enerjisi bitince dinlenme odasında mola verir.')}</p>
           </div>
         )}
 

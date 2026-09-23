@@ -484,7 +484,7 @@ kuluçka iç mekânları sonra.
 | 0.16.0 ✅ | İç mekân altyapısı: ofise gir/çık, iç oda (12×8), dokun-yürü, masa = ofis paneli |
 | 0.16.1 ✅ | Ofis eşyaları: bilgisayar, lisans panosu, yatak, kahve, telefon, kitaplık, pencere/saksı |
 | 0.16.2 ✅ | Personel tuvalet ihtiyacı + Personel WC (moral tabanı 25: yalnız WC yüzünden istifa yok) |
-| 0.16.3 | Dinlenme odası içi |
+| 0.16.3 ✅ | Dinlenme odası içi: kanepe (+%25 dinlenme), kahve köşesi, TV (moral), buzdolabı (enerji 100) |
 | 0.16.4 | Cila: otopilot iç mekânda, dokunma senaryoları 9–10, yardım |
 
 ### M13 Sahiplendirme Hikâyeleri

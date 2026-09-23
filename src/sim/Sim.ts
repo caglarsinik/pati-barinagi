@@ -52,7 +52,7 @@ import { GateSystem } from './systems/GateSystem';
 import type { EmoteEvent } from './systems/Emotes';
 import { type Weather, WeatherSystem } from './systems/WeatherSystem';
 import type { TilePos, TileWorld } from './world/TileWorld';
-import { type ActiveInterior, buildInterior, interiorKindFor } from './interior/Interiors';
+import { type ActiveInterior, FURNITURE_NAMES_TR, type FurnitureType, buildInterior, interiorKindFor, sanitizeFurniture } from './interior/Interiors';
 import { generateWorld } from './world/WorldGen';
 import { Biome, Ground, Obj, Zone } from './world/tiles';
 import { t } from '../i18n';
@@ -156,7 +156,8 @@ export type Command =
   | { type: 'goInteract'; goal: NavGoal }
   | { type: 'cancelNav' }
   | { type: 'setAutopilot'; on: boolean }
-  | { type: 'enterBuilding'; buildingId: number };
+  | { type: 'enterBuilding'; buildingId: number }
+  | { type: 'buyFurniture'; buildingId: number; item: FurnitureType };
 
 export interface Policies {
   autoOrderFood: boolean;
@@ -793,6 +794,19 @@ export class Sim {
       case 'enterBuilding':
         this.setAutopilot(false);
         return this.enterBuilding(cmd.buildingId);
+      case 'buyFurniture': {
+        const b = this.buildingById(cmd.buildingId);
+        if (!b || b.type !== 'staffRoom' || !isReady(b)) return { ok: false };
+        const F = BALANCE.staff.rest.furniture[cmd.item];
+        if (!F) return { ok: false };
+        const name = t(FURNITURE_NAMES_TR[cmd.item]);
+        if (b.furniture.filter((f) => f === cmd.item).length >= F.max) return { ok: false, message: t('{name} için yer kalmadı', { name }) };
+        if (this.money < F.cost) return { ok: false, message: t('Yeterli para yok') };
+        this.addExpense('building', F.cost, name);
+        b.furniture.push(cmd.item);
+        this.refreshInterior(b.id);
+        return { ok: true, message: t('{name} dinlenme odasına kondu', { name }) };
+      }
       case 'setAutopilot':
         this.setAutopilot(cmd.on);
         return { ok: true };
@@ -926,7 +940,7 @@ export class Sim {
     if (!b || !isReady(b)) return { ok: false };
     const kind = interiorKindFor(b.type);
     if (!kind) return { ok: false, message: t('Bu binaya girilemez') };
-    const map = buildInterior(kind);
+    const map = buildInterior(kind, b.furniture);
     const door = buildingDoorTile(b);
     this.nav.cancel();
     this.interior = { ...map, buildingId: b.id, back: { x: door.x + 0.5, y: door.y + 0.9 } };
@@ -935,6 +949,15 @@ export class Sim {
     this.player.facing = 3;
     this.events.emit('interiorChanged', this.interior);
     return { ok: true };
+  }
+
+  /** İçinde bulunulan odanın eşyaları değişince odayı yeniden kurar (oyuncu yerinde kalır). */
+  private refreshInterior(buildingId: number): void {
+    const it = this.interior;
+    const b = this.buildingById(buildingId);
+    if (!it || it.buildingId !== buildingId || !b) return;
+    this.interior = { ...buildInterior(it.kind, b.furniture), buildingId, back: it.back };
+    this.events.emit('interiorChanged', this.interior);
   }
 
   /** İç odadan çık: oyuncu binanın kapı önüne, yüzü aşağı. Dışarıdayken bir şey yapmaz. */
@@ -1157,6 +1180,7 @@ export class Sim {
       level: 1,
       pair: [],
       breedLeft: type === 'nursery' ? breedMinutes() : 0,
+      furniture: [],
     };
     this.buildings.push(b);
     this.buildingMap.set(b.id, b);
@@ -1318,6 +1342,7 @@ export class Sim {
         level: b.level,
         pair: [...b.pair],
         breedLeft: b.breedLeft,
+        furniture: [...b.furniture],
       })),
       dogs: this.dogs.map((d) => d.toJSON()),
       backpack: this.backpack.map(eggSave),
@@ -1502,6 +1527,7 @@ export class Sim {
           level: Math.min(2, Math.max(1, Math.floor(numOr(raw.level, 1, 1)))),
           pair: Array.isArray(raw.pair) ? raw.pair.filter((x): x is number => Number.isInteger(x)).slice(0, 2) : [],
           breedLeft: raw.type === 'nursery' ? Math.min(breedMinutes(), numOr(raw.breedLeft, breedMinutes(), 0)) : 0,
+          furniture: raw.type === 'staffRoom' ? sanitizeFurniture(raw.furniture) : [],
         };
         b.eggs = b.eggs.slice(0, incubatorSlots(b));
         sim.buildings.push(b);

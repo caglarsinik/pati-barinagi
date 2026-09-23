@@ -16,6 +16,7 @@ import { t } from '../i18n';
 import { PauseMenu } from './PauseMenu';
 import { store } from './store';
 import { ComputerPanel } from './ComputerPanel';
+import { RestRoomPanel } from './RestRoomPanel';
 
 export function App() {
   store.lang.value;
@@ -45,6 +46,7 @@ export function App() {
           {panel === 'backpack' && <BackpackSheet />}
           {panel === 'map' && <MapSheet />}
           {panel === 'computer' && <ComputerPanel />}
+          {panel === 'restRoom' && <RestRoomPanel />}
           {store.report.value && <WeeklyReport />}
           {store.pauseMenu.value && <PauseMenu />}
           {store.gameOver.value && <GameOverPanel />}
