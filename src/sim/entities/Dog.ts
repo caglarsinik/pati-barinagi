@@ -94,6 +94,7 @@ export interface DogSave {
   parentNames?: [string, string] | null;
   breedReadyAt?: number;
   vaccinatedUntil?: number;
+  vitaminUntil?: number;
   walking?: boolean;
   illness?: Illness | null;
   keep?: boolean;
@@ -149,6 +150,8 @@ export class Dog {
   breedReadyAt = 0;
   /** Aşı bitişi (toplam oyun dk; 0.17.2). Bu ana kadar hastalanma/bulaşma olasılığı düşük. */
   vaccinatedUntil = 0;
+  /** Vitamin etkisinin bittiği an (oyun dakikası, 0.20.0). */
+  vitaminUntil = 0;
   /** Şu an birlikte oyun için buluştuğu köpek (kayda yazılmaz). */
   playmateId: number | null = null;
   /** Tasmada, oyuncuyla gezintide (kayda yazılır). */
@@ -280,6 +283,7 @@ export class Dog {
       parentNames: this.parentNames,
       breedReadyAt: this.breedReadyAt,
       vaccinatedUntil: this.vaccinatedUntil,
+      vitaminUntil: this.vitaminUntil,
     };
   }
 
@@ -323,6 +327,7 @@ export class Dog {
     dog.parentNames = Array.isArray(pn) && pn.length === 2 && pn.every((x) => typeof x === 'string') ? [pn[0], pn[1]] : null;
     dog.breedReadyAt = typeof d.breedReadyAt === 'number' && Number.isFinite(d.breedReadyAt) ? Math.max(0, d.breedReadyAt) : 0;
     dog.vaccinatedUntil = typeof d.vaccinatedUntil === 'number' && Number.isFinite(d.vaccinatedUntil) ? Math.max(0, d.vaccinatedUntil) : 0;
+    dog.vitaminUntil = typeof d.vitaminUntil === 'number' && Number.isFinite(d.vitaminUntil) ? Math.max(0, d.vitaminUntil) : 0;
     const ill = d.illness;
     if (ill && typeof ill === 'object' && ILLNESS_KINDS.includes(ill.kind)) {
       dog.illness = { kind: ill.kind, days: typeof ill.days === 'number' && Number.isFinite(ill.days) ? Math.max(0, Math.floor(ill.days)) : 0 };

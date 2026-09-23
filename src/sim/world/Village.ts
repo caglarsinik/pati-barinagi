@@ -4,7 +4,7 @@ import type { Rect, TilePos, TileWorld } from './TileWorld';
 import { Biome, Ground, Obj } from './tiles';
 
 /** Köy binası türleri (0.18.2). Oyuncuya ait değil; `sim.buildings` dışında, dünya üretiminde sabit yerleşir. */
-export type VillageKind = 'wholesaler' | 'toyShop' | 'house' | 'fountain';
+export type VillageKind = 'wholesaler' | 'toyShop' | 'house' | 'fountain' | 'market';
 
 export interface VillageBuilding {
   index: number;
@@ -25,6 +25,7 @@ export const VILLAGE_NAMES_TR: Record<VillageKind, string> = {
   toyShop: 'Oyuncak ve ilaç dükkânı',
   house: 'Köy evi',
   fountain: 'Köy çeşmesi',
+  market: 'Pazar tezgâhı',
 };
 
 /** Yol bandının köy içindeki sütunları (sol kenardan). */
@@ -38,6 +39,8 @@ const LAYOUT: ReadonlyArray<Omit<VillageBuilding, 'index'>> = [
   { kind: 'house', x: 20, y: 1, w: 3, h: 3 },
   { kind: 'fountain', x: 16, y: 7, w: 2, h: 2 },
   { kind: 'house', x: 4, y: 11, w: 3, h: 3 },
+  // 0.20.0: pazar tezgâhı, çeşmenin karşısında; sona eklenir ki eski indeksler değişmesin.
+  { kind: 'market', x: 6, y: 7, w: 3, h: 2 },
 ];
 
 function inRect(r: Rect, x: number, y: number, pad = 0): boolean {
@@ -98,9 +101,14 @@ export function villageDoorTile(vb: VillageBuilding): TilePos {
   return { x: vb.x + Math.floor(vb.w / 2), y: vb.y + vb.h };
 }
 
-/** Girilebilen köy binasının iç mekân türü (0.18.2: toptancı; oyuncak dükkânı 0.18.3'te açılır). */
+/** Girilebilen köy binasının iç mekân türü (0.18.2 toptancı, 0.20.0 oyuncak ve ilaç dükkânı). */
 export function villageInteriorKind(kind: VillageKind): InteriorKind | null {
-  return kind === 'wholesaler' ? 'wholesaler' : null;
+  return kind === 'wholesaler' ? 'wholesaler' : kind === 'toyShop' ? 'toyShop' : null;
+}
+
+/** Dokununca önüne gidip iş yapılan köy yapısı: girilebilen binalar ve pazar tezgâhı. */
+export function villageInteractive(kind: VillageKind): boolean {
+  return villageInteriorKind(kind) !== null || kind === 'market';
 }
 
 /** Toptancıda bir çuvalın fiyatı (kilerdeki tam fiyatın indirimli hâli). */

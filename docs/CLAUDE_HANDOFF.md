@@ -57,6 +57,31 @@
   köpek paneli, araç şeridi, alt menü listesi, ana menü, Ayarlar: çakışma yok, taşma yok. Alt menü açılır listesi köpek
   panelinin üstüne gelebilir (geçici popover, üstte kalır) — kabul edildi. Gerçek cihaz testi kullanıcıda.
 
+## 0.20.0 — Oyuncak ve ilaç dükkânı, Pazar tezgâhı (M11; Claude, 2026-09-23)
+- Yeni `src/sim/systems/ShopSystem.ts`: `Supplies { toy, vitamin }`, `shopPrice(item, market)`, `buyShop` (yalnız `toyShop`
+  iç mekânında; her türden en çok `BALANCE.shop.maxSupply` 20; bisiklet bir kez), `buyMarket` (yalnız Pazar = `clock.weekday`
+  6 ve tezgâhın önünde `marketReach` 3 kare; ×0,75; haftanın yumurtası `marketEggOffer`: nadirlik ve yumurta
+  `hash3(seed, hafta, …)` ayrı RNG'lerinden, haftada bir, `Sim.marketEggWeek`), `giveSupply` (oyuncak: `needs.play` 100 +
+  sadakat 5; vitamin: sağlık +20 ve `Dog.vitaminUntil` bir gün), `bicycleExertion`. Defterde yeni kategori `shop` "Dükkân".
+- Köy: `VillageKind` += `market` (LAYOUT'un SONUNA 3×2 @6,7, eski indeksler aynı), `villageInteriorKind('toyShop')` =
+  `toyShop`, yeni `villageInteractive` (girilebilen ya da tezgâh). `PlayerNav` köy hedefinde girilemeyen yapının önünde E işi
+  yapar; `WorldScene.touchTap` `villageInteractive` kullanır.
+- İç mekân `toyShop` (10×7): iki `toyShelf` (yeni çizim), `vitaminShelf` (ilaç dolabı çizimi), `shopCounter` (bu odada
+  `toyShop` eylemi → yeni `ToyShopPanel`), saksı; tezgâh arkasında satıcı (`interiorExtras`).
+- Pazar tezgâhı dış çizimi `drawVillageBuilding('market')` (çizgili tente, tezgâh, mallar yanlarda); `WorldScene.marketVendor`
+  tezgâhın arkasında, yalnız Pazar görünür. Tezgâhta E (Pazar) → yeni `MarketPanel`; başka gün ipucu "Pazar günleri kurulur".
+  Mini haritada tezgâh pembe.
+- Plandan sapma: bisikletin etkisi 0.20.3 yerine burada (etkisiz eşya satılmasın): `PlayerExertion.runSpeedMul`, bisikletle
+  koşu ×1,5 ve koşu yorgunluğu ×0,8 (`BALANCE.shop.bicycleRunMul/DrainMul`), otopilotun koşusunda da geçerli.
+- Arayüz: köpek panelinde "🧸 Oyuncak ver (n)" / "💊 Vitamin ver (n)", çantada 🧸/💊 sayaçları. Kayıt: `supplies`,
+  `bicycle`, `marketEggWeek`, köpekte `vitaminUntil` (hepsi varsayılanlı).
+- Testler: yeni `tests/unit/shop.test.ts` (4: dükkâna giriş, tezgâh, alım, sınır, bisiklet; oyuncak ve vitamin etkisi,
+  hastalık çarpanı, kayıt; Pazar tezgâhı gün ve yakınlık kuralı, indirim, haftalık yumurta, ana RNG sırası; bisiklet hız ve
+  yorgunluk oranı); `village.test.ts` 7 yapıya ve açılan dükkâna uyarlandı. 370 test. Tarayıcı 812×375: dükkân içi, panelden
+  alım (5 oyuncak, vitamin, bisiklet), Pazar tezgâhı ve satıcı, indirimli fiyatlar, nadir yumurta 300 ₺ çantaya, köpek
+  panelinden oyuncak (oyun keyfi 20 → 100); `runTouchScenarios` 13/13.
+- Sıradaki: 0.20.1 köylü rutini.
+
 ## 0.19.3 — Cila, M17 tamam (Claude, 2026-09-23)
 - `runTouchScenarios` artık açık oyunu kullanmaz: `app.startDebugGame(seed, starter)` ile kayda dokunmayan test oyunu kurar
   (`App.debugGame` bayrağı: `save()` yazmaz; `newGame` ve `continueGame` bayrağı sıfırlar). 1–12 sabit tohumlu hazır

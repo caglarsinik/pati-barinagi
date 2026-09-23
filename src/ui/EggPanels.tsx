@@ -63,6 +63,16 @@ export function Backpack({ inSheet = false }: { inSheet?: boolean } = {}) {
         <div class="treats" title={t('Ödül maması: sokak köpeklerini evcilleştirmek için')}>
           🦴 {store.treats.value}
         </div>
+        {sim.supplies.toy > 0 && (
+          <div class="treats" title={t('Oyuncak paketi: köpek panelinden ver')}>
+            🧸 {sim.supplies.toy}
+          </div>
+        )}
+        {sim.supplies.vitamin > 0 && (
+          <div class="treats" title={t('Vitamin: köpek panelinden ver')}>
+            💊 {sim.supplies.vitamin}
+          </div>
+        )}
       </div>
     </div>
   );

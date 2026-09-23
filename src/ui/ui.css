@@ -1329,6 +1329,16 @@ select,
   margin-top: 12px;
 }
 
+/* --- Köy dükkânı ve pazar (0.20.0) --- */
+.shop .shop-item {
+  padding: 6px 0 8px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.12);
+}
+
+.shop .shop-item .row {
+  margin-top: 4px;
+}
+
 /* --- Olaylar ve başarımlar --- */
 .event-log {
   margin-top: 8px;

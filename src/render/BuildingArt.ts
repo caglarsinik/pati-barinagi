@@ -351,7 +351,7 @@ function drawHouse(
 }
 
 /** Köy binaları (0.18.2): oyuncuya ait değil; dükkân tabelaları kodla. Kökeni sol alt. */
-export function drawVillageBuilding(kind: 'wholesaler' | 'toyShop' | 'house' | 'fountain', wTiles: number, hTiles: number): Pixels {
+export function drawVillageBuilding(kind: 'wholesaler' | 'toyShop' | 'house' | 'fountain' | 'market', wTiles: number, hTiles: number): Pixels {
   const W = wTiles * T;
   const H = hTiles * T + BUILDING_OVERHANG;
   const p = new Pixels(W, H);
@@ -390,6 +390,26 @@ export function drawVillageBuilding(kind: 'wholesaler' | 'toyShop' | 'house' | '
       p.fillRect(cx - 2, bottom - 22, 4, 12, C.metal);
       p.fillRect(cx - 1, bottom - 27, 2, 5, C.glass);
       break;
+    case 'market': {
+      // Pazar tezgâhı (0.20.0): çizgili tente, iki direk, tahta tezgâh; üstünde çuval, top ve ilaç şişesi.
+      const top = y0 + 2;
+      p.fillRect(0, top, W, 8, C.white);
+      for (let x = 0; x < W; x += 8) p.fillRect(x, top, 4, 8, C.roofPink);
+      p.fillRect(0, top + 8, W, 1, C.roofPinkDark);
+      p.fillRect(2, top + 9, 2, bottom - top - 9, C.woodWallDark);
+      p.fillRect(W - 4, top + 9, 2, bottom - top - 9, C.woodWallDark);
+      p.fillRect(0, bottom - 11, W, 11, C.woodWall);
+      p.fillRect(0, bottom - 11, W, 2, C.woodWallDark);
+      for (let x = 6; x < W; x += 10) p.fillRect(x, bottom - 8, 1, 7, C.woodWallDark);
+      // Mallar yanlarda; orta boş kalır, satıcı Pazar günü tezgâhın arkasında görünür.
+      p.fillRect(5, bottom - 17, 9, 6, C.rope);
+      p.fillRect(5, bottom - 17, 9, 1, C.ropeDark);
+      p.ellipse(16, bottom - 14, 3, 3, C.ball);
+      p.fillRect(36, bottom - 18, 4, 7, C.white);
+      p.fillRect(37, bottom - 16, 2, 1, C.cross);
+      p.fillRect(37, bottom - 17, 1, 3, C.cross);
+      break;
+    }
   }
   p.outline(P.outline);
   return p;

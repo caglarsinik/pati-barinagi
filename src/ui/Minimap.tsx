@@ -92,7 +92,7 @@ export function Minimap({
     // Köy binaları (0.18.2), keşfedildiyse.
     for (const vb of sim.world.villageBuildings) {
       if (!explored[sim.world.idx(vb.x, vb.y + vb.h - 1)]) continue;
-      ctx.fillStyle = vb.kind === 'fountain' ? '#6faae0' : '#7d5430';
+      ctx.fillStyle = vb.kind === 'fountain' ? '#6faae0' : vb.kind === 'market' ? '#e27aa8' : '#7d5430';
       ctx.fillRect(vb.x, vb.y, vb.w, vb.h);
     }
     for (const dog of sim.dogs) {

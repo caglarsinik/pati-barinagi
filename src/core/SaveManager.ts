@@ -28,6 +28,9 @@ export interface SaveData {
   goals?: unknown;
   dayStart?: unknown;
   lastDay?: unknown;
+  supplies?: unknown;
+  bicycle?: boolean;
+  marketEggWeek?: number;
   foodStock?: number;
   nextId?: number;
   stats?: unknown;

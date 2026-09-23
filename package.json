@@ -1,7 +1,7 @@
 {
   "name": "pati-barinagi",
   "private": true,
-  "version": "0.19.3",
+  "version": "0.20.0",
   "description": "Pati Barınağı: 2D köpek barınağı yönetim ve açık dünya keşif oyunu",
   "type": "module",
   "scripts": {

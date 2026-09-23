@@ -239,6 +239,33 @@ export function DogPanel() {
       </label>
       <div class="muted small-text">{why ? t('Şu an sahiplendirilemez: {why}', { why }) : t('Sahiplendirilmeye hazır.')}</div>
 
+      {!dog.wild && (sim.supplies.toy > 0 || sim.supplies.vitamin > 0) && (
+        <div class="row wrap">
+          {sim.supplies.toy > 0 && (
+            <button
+              class="btn small"
+              onClick={() => {
+                const r = sim.command({ type: 'giveSupply', dogId: dog.id, item: 'toy' });
+                if (r.message) showToast(r.message);
+              }}
+            >
+              {t('🧸 Oyuncak ver ({n})', { n: sim.supplies.toy })}
+            </button>
+          )}
+          {sim.supplies.vitamin > 0 && (
+            <button
+              class="btn small"
+              onClick={() => {
+                const r = sim.command({ type: 'giveSupply', dogId: dog.id, item: 'vitamin' });
+                if (r.message) showToast(r.message);
+              }}
+            >
+              {t('💊 Vitamin ver ({n})', { n: sim.supplies.vitamin })}
+            </button>
+          )}
+        </div>
+      )}
+
       <h4>{t('Gezinti')}</h4>
       <div class="row">
         {dog.walking ? (

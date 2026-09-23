@@ -17,7 +17,7 @@ describe('Köy ve yem toptancısı (0.18.2)', () => {
       expect(v, `tohum ${seed}`).not.toBeNull();
       expect(v.y + v.h).toBeLessThanOrEqual(w.height - 2);
       expect(v.y).toBeGreaterThan(w.plot.y + BALANCE.world.plotMaxH);
-      expect(w.villageBuildings.map((b) => b.kind)).toEqual(['wholesaler', 'house', 'toyShop', 'house', 'fountain', 'house']);
+      expect(w.villageBuildings.map((b) => b.kind)).toEqual(['wholesaler', 'house', 'toyShop', 'house', 'fountain', 'house', 'market']);
       for (const b of w.villageBuildings) {
         for (let y = b.y; y < b.y + b.h; y++) for (let x = b.x; x < b.x + b.w; x++) expect(w.isSolid(x, y)).toBe(true);
         const d = villageDoorTile(b);
@@ -85,15 +85,15 @@ describe('Köy ve yem toptancısı (0.18.2)', () => {
     expect(sim.command({ type: 'goInteract', goal: { kind: 'village', index: shop.index } }).ok).toBe(true);
     for (let i = 0; i < 30 * 5 && !sim.interior; i++) sim.update(1 / 30, IDLE_INPUT);
     expect(sim.interior?.kind).toBe('wholesaler');
-    // Oyuncak dükkânı henüz kapalı; çizimler dolu.
+    // Oyuncak dükkânı da girilebilir (0.20.0); çizimler dolu.
     const toy = sim.world.villageBuildings.find((b) => b.kind === 'toyShop')!;
     sim.exitInterior();
     const td = villageDoorTile(toy);
     sim.player.x = td.x + 0.5;
     sim.player.y = td.y + 0.9;
     sim.player.facing = 3;
-    expect(resolveAction(sim).hint).toContain('yakında');
-    for (const kind of ['wholesaler', 'toyShop', 'house', 'fountain'] as const) {
+    expect(resolveAction(sim).kind).toBe('enterVillage');
+    for (const kind of ['wholesaler', 'toyShop', 'house', 'fountain', 'market'] as const) {
       const px = drawVillageBuilding(kind, 4, 3);
       let n = 0;
       for (let y = 0; y < px.h; y++) for (let x = 0; x < px.w; x++) if (px.isOpaque(x, y)) n++;

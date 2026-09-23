@@ -33,6 +33,10 @@ export function drawInteriorItem(type: InteriorItemType, variant = 3): Pixels {
       return drawShopCounter();
     case 'crates':
       return drawCrates();
+    case 'toyShelf':
+      return drawToyShelf();
+    case 'vitaminShelf':
+      return drawMedCabinet();
     case 'tray':
       return drawTray();
     case 'controlPanel':
@@ -655,6 +659,34 @@ function drawCrates(): Pixels {
   }
   p.set(7, 6, BURLAP_DARK);
   p.set(8, 16, BURLAP_DARK);
+  p.outline(P.outline);
+  return p;
+}
+
+/** Oyuncak rafı (2 kare): renkli toplar, halat, kemik, peluş ve kutu. */
+function drawToyShelf(): Pixels {
+  const w = TILE * 2;
+  const p = new Pixels(w, 30);
+  p.fillRect(1, 2, w - 2, 28, P.trunk);
+  p.fillRect(2, 11, w - 4, 1, P.trunkLight);
+  p.fillRect(2, 20, w - 4, 1, P.trunkLight);
+  p.ellipse(7, 7, 3, 3, P.flowerRed);
+  p.ellipse(16, 7, 3, 3, P.flowerYellow);
+  p.ellipse(25, 7, 3, 3, hex(0x5aa0e6));
+  p.fillRect(4, 15, 10, 3, hex(0xe8d5a8));
+  p.fillRect(4, 16, 10, 1, hex(0xc9a86a));
+  p.fillRect(19, 15, 8, 3, PAPER);
+  for (const [x, y] of [
+    [19, 15],
+    [19, 18],
+    [27, 15],
+    [27, 18],
+  ] as const)
+    p.ellipse(x, y, 1.5, 1.5, PAPER);
+  p.fillRect(5, 24, 7, 5, hex(0xb07a4f));
+  p.ellipse(8.5, 23, 3, 2.5, hex(0xb07a4f));
+  p.fillRect(18, 23, 9, 6, hex(0xa66bd6));
+  p.fillRect(18, 25, 9, 1, PAPER);
   p.outline(P.outline);
   return p;
 }

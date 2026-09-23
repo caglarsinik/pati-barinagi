@@ -22,6 +22,8 @@ import { ClinicPanel } from './ClinicPanel';
 import { WholesalePanel } from './WholesalePanel';
 import { GoalsPanel } from './GoalsPanel';
 import { MorningPanel } from './MorningPanel';
+import { ToyShopPanel } from './ToyShopPanel';
+import { MarketPanel } from './MarketPanel';
 
 export function App() {
   store.lang.value;
@@ -57,6 +59,8 @@ export function App() {
           {panel === 'wholesale' && <WholesalePanel />}
           {panel === 'goals' && <GoalsPanel />}
           {panel === 'morning' && <MorningPanel />}
+          {panel === 'toyShop' && <ToyShopPanel />}
+          {panel === 'market' && <MarketPanel />}
           {store.report.value && <WeeklyReport />}
           {store.pauseMenu.value && <PauseMenu />}
           {store.gameOver.value && <GameOverPanel />}

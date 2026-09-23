@@ -17,9 +17,11 @@ export type LedgerCategory =
   | 'license'
   | 'donation'
   | 'loan'
-  | 'interest';
+  | 'interest'
+  | 'shop';
 
 export const LEDGER_NAMES_TR: Record<LedgerCategory, string> = {
+  shop: 'Dükkân',
   aid: 'Devlet yardımı',
   adoption: 'Sahiplendirme',
   refund: 'İade',

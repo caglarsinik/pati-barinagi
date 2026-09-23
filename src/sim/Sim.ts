@@ -63,6 +63,7 @@ import { VILLAGE_ID_BASE, restampVillage, villageDoorTile, villageInteriorKind, 
 import { applyFoundingPlot } from './world/PlotReserve';
 import { type GoalDef, GoalSystem } from './systems/Goals';
 import { type DaySnapshot, type MorningReport, buildMorningReport, daySnapshotFrom, diffDay, takeDaySnapshot } from './systems/DayReport';
+import { type MarketItem, type ShopItem, type Supplies, type SupplyKind, bicycleExertion, buyMarket, buyShop, giveSupply } from './systems/ShopSystem';
 
 export type Mode = 'avatar' | 'manage';
 
@@ -177,7 +178,10 @@ export type Command =
   | { type: 'addMarker'; x: number; y: number }
   | { type: 'removeMarker'; id: number }
   | { type: 'goToMarker'; id: number }
-  | { type: 'buyWholesale'; bags: number };
+  | { type: 'buyWholesale'; bags: number }
+  | { type: 'buyShop'; item: ShopItem; qty: number }
+  | { type: 'buyMarket'; item: MarketItem; qty: number }
+  | { type: 'giveSupply'; dogId: number; item: SupplyKind };
 
 /** Tam ekran haritada konan işaret (0.18.1; kayıtta). color: 0-4 renk sırası. */
 export interface MapMarker {
@@ -333,6 +337,10 @@ export class Sim {
   /** Günün başındaki sayaçlar ve biten günün özeti (0.19.2; kayıtta). */
   dayStart: DaySnapshot;
   lastDay: DaySnapshot | null = null;
+  /** Köy dükkânı (0.20.0): çanta dışı tüketimlikler, bisiklet, pazardan yumurta alınan son hafta. */
+  supplies: Supplies = { toy: 0, vitamin: 0 };
+  bicycle = false;
+  marketEggWeek = 0;
   readonly gates: GateSystem;
   flags: SimFlags = { foodDiscountDay: 0, extraAdoptersDay: 0, growlUntil: 0, growlA: '', growlB: '' };
   speed: Speed = 1;
@@ -474,7 +482,8 @@ export class Sim {
       this.pilot.tick(dtSec);
       const inp = !manual && this.nav.active ? this.nav.inputFor(dtSec, input.run || this.pilot.run()) : input;
       const outside = !this.interior && !this.world.inPlot(this.player.tileX, this.player.tileY);
-      this.player.update(dtSec, inp, this.playerWorld, this.weatherSys.playerExertion(outside));
+      const exertion = this.weatherSys.playerExertion(outside);
+      this.player.update(dtSec, inp, this.playerWorld, this.bicycle ? bicycleExertion(exertion) : exertion);
       if (this.interior) {
         // Kapı karesine basınca dışarı (dokun-yürü kapıya varınca da).
         const d = this.interior.door;
@@ -904,6 +913,14 @@ export class Sim {
         if (this.interior) return { ok: false, message: t('Önce dışarı çık') };
         this.setAutopilot(false);
         return { ok: this.nav.goTo({ x: m.x, y: m.y }) };
+      }
+      case 'buyShop':
+        return buyShop(this, cmd.item, cmd.qty);
+      case 'buyMarket':
+        return buyMarket(this, cmd.item, cmd.qty);
+      case 'giveSupply': {
+        const dog = this.dogById(cmd.dogId);
+        return dog ? giveSupply(this, dog, cmd.item) : { ok: false };
       }
       case 'buyWholesale': {
         if (this.interior?.kind !== 'wholesaler') return { ok: false, message: t('Toptancıda değilsin') };
@@ -1497,6 +1514,9 @@ export class Sim {
       goals: this.goals.toJSON(),
       dayStart: { ...this.dayStart },
       lastDay: this.lastDay ? { ...this.lastDay } : null,
+      supplies: { ...this.supplies },
+      bicycle: this.bicycle,
+      marketEggWeek: this.marketEggWeek,
       loan: this.loan,
       negativeWeeks: this.negativeWeeks,
       gameOver: this.gameOver,
@@ -1583,6 +1603,11 @@ export class Sim {
     sim.bakeDay = numOr(data.bakeDay, 0, 0);
     sim.bakesToday = Math.floor(numOr(data.bakesToday, 0, 0));
     sim.villageFound = data.villageFound === true;
+    const sup = (data.supplies && typeof data.supplies === 'object' ? data.supplies : {}) as Partial<Supplies>;
+    const supply = (v: unknown): number => Math.min(BALANCE.shop.maxSupply, Math.floor(numOr(v, 0, 0)));
+    sim.supplies = { toy: supply(sup.toy), vitamin: supply(sup.vitamin) };
+    sim.bicycle = data.bicycle === true;
+    sim.marketEggWeek = Math.floor(numOr(data.marketEggWeek, 0, 0));
     sim.markers = Array.isArray(data.markers)
       ? data.markers
           .filter((raw): raw is MapMarker => {

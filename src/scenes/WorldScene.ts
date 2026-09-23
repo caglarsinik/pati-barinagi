@@ -28,7 +28,8 @@ import { SEASON_TINT } from '../sim/systems/WeatherSystem';
 import { t } from '../i18n';
 import type { Staff } from '../sim/entities/Staff';
 import { drawEgg } from '../render/EggArt';
-import { type VillageBuilding, villageDoorTile, villageInteriorKind } from '../sim/world/Village';
+import { type VillageBuilding, villageDoorTile, villageInteractive } from '../sim/world/Village';
+import { isMarketDay } from '../sim/systems/ShopSystem';
 import { drawVillageBuilding } from '../render/BuildingArt';
 
 type KeyName =
@@ -106,6 +107,8 @@ export class WorldScene extends Phaser.Scene {
   private interiorEggSig = '';
   /** İç odadaki eşya dışı görseller (0.18.2: toptancı satıcısı). */
   private interiorExtras: Phaser.GameObjects.GameObject[] = [];
+  /** Pazar tezgâhının satıcısı: yalnız Pazar görünür (0.20.0). */
+  private marketVendor: Phaser.GameObjects.Sprite | null = null;
   private buildingImages = new Map<number, Phaser.GameObjects.Image>();
   private dogSprites = new Map<number, Phaser.GameObjects.Sprite>();
   /** Doku temizliği için köpek id → genom. */
@@ -228,6 +231,18 @@ export class WorldScene extends Phaser.Scene {
     // --- Seçim halkası ve inşa hayaleti ---
     // Köy binaları (0.18.2): oyuncuya ait değil, yalnız görsel (katılık dünya üretiminde).
     for (const vb of world.villageBuildings) this.addVillageImage(vb);
+    const market = world.villageBuildings.find((b) => b.kind === 'market');
+    this.marketVendor = null;
+    if (market) {
+      const vendorKey = ensureHumanTexture(this, 13, 'caretaker');
+      // Ayakları tezgâhın dibinde, tezgâhın hemen arkasında: gövdesi tahtanın, saçı tentenin ardında kalır.
+      const vy = (market.y + market.h) * T;
+      this.marketVendor = this.add
+        .sprite((market.x + market.w / 2) * T, vy, vendorKey, 0)
+        .setOrigin(0.5, 1)
+        .setDepth(100 + vy - 1)
+        .setVisible(false);
+    }
 
     this.selectRing = this.add.ellipse(0, 0, 22, 11).setStrokeStyle(1.5, 0xf6d55c, 0.95).setDepth(60).setVisible(false);
     this.ghostImage = this.add.image(0, 0, buildingTextureKey('bowl')).setOrigin(0, 1).setAlpha(0.6).setDepth(6000).setVisible(false);
@@ -357,6 +372,7 @@ export class WorldScene extends Phaser.Scene {
     this.syncAdopters();
     this.syncStaff();
     this.syncBuildings();
+    this.marketVendor?.setVisible(isMarketDay(this.sim));
     this.syncSelection();
     this.syncGhost();
     if (this.sim.mode === 'manage') this.panCamera(dt, input);
@@ -460,6 +476,8 @@ export class WorldScene extends Phaser.Scene {
         clinic: 'click',
         enterVillage: 'click',
         wholesale: 'click',
+        toyShop: 'click',
+        market: 'click',
       };
       const name = sfx[kind];
       if (name) audio.play(name);
@@ -488,6 +506,8 @@ export class WorldScene extends Phaser.Scene {
     } else if (r.open === 'autoOrder') store.panel.value = 'autoOrder';
     else if (r.open === 'clinic') store.panel.value = 'clinic';
     else if (r.open === 'wholesale') store.panel.value = 'wholesale';
+    else if (r.open === 'toyShop') store.panel.value = 'toyShop';
+    else if (r.open === 'market') store.panel.value = 'market';
   }
 
   private readInput(): PlayerInput {
@@ -686,7 +706,7 @@ export class WorldScene extends Phaser.Scene {
       const vb = w.villageAt(tx, ty);
       if (vb) {
         const d = villageDoorTile(vb);
-        sim.command(villageInteriorKind(vb.kind) ? { type: 'goInteract', goal: { kind: 'village', index: vb.index } } : { type: 'goTo', x: d.x, y: d.y });
+        sim.command(villageInteractive(vb.kind) ? { type: 'goInteract', goal: { kind: 'village', index: vb.index } } : { type: 'goTo', x: d.x, y: d.y });
       } else if (bid >= 0) sim.command({ type: 'goInteract', goal: this.isDoorTile(bid, tx, ty) ? { kind: 'enter', id: bid } : { kind: 'building', id: bid } });
       else if (o === Obj.NestEggs || o === Obj.Nest || o === Obj.BerryBush || o === Obj.Mess || o === Obj.Den) sim.command({ type: 'goInteract', goal: { kind: 'object', tile: { x: tx, y: ty } } });
       else sim.command({ type: 'goTo', x: tx, y: ty });
@@ -1184,9 +1204,9 @@ export class WorldScene extends Phaser.Scene {
       });
       this.interiorView = { map, items };
       this.syncInteriorEggs();
-      if (it.kind === 'wholesaler') {
+      if (it.kind === 'wholesaler' || it.kind === 'toyShop') {
         // Tezgâhın arkasında satıcı.
-        const key = ensureHumanTexture(this, 11, 'caretaker');
+        const key = ensureHumanTexture(this, it.kind === 'toyShop' ? 12 : 11, 'caretaker');
         const py = 2 * T + 14;
         this.interiorExtras.push(this.add.sprite(ox + 6.5 * T, py, key, 0).setOrigin(0.5, 1).setDepth(100 + py));
       }

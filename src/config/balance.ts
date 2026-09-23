@@ -405,6 +405,29 @@ export const BALANCE = {
     wholesaleMul: 0.7,
     minBags: 3,
   },
+  /** Köydeki oyuncak ve ilaç dükkânı, pazar günü (0.20.0). */
+  shop: {
+    toyPrice: 60,
+    vitaminPrice: 45,
+    bicyclePrice: 1500,
+    /** Çantada her tüketimlikten en çok. */
+    maxSupply: 20,
+    toyLoyalty: 5,
+    vitaminHealth: 20,
+    vitaminDays: 1,
+    /** Vitamin etkisindeyken hastalık olasılığı çarpanı. */
+    vitaminIllnessMul: 0.5,
+    /** Bisiklet: koşu hızı ve koşu yorgunluğu çarpanları. */
+    bicycleRunMul: 1.5,
+    bicycleDrainMul: 0.8,
+    /** Pazar günü (0 = Pazartesi, 6 = Pazar), indirim ve haftanın yumurtası. */
+    marketWeekday: 6,
+    marketMul: 0.75,
+    marketLegendaryChance: 0.1,
+    marketEggPrice: { common: 150, uncommon: 200, rare: 300, legendary: 1200 },
+    /** Tezgâhtan alışveriş için en çok uzaklık (kare). */
+    marketReach: 3,
+  },
   /** Belediye hedefleri (0.19.0): ödül çarpanı ve hedef başına itibar. */
   goals: {
     rewardMul: 1,

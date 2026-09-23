@@ -16,6 +16,7 @@ import { treatmentCost } from './ClinicSystem';
 import { incubatorSlots, incubatorTimeMul } from './IncubatorSystem';
 import { RARITY_NAMES_TR } from '../entities/DogGenome';
 import { VILLAGE_NAMES_TR, villageInteriorKind, wholesaleBagPrice } from '../world/Village';
+import { isMarketDay } from './ShopSystem';
 
 export type Tool = 'pet' | 'play' | 'train' | 'feed' | 'clean' | 'call';
 
@@ -67,6 +68,8 @@ export type ActionKind =
   | 'clinic'
   | 'enterVillage'
   | 'wholesale'
+  | 'toyShop'
+  | 'market'
   | 'none';
 
 export interface ResolvedAction {
@@ -149,7 +152,12 @@ function resolveInterior(sim: Sim, tile: TilePos): ResolvedAction {
     case 'crates':
       return { kind: 'none', hint: t('Mama kasaları'), tile };
     case 'shopCounter':
+      if (it.kind === 'toyShop') return { kind: 'toyShop', hint: t('E: tezgâh · oyuncak, vitamin, bisiklet'), tile };
       return { kind: 'wholesale', hint: t('E: tezgâh · toptan çuval ({p} ₺/çuval)', { p: wholesaleBagPrice() }), tile };
+    case 'toyShelf':
+      return { kind: 'none', hint: t('Oyuncak paketleri: tezgâhtan satın al'), tile };
+    case 'vitaminShelf':
+      return { kind: 'none', hint: t('Vitaminler: tezgâhtan satın al'), tile };
     case 'tray': {
       const b = sim.buildingById(it.buildingId);
       const first = (item.slot ?? 0) * 3;
@@ -213,6 +221,7 @@ function resolveInterior(sim: Sim, tile: TilePos): ResolvedAction {
         tile,
       };
     default:
+      if (it.kind === 'toyShop') return { kind: 'none', hint: t('Oyuncak ve ilaç dükkânı · tezgâha bakıp E · çıkmak için kapıya yürü'), tile };
       if (it.kind === 'wholesaler') return { kind: 'none', hint: t('Yem toptancısı · tezgâha bakıp E: toptan çuval · çıkmak için kapıya yürü'), tile };
       if (it.kind === 'hatchery') return { kind: 'none', hint: t('Kuluçka · kontrol paneline bakıp E: yumurta koy/al · raf: eşya al · çıkmak için kapıya yürü'), tile };
       if (it.kind === 'clinic') return { kind: 'none', hint: t('Veteriner odası · muayene masasına bakıp E: aşı · resepsiyon: eşya al · çıkmak için kapıya yürü'), tile };
@@ -252,7 +261,10 @@ export function resolveAction(sim: Sim): ResolvedAction {
   if (vb) {
     const name = t(VILLAGE_NAMES_TR[vb.kind]);
     if (villageInteriorKind(vb.kind)) return { kind: 'enterVillage', hint: t('E: {name} · içeri gir', { name }), village: vb.index, tile };
-    if (vb.kind === 'toyShop') return { kind: 'none', hint: t('Oyuncak ve ilaç dükkânı: yakında açılacak'), tile };
+    if (vb.kind === 'market') {
+      if (isMarketDay(sim)) return { kind: 'market', hint: t('E: pazar tezgâhı · indirimli oyuncak, vitamin, haftanın yumurtası'), tile };
+      return { kind: 'none', hint: t('Pazar tezgâhı · Pazar günleri kurulur'), tile };
+    }
     return { kind: 'none', hint: name, tile };
   }
 
@@ -377,7 +389,7 @@ export interface ActionOutcome {
   ok: boolean;
   message?: string;
   /** UI'nın açması gereken panel. */
-  open?: 'shed' | 'kennel' | 'incubator' | 'office' | 'nursery' | 'computer' | 'order' | 'help' | 'furniture' | 'autoOrder' | 'clinic' | 'wholesale';
+  open?: 'shed' | 'kennel' | 'incubator' | 'office' | 'nursery' | 'computer' | 'order' | 'help' | 'furniture' | 'autoOrder' | 'clinic' | 'wholesale' | 'toyShop' | 'market';
   building?: Building;
   dog?: Dog;
 }
@@ -554,6 +566,10 @@ export function performAction(sim: Sim): ActionOutcome {
       return r.village !== undefined ? sim.enterVillage(r.village) : { ok: false };
     case 'wholesale':
       return { ok: true, open: 'wholesale' };
+    case 'toyShop':
+      return { ok: true, open: 'toyShop' };
+    case 'market':
+      return { ok: true, open: 'market' };
     case 'sleep':
       if (!canSleepAt(sim.clock.hour)) return { ok: false, message: t("Henüz erken: {h}:00'den sonra uyunabilir", { h: BALANCE.time.sleepFromHour }) };
       return sim.command({ type: 'sleep' });

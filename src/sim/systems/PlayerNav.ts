@@ -6,7 +6,7 @@ import type { TilePos } from '../world/TileWorld';
 import type { Sim } from '../Sim';
 import { performAction, resolveAction } from './Interaction';
 import { t } from '../../i18n';
-import { villageDoorTile } from '../world/Village';
+import { villageDoorTile, villageInteriorKind } from '../world/Village';
 
 /** Dokun-git hedefi: boş kare ya da etkileşilecek şey (köpek, bina, yuva/çalı/pislik). */
 export type NavGoal =
@@ -254,9 +254,13 @@ export class PlayerNav {
       return;
     }
     if (goal.kind === 'village') {
-      const result = sim.enterVillage(goal.index);
-      sim.events.emit('interacted', { kind: 'enterVillage', result });
-      return;
+      // Girilebilen köy binası içeri sokar; pazar tezgâhında önüne gelince E işi yapılır (aşağıda).
+      const vb = sim.world.villageBuildings[goal.index];
+      if (vb && villageInteriorKind(vb.kind)) {
+        const result = sim.enterVillage(goal.index);
+        sim.events.emit('interacted', { kind: 'enterVillage', result });
+        return;
+      }
     }
     const kind = resolveAction(sim).kind;
     const result = performAction(sim);

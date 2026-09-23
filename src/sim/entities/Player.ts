@@ -9,6 +9,8 @@ export type Facing = 0 | 1 | 2 | 3;
 export interface PlayerExertion {
   runDrainMul: number;
   walkDrain: number;
+  /** Koşu hızı çarpanı (bisiklet, 0.20.0). */
+  runSpeedMul?: number;
 }
 
 export const NO_EXERTION: PlayerExertion = { runDrainMul: 1, walkDrain: 0 };
@@ -103,7 +105,7 @@ export class Player {
       if (Math.abs(input.dx) >= Math.abs(input.dy)) this.facing = input.dx < 0 ? 1 : 2;
       else this.facing = input.dy < 0 ? 3 : 0;
       const onPath = world.groundAt(this.tileX, this.tileY) === Ground.Path;
-      const speed = (this.running ? p.runSpeed : p.walkSpeed) * (onPath ? 1.15 : 1);
+      const speed = (this.running ? p.runSpeed * (exertion.runSpeedMul ?? 1) : p.walkSpeed) * (onPath ? 1.15 : 1);
       this.moveAxis(world, dx * speed * dtSec, 0);
       this.moveAxis(world, 0, dy * speed * dtSec);
       this.animTime += dtSec * (this.running ? 1.6 : 1);

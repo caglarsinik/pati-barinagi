@@ -23,7 +23,11 @@ export function vaccineDaysLeft(sim: Sim, dog: Dog): number {
 
 /** Hastalık olasılığı çarpanı: aşılı köpekte düşük (zar yine atılır; yalnız eşik değişir). */
 export function illnessChanceMul(sim: Sim, dog: Dog): number {
-  return dog.vaccinatedUntil > sim.clock.totalMinutes ? BALANCE.clinic.vaccineMul : 1;
+  const now = sim.clock.totalMinutes;
+  const vaccine = dog.vaccinatedUntil > now ? BALANCE.clinic.vaccineMul : 1;
+  // Vitamin (0.20.0): bir gün boyunca hastalık olasılığı düşer.
+  const vitamin = dog.vitaminUntil > now ? BALANCE.shop.vitaminIllnessMul : 1;
+  return vaccine * vitamin;
 }
 
 /** Aşılanamıyorsa nedeni; aşılanabiliyorsa null. */

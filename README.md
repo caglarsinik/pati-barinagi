@@ -287,8 +287,14 @@ kayıtla korunur. İç mekândayken önce dışarı çıkmak gerekir.
 
 Güney yolunu harita kenarına kadar izleyince **köye** varırsın (0.18.2; haritada "Köy" biyomu, mini haritada kahverengi
 binalar). Köye ilk girişte "Köyü buldun" başarımı açılır. **Yem toptancısına** kapısında E ile ya da binaya dokunarak girersin;
-tezgâhta çuval 56 ₺'dir (kilerden siparişte 80 ₺), en az 3 çuval alınır ve kilere hemen gönderilir. Oyuncak ve ilaç dükkânı
-yakında açılacak. Köy eski kayıtlarda da aynı yerdedir.
+tezgâhta çuval 56 ₺'dir (kilerden siparişte 80 ₺), en az 3 çuval alınır ve kilere hemen gönderilir.
+
+**Oyuncak ve ilaç dükkânında** (0.20.0) oyuncak paketi (60 ₺: köpeğin oyun keyfi dolar, sadakat +5), vitamin (45 ₺: sağlık
++20, bir gün boyunca hastalanma olasılığı yarıya iner) ve bisiklet (1.500 ₺, bir kez: koşarken 1,5 kat hızlı, %20 daha az
+yorgunluk) satılır. Oyuncak ve vitamin çantada ayrı sayılır (her türden en çok 20) ve köpek panelindeki "Oyuncak ver" /
+"Vitamin ver" düğmeleriyle verilir. **Pazar günleri** meydanda, çeşmenin karşısında tezgâh kurulur ve satıcı gelir:
+oyuncak ve vitamin %25 indirimli, ayrıca her hafta bir nadir (bazen efsanevi) yumurta satılır. Köy eski kayıtlarda da aynı
+yerdedir.
 
 ## Hava, mevsim ve olaylar
 
@@ -371,7 +377,8 @@ Bilgisayar değiştirirken ya da yedek almak için kullan.
 - [x] 0.19.1 Hedef zinciri: 22 belediye hedefi, 🎯 kart, Hedefler paneli ve Göster, eski kayıtlar sessizce yetişir
 - [x] 0.19.2 Sabah raporu (dün ve bugün) ve kayıttan dönünce "Hoş geldin" kartı
 - [x] 0.19.3 Cila: dokunma senaryoları kendi test oyununu kurar (13/13, kuruluş senaryosu), Kontroller'de İlk adımlar — M17 tamam
-- [ ] M11 Yaşayan Dünya kalanı (0.20.x): dükkân ve pazar, köylü rutini, köy kademesi, hızlı seyahat, görevler
+- [x] 0.20.0 Köy: oyuncak ve ilaç dükkânı (oyuncak paketi, vitamin, bisiklet), Pazar tezgâhı ve haftanın yumurtası
+- [ ] M11 Yaşayan Dünya kalanı (0.20.x): köylü rutini, köy kademesi, hızlı seyahat, görevler
 - [ ] Sonrası: M13 Sahiplendirme Hikâyeleri, yuva evi içi, kuzey/batı arsa genişletme
 - [ ] Sonraki paketler (`docs/PLAN.md` §7): M11 Yaşayan Dünya, M13 Sahiplendirme Hikâyeleri
 

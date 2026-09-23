@@ -43,7 +43,9 @@ export type Panel =
   | 'clinic'
   | 'wholesale'
   | 'goals'
-  | 'morning';
+  | 'morning'
+  | 'toyShop'
+  | 'market';
 
 export type BuildTool =
   | { kind: 'none' }

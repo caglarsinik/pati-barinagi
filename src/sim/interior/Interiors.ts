@@ -4,10 +4,10 @@ import { TileWorld, type TilePos } from '../world/TileWorld';
 import { Ground } from '../world/tiles';
 
 /** Girilebilen binaların iç mekân türü (M15; diğer binalar sonra eklenir). */
-export type InteriorKind = 'office' | 'restRoom' | 'pantry' | 'kitchen' | 'clinic' | 'hatchery' | 'wholesaler';
+export type InteriorKind = 'office' | 'restRoom' | 'pantry' | 'kitchen' | 'clinic' | 'hatchery' | 'wholesaler' | 'toyShop';
 
 /** İç mekân eşyası: kare dikdörtgeni katıdır, önünde E ile kullanılır. */
-export type InteriorItemType = 'desk' | 'board' | 'window' | 'bookshelf' | 'coffee' | 'phone' | 'bed' | 'plant' | 'restBoard' | 'sofa' | 'tv' | 'fridge' | 'sacks' | 'ledger' | 'orderBoard' | 'counter' | 'oven' | 'waterTank' | 'spiceRack' | 'foodShelf' | 'examTable' | 'medCabinet' | 'reception' | 'waitChairs' | 'xray' | 'tray' | 'controlPanel' | 'heatLamp' | 'supplies' | 'bulkSacks' | 'shopCounter' | 'crates';
+export type InteriorItemType = 'desk' | 'board' | 'window' | 'bookshelf' | 'coffee' | 'phone' | 'bed' | 'plant' | 'restBoard' | 'sofa' | 'tv' | 'fridge' | 'sacks' | 'ledger' | 'orderBoard' | 'counter' | 'oven' | 'waterTank' | 'spiceRack' | 'foodShelf' | 'examTable' | 'medCabinet' | 'reception' | 'waitChairs' | 'xray' | 'tray' | 'controlPanel' | 'heatLamp' | 'supplies' | 'bulkSacks' | 'shopCounter' | 'crates' | 'toyShelf' | 'vitaminShelf';
 
 /** İç mekâna satın alınan eşyalar (0.16.3 dinlenme odası). Fiyat ve üst sınır BALANCE.interior.furniture. */
 export type FurnitureType = 'sofa' | 'coffee' | 'tv' | 'fridge' | 'waterTank' | 'oven2' | 'medCabinet' | 'heatLamp';
@@ -42,6 +42,7 @@ export const FURNITURE_BY_KIND: Record<InteriorKind, readonly FurnitureType[]> =
   clinic: ['medCabinet'],
   hatchery: ['heatLamp'],
   wholesaler: [],
+  toyShop: [],
 };
 
 /** Kayıttan gelen eşya listesini temizler: odanın kataloğundaki türler, her türden en çok üst sınır kadar. */
@@ -184,6 +185,17 @@ const TEMPLATES: Record<InteriorKind, InteriorTemplate> = {
       { type: 'bulkSacks', x: 3, y: 2, w: 2, h: 1 },
       { type: 'shopCounter', x: 5, y: 3, w: 3, h: 1 },
       { type: 'crates', x: 8, y: 5, w: 1, h: 1 },
+    ],
+  },
+  // 0.20.0 köydeki oyuncak ve ilaç dükkânı: oyuncak rafları, vitamin dolabı, tezgâh (satıcı sahnede arkasında).
+  toyShop: {
+    rows: ['##########', '#========#', '#........#', '#........#', '#........#', '#........#', '####D#####'],
+    items: [
+      { type: 'toyShelf', x: 1, y: 2, w: 2, h: 1 },
+      { type: 'toyShelf', x: 3, y: 2, w: 2, h: 1 },
+      { type: 'vitaminShelf', x: 8, y: 2, w: 1, h: 1 },
+      { type: 'shopCounter', x: 5, y: 3, w: 3, h: 1 },
+      { type: 'plant', x: 8, y: 5, w: 1, h: 1 },
     ],
   },
 };
