@@ -354,9 +354,13 @@ describe('Otopilot 3: yumurta, böğürtlen, uyku, koşu', () => {
     expect(w.objectAt(bush!.x, bush!.y)).toBe(Obj.Bush);
   });
 
-  it('gece ofise gidip sabaha kadar uyur; gündüz uyumaz; boş kap varsa önce onu doldurur', () => {
+  it('gece ofise girip yatakta sabaha kadar uyur, sabah kapıdan çıkar; gündüz uyumaz; boş kap varsa önce onu doldurur', () => {
     const sim = pilotOn(1333);
     calmDogs(sim);
+    let entered = 0;
+    sim.events.on('interiorChanged', (it) => {
+      if (it) entered++;
+    });
     sim.clock.totalMinutes = 12 * 60;
     runSeconds(sim, 10);
     expect(sim.stats.slept).toBe(0);
@@ -372,6 +376,9 @@ describe('Otopilot 3: yumurta, böğürtlen, uyku, koşu', () => {
     expect(sim.clock.hour).toBeLessThan(BALANCE.time.nightEndHour + 4);
     expect(sim.pilot.blockedFor('sleep')).toBe(0);
     expect(sim.autopilot).toBe(true);
+    // 0.16.4: ofise girdi, yatakta uyudu, sabah dışarı çıktı.
+    expect(entered).toBe(1);
+    expect(sim.interior).toBeNull();
   });
 
   it('uzak hedefe koşar, dayanıklılık düşünce yürür', () => {

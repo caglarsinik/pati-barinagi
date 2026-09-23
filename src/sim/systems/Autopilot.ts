@@ -114,6 +114,11 @@ export class Autopilot {
     if (sim.player.busy > 0 || sim.nav.active) return;
     if (this.timeSec < this.nextCheckAt) return;
     this.nextCheckAt = this.timeSec + BALANCE.autopilot.idleRecheckSec;
+    // İç mekânda (0.16.4): gece ofisteyse yatağa, değilse kapıdan yürüyerek çık (ışınlanma yok).
+    if (sim.interior) {
+      this.start(this.interiorJob());
+      return;
+    }
     if (this.tryOrderFood()) return;
     const job = this.pickJob() ?? this.sleepJob() ?? this.nurseryEggJob() ?? this.placeEggJob() ?? this.nestJob() ?? this.berryJob() ?? this.idlePet();
     if (job) this.start(job);
@@ -200,17 +205,24 @@ export class Autopilot {
     }
   }
 
-  /** Gece (sleepFromHour…nightEndHour) ve tahtada sahipsiz yem/su işi yoksa: ofis kapısına git, sabaha kadar uyu. */
+  /** Gece (sleepFromHour…nightEndHour) ve tahtada sahipsiz yem/su işi yoksa: ofise gir, yatakta sabaha kadar uyu. */
   private sleepJob(): Job | null {
     if (!this.isNight() || this.blocked.has('sleep')) return null;
     if (this.sim.tasks.tasks.some((t) => t.claimedBy === null && (t.type === 'feed' || t.type === 'water'))) return null;
     const office = this.sim.buildings.find((b) => b.type === 'office' && isReady(b));
     if (!office) return null;
-    return this.doorJob('sleep', office, t('🤖 Ofise uyumaya gidiyor'), () => {
-      const r = this.sim.command({ type: 'sleep' });
-      if (r.message) this.sim.events.emit('message', r.message);
-      return r.ok;
-    });
+    // 0.16.4: kapıda ofise girer; içeride interiorJob yatağa götürür ve uyutur.
+    return this.doorJob('sleep', office, t('🤖 Ofise uyumaya gidiyor'), () => this.sim.enterBuilding(office.id).ok);
+  }
+
+  /** İç mekânda iş: gece ofisteyse (uyku kara listede değilse) yatağa gidip E, değilse kapı karesine yürüyüp çık. */
+  private interiorJob(): Job {
+    const it = this.sim.interior!;
+    const bed = it.items.find((i) => i.type === 'bed');
+    if (bed && this.isNight() && !this.blocked.has('sleep')) {
+      return { key: 'sleep', task: null, plan: { goal: { kind: 'object', tile: { x: bed.x, y: bed.y } } }, text: t('🤖 Yatakta uyuyor') };
+    }
+    return { key: 'exit', task: null, plan: { goal: { kind: 'tile', tile: { ...it.door } }, onArrive: () => this.sim.interior === null }, text: t('🤖 Dışarı çıkıyor') };
   }
 
   /** Yuva evinde hazır yumurta varsa ve çantada yer varsa: kapıya git, yumurtayı al (sonra kuluçkaya götürülür). */

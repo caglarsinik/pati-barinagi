@@ -9,6 +9,7 @@ import type { GesturePointer } from '../scenes/TouchGestures';
 import type { WorldScene } from '../scenes/WorldScene';
 import type { Sim } from '../sim/Sim';
 import type { Dog } from '../sim/entities/Dog';
+import { buildingDoorTile, isReady } from '../sim/entities/Building';
 import type { TilePos } from '../sim/world/TileWorld';
 import { Obj } from '../sim/world/tiles';
 import { store } from '../ui/store';
@@ -146,6 +147,7 @@ export function createTouchDebug(app: DebugApp) {
       /** Her senaryo öncesi: dokunuşlar bırakılır, avatar modu, otopilot kapalı, köpek oyuncunun 3 kare yanında oturur. */
       const prepare = (): { dog: Dog; walk: TilePos } => {
         api.cancelTouches();
+        sim.exitInterior();
         sim.setAutopilot(false);
         sim.setMode('avatar');
         sim.nav.cancel();
@@ -292,6 +294,39 @@ export function createTouchDebug(app: DebugApp) {
         sim.setAutopilot(true);
         api.tapTile(walk.x + 0.5, walk.y + 0.5);
         return [!sim.autopilot && goalKind() === 'tile', `otopilot=${sim.autopilot} hedef=${goalKind()}`];
+      });
+
+      scenario('9 ofise dokun → içeri gir, içeride dokun-yürü, kapıya dokun → dışarı', () => {
+        prepare();
+        const office = sim.buildings.find((b) => b.type === 'office' && isReady(b));
+        if (!office) throw new Error('ofis yok');
+        const door = buildingDoorTile(office);
+        sim.player.x = door.x + 0.5;
+        sim.player.y = door.y + 0.9;
+        api.tapTile(office.x + 1.5, office.y + 1.5);
+        run(300, () => sim.interior !== null);
+        const it = sim.interior;
+        if (!it) return [false, 'girilmedi'];
+        const target = { x: it.door.x + 1, y: it.door.y - 2 };
+        api.tapTile(target.x + 0.5, target.y + 0.5);
+        run(300, () => !sim.nav.active);
+        const walked = sim.player.tileX === target.x && sim.player.tileY === target.y;
+        api.tapTile(it.door.x + 0.5, it.door.y + 0.5);
+        run(300, () => sim.interior === null);
+        const out = sim.interior === null && sim.player.tileX === door.x && sim.player.tileY === door.y;
+        return [walked && out, `girdi=true yürüdü=${walked} çıktı=${out}`];
+      });
+
+      scenario('10 içerideyken yönetim moduna geç → dışarıda, kamera haritada', () => {
+        prepare();
+        const office = sim.buildings.find((b) => b.type === 'office' && isReady(b));
+        if (!office || !sim.enterBuilding(office.id).ok) return [false, 'girilmedi'];
+        sim.toggleMode();
+        const out = sim.interior === null && sim.mode === 'manage';
+        const bounds = need().scene.cameras.main.getBounds();
+        const camOk = bounds.x === 0 && bounds.width === sim.world.width * GAME.tile;
+        sim.setMode('avatar');
+        return [out && camOk, `dışarı=${out} kamera=${camOk}`];
       });
 
       prepare();

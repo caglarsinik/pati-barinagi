@@ -26,6 +26,7 @@ const ROWS: Array<[string, string, string]> = [
 const TOUCH_ROWS: Array<[string, string]> = [
   ['Dokun', 'Avatar oraya yürür (yol bulur)'],
   ['Köpeğe / binaya / yuvaya dokun', 'Yanına gidip işini yapar: sev, kabı doldur, yumurta al, temizle'],
+  ['Ofise / dinlenme odasına dokun', 'İçeri girer; içeride eşyaya dokun: kullan; paspaslı kapıya dokun: dışarı çık'],
   ['Uzun bas', 'Köpeği seç (panel açılır)'],
   ['E düğmesi', 'Baktığın işi yap (düğme işi yazar)'],
   ['Koş düğmesi', 'Koşarak yürü (dayanıklılık harcar)'],

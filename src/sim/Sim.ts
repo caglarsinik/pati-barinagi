@@ -904,7 +904,7 @@ export class Sim {
     this.autopilot = on;
     if (on) {
       this.setMode('avatar');
-      this.exitInterior();
+      // İçerideyse otopilot kapıdan yürüyerek çıkar (Autopilot.interiorJob).
       this.pilot.wake();
       this.events.emit('message', t('🤖 Otopilot açık: bakım ve köpek işlerini kendisi yapar'));
     } else {
@@ -935,7 +935,7 @@ export class Sim {
 
   /** Binaya gir (kapıda E ya da dokunuş): oyuncu iç odanın kapısının üstüne geçer; dışarıda zaman akmaya devam eder. */
   enterBuilding(id: number): ActionOutcome {
-    if (this.mode !== 'avatar' || this.interior || this.autopilot) return { ok: false };
+    if (this.mode !== 'avatar' || this.interior) return { ok: false };
     const b = this.buildingById(id);
     if (!b || !isReady(b)) return { ok: false };
     const kind = interiorKindFor(b.type);

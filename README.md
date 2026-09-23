@@ -98,7 +98,8 @@ kendiliğinden açılır; Ayarlar → Dokunmatik kontroller ile Otomatik / Açı
 kaldıkça personelle aynı görev tahtasından iş seçer (aciliyet / mesafe): boş yem kabı ve yalak, pislik; sonra köpek işleri
 (keyfi düşük köpekle oyna, eğitim hedefindeki köpeği eğit, kirli köpeği tımar istasyonu yakınsa yıka yoksa fırçala, hasta
 köpeği klinik yakınındaysa ve para varsa tedavi et). Kiler boşsa ve para varsa bir çuval yem sipariş eder. Tahta boşken
-sırayla: gece (20:00–06:00) ofise gidip sabaha kadar uyur; çantadaki yumurtayı kuluçkaya koyar; keşfedilmiş yakın yuvadan
+sırayla: gece (20:00–06:00) ofise girip yatakta sabaha kadar uyur (sabah kapıdan çıkar; içerideyken açılırsa önce kapıdan
+yürüyerek çıkar); çantadaki yumurtayı kuluçkaya koyar; keşfedilmiş yakın yuvadan
 yumurta, çalıdan böğürtlen toplar; bugün sevilmemiş köpeği sever. Uzak hedefe dayanıklılık yettiği sürece koşar. Alt
 satır o an ne yaptığını yazar ("🤖 Yem kabını dolduruyor"). **Elle müdahale kapatır:** WASD, haritaya/köpeğe dokunma, E.
 Yönetim moduna geçince bekler, avatara dönünce sürer. Uyuyan ya da bitkin köpekle oynamaz; ulaşamadığı hedefi 30 saniye
@@ -148,8 +149,8 @@ yeniden denemez. Otopilot inşaat, işe alım ve sahiplendirme kararı vermez.
   yumurtayı alıp kuluçkaya koyar. Başarımlar: "İlk soy", "Efsanevi soy".
 - Uzaktaki inlerde (turuncu nokta) sokak köpekleri yaşar. Böğürtlen çalısından ödül maması topla, köpeğe 3 kez ver (cesur huyluya 2); peşine takılır, barınağa girince katılır.
 - **Ofise girmek (0.16.0):** ofisin kapısında E'ye bas ya da ofise dokun; ayrı bir iç odaya geçersin (dışarıda zaman akar,
-  içerisi gece de aydınlık). Çıkmak için alttaki paspaslı kapı karesine yürü ya da dokun. Yönetim moduna geçmek ve otopilotu
-  açmak seni dışarı çıkarır.
+  içerisi gece de aydınlık). Çıkmak için alttaki paspaslı kapı karesine yürü ya da dokun. Yönetim moduna geçmek seni dışarı
+  çıkarır; otopilot açılırsa kapıdan yürüyerek çıkar.
 - **Ofis eşyaları (0.16.1):** eşyaya bakıp E'ye bas ya da eşyaya dokun. **Bilgisayar** (masada): sahiplendirme, finans,
   personel ve başarım ekranları. **Lisans panosu** (duvarda): ofis paneli — lisans, büyük çanta, kredi, hedef. **Yatak**:
   20:00–06:00 arası sabaha kadar uyutur (erken ise "henüz erken"). **Kahve makinesi**: dayanıklılığı doldurur, günde bir.
@@ -192,6 +193,25 @@ yeniden denemez. Otopilot inşaat, işe alım ve sahiplendirme kararı vermez.
 - **Kurs ve gönüllüler:** kartta "Kursa gönder" (800 ₺) personeli bir günlüğüne kursa yollar, dönünce bir seviye atlar.
   Her Cuma bir gönüllü başvurur (Pazartesiye kadar): maaşsızdır, yalnız hafta sonu çalışır, verimi %40 düşüktür; iki maaş
   günü sonra teşekkür edip ayrılır ve itibar +1 verir.
+
+## İç mekânlar
+
+Ofise ve dinlenme odasına girilir (M15, 0.16.0–0.16.4). Kapıda E'ye bas ya da binaya dokun; ayrı bir odaya geçersin.
+Dışarıda zaman akar; içerisi gece de aydınlıktır, yağmur yağmaz. İçeride eşyaya bakıp E'ye bas ya da eşyaya dokun. Alttaki
+paspaslı kapı karesine yürüyünce ya da dokununca dışarı çıkarsın; yönetim moduna geçmek seni hemen dışarı alır. İçerideyken
+kaydedersen oyun seni kapının önünde kaydeder.
+
+| Oda | Eşya | Ne yapar |
+|---|---|---|
+| Ofis | Bilgisayar (masada) | Sahiplendirme, finans, personel, başarımlar |
+| Ofis | Lisans panosu | Ofis paneli: lisans, büyük çanta, kredi, hedef |
+| Ofis | Yatak | 20:00–06:00 arası sabaha kadar uyku |
+| Ofis | Kahve makinesi | Dayanıklılık dolar, günde bir |
+| Ofis | Telefon / kitaplık | Yem siparişi / kontroller |
+| Dinlenme odası | Pano | Kanepe, kahve köşesi, TV, buzdolabı satın al |
+
+Otopilot içerideyken açılırsa kapıdan yürüyerek çıkar; gece ofise girip yatakta uyur, sabah dışarı çıkıp işine döner.
+Personel yalnız dinlenme odasına girer (molada); Personel WC'yi dışarıdan kullanır.
 
 ## Ses
 
@@ -269,7 +289,8 @@ Bilgisayar değiştirirken ya da yedek almak için kullan.
 - [x] 0.16.1 Ofis eşyaları: bilgisayar menüsü, lisans panosu, yatak, kahve makinesi, telefon, kitaplık, pencere/saksı
 - [x] 0.16.2 Personel tuvalet ihtiyacı + "Personel WC" binası, uyarı ve personel kartında Tuvalet çubuğu
 - [x] 0.16.3 Dinlenme odası içi: panodan kanepe/kahve köşesi/TV/buzdolabı, molada personel kanepede
-- [ ] M15 İç Mekânlar ve Personel Konforu (0.16.x): ofis eşyaları, personel WC, dinlenme odası
+- [x] 0.16.4 İç mekân cilası: otopilot kapıdan çıkar ve yatakta uyur, dokunma senaryoları 9–10, "İç mekânlar" yardımı — M15 tamam
+- [ ] Sonrası (seçilecek): diğer binaların iç mekânları, M11 Yaşayan Dünya, M13 Sahiplendirme Hikâyeleri
 - [ ] Sonraki paketler (`docs/PLAN.md` §7): M11 Yaşayan Dünya, M13 Sahiplendirme Hikâyeleri
 
 ## Geliştirme

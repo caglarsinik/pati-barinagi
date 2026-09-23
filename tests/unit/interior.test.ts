@@ -98,10 +98,16 @@ describe('İç mekân altyapısı (0.16.0)', () => {
     expect(sim.player.tileX).toBe(door.x);
     sim.setMode('avatar');
     expect(sim.command({ type: 'enterBuilding', buildingId: officeId }).ok).toBe(true);
+    // 0.16.4: otopilot ışınlamaz, kapıdan yürüyerek çıkar.
     sim.command({ type: 'setAutopilot', on: true });
+    expect(sim.interior).not.toBeNull();
+    sim.update(1 / 30, IDLE);
+    expect(sim.interior).not.toBeNull();
+    expect(sim.autopilotText).toContain('Dışarı');
+    stepUntil(sim, IDLE, 10, () => sim.interior === null);
     expect(sim.interior).toBeNull();
-    // Otopilot açıkken girilmez.
-    expect(sim.enterBuilding(officeId).ok).toBe(false);
+    expect(sim.autopilot).toBe(true);
+    expect(sim.player.tileX).toBe(door.x);
   });
 
   it('girilemeyen bina reddedilir; masa çizimi dolu', () => {

@@ -471,7 +471,7 @@ iflas/kredi ve bina döndürme M10'da yapıldı.
 - Taş/odun toplama → inşa indirimi; tam ekran harita (M), tıklanabilir, işaret koyma.
 - Dışarıda hava etkisi: fırtınada dayanıklılık düşer, kışın gece görüş daralır.
 
-### M15 İç Mekânlar ve Personel Konforu (M14'ten sonra; 2026-09-23 kullanıcı isteği)
+### M15 İç Mekânlar ve Personel Konforu (2026-09-23 kullanıcı isteği; tamamlandı: 0.16.0–0.16.4)
 
 Binalara girilir (ayrı iç oda, kapıdan girince ekran içeri geçer, zaman akar); iç oda küçük ayrı bir `TileWorld`, WorldScene
 harita dışına ofsetle çizer. 0.16.0 altyapı + ofise gir/çık; 0.16.1 ofis eşyaları (masa-bilgisayar, lisans panosu, yatak,
@@ -485,7 +485,7 @@ kuluçka iç mekânları sonra.
 | 0.16.1 ✅ | Ofis eşyaları: bilgisayar, lisans panosu, yatak, kahve, telefon, kitaplık, pencere/saksı |
 | 0.16.2 ✅ | Personel tuvalet ihtiyacı + Personel WC (moral tabanı 25: yalnız WC yüzünden istifa yok) |
 | 0.16.3 ✅ | Dinlenme odası içi: kanepe (+%25 dinlenme), kahve köşesi, TV (moral), buzdolabı (enerji 100) |
-| 0.16.4 | Cila: otopilot iç mekânda, dokunma senaryoları 9–10, yardım |
+| 0.16.4 ✅ | Cila: otopilot kapıdan yürüyerek çıkar ve yatakta uyur, dokunma senaryoları 9–10, "İç mekânlar" yardımı |
 
 ### M13 Sahiplendirme Hikâyeleri
 - Sahiplenici kimliği: 100+ isim, 6 kişilik tipi, tekrar gelen sahiplenici.

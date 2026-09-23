@@ -57,6 +57,23 @@
   köpek paneli, araç şeridi, alt menü listesi, ana menü, Ayarlar: çakışma yok, taşma yok. Alt menü açılır listesi köpek
   panelinin üstüne gelebilir (geçici popover, üstte kalır) — kabul edildi. Gerçek cihaz testi kullanıcıda.
 
+## 0.16.4 — İç mekân cilası: otopilot, dokunma senaryoları 9–10, belgeler (M15 son dilimi; Claude, 2026-09-23)
+- `Autopilot.tick`: iç mekândayken yalnız `interiorJob` — gece ve ofiste yatak varsa (uyku kara listede değilse) yatağa
+  `object` hedefiyle gidip E (performAction `sleep`), değilse kapı karesine `tile` hedefiyle yürür ("🤖 Dışarı çıkıyor";
+  `onArrive` = dışarıda mı). `sleepJob` artık ofis kapısında `enterBuilding` yapar ("🤖 Ofise uyumaya gidiyor"), içeride
+  yatak işi sürer ("🤖 Yatakta uyuyor"); sabah 06:00'da içeride uyanır, ilk kontrolde kapıdan çıkar.
+- `Sim.setAutopilot(true)` artık ışınlamaz (içerideyse otopilot yürüyerek çıkar); `enterBuilding` otopilot açıkken de
+  çalışır (yalnız otopilot kullanır: `interact` ve `enterBuilding` komutları önce otopilotu kapatır).
+- `touchDebug.runTouchScenarios` 10 senaryo: 9 "ofise dokun → içeri, içeride dokun-yürü, kapıya dokun → dışarı",
+  10 "içerideyken yönetim modu → dışarıda, kamera sınırı haritada". `prepare()` önce `exitInterior()`.
+- Yardım: dokunmatik tablosuna "Ofise / dinlenme odasına dokun" satırı. README: yeni "İç mekânlar" bölümü (eşya tablosu),
+  Otopilot bölümünde yatak uykusu; `docs/PLAN.md` §7 M15 tablosu tamam.
+- Testler: `interior.test.ts` otopilot yürüyerek çıkar; `autopilot.test.ts` uyku testi ofise giriş (1 kez), yatakta uyku ve
+  sabah dışarı. 327 test. Tarayıcı: `runTouchScenarios` 10/10; otopilot içeriden çıktı, gece ofise girip uyudu (06:00),
+  sabah dışarı çıktı.
+- **M15 İç Mekânlar ve Personel Konforu tamam (0.16.0–0.16.4).** Sonrası (kullanıcı seçer): diğer binaların iç mekânları
+  (veteriner, mutfak, kiler, kuluçka), M11 Yaşayan Dünya, M13 Sahiplendirme Hikâyeleri.
+
 ## 0.16.3 — Dinlenme odası içi (M15; Claude, 2026-09-23)
 - "Personel odası" → **Dinlenme odası** (`staffRoom` adı/açıklaması; tür anahtarı aynı, kayıt uyumlu). Kapıda E → içeri
   (`interiorKindFor('staffRoom') = 'restRoom'`, şablon 10×7, halılı oturma alanı).
