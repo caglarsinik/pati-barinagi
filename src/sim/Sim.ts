@@ -57,6 +57,7 @@ import { generateWorld } from './world/WorldGen';
 import { Biome, Ground, Obj, Zone } from './world/tiles';
 import { t } from '../i18n';
 import { kitchenWaterPerHour } from './systems/KitchenSystem';
+import { vaccinate } from './systems/ClinicSystem';
 
 export type Mode = 'avatar' | 'manage';
 
@@ -158,7 +159,8 @@ export type Command =
   | { type: 'cancelNav' }
   | { type: 'setAutopilot'; on: boolean }
   | { type: 'enterBuilding'; buildingId: number }
-  | { type: 'buyFurniture'; buildingId: number; item: FurnitureType };
+  | { type: 'buyFurniture'; buildingId: number; item: FurnitureType }
+  | { type: 'vaccinate'; dogId: number };
 
 export interface Policies {
   autoOrderFood: boolean;
@@ -194,6 +196,8 @@ export interface SimStats {
   trained: number;
   groomed: number;
   treated: number;
+  /** Aşılanan köpek sayısı (0.17.2). */
+  vaccinated: number;
   messes: number;
   built: number;
   eggsFound: number;
@@ -234,6 +238,7 @@ function emptyStats(): SimStats {
     trained: 0,
     groomed: 0,
     treated: 0,
+    vaccinated: 0,
     messes: 0,
     built: 0,
     eggsFound: 0,
@@ -814,6 +819,10 @@ export class Sim {
         b.furniture.push(cmd.item);
         this.refreshInterior(b.id);
         return { ok: true, message: t('{name} yerleştirildi', { name }) };
+      }
+      case 'vaccinate': {
+        const dog = this.dogById(cmd.dogId);
+        return dog ? vaccinate(this, dog) : { ok: false };
       }
       case 'setAutopilot':
         this.setAutopilot(cmd.on);

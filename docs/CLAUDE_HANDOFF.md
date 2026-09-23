@@ -57,6 +57,26 @@
   köpek paneli, araç şeridi, alt menü listesi, ana menü, Ayarlar: çakışma yok, taşma yok. Alt menü açılır listesi köpek
   panelinin üstüne gelebilir (geçici popover, üstte kalır) — kabul edildi. Gerçek cihaz testi kullanıcıda.
 
+## 0.17.2 — Veteriner odası içi (M16; Claude, 2026-09-23)
+- `interiorKindFor('vetClinic') = 'clinic'` (10×8). Kapıda E / binaya dokunmak **bugünkü gibi** yakındaki hasta köpeği
+  tedavi eder (ipuçlarına " · ↑ içeri"); kapı karesi / ↑ içeri sokar.
+- Eşyalar: röntgen panosu (duvarda, dekor), ilaç dolabı (`medCabinet`, satın alınır 600 ₺), muayene masası (`examTable` →
+  yeni `src/ui/ClinicPanel.tsx`, panel `'clinic'`), resepsiyon (`reception` → eşya paneli, kind `restShop`), bekleme
+  sandalyeleri. Katalog `FURNITURE_BY_KIND.clinic = ['medCabinet']`.
+- Yeni `src/sim/systems/ClinicSystem.ts`: `treatmentCost` (ilaç dolabıyla −%30: 60 → 42 ₺; oyuncu `performAction`,
+  personel `StaffSystem` tedavisi, otopilot `planFor` para kontrolü bunu kullanır), `vaccineDaysLeft`, `illnessChanceMul`
+  (aşılıda `BALANCE.clinic.vaccineMul` 0,5), `vaccinateIssue` (hazır veteriner yok / barınakta değil / zaten aşılı / para yok),
+  `vaccinate` (80 ₺ "Tedavi" gideri, 4 hafta, `stats.vaccinated`). Komut `vaccinate { dogId }`.
+- `Dog.vaccinatedUntil` (toplam dk, kayıtta, varsayılan 0). `IllnessSystem.onDay` pire/soğuk/mide zarları ve `onHour` bulaşma
+  zarı × `illnessChanceMul` — zar yine atılır; aşısız oyunlarda davranış birebir aynı.
+- ClinicPanel: barınak köpekleri (hasta önce, sonra sağlığa göre), sağlık çubuğu, hastalık adı ya da "sağlıklı",
+  "💉 aşılı · n gün" ya da "Aşıla (80 ₺)" (neden varsa düğme kapalı, başlıkta nedeni). Açıklamada güncel tedavi ücreti.
+- Testler `tests/unit/clinic.test.ts` (4): aşı akışı/kayıt/süre, zar eşikleri (rng.chance kaydedici ile: pire 0,05 → 0,025,
+  bulaşma 0,03 → 0,015), kapıda tedavi + ilaç dolabı ücreti, iç eşyalar ve paneller. 342 test.
+- Tarayıcı (812×375): veteriner kur, kapı karesine dokun → içeri; muayene masası → "Muayene masası" paneli, Toros aşılandı
+  (28 gün); resepsiyon → eşya paneli, ilaç dolabı alındı; `runTouchScenarios` 10/10.
+- Sıradaki: 0.17.3 kuluçka içi (tepsilerde yumurtalar, ısı lambası).
+
 ## 0.17.1 — Mutfak içi (M16; Claude, 2026-09-23)
 - `interiorKindFor('kitchen') = 'kitchen'` (10×7). Mutfakta kapıda hızlı iş yoktu → kapıda E / binaya dokunmak içeri sokar
   ("E: mutfağa gir"); ↑ ve kapı karesi de çalışır.

@@ -27,6 +27,16 @@ export function drawInteriorItem(type: InteriorItemType, variant = 3): Pixels {
       return drawBed();
     case 'plant':
       return drawPlant();
+    case 'examTable':
+      return drawExamTable();
+    case 'medCabinet':
+      return drawMedCabinet();
+    case 'reception':
+      return drawReception();
+    case 'waitChairs':
+      return drawWaitChairs();
+    case 'xray':
+      return drawXray();
     case 'counter':
       return drawCounter();
     case 'oven':
@@ -450,6 +460,90 @@ function drawFoodShelf(): Pixels {
   p.fillRect(5, 17, 5, 3, BURLAP);
   p.fillRect(13, 17, 5, 3, BURLAP);
   p.fillRect(21, 17, 5, 3, BURLAP);
+  p.outline(P.outline);
+  return p;
+}
+
+const MAT = hex(0x4fb3e8);
+const CROSS = hex(0xe4514f);
+const SEAT = hex(0x3f82dc);
+
+/** Muayene masası: çelik ayaklı masa, mavi minder üstünde pati izi. */
+function drawExamTable(): Pixels {
+  const p = new Pixels(TILE * 2, 20);
+  p.fillRect(3, 9, 3, 11, STEEL_DARK);
+  p.fillRect(26, 9, 3, 11, STEEL_DARK);
+  p.fillRect(3, 16, 26, 2, STEEL_DARK);
+  p.fillRect(0, 6, 32, 4, STEEL);
+  p.fillRect(2, 3, 28, 4, MAT);
+  p.fillRect(2, 3, 28, 1, hex(0x93c7ea));
+  p.fillRect(15, 4, 2, 2, PAPER);
+  p.set(13, 3, PAPER);
+  p.set(18, 3, PAPER);
+  p.outline(P.outline);
+  return p;
+}
+
+/** İlaç dolabı: beyaz dolap, cam kapakta ilaç şişeleri, kırmızı haç. Duvara taşar. */
+function drawMedCabinet(): Pixels {
+  const p = new Pixels(TILE, 30);
+  p.fillRect(1, 0, 14, 30, PAPER);
+  p.fillRect(13, 0, 2, 30, hex(0xd8d2c4));
+  p.fillRect(3, 6, 10, 16, GLASS);
+  p.fillRect(3, 13, 10, 1, STEEL_DARK);
+  p.fillRect(4, 9, 2, 4, P.flowerRed);
+  p.fillRect(7, 10, 2, 3, P.flowerYellow);
+  p.fillRect(10, 9, 2, 4, P.grassDark);
+  p.fillRect(5, 16, 2, 5, hex(0xa66bd6));
+  p.fillRect(9, 17, 2, 4, PAPER);
+  p.fillRect(7, 1, 2, 4, CROSS);
+  p.fillRect(6, 2, 4, 2, CROSS);
+  p.fillRect(3, 24, 10, 4, hex(0xd8d2c4));
+  p.outline(P.outline);
+  return p;
+}
+
+/** Resepsiyon: ahşap tezgâh, küçük ekran, zil. */
+function drawReception(): Pixels {
+  const p = new Pixels(TILE * 2, 24);
+  p.fillRect(0, 10, 32, 14, P.trunk);
+  p.fillRect(0, 10, 32, 3, P.trunkLight);
+  p.fillRect(3, 15, 26, 1, P.trunkDark);
+  p.fillRect(14, 17, 4, 4, CROSS);
+  p.fillRect(15, 16, 2, 6, CROSS);
+  p.fillRect(3, 2, 10, 7, SCREEN);
+  p.fillRect(4, 3, 8, 5, GLASS);
+  p.fillRect(7, 9, 3, 1, SCREEN);
+  p.ellipse(24, 8, 3, 2, P.flowerYellow);
+  p.set(24, 5, P.trunkDark);
+  p.outline(P.outline);
+  return p;
+}
+
+/** Bekleme sandalyeleri: iki mavi sandalye. */
+function drawWaitChairs(): Pixels {
+  const p = new Pixels(TILE * 2, 18);
+  for (const x of [2, 18]) {
+    p.fillRect(x, 1, 12, 8, SEAT);
+    p.fillRect(x, 1, 12, 2, hex(0x7aa6f0));
+    p.fillRect(x, 9, 12, 4, hex(0x2e63ad));
+    p.fillRect(x + 1, 13, 2, 5, STEEL_DARK);
+    p.fillRect(x + 9, 13, 2, 5, STEEL_DARK);
+  }
+  p.outline(P.outline);
+  return p;
+}
+
+/** Röntgen panosu (duvarda): ışıklı kutuda köpek kemiği görüntüsü. Alt 3 satır süpürgelik için boş. */
+function drawXray(): Pixels {
+  const p = new Pixels(TILE * 2, TILE);
+  p.fillRect(1, 1, 30, 11, STEEL_DARK);
+  p.fillRect(2, 2, 28, 9, hex(0x24324a));
+  p.fillRect(8, 6, 16, 1, GLASS_LIGHT);
+  p.fillRect(6, 5, 3, 3, GLASS_LIGHT);
+  p.fillRect(23, 5, 3, 3, GLASS_LIGHT);
+  p.fillRect(12, 3, 1, 2, GLASS);
+  p.fillRect(18, 8, 1, 2, GLASS);
   p.outline(P.outline);
   return p;
 }

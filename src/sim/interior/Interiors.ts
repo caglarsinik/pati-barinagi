@@ -4,14 +4,14 @@ import { TileWorld, type TilePos } from '../world/TileWorld';
 import { Ground } from '../world/tiles';
 
 /** Girilebilen binaların iç mekân türü (M15; diğer binalar sonra eklenir). */
-export type InteriorKind = 'office' | 'restRoom' | 'pantry' | 'kitchen';
+export type InteriorKind = 'office' | 'restRoom' | 'pantry' | 'kitchen' | 'clinic';
 
 /** İç mekân eşyası: kare dikdörtgeni katıdır, önünde E ile kullanılır. */
-export type InteriorItemType = 'desk' | 'board' | 'window' | 'bookshelf' | 'coffee' | 'phone' | 'bed' | 'plant' | 'restBoard' | 'sofa' | 'tv' | 'fridge' | 'sacks' | 'ledger' | 'orderBoard' | 'counter' | 'oven' | 'waterTank' | 'spiceRack' | 'foodShelf';
+export type InteriorItemType = 'desk' | 'board' | 'window' | 'bookshelf' | 'coffee' | 'phone' | 'bed' | 'plant' | 'restBoard' | 'sofa' | 'tv' | 'fridge' | 'sacks' | 'ledger' | 'orderBoard' | 'counter' | 'oven' | 'waterTank' | 'spiceRack' | 'foodShelf' | 'examTable' | 'medCabinet' | 'reception' | 'waitChairs' | 'xray';
 
 /** İç mekâna satın alınan eşyalar (0.16.3 dinlenme odası). Fiyat ve üst sınır BALANCE.interior.furniture. */
-export type FurnitureType = 'sofa' | 'coffee' | 'tv' | 'fridge' | 'waterTank' | 'oven2';
-export const FURNITURE_TYPES: readonly FurnitureType[] = ['sofa', 'coffee', 'tv', 'fridge', 'waterTank', 'oven2'];
+export type FurnitureType = 'sofa' | 'coffee' | 'tv' | 'fridge' | 'waterTank' | 'oven2' | 'medCabinet';
+export const FURNITURE_TYPES: readonly FurnitureType[] = ['sofa', 'coffee', 'tv', 'fridge', 'waterTank', 'oven2', 'medCabinet'];
 export const FURNITURE_NAMES_TR: Record<FurnitureType, string> = {
   sofa: 'Kanepe',
   coffee: 'Kahve köşesi',
@@ -19,6 +19,7 @@ export const FURNITURE_NAMES_TR: Record<FurnitureType, string> = {
   fridge: 'Buzdolabı',
   waterTank: 'Su deposu',
   oven2: 'İkinci fırın',
+  medCabinet: 'İlaç dolabı',
 };
 export const FURNITURE_DESC_TR: Record<FurnitureType, string> = {
   sofa: 'İki kişi oturur; oturanın mola dinlenmesi +%25.',
@@ -27,6 +28,7 @@ export const FURNITURE_DESC_TR: Record<FurnitureType, string> = {
   fridge: 'Personel moladan enerjisi tam dolunca döner.',
   waterTank: 'Yalaklar saatte iki kat hızlı dolar.',
   oven2: 'Günde 3 pişirme hakkı daha.',
+  medCabinet: 'Tedavi ücreti %30 düşer.',
 };
 
 /** Oda türü başına satın alınabilen eşyalar (0.17.0 ortak katalog; mutfak, veteriner, kuluçka sonraki sürümlerde). */
@@ -35,6 +37,7 @@ export const FURNITURE_BY_KIND: Record<InteriorKind, readonly FurnitureType[]> =
   restRoom: ['sofa', 'coffee', 'tv', 'fridge'],
   pantry: [],
   kitchen: ['waterTank', 'oven2'],
+  clinic: ['medCabinet'],
 };
 
 /** Kayıttan gelen eşya listesini temizler: odanın kataloğundaki türler, her türden en çok üst sınır kadar. */
@@ -143,6 +146,18 @@ const TEMPLATES: Record<InteriorKind, InteriorTemplate> = {
       { type: 'foodShelf', x: 1, y: 5, w: 2, h: 1 },
     ],
   },
+  // 0.17.2 veteriner: röntgen panosu (duvarda), ilaç dolabı yuvası, muayene masası (sağlık listesi + aşı), resepsiyon (eşya al),
+  // bekleme sandalyeleri.
+  clinic: {
+    rows: ['##########', '#========#', '#........#', '#........#', '#........#', '#........#', '#........#', '####D#####'],
+    items: [
+      { type: 'xray', x: 1, y: 1, w: 2, h: 1 },
+      { type: 'medCabinet', x: 3, y: 2, w: 1, h: 1, buy: 'medCabinet' },
+      { type: 'examTable', x: 5, y: 3, w: 2, h: 1 },
+      { type: 'reception', x: 1, y: 5, w: 2, h: 1 },
+      { type: 'waitChairs', x: 7, y: 6, w: 2, h: 1 },
+    ],
+  },
 };
 
 /** Kurulmuş iç oda: ayrı küçük dünya (duvarlar katı), kapı karesi ve giriş noktası. */
@@ -166,7 +181,7 @@ const GROUND_OF: Record<string, Ground> = {
 
 /** Binanın iç mekânı varsa türü. */
 export function interiorKindFor(type: BuildingType): InteriorKind | null {
-  return type === 'office' ? 'office' : type === 'staffRoom' ? 'restRoom' : type === 'shed' ? 'pantry' : type === 'kitchen' ? 'kitchen' : null;
+  return type === 'office' ? 'office' : type === 'staffRoom' ? 'restRoom' : type === 'shed' ? 'pantry' : type === 'kitchen' ? 'kitchen' : type === 'vetClinic' ? 'clinic' : null;
 }
 
 export function buildInterior(kind: InteriorKind, owned: readonly string[] = []): InteriorMap {

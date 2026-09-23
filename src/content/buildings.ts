@@ -171,7 +171,7 @@ export const BUILDING_DEFS: Record<BuildingType, BuildingDef> = {
     cost: 3000,
     category: 'bakim',
     solidRows: 'all',
-    desc: 'Yakındaki hasta köpeği tedavi eder (ilaç masrafı). Önünde E.',
+    desc: 'Yakındaki hasta köpeği tedavi eder (ilaç masrafı). Önünde E. İçeride muayene masasından köpekler aşılanır.',
     buildMinutes: 240,
     buildable: true,
   },

@@ -38,7 +38,8 @@ export type Panel =
   | 'map'
   | 'computer'
   | 'furniture'
-  | 'autoOrder';
+  | 'autoOrder'
+  | 'clinic';
 
 export type BuildTool =
   | { kind: 'none' }

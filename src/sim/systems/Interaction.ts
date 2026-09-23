@@ -12,6 +12,7 @@ import { t } from '../../i18n';
 import { interiorItemAt } from '../interior/Interiors';
 import { WEATHER_NAMES_TR } from './WeatherSystem';
 import { bake, bakeIssue, bakesLeft, kitchenWaterPerHour } from './KitchenSystem';
+import { treatmentCost } from './ClinicSystem';
 
 export type Tool = 'pet' | 'play' | 'train' | 'feed' | 'clean' | 'call';
 
@@ -60,6 +61,7 @@ export type ActionKind =
   | 'restShop'
   | 'autoOrder'
   | 'bake'
+  | 'clinic'
   | 'none';
 
 export interface ResolvedAction {
@@ -135,6 +137,16 @@ function resolveInterior(sim: Sim, tile: TilePos): ResolvedAction {
       return { kind: 'none', hint: t('TV: molada moral saatte +1'), tile };
     case 'fridge':
       return { kind: 'none', hint: t('Buzdolabı: personel moladan enerjisi tam dolunca döner'), tile };
+    case 'examTable':
+      return { kind: 'clinic', hint: t('E: muayene masası · sağlık listesi ve aşı'), tile };
+    case 'medCabinet':
+      return { kind: 'none', hint: t('İlaç dolabı: tedavi {n} ₺', { n: treatmentCost(sim) }), tile };
+    case 'reception':
+      return { kind: 'restShop', hint: t('E: resepsiyon · eşya al (ilaç dolabı)'), building: sim.buildingById(it.buildingId), tile };
+    case 'waitChairs':
+      return { kind: 'none', hint: t('Bekleme sandalyeleri'), tile };
+    case 'xray':
+      return { kind: 'none', hint: t('Röntgen panosu'), tile };
     case 'counter':
       return { kind: 'restShop', hint: t('E: tezgâh · eşya al (su deposu, ikinci fırın)'), building: sim.buildingById(it.buildingId), tile };
     case 'oven': {
@@ -166,6 +178,7 @@ function resolveInterior(sim: Sim, tile: TilePos): ResolvedAction {
         tile,
       };
     default:
+      if (it.kind === 'clinic') return { kind: 'none', hint: t('Veteriner odası · muayene masasına bakıp E: aşı · resepsiyon: eşya al · çıkmak için kapıya yürü'), tile };
       if (it.kind === 'kitchen') return { kind: 'none', hint: t('Mutfak · fırına bakıp E: ödül maması · tezgâh: eşya al · çıkmak için kapıya yürü'), tile };
       if (it.kind === 'pantry') return { kind: 'none', hint: t('Kiler · deftere bakıp E: sipariş · çıkmak için kapıya yürü'), tile };
       if (it.kind === 'restRoom') return { kind: 'none', hint: t('Dinlenme odası · panoya bakıp E: eşya al · çıkmak için kapıya yürü'), tile };
@@ -225,9 +238,10 @@ export function resolveAction(sim: Sim): ResolvedAction {
     }
     if (building.type === 'vetClinic') {
       const near = nearestDogToBuilding(sim, building, BALANCE.dogs.stationRadius);
-      if (!near) return { kind: 'none', hint: t('Veteriner: yakında köpek yok'), building };
-      if (near.needs.health >= 90 && !near.illness) return { kind: 'none', hint: t('{name} sağlıklı', { name: near.name }), building };
-      return { kind: 'treat', hint: t("E: {name}'i tedavi et ({price} ₺)", { name: near.name, price: BALANCE.economy.treatmentPrice }), building, dog: near };
+      const inside = t(' · ↑ içeri');
+      if (!near) return { kind: 'none', hint: t('Veteriner: yakında köpek yok') + inside, building };
+      if (near.needs.health >= 90 && !near.illness) return { kind: 'none', hint: t('{name} sağlıklı', { name: near.name }) + inside, building };
+      return { kind: 'treat', hint: t("E: {name}'i tedavi et ({price} ₺)", { name: near.name, price: treatmentCost(sim) }) + inside, building, dog: near };
     }
     if (building.type === 'shed') return { kind: 'shed', hint: t('E: kiler ({n} porsiyon)', { n: Math.floor(sim.foodStock) }) + t(' · ↑ içeri'), building };
     if (building.type === 'office') {
@@ -317,7 +331,7 @@ export interface ActionOutcome {
   ok: boolean;
   message?: string;
   /** UI'nın açması gereken panel. */
-  open?: 'shed' | 'kennel' | 'incubator' | 'office' | 'nursery' | 'computer' | 'order' | 'help' | 'furniture' | 'autoOrder';
+  open?: 'shed' | 'kennel' | 'incubator' | 'office' | 'nursery' | 'computer' | 'order' | 'help' | 'furniture' | 'autoOrder' | 'clinic';
   building?: Building;
   dog?: Dog;
 }
@@ -345,7 +359,7 @@ export function performAction(sim: Sim): ActionOutcome {
     }
     case 'treat': {
       const dog = r.dog!;
-      const price = BALANCE.economy.treatmentPrice;
+      const price = treatmentCost(sim);
       if (sim.money < price) return { ok: false, message: t('İlaç için para yok') };
       sim.addExpense('treatment', price, dog.name);
       dog.needs.health = clamp100(dog.needs.health + B.treatHealthGain);
@@ -488,6 +502,8 @@ export function performAction(sim: Sim): ActionOutcome {
       if (baked.ok) p.setBusy(BALANCE.kitchen.busySec, 'bake');
       return baked;
     }
+    case 'clinic':
+      return { ok: true, open: 'clinic' };
     case 'sleep':
       if (!canSleepAt(sim.clock.hour)) return { ok: false, message: t("Henüz erken: {h}:00'den sonra uyunabilir", { h: BALANCE.time.sleepFromHour }) };
       return sim.command({ type: 'sleep' });

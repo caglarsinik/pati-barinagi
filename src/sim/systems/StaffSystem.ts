@@ -14,6 +14,7 @@ import { cleanMess, cleanMinutesMul } from './MessSystem';
 import type { Task } from './TaskBoard';
 import { t } from '../../i18n';
 import { Rng, hash3 } from '../../core/Rng';
+import { treatmentCost } from './ClinicSystem';
 
 /** Personelin çalışma ritmi: vardiya, mola, görev seçimi, iş yapma. */
 /** Personel sınırı: ofis Sv3 (lisans 3) daha kalabalık kadro alır. */
@@ -518,7 +519,7 @@ export class StaffSystem {
         break;
       case 'treat':
         if (dog) {
-          const price = BALANCE.economy.treatmentPrice;
+          const price = treatmentCost(sim);
           if (sim.money >= price) {
             sim.addExpense('treatment', price, t('{dog} ({staff})', { dog: dog.name, staff: s.name }));
             dog.needs.health = clamp100(dog.needs.health + BALANCE.dogs.treatHealthGain);

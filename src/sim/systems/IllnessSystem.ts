@@ -4,6 +4,7 @@ import { Zone } from '../world/tiles';
 import type { Sim } from '../Sim';
 import { effectiveMessCount } from './MessSystem';
 import { t } from '../../i18n';
+import { illnessChanceMul } from './ClinicSystem';
 
 /**
  * Hastalıklar: pire (kirlilik), soğuk algınlığı (kulübesiz + soğuk/yağış), mide (pislik).
@@ -31,15 +32,17 @@ export class IllnessSystem {
         }
         continue;
       }
-      if (dog.needs.hygiene < I.fleaHygieneBelow && sim.rng.chance(I.fleaChance)) {
+      // Aşı (0.17.2) yalnız eşiği düşürür; zar yine atılır.
+      const mul = illnessChanceMul(sim, dog);
+      if (dog.needs.hygiene < I.fleaHygieneBelow && sim.rng.chance(I.fleaChance * mul)) {
         this.infect(dog, 'flea');
         continue;
       }
-      if (dog.kennelId === null && coldWeather && sim.rng.chance(I.coldChance)) {
+      if (dog.kennelId === null && coldWeather && sim.rng.chance(I.coldChance * mul)) {
         this.infect(dog, 'cold');
         continue;
       }
-      if (messy && sim.rng.chance(I.stomachChance)) this.infect(dog, 'stomach');
+      if (messy && sim.rng.chance(I.stomachChance * mul)) this.infect(dog, 'stomach');
     }
   }
 
@@ -59,7 +62,7 @@ export class IllnessSystem {
         if (other === s || other.illness || other.walking) continue;
         if (Math.hypot(other.x - s.x, other.y - s.y) > I.spreadRadius) continue;
         if (this.inQuarantine(other) !== sq) continue;
-        if (sim.rng.chance(rate)) this.infect(other, kind, s);
+        if (sim.rng.chance(rate * illnessChanceMul(sim, other))) this.infect(other, kind, s);
       }
     }
   }

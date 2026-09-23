@@ -445,6 +445,7 @@ export class WorldScene extends Phaser.Scene {
         restShop: 'click',
         autoOrder: 'click',
         bake: 'feed',
+        clinic: 'click',
       };
       const name = sfx[kind];
       if (name) audio.play(name);
@@ -471,6 +472,7 @@ export class WorldScene extends Phaser.Scene {
       store.panelBuildingId.value = r.building.id;
       store.panel.value = 'furniture';
     } else if (r.open === 'autoOrder') store.panel.value = 'autoOrder';
+    else if (r.open === 'clinic') store.panel.value = 'clinic';
   }
 
   private readInput(): PlayerInput {

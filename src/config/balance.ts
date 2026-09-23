@@ -148,7 +148,17 @@ export const BALANCE = {
       fridge: { cost: 200, max: 1 },
       waterTank: { cost: 350, max: 1 },
       oven2: { cost: 450, max: 1 },
+      medCabinet: { cost: 600, max: 1 },
     },
+  },
+  /** Veteriner odası içi (0.17.2): aşı ve ilaç dolabı. */
+  clinic: {
+    vaccineCost: 80,
+    vaccineWeeks: 4,
+    /** Aşılı köpekte günlük hastalanma ve saatlik bulaşma olasılığı çarpanı. */
+    vaccineMul: 0.5,
+    /** İlaç dolabı: tedavi ücreti indirimi. */
+    medCabinetDiscount: 0.3,
   },
   /** Mutfak içi (0.17.1): fırında ödül maması, su deposu ve ikinci fırın. */
   kitchen: {

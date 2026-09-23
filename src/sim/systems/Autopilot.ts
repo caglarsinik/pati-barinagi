@@ -9,6 +9,7 @@ import { type ActionOutcome, type Tool, nearestDogToBuilding, trainingSkill } fr
 import type { NavGoal } from './PlayerNav';
 import type { Task } from './TaskBoard';
 import { t } from '../../i18n';
+import { treatmentCost } from './ClinicSystem';
 
 /** Görev tahtasında otopilotun sahip kimliği (personel kimlikleri pozitif). */
 export const PILOT_ID = -1;
@@ -333,7 +334,7 @@ export class Autopilot {
       }
       case 'treat': {
         const d = this.taskDog(task);
-        if (!d || this.sim.money < BALANCE.economy.treatmentPrice) return null;
+        if (!d || this.sim.money < treatmentCost(this.sim)) return null;
         const clinic = this.stationFor(d, 'vetClinic');
         return clinic ? { goal: { kind: 'building', id: clinic.id } } : null;
       }

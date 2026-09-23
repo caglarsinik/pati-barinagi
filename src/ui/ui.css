@@ -1337,3 +1337,22 @@ select,
 .furniture-info {
   flex: 1;
 }
+
+/* Veteriner muayene masası (0.17.2) */
+.clinic-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex: none;
+}
+
+.clinic-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: none;
+}
+
+.clinic-info {
+  flex: 1;
+}
