@@ -1303,6 +1303,32 @@ select,
   margin: 10px 0 4px;
 }
 
+/* --- Sabah raporu (0.19.2) --- */
+.morning h4 {
+  margin: 10px 0 4px;
+}
+
+.morning .morning-line {
+  padding: 2px 0;
+}
+
+.morning .morning-line.warn {
+  color: var(--danger);
+  font-weight: 600;
+}
+
+.morning .morning-money.up {
+  color: var(--accent-2);
+}
+
+.morning .morning-money.down {
+  color: var(--danger);
+}
+
+.morning .morning-start {
+  margin-top: 12px;
+}
+
 /* --- Olaylar ve başarımlar --- */
 .event-log {
   margin-top: 8px;

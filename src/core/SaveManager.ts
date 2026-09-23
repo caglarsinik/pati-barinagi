@@ -26,6 +26,8 @@ export interface SaveData {
   villageFound?: boolean;
   starter?: string;
   goals?: unknown;
+  dayStart?: unknown;
+  lastDay?: unknown;
   foodStock?: number;
   nextId?: number;
   stats?: unknown;

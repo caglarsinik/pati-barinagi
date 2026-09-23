@@ -66,6 +66,10 @@ export function SettingsPanel() {
           <span>{t('Hedef kartını göster')}</span>
         </label>
         <label class="setting">
+          <input type="checkbox" checked={!store.morningHidden.value} onChange={(e) => app.setMorningHidden(!(e.target as HTMLInputElement).checked)} />
+          <span>{t('Sabah raporunu göster')}</span>
+        </label>
+        <label class="setting">
           <input type="checkbox" checked={store.labels.value} onChange={(e) => app.setLabels((e.target as HTMLInputElement).checked)} />
           <span>{t('Köpek ve kişi isimlerini dünyada göster (L)')}</span>
         </label>

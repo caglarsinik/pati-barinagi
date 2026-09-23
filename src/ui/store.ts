@@ -5,6 +5,7 @@ import { type Mode, type Sim, type GameOverInfo, type VictoryInfo } from '../sim
 import { ZONE_NAMES_TR, Zone } from '../sim/world/tiles';
 import type { Alert } from '../sim/systems/AlertSystem';
 import type { WeekSummary } from '../sim/systems/EconomySystem';
+import type { MorningReport } from '../sim/systems/DayReport';
 import { SEASON_NAMES_TR, WEATHER_ICONS, WEATHER_NAMES_TR } from '../sim/systems/WeatherSystem';
 import { t } from '../i18n';
 import type { BeforeInstallPromptEvent } from '../pwa';
@@ -41,7 +42,8 @@ export type Panel =
   | 'autoOrder'
   | 'clinic'
   | 'wholesale'
-  | 'goals';
+  | 'goals'
+  | 'morning';
 
 export type BuildTool =
   | { kind: 'none' }
@@ -87,6 +89,9 @@ export const store = {
   /** Yeni service worker indirildi; Ayarlar → Şimdi yenile. */
   updateReady: signal(false),
   guideHidden: signal(false),
+  /** Sabah raporu (0.19.2): gösterilen rapor ve Ayarlar'daki kapatma. */
+  morningReport: signal<MorningReport | null>(null),
+  morningHidden: signal(false),
   /** Dünya üstü isim etiketleri (L). */
   labels: signal(true),
   /** Şu an gezdirilen köpeğin adı. */

@@ -57,6 +57,27 @@
   köpek paneli, araç şeridi, alt menü listesi, ana menü, Ayarlar: çakışma yok, taşma yok. Alt menü açılır listesi köpek
   panelinin üstüne gelebilir (geçici popover, üstte kalır) — kabul edildi. Gerçek cihaz testi kullanıcıda.
 
+## 0.19.2 — Sabah raporu ve dönüş kartı (M17; Claude, 2026-09-23)
+- Yeni `src/sim/systems/DayReport.ts`: `DaySnapshot` (day, money, adopted, hatched, strays, cured, fed, eggsFound),
+  `takeDaySnapshot`, `diffDay`, `daySnapshotFrom` (kayıt doğrulaması), `MorningReport` ve `buildMorningReport(sim, kind,
+  passedOut)`. Rapor: dün = biten takvim gününün farkı; bugün = gün, hafta içi gün, mevsim, hava, 24 saat içinde çatlayacak
+  kuluçka yumurtası (kalan oyun süresi `hatchLeft × incubatorTimeMul`), yuva evinde bekleyen yumurta, hasta köpek, yem günü
+  = (kiler + kaplar) / (Σ porsiyon × `mealHours` sayısı), bugün vardiyası olan personel (kurstaki ve hafta içi gönüllü hariç),
+  sahiplendirme açık mı ve `adoptable` köpek sayısı, sıradaki hedef.
+- `Sim.dayStart` (kurucuda alınır) ve `Sim.lastDay`, ikisi de kayıtta. Eski kayıtta `dayStart` yüklemedeki değerlerle başlar,
+  `lastDay` null. `day` olayında `rollDay` (öbür gün dinleyicilerinden sonra): biten günün özeti `lastDay` olur, yeni
+  `dayStart` alınır. `sleepUntilMorning` `slept`'ten sonra iflas yoksa `morning` olayını yayar (uyku ve bayılma; yeni oyunda yok).
+- Arayüz: yeni `src/ui/MorningPanel.tsx` (`store.panel 'morning'`, `store.morningReport`). Başlık "☀️ Günaydın!", bayılmada
+  "😵 Dışarıda bayıldın, ofiste uyandın", dönüşte "👋 Hoş geldin!"; Dün (kasa ±, olaylar ya da "Sakin bir gündü.") ve Bugün
+  satırları (uyarılar kırmızı); "Güne başla" / "Devam et". `app.showMorning(report)` Ayarlar'da kapalıysa açmaz;
+  `app.continueGame` sonunda hoş geldin kartı; `app.setMorningHidden` + localStorage `…morningHidden`; Ayarlar → Rehber →
+  "Sabah raporunu göster". Pazartesi haftalık rapor da açılırsa DOM sırası gereği üstte o durur (tarayıcıda denenmedi).
+- Testler `tests/unit/morning.test.ts` (3): gün dönümü özeti (aynı andaki sayaçlarla karşılaştırma), uyku ve bayılmada rapor;
+  bugün satırları (yumurta, hasta, yem günü, personel, sahiplendirme kapalı, hedef, köpeksiz yem null); kayıt turu, eski ve
+  bozuk kayıt. 366 test. Tarayıcı 812×375: uyku → Günaydın (Dün +350 ₺, 1 sahiplendirme, 2 yavru; Bugün yem 10 gün, hedef);
+  kayıttan devam → Hoş geldin aynı özetle; ayar kapalıyken rapor açılmıyor; `runTouchScenarios` 12/12.
+- Sıradaki: 0.19.3 cila (dokunma senaryosu 13 "kuruluş", yardım satırları, README ve PLAN).
+
 ## 0.19.1 — Belediye hedef zinciri (M17; Claude, 2026-09-23)
 - `src/sim/systems/Goals.ts` yeniden yazıldı: `GOALS` 22 halka (kennel, bowlTrough, incubator, eggFound, eggPlaced, fillBowl,
   petClean, shed, sleep, stray, hire, hatch, adopt1, expand, kitchen, village, dogs5, vet, adopt10, license2, nurseryPup,

@@ -16,6 +16,7 @@ import { WorldScene } from './scenes/WorldScene';
 import { OverlayScene } from './scenes/OverlayScene';
 import { Sim, DIFFICULTIES, STARTER_KINDS, type Difficulty, type StarterKind } from './sim/Sim';
 import { BUILDING_DEFS, type BuildingType } from './content/buildings';
+import { type MorningReport, buildMorningReport } from './sim/systems/DayReport';
 import { showToast, store, syncStore } from './ui/store';
 
 
@@ -108,6 +109,7 @@ class AppController {
     });
     try {
       store.guideHidden.value = localStorage.getItem(`${SaveManager.key(0)}.guideHidden`) === '1';
+      store.morningHidden.value = localStorage.getItem(`${SaveManager.key(0)}.morningHidden`) === '1';
       store.labels.value = localStorage.getItem(`${SaveManager.key(0)}.labels`) !== '0';
       store.minimapHidden.value = localStorage.getItem(`${SaveManager.key(0)}.minimapHidden`) === '1';
       const tm = localStorage.getItem(`${SaveManager.key(0)}.touchMode`);
@@ -239,8 +241,11 @@ class AppController {
       showToast(t('Kayıt bulunamadı'));
       return false;
     }
-    this.start(Sim.fromJSON(data));
+    const sim = Sim.fromJSON(data);
+    this.start(sim);
     showToast(t('Kayıt yüklendi'));
+    // Dönüş kancası (0.19.2): dünün özeti ve bugünün işleri.
+    this.showMorning(buildMorningReport(sim, 'welcome'));
     return true;
   }
 
@@ -284,6 +289,7 @@ class AppController {
       sim.events.on('slept', () => audio.play('sleep')),
       sim.events.on('buildingReady', () => audio.play('build')),
       sim.events.on('goal', () => audio.play('coin')),
+      sim.events.on('morning', (r) => this.showMorning(r)),
     );
     audio.startMusic(sim.clock.isNight() ? 'night' : 'day');
     const sm = this.game.scene;
@@ -430,6 +436,22 @@ class AppController {
     if (this.sim) {
       this.sim.alerts.refresh();
       syncStore(this.sim);
+    }
+  }
+
+  /** Sabah raporu ya da hoş geldin kartı (0.19.2); Ayarlar'dan kapatılabilir. */
+  showMorning(report: MorningReport): void {
+    if (store.morningHidden.value) return;
+    store.morningReport.value = report;
+    store.panel.value = 'morning';
+  }
+
+  setMorningHidden(hidden: boolean): void {
+    store.morningHidden.value = hidden;
+    try {
+      localStorage.setItem(`${SaveManager.key(0)}.morningHidden`, hidden ? '1' : '0');
+    } catch {
+      /* yoksay */
     }
   }
 

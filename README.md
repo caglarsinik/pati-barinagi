@@ -69,6 +69,14 @@ köy, aynı anda 5 köpek, veteriner odası, 10 sahiplendirme, lisans 2, yuva ev
 gelince hemen tamamlanır. Hazır barınakta kurulu gelenler ve eski kayıtlarda zaten yapılmış olanlar ödülsüz tamam sayılır.
 Kart Ayarlar → "Hedef kartını göster" ile gizlenir.
 
+## Sabah raporu
+
+Ofiste uyuyunca ya da dışarıda bayılınca sabah **Günaydın** kartı açılır (0.19.2). **Dün** bölümü kasanın ne kadar
+değiştiğini ve sahiplendirme, çatlayan yavru, katılan sokak köpeği, tedavi, bulunan yumurta ve yenen öğün sayılarını
+gösterir. **Bugün** bölümü 24 saat içinde çatlayacak yumurtaları, yuva evinde bekleyen yumurtayı, hasta köpekleri, yemin
+kaç gün yeteceğini, bugün çalışacak personeli, sahiplendirmeye hazır köpekleri ve sıradaki belediye hedefini listeler.
+Kayıttan devam edince aynı kart **Hoş geldin** başlığıyla açılır. Ayarlar → "Sabah raporunu göster" ile kapatılır.
+
 ## Kontroller
 
 | Tuş | Avatar modu | Yönetim modu |
@@ -355,7 +363,8 @@ Bilgisayar değiştirirken ya da yedek almak için kullan.
 - [x] 0.18.2 Köy (güney yolun ucu) ve yem toptancısı (çuval %30 ucuz, en az 3), "Köyü buldun" başarımı
 - [x] 0.19.0 Kuruluş açılışı: küçük arsa + ofis, belediye hedefleri (kulübe, kap+yalak, kuluçka), ilk genişletme 1.500 ₺
 - [x] 0.19.1 Hedef zinciri: 22 belediye hedefi, 🎯 kart, Hedefler paneli ve Göster, eski kayıtlar sessizce yetişir
-- [ ] M17 İlk 10 dakika (0.19.x): sabah raporu ve dönüş kartı, kuruluş dokunma senaryosu
+- [x] 0.19.2 Sabah raporu (dün ve bugün) ve kayıttan dönünce "Hoş geldin" kartı
+- [ ] M17 İlk 10 dakika (0.19.3): kuruluş dokunma senaryosu, yardım ve belgeler
 - [ ] M11 Yaşayan Dünya kalanı (0.20.x): dükkân ve pazar, köylü rutini, köy kademesi, hızlı seyahat, görevler
 - [ ] Sonrası: M13 Sahiplendirme Hikâyeleri, yuva evi içi, kuzey/batı arsa genişletme
 - [ ] Sonraki paketler (`docs/PLAN.md` §7): M11 Yaşayan Dünya, M13 Sahiplendirme Hikâyeleri

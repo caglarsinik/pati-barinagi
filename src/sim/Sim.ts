@@ -62,6 +62,7 @@ import { seasonForWeek } from './systems/WeatherSystem';
 import { VILLAGE_ID_BASE, restampVillage, villageDoorTile, villageInteriorKind, wholesaleBagPrice } from './world/Village';
 import { applyFoundingPlot } from './world/PlotReserve';
 import { type GoalDef, GoalSystem } from './systems/Goals';
+import { type DaySnapshot, type MorningReport, buildMorningReport, daySnapshotFrom, diffDay, takeDaySnapshot } from './systems/DayReport';
 
 export type Mode = 'avatar' | 'manage';
 
@@ -111,6 +112,8 @@ export interface SimEvents extends Record<string, unknown> {
   achievement: AchievementDef;
   /** Belediye hedefi tamamlandı (0.19.0). */
   goal: GoalDef;
+  /** Uyanınca sabah raporu (0.19.2; uyku ve bayılmada, iflasta değil). */
+  morning: MorningReport;
   /** Uyku / bayılma gibi zaman atlamaları (arayüz karartma yapar). */
   slept: { minutes: number; passedOut: boolean };
   /** Oyuncuya kısa bildirim. */
@@ -327,6 +330,9 @@ export class Sim {
   villageFound = false;
   /** Başlangıç türü (0.19.0; kayıtta, eski kayıt 'ready'). */
   starter: StarterKind = 'ready';
+  /** Günün başındaki sayaçlar ve biten günün özeti (0.19.2; kayıtta). */
+  dayStart: DaySnapshot;
+  lastDay: DaySnapshot | null = null;
   readonly gates: GateSystem;
   flags: SimFlags = { foodDiscountDay: 0, extraAdoptersDay: 0, growlUntil: 0, growlA: '', growlB: '' };
   speed: Speed = 1;
@@ -382,6 +388,7 @@ export class Sim {
     this.clock = clock;
     this.player = player;
     this.money = money;
+    this.dayStart = takeDaySnapshot(this);
     this.needs = new NeedsSystem(this);
     this.brain = new DogBrain(this);
     this.alerts = new AlertSystem(this);
@@ -399,6 +406,7 @@ export class Sim {
     this.events.on('day', (d) => this.needs.onDay(d));
     this.events.on('day', () => this.illness.onDay());
     this.events.on('day', () => this.staffSystem.onDay());
+    this.events.on('day', () => this.rollDay());
     this.events.on('hour', () => this.staffSystem.onHour());
     this.events.on('hour', () => this.illness.onHour());
     this.events.on('hour', (h) => this.eventSys.onHour(h));
@@ -533,6 +541,13 @@ export class Sim {
   }
 
   /** Sabah 06:00'ya kadar zamanı hızlıca geçirir; köpekler ve inşaatlar normal işler. */
+  /** Gün dönümü (0.19.2): biten günün özeti sabah raporu için saklanır, yeni günün sayaçları başlar. */
+  private rollDay(): void {
+    const now = takeDaySnapshot(this);
+    this.lastDay = diffDay(now, this.dayStart);
+    this.dayStart = now;
+  }
+
   sleepUntilMorning(passedOut = false): void {
     this.nav.cancel();
     const c = this.clock;
@@ -547,6 +562,7 @@ export class Sim {
     this.player.exhausted = false;
     this.stats.slept++;
     this.events.emit('slept', { minutes: total, passedOut });
+    if (!this.gameOver) this.events.emit('morning', buildMorningReport(this, 'morning', passedOut));
   }
 
   private onHour(h: number): void {
@@ -1479,6 +1495,8 @@ export class Sim {
       villageFound: this.villageFound,
       starter: this.starter,
       goals: this.goals.toJSON(),
+      dayStart: { ...this.dayStart },
+      lastDay: this.lastDay ? { ...this.lastDay } : null,
       loan: this.loan,
       negativeWeeks: this.negativeWeeks,
       gameOver: this.gameOver,
@@ -1841,6 +1859,9 @@ export class Sim {
     }
     // Hedef zincirinden önceki kayıt (0.19.1 öncesi): sağlanan hedefler ödülsüz tamam sayılır.
     if (!goalsCurrent) sim.goals.catchUp();
+    // Gün sayaçları (0.19.2): eski kayıtta yüklemedeki değerlerle başlar, dün özeti yok.
+    sim.dayStart = daySnapshotFrom(data.dayStart) ?? takeDaySnapshot(sim);
+    sim.lastDay = daySnapshotFrom(data.lastDay);
     sim.alerts.refresh();
     return sim;
   }
