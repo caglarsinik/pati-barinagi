@@ -57,6 +57,24 @@
   köpek paneli, araç şeridi, alt menü listesi, ana menü, Ayarlar: çakışma yok, taşma yok. Alt menü açılır listesi köpek
   panelinin üstüne gelebilir (geçici popover, üstte kalır) — kabul edildi. Gerçek cihaz testi kullanıcıda.
 
+## 0.17.1 — Mutfak içi (M16; Claude, 2026-09-23)
+- `interiorKindFor('kitchen') = 'kitchen'` (10×7). Mutfakta kapıda hızlı iş yoktu → kapıda E / binaya dokunmak içeri sokar
+  ("E: mutfağa gir"); ↑ ve kapı karesi de çalışır.
+- Eşyalar: tezgâh (`counter` 3×1 → eşya paneli, kind `restShop` yeniden kullanıldı → `FurniturePanel`), fırın (`oven`),
+  ikinci fırın (`oven` + `buy: 'oven2'`, 450 ₺), su deposu (`waterTank`, 350 ₺), baharat rafı (duvarda, dekor), mama rafı
+  (kiler stoğunu söyler). Katalog: `FURNITURE_BY_KIND.kitchen = ['waterTank', 'oven2']`, fiyatlar `BALANCE.interior.furniture`.
+- Yeni `src/sim/systems/KitchenSystem.ts` (saf): `bakesLeft` (günde `BALANCE.kitchen.bakesPerDay` 4, ikinci fırınla +3; gün
+  değişince sıfır), `bakeIssue` (hak bitti / ödül çantası dolu (`treatsMax` 10) / kiler < 2), `bake` (yem −2, ödül +1,
+  "🍪 Ödül maması pişti (n/10)"), `kitchenWaterPerHour` (su deposuyla ×2: 15 → 30). `Sim.onHour` mutfak dolumu bunu kullanır.
+  Hangi mutfakta olursa olsun hazır bir mutfaktaki eşya sayılır. Fırın kullanımında oyuncu 2 sn meşgul (`busySec`).
+- Kayıt: `Sim.bakeDay` / `bakesToday` (SaveData opsiyonel, varsayılan 0). Mutfak açıklamasına "İçeride fırında ödül maması
+  pişer.", yardım satırlarına mutfak.
+- Testler `tests/unit/kitchen.test.ts` (4): pişirme/günlük sınır/ikinci fırın/ertesi gün/kayıt, kiler yetmez + çanta dolu,
+  su deposu (saatlik olayla yalak 30), tezgâh paneli, tam donanımlı odada katılık/erişim/çizim. 338 test.
+- Tarayıcı (812×375): mutfak kur, dokun → içeri; fırına dokun → ödül 1, yem 40 → 38; tezgâh → "Mutfak" paneli, iki eşya
+  alındı, odada 2 fırın + su deposu; `runTouchScenarios` 10/10.
+- Sıradaki: 0.17.2 veteriner odası içi (aşı, ilaç dolabı).
+
 ## 0.17.0 — Ortak giriş kuralı, genel eşya kataloğu, Kiler içi (M16 ilk dilimi; Claude, 2026-09-23)
 - **Giriş kuralı:** E ve binaya dokunmak bugünkü hızlı işi yapar; içeri girmek için binanın alt-orta karesine (kapının hemen
   üstü) dokun ya da kapı önünde ↑ basılı tut (`BALANCE.interior.pushEnterSec` 0,25 sn). `NavGoal` += `{ kind: 'enter', id }`

@@ -56,6 +56,7 @@ import { type ActiveInterior, FURNITURE_BY_KIND, FURNITURE_NAMES_TR, type Furnit
 import { generateWorld } from './world/WorldGen';
 import { Biome, Ground, Obj, Zone } from './world/tiles';
 import { t } from '../i18n';
+import { kitchenWaterPerHour } from './systems/KitchenSystem';
 
 export type Mode = 'avatar' | 'manage';
 
@@ -289,6 +290,9 @@ export class Sim {
   private enterPushSec = 0;
   /** Ofis kahve makinesinden son kahve içilen gün (günde bir). */
   coffeeDay = 0;
+  /** Mutfak fırını (0.17.1): son pişirilen gün ve o gün pişirilen ödül maması sayısı. */
+  bakeDay = 0;
+  bakesToday = 0;
   readonly gates: GateSystem;
   flags: SimFlags = { foodDiscountDay: 0, extraAdoptersDay: 0, growlUntil: 0, growlA: '', growlB: '' };
   speed: Speed = 1;
@@ -503,7 +507,8 @@ export class Sim {
     // Mutfak: yalaklar kendiliğinden dolar.
     if (this.hasReady('kitchen')) {
       const cap = BALANCE.shelter.troughCapacity;
-      for (const b of this.buildings) if (b.type === 'trough' && isReady(b)) b.water = Math.min(cap, b.water + BALANCE.shelter.kitchenWaterPerHour);
+      const perHour = kitchenWaterPerHour(this);
+      for (const b of this.buildings) if (b.type === 'trough' && isReady(b)) b.water = Math.min(cap, b.water + perHour);
     }
     // Otomatik yem makinesi: menzildeki kaplar kilerden dolar.
     tickFeeders(this);
@@ -1334,6 +1339,8 @@ export class Sim {
       difficulty: this.difficulty,
       autopilot: this.autopilot,
       coffeeDay: this.coffeeDay,
+      bakeDay: this.bakeDay,
+      bakesToday: this.bakesToday,
       loan: this.loan,
       negativeWeeks: this.negativeWeeks,
       gameOver: this.gameOver,
@@ -1412,6 +1419,8 @@ export class Sim {
     sim.difficulty = difficulty;
     sim.autopilot = data.autopilot === true;
     sim.coffeeDay = numOr(data.coffeeDay, 0, 0);
+    sim.bakeDay = numOr(data.bakeDay, 0, 0);
+    sim.bakesToday = Math.floor(numOr(data.bakesToday, 0, 0));
     // Çanta yumurtalarından önce: büyük çantadaki 4–6. yumurta yüklemede kaybolmasın.
     sim.backpackLevel = data.backpackLevel === 2 ? 2 : 1;
     sim.loan = numOr(data.loan, 0, 0);

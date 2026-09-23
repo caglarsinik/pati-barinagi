@@ -122,7 +122,7 @@ export const BUILDING_DEFS: Record<BuildingType, BuildingDef> = {
     cost: 1500,
     category: 'besleme',
     solidRows: 'all',
-    desc: 'Yem kapları iki kat porsiyon alır, yalaklar kendiliğinden dolar, personel yem/su işini %40 hızlı yapar.',
+    desc: 'Yem kapları iki kat porsiyon alır, yalaklar kendiliğinden dolar, personel yem/su işini %40 hızlı yapar. İçeride fırında ödül maması pişer.',
     buildMinutes: 180,
     buildable: true,
   },

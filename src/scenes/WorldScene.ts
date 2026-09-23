@@ -444,6 +444,7 @@ export class WorldScene extends Phaser.Scene {
         coffee: 'pick',
         restShop: 'click',
         autoOrder: 'click',
+        bake: 'feed',
       };
       const name = sfx[kind];
       if (name) audio.play(name);

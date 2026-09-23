@@ -4,20 +4,29 @@ import { TileWorld, type TilePos } from '../world/TileWorld';
 import { Ground } from '../world/tiles';
 
 /** Girilebilen binaların iç mekân türü (M15; diğer binalar sonra eklenir). */
-export type InteriorKind = 'office' | 'restRoom' | 'pantry';
+export type InteriorKind = 'office' | 'restRoom' | 'pantry' | 'kitchen';
 
 /** İç mekân eşyası: kare dikdörtgeni katıdır, önünde E ile kullanılır. */
-export type InteriorItemType = 'desk' | 'board' | 'window' | 'bookshelf' | 'coffee' | 'phone' | 'bed' | 'plant' | 'restBoard' | 'sofa' | 'tv' | 'fridge' | 'sacks' | 'ledger' | 'orderBoard';
+export type InteriorItemType = 'desk' | 'board' | 'window' | 'bookshelf' | 'coffee' | 'phone' | 'bed' | 'plant' | 'restBoard' | 'sofa' | 'tv' | 'fridge' | 'sacks' | 'ledger' | 'orderBoard' | 'counter' | 'oven' | 'waterTank' | 'spiceRack' | 'foodShelf';
 
 /** İç mekâna satın alınan eşyalar (0.16.3 dinlenme odası). Fiyat ve üst sınır BALANCE.interior.furniture. */
-export type FurnitureType = 'sofa' | 'coffee' | 'tv' | 'fridge';
-export const FURNITURE_TYPES: readonly FurnitureType[] = ['sofa', 'coffee', 'tv', 'fridge'];
-export const FURNITURE_NAMES_TR: Record<FurnitureType, string> = { sofa: 'Kanepe', coffee: 'Kahve köşesi', tv: 'TV', fridge: 'Buzdolabı' };
+export type FurnitureType = 'sofa' | 'coffee' | 'tv' | 'fridge' | 'waterTank' | 'oven2';
+export const FURNITURE_TYPES: readonly FurnitureType[] = ['sofa', 'coffee', 'tv', 'fridge', 'waterTank', 'oven2'];
+export const FURNITURE_NAMES_TR: Record<FurnitureType, string> = {
+  sofa: 'Kanepe',
+  coffee: 'Kahve köşesi',
+  tv: 'TV',
+  fridge: 'Buzdolabı',
+  waterTank: 'Su deposu',
+  oven2: 'İkinci fırın',
+};
 export const FURNITURE_DESC_TR: Record<FurnitureType, string> = {
   sofa: 'İki kişi oturur; oturanın mola dinlenmesi +%25.',
   coffee: 'Molada moral saatte +2. Sen de günde bir kahve içebilirsin.',
   tv: 'Molada moral saatte +1.',
   fridge: 'Personel moladan enerjisi tam dolunca döner.',
+  waterTank: 'Yalaklar saatte iki kat hızlı dolar.',
+  oven2: 'Günde 3 pişirme hakkı daha.',
 };
 
 /** Oda türü başına satın alınabilen eşyalar (0.17.0 ortak katalog; mutfak, veteriner, kuluçka sonraki sürümlerde). */
@@ -25,6 +34,7 @@ export const FURNITURE_BY_KIND: Record<InteriorKind, readonly FurnitureType[]> =
   office: [],
   restRoom: ['sofa', 'coffee', 'tv', 'fridge'],
   pantry: [],
+  kitchen: ['waterTank', 'oven2'],
 };
 
 /** Kayıttan gelen eşya listesini temizler: odanın kataloğundaki türler, her türden en çok üst sınır kadar. */
@@ -121,6 +131,18 @@ const TEMPLATES: Record<InteriorKind, InteriorTemplate> = {
       { type: 'orderBoard', x: 6, y: 4, w: 1, h: 1 },
     ],
   },
+  // 0.17.1 mutfak: tezgâh (eşya al), fırın (+ satın alınan ikinci fırın), su deposu yuvası, baharat rafı (duvarda), mama rafı.
+  kitchen: {
+    rows: ['##########', '#========#', '#........#', '#........#', '#........#', '#........#', '####D#####'],
+    items: [
+      { type: 'counter', x: 1, y: 2, w: 3, h: 1 },
+      { type: 'oven', x: 4, y: 2, w: 1, h: 1 },
+      { type: 'oven', x: 5, y: 2, w: 1, h: 1, buy: 'oven2' },
+      { type: 'spiceRack', x: 6, y: 1, w: 2, h: 1 },
+      { type: 'waterTank', x: 8, y: 2, w: 1, h: 1, buy: 'waterTank' },
+      { type: 'foodShelf', x: 1, y: 5, w: 2, h: 1 },
+    ],
+  },
 };
 
 /** Kurulmuş iç oda: ayrı küçük dünya (duvarlar katı), kapı karesi ve giriş noktası. */
@@ -144,7 +166,7 @@ const GROUND_OF: Record<string, Ground> = {
 
 /** Binanın iç mekânı varsa türü. */
 export function interiorKindFor(type: BuildingType): InteriorKind | null {
-  return type === 'office' ? 'office' : type === 'staffRoom' ? 'restRoom' : type === 'shed' ? 'pantry' : null;
+  return type === 'office' ? 'office' : type === 'staffRoom' ? 'restRoom' : type === 'shed' ? 'pantry' : type === 'kitchen' ? 'kitchen' : null;
 }
 
 export function buildInterior(kind: InteriorKind, owned: readonly string[] = []): InteriorMap {

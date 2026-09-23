@@ -6,7 +6,7 @@ const ROWS: Array<[string, string, string]> = [
   ['WASD / ok tuşları', 'Yürü', 'Kamerayı kaydır'],
   ['Shift', 'Koş (dayanıklılık harcar)', '–'],
   ['E', 'Baktığın şeye göre iş yap: köpeği sev/oyna/eğit/fırçala, kabı ve yalağı doldur, pisliği temizle, kileri aç, ofise gir (içeride eşyalar)', '–'],
-  ['↑ (kapıda basılı tut)', 'Binaya gir (ofis, dinlenme odası, kiler); E kapıdaki hızlı işi yapar', '–'],
+  ['↑ (kapıda basılı tut)', 'Binaya gir (ofis, dinlenme odası, kiler, mutfak); E kapıdaki hızlı işi yapar', '–'],
   ['1-6', 'Araç seç: Sev, Oyna, Eğit, Yem, Temizle, Çağır', '–'],
   ['Sol tık', 'Köpeği seç (panel açılır)', 'Köpeği seç · seçili aracı yerleştir · çit/yol/bölge sürükle'],
   ['Sağ tık sürükle', '–', 'Kamerayı kaydır (aracı bırakır)'],
@@ -27,7 +27,7 @@ const ROWS: Array<[string, string, string]> = [
 const TOUCH_ROWS: Array<[string, string]> = [
   ['Dokun', 'Avatar oraya yürür (yol bulur)'],
   ['Köpeğe / binaya / yuvaya dokun', 'Yanına gidip işini yapar: sev, kabı doldur, yumurta al, temizle'],
-  ['Binanın kapı karesine dokun', 'İçeri girer (ofis, dinlenme odası, kiler); binanın başka yerine dokunmak hızlı işi yapar'],
+  ['Binanın kapı karesine dokun', 'İçeri girer (ofis, dinlenme odası, kiler, mutfak); binanın başka yerine dokunmak hızlı işi yapar'],
   ['İçeride eşyaya / kapıya dokun', 'Eşyayı kullanır · paspaslı kapıdan dışarı çıkar'],
   ['Uzun bas', 'Köpeği seç (panel açılır)'],
   ['E düğmesi', 'Baktığın işi yap (düğme işi yazar)'],

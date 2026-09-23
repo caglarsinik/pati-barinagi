@@ -196,7 +196,8 @@ yeniden denemez. Otopilot inşaat, işe alım ve sahiplendirme kararı vermez.
 
 ## İç mekânlar
 
-Ofise, dinlenme odasına ve kilere girilir (M15, M16). Ofiste ve dinlenme odasında kapıda E'ye bas ya da binaya dokun.
+Ofise, dinlenme odasına, kilere ve mutfağa girilir (M15, M16). Ofiste, dinlenme odasında ve mutfakta kapıda E'ye bas ya
+da binaya dokun.
 Kapıda hızlı işi olan binada (kiler: sipariş) E ve binaya dokunmak o işi yapar; **içeri girmek için binanın kapı karesine
 (alt orta kare) dokun ya da kapının önünde ↑ tuşuna basılı tut.** Ayrı bir odaya geçersin.
 Dışarıda zaman akar; içerisi gece de aydınlıktır, yağmur yağmaz. İçeride eşyaya bakıp E'ye bas ya da eşyaya dokun. Alttaki
@@ -213,6 +214,8 @@ kaydedersen oyun seni kapının önünde kaydeder.
 | Dinlenme odası | Pano | Kanepe, kahve köşesi, TV, buzdolabı satın al |
 | Kiler | Çuval rafları | Stoğu gösterir (her çuval 20 porsiyon, en çok 9 çuval görünür) |
 | Kiler | Sipariş defteri / otomatik sipariş panosu | Yem siparişi / eşik altına inince otomatik çuval |
+| Mutfak | Fırın | 2 porsiyon yemden 1 ödül maması (günde 4; ikinci fırınla 7; çanta en çok 10) |
+| Mutfak | Tezgâh | Su deposu (350 ₺: yalaklar saatte 30 dolar) ve ikinci fırın (450 ₺) satın al |
 
 Otopilot içerideyken açılırsa kapıdan yürüyerek çıkar; gece ofise girip yatakta uyur, sabah dışarı çıkıp işine döner.
 Personel yalnız dinlenme odasına girer (molada); Personel WC'yi dışarıdan kullanır.
@@ -295,7 +298,8 @@ Bilgisayar değiştirirken ya da yedek almak için kullan.
 - [x] 0.16.3 Dinlenme odası içi: panodan kanepe/kahve köşesi/TV/buzdolabı, molada personel kanepede
 - [x] 0.16.4 İç mekân cilası: otopilot kapıdan çıkar ve yatakta uyur, dokunma senaryoları 9–10, "İç mekânlar" yardımı — M15 tamam
 - [x] 0.17.0 Giriş kuralı (kapı karesi / ↑ = içeri, E = hızlı iş), ortak eşya kataloğu, kiler içi (raflar, defter, otomatik sipariş)
-- [ ] M16 Diğer İç Mekânlar (0.17.x): mutfak, veteriner, kuluçka, cila
+- [x] 0.17.1 Mutfak içi: fırında ödül maması, su deposu, ikinci fırın
+- [ ] M16 Diğer İç Mekânlar (0.17.x): veteriner, kuluçka, cila
 - [ ] Sonraki paketler (`docs/PLAN.md` §7): M11 Yaşayan Dünya, M13 Sahiplendirme Hikâyeleri
 
 ## Geliştirme

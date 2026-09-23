@@ -20,6 +20,8 @@ export interface SaveData {
   tool?: string;
   autopilot?: boolean;
   coffeeDay?: number;
+  bakeDay?: number;
+  bakesToday?: number;
   foodStock?: number;
   nextId?: number;
   stats?: unknown;

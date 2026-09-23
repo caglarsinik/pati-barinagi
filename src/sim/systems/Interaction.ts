@@ -11,6 +11,7 @@ import { harvestBerries, harvestNest } from './NestSystem';
 import { t } from '../../i18n';
 import { interiorItemAt } from '../interior/Interiors';
 import { WEATHER_NAMES_TR } from './WeatherSystem';
+import { bake, bakeIssue, bakesLeft, kitchenWaterPerHour } from './KitchenSystem';
 
 export type Tool = 'pet' | 'play' | 'train' | 'feed' | 'clean' | 'call';
 
@@ -58,6 +59,7 @@ export type ActionKind =
   | 'books'
   | 'restShop'
   | 'autoOrder'
+  | 'bake'
   | 'none';
 
 export interface ResolvedAction {
@@ -133,6 +135,22 @@ function resolveInterior(sim: Sim, tile: TilePos): ResolvedAction {
       return { kind: 'none', hint: t('TV: molada moral saatte +1'), tile };
     case 'fridge':
       return { kind: 'none', hint: t('Buzdolabı: personel moladan enerjisi tam dolunca döner'), tile };
+    case 'counter':
+      return { kind: 'restShop', hint: t('E: tezgâh · eşya al (su deposu, ikinci fırın)'), building: sim.buildingById(it.buildingId), tile };
+    case 'oven': {
+      const why = bakeIssue(sim);
+      return {
+        kind: 'bake',
+        hint: why ?? t('E: ödül maması pişir ({n} porsiyon → 1 · bugün {left} hak)', { n: BALANCE.kitchen.foodPerTreat, left: bakesLeft(sim) }),
+        tile,
+      };
+    }
+    case 'waterTank':
+      return { kind: 'none', hint: t('Su deposu: yalaklar saatte {n} dolar', { n: kitchenWaterPerHour(sim) }), tile };
+    case 'spiceRack':
+      return { kind: 'none', hint: t('Baharat rafı: mutfağa koku katıyor'), tile };
+    case 'foodShelf':
+      return { kind: 'none', hint: t('Mama rafı · kilerde {n} porsiyon', { n: Math.floor(sim.foodStock) }), tile };
     case 'sacks':
       return {
         kind: 'none',
@@ -148,6 +166,7 @@ function resolveInterior(sim: Sim, tile: TilePos): ResolvedAction {
         tile,
       };
     default:
+      if (it.kind === 'kitchen') return { kind: 'none', hint: t('Mutfak · fırına bakıp E: ödül maması · tezgâh: eşya al · çıkmak için kapıya yürü'), tile };
       if (it.kind === 'pantry') return { kind: 'none', hint: t('Kiler · deftere bakıp E: sipariş · çıkmak için kapıya yürü'), tile };
       if (it.kind === 'restRoom') return { kind: 'none', hint: t('Dinlenme odası · panoya bakıp E: eşya al · çıkmak için kapıya yürü'), tile };
       return { kind: 'none', hint: t('Ofis içi · eşyaya bakıp E · çıkmak için kapıya yürü'), tile };
@@ -220,6 +239,7 @@ export function resolveAction(sim: Sim): ResolvedAction {
       return { kind: 'kennel', hint: t('E: {name}{who}', { name: t(def.name), who: names ? ` (${names})` : t(' (boş)') }), building };
     }
     if (building.type === 'incubator') return { kind: 'incubator', hint: t('E: kuluçka'), building };
+    if (building.type === 'kitchen') return { kind: 'enter', hint: t('E: mutfağa gir'), building };
     if (building.type === 'staffRoom') return { kind: 'enter', hint: t('E: dinlenme odasına gir'), building };
     if (building.type === 'nursery') return { kind: 'nursery', hint: building.eggs.length > 0 ? t('E: yuva evi (yumurta hazır)') : t('E: yuva evi'), building };
   }
@@ -463,6 +483,11 @@ export function performAction(sim: Sim): ActionOutcome {
       return { ok: true, open: 'furniture', building: r.building };
     case 'autoOrder':
       return { ok: true, open: 'autoOrder' };
+    case 'bake': {
+      const baked = bake(sim);
+      if (baked.ok) p.setBusy(BALANCE.kitchen.busySec, 'bake');
+      return baked;
+    }
     case 'sleep':
       if (!canSleepAt(sim.clock.hour)) return { ok: false, message: t("Henüz erken: {h}:00'den sonra uyunabilir", { h: BALANCE.time.sleepFromHour }) };
       return sim.command({ type: 'sleep' });

@@ -146,7 +146,21 @@ export const BALANCE = {
       coffee: { cost: 250, max: 1 },
       tv: { cost: 400, max: 1 },
       fridge: { cost: 200, max: 1 },
+      waterTank: { cost: 350, max: 1 },
+      oven2: { cost: 450, max: 1 },
     },
+  },
+  /** Mutfak içi (0.17.1): fırında ödül maması, su deposu ve ikinci fırın. */
+  kitchen: {
+    /** Bir ödül maması için kilerden düşen yem (porsiyon). */
+    foodPerTreat: 2,
+    bakesPerDay: 4,
+    /** İkinci fırınla günlük ek pişirme. */
+    secondOvenBakes: 3,
+    /** Pişirirken oyuncu meşgul (gerçek sn; 1x hızda ≈ 5 oyun dk). */
+    busySec: 2,
+    /** Su deposu: mutfağın yalak dolum hızı çarpanı. */
+    waterTankMul: 2,
   },
   adoption: {
     dailyBase: 0.6,

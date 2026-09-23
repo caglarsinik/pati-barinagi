@@ -27,6 +27,16 @@ export function drawInteriorItem(type: InteriorItemType, variant = 3): Pixels {
       return drawBed();
     case 'plant':
       return drawPlant();
+    case 'counter':
+      return drawCounter();
+    case 'oven':
+      return drawOven();
+    case 'waterTank':
+      return drawWaterTank();
+    case 'spiceRack':
+      return drawSpiceRack();
+    case 'foodShelf':
+      return drawFoodShelf();
     case 'sacks':
       return drawSackShelf(variant);
     case 'ledger':
@@ -343,6 +353,103 @@ function drawOrderBoard(): Pixels {
   p.fillRect(9, 9, 4, 4, BURLAP);
   p.set(4, 11, P.flowerYellow);
   p.set(6, 11, P.flowerYellow);
+  p.outline(P.outline);
+  return p;
+}
+
+const STEEL = hex(0xd6dae0);
+const STEEL_DARK = hex(0x9ea3ad);
+const GLOW = hex(0xf2a33a);
+const TANK = hex(0x3f82dc);
+const TANK_DARK = hex(0x2e63ad);
+
+/** Mutfak tezgâhı (3 kare): dolap gövde, açık renk tabla, kesme tahtasında havuç, kâse. Duvara taşar. */
+function drawCounter(): Pixels {
+  const w = TILE * 3;
+  const p = new Pixels(w, 26);
+  p.fillRect(0, 12, w, 14, P.trunk);
+  p.fillRect(2, 15, 13, 9, P.trunkLight);
+  p.fillRect(17, 15, 13, 9, P.trunkLight);
+  p.fillRect(32, 15, 14, 9, P.trunkLight);
+  p.set(8, 19, P.flowerYellow);
+  p.set(23, 19, P.flowerYellow);
+  p.set(39, 19, P.flowerYellow);
+  p.fillRect(0, 9, w, 4, STEEL);
+  p.fillRect(0, 12, w, 1, STEEL_DARK);
+  p.fillRect(5, 6, 12, 4, P.trunkLight);
+  p.fillRect(7, 7, 6, 2, hex(0xf28c38));
+  p.set(13, 7, P.grassLight);
+  p.fillRect(24, 5, 9, 4, PAPER);
+  p.fillRect(25, 4, 7, 1, PAPER);
+  p.fillRect(38, 7, 6, 1, STEEL_DARK);
+  p.outline(P.outline);
+  return p;
+}
+
+/** Fırın: beyaz ocak, üstte iki göz, turuncu ışıklı fırın camı, düğmeler. Duvara taşar. */
+function drawOven(): Pixels {
+  const p = new Pixels(TILE, 28);
+  p.fillRect(0, 8, 16, 20, STEEL);
+  p.fillRect(0, 8, 16, 2, STEEL_DARK);
+  p.fillRect(2, 6, 5, 2, SCREEN);
+  p.fillRect(9, 6, 5, 2, SCREEN);
+  p.fillRect(2, 11, 12, 1, STEEL_DARK);
+  p.set(4, 11, P.flowerRed);
+  p.set(8, 11, P.flowerRed);
+  p.set(12, 11, P.flowerRed);
+  p.fillRect(2, 14, 12, 9, SCREEN);
+  p.fillRect(3, 15, 10, 7, GLOW);
+  p.fillRect(4, 16, 4, 1, P.flowerYellow);
+  p.fillRect(2, 24, 12, 1, STEEL_DARK);
+  p.outline(P.outline);
+  return p;
+}
+
+/** Su deposu: mavi varil, bantlar, alt musluk. Duvara taşar. */
+function drawWaterTank(): Pixels {
+  const p = new Pixels(TILE, 30);
+  p.fillRect(2, 4, 12, 24, TANK);
+  p.ellipse(8, 4, 6, 2.5, hex(0x7aa6f0));
+  p.fillRect(2, 10, 12, 2, TANK_DARK);
+  p.fillRect(2, 20, 12, 2, TANK_DARK);
+  p.fillRect(4, 6, 2, 12, hex(0x7aa6f0));
+  p.fillRect(12, 24, 3, 2, STEEL_DARK);
+  p.fillRect(2, 28, 12, 2, TANK_DARK);
+  p.outline(P.outline);
+  return p;
+}
+
+/** Baharat rafı (duvarda): ahşap raf, renkli kavanozlar. Alt 3 satır süpürgelik için boş. */
+function drawSpiceRack(): Pixels {
+  const p = new Pixels(TILE * 2, TILE);
+  p.fillRect(1, 10, 30, 2, P.trunkLight);
+  p.fillRect(1, 12, 30, 1, P.trunk);
+  const jars = [P.flowerRed, P.flowerYellow, P.grassDark, hex(0xf28c38), P.trunkLight, P.flowerWhite];
+  jars.forEach((c, i) => {
+    const x = 3 + i * 5;
+    p.fillRect(x, 5, 3, 5, c);
+    p.fillRect(x, 4, 3, 1, P.trunkDark);
+  });
+  p.outline(P.outline);
+  return p;
+}
+
+/** Mama rafı: alçak ahşap raf, iki köpek kabı ve pati etiketli mama kutuları. */
+function drawFoodShelf(): Pixels {
+  const w = TILE * 2;
+  const p = new Pixels(w, 22);
+  p.fillRect(1, 8, 30, 14, P.trunk);
+  p.fillRect(1, 14, 30, 1, P.trunkLight);
+  p.fillRect(3, 16, 26, 5, P.trunkDark);
+  p.fillRect(1, 7, 30, 2, P.trunkLight);
+  p.ellipse(7, 5, 4, 2, P.flowerRed);
+  p.ellipse(16, 5, 4, 2, P.flowerBlue);
+  p.fillRect(22, 1, 4, 6, BURLAP);
+  p.fillRect(27, 2, 3, 5, PAPER);
+  p.set(23, 3, P.trunkDark);
+  p.fillRect(5, 17, 5, 3, BURLAP);
+  p.fillRect(13, 17, 5, 3, BURLAP);
+  p.fillRect(21, 17, 5, 3, BURLAP);
   p.outline(P.outline);
   return p;
 }

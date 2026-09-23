@@ -495,7 +495,7 @@ dokunmak ya da ↑ basılı tutmak içeri. Eşya fiyatları ortak katalogda (`BA
 | Sürüm | Konu |
 |---|---|
 | 0.17.0 ✅ | Ortak giriş kuralı + genel eşya kataloğu + kiler içi (çuval rafları, sipariş defteri, otomatik sipariş panosu) |
-| 0.17.1 | Mutfak içi: fırında ödül maması, su deposu, ikinci fırın |
+| 0.17.1 ✅ | Mutfak içi: fırında ödül maması (2 yem → 1, günde 4/7), su deposu (yalak ×2), ikinci fırın |
 | 0.17.2 | Veteriner odası içi: sağlık listesi + aşı, ilaç dolabı |
 | 0.17.3 | Kuluçka içi: tepsilerde yumurtalar, ısı lambası |
 | 0.17.4 | Cila: otopilot mutfakta ödül maması, dokunma senaryoları 11–12, yardım |
