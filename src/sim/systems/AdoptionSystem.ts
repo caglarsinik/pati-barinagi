@@ -31,6 +31,9 @@ export interface AdoptionRecord {
   look?: number;
   /** Köpek geri getirildi (0.21.0). */
   returned?: boolean;
+  /** Ailenin mektup yazacağı gün ve yazdı mı (0.21.1; geri gelecek köpekte yok). */
+  letterDay?: number;
+  lettered?: boolean;
 }
 
 export interface PendingReturn {
@@ -242,9 +245,11 @@ export class AdoptionSystem {
     sim.removeDog(dog.id);
     if (score < 50 && sim.rng.chance(B.returnChanceBadMatch)) {
       sim.pendingReturns.push({ day: sim.clock.day + B.returnAfterDays, dog: saved, adopterName: a.name, key: a.id });
-    } else if (a.villager !== undefined) {
+    } else {
       // Köylü sahiplendi (geri dönmeyecek): köpek köyde sahibiyle görünür.
-      record.villager = a.villager;
+      if (a.villager !== undefined) record.villager = a.villager;
+      // Geri dönmeyecek köpeğin ailesi birkaç gün sonra mektup yazar (0.21.1).
+      sim.mail.schedule(record);
     }
     this.leave(a);
     const repText = rep >= 0 ? t('itibar +{n}', { n: rep }) : t('itibar {n}', { n: rep });

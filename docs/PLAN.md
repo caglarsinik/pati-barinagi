@@ -536,7 +536,7 @@ Kişilik boy/yaş sert şartlarını değiştirmez; kimlik, mektup, bağış ve 
 | Sürüm | Konu |
 |---|---|
 | 0.21.0 ✅ | Sahiplenici kimliği: ad soyad (60 × 40), 6 kişilik tipi (Aile, Emekli, Sporcu, Öğrenci, Çiftçi, Sanatçı: sevdiği özelliğe +6, eksikliği ceza değil; ücret, sabır; köylüde rolden), kayıtta tip, görünüm ve köpeğin genomu |
-| 0.21.1 | Mektup ve fotoğraf: sahiplendirmeden 3–7 gün sonra tipe ve eşleşmeye göre; küçük bağış ve itibar; 📬 Posta paneli |
+| 0.21.1 ✅ | Mektup ve fotoğraf: sahiplendirmeden 3–7 gün sonra 11:00'de, tipe ve eşleşmeye göre (köylü köyden); fotoğraf sahnesi tipe göre; harika eşleşmede 40–200 ₺ bağış ve itibar +1 (günde en çok 2); 📬 Posta paneli |
 | 0.21.2 | Mezunlar albümü + tekrar gelen aileler (eski köpeğiyle gelir; ücret ve sabır artısı) |
 | 0.21.3 | Sahiplendirme günü (300 ₺, haftada bir, ×3 sahiplenici) + bağış kampanyası (150 ₺, haftada bir, 3 gün, mezun aileleri bağışlar) |
 | 0.21.4 | Can dostları: karşılıklı dostluk ≥ 70 olan iki köpek birlikte verilir (ücret ×1,7); ayrı verilirse kalan üzülür |

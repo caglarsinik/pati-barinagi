@@ -461,6 +461,21 @@ export const BALANCE = {
     pup: { reward: 300, rep: 2, fromShelter: 0.6 },
     treats: { min: 3, max: 6, base: 80, per: 40, rep: 1 },
   },
+  /**
+   * Sahiplendirme hikâyeleri (M13, 0.21.1): mektubun sahiplendirmeden kaç gün sonra ve saat kaçta geldiği, harika eşleşmede
+   * bağış (taban + 0..yayılım, tipin cömertliğiyle çarpılır, 10'a yuvarlı, alt/üst sınırlı), günlük itibar tavanı, posta sınırı.
+   */
+  stories: {
+    letterMinDays: 3,
+    letterMaxDays: 7,
+    letterHour: 11,
+    donationBase: 60,
+    donationSpread: 80,
+    donationMin: 40,
+    donationMax: 200,
+    repPerDay: 2,
+    maxLetters: 40,
+  },
   /** Belediye hedefleri (0.19.0): ödül çarpanı ve hedef başına itibar. */
   goals: {
     rewardMul: 1,

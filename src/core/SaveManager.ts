@@ -34,6 +34,8 @@ export interface SaveData {
   villageStage?: number;
   /** Köylü görevleri (0.20.4). */
   quests?: unknown;
+  /** Sahiplendirme mektupları (0.21.1). */
+  mail?: unknown;
   foodStock?: number;
   nextId?: number;
   stats?: unknown;

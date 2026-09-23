@@ -47,7 +47,8 @@ export type Panel =
   | 'toyShop'
   | 'market'
   | 'travel'
-  | 'quests';
+  | 'quests'
+  | 'mail';
 
 export type BuildTool =
   | { kind: 'none' }

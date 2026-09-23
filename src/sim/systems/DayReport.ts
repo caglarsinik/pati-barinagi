@@ -87,6 +87,8 @@ export interface MorningReport {
   quests: Array<{ title: string; minutesLeft: number }>;
   /** Köy panosunda bekleyen ilan. */
   questOffers: number;
+  /** Okunmamış mektup (0.21.1). */
+  mailUnread: number;
 }
 
 export function buildMorningReport(sim: Sim, kind: MorningKind, passedOut = false): MorningReport {
@@ -134,5 +136,6 @@ export function buildMorningReport(sim: Sim, kind: MorningKind, passedOut = fals
     goal: g ? { title: g.title, reward: goalReward(g) } : null,
     quests: sim.quests.list.filter((q) => q.state === 'active').map((q) => ({ title: sim.quests.title(q), minutesLeft: sim.quests.timeLeft(q) })),
     questOffers: sim.quests.list.filter((q) => q.state === 'offer').length,
+    mailUnread: sim.mail.unread(),
   };
 }

@@ -69,6 +69,7 @@ export const MENU_GROUPS: MenuGroup[] = [
     items: [
       { id: 'autopilot', icon: '🤖', label: 'Otopilot', key: 'T', action: { kind: 'autopilot' } },
       { id: 'goals', icon: '🎯', label: 'Hedefler', action: { kind: 'panel', panel: 'goals' } },
+      { id: 'mail', icon: '📬', label: 'Posta', action: { kind: 'panel', panel: 'mail' } },
       { id: 'help', icon: '🎮', label: 'Kontroller', action: { kind: 'panel', panel: 'help' } },
       { id: 'settings', icon: '⚙️', label: 'Ayarlar', action: { kind: 'settings' } },
       { id: 'save', icon: '💾', label: 'Kaydet', action: { kind: 'save' } },

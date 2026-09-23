@@ -23,6 +23,7 @@ import { SIGN_NAMES_TR } from '../../src/sim/world/Signposts';
 import { DIRECTION_NAMES_TR } from '../../src/sim/systems/QuestSystem';
 import { LIKE_NAMES_TR } from '../../src/sim/entities/Adopter';
 import { ADOPTER_TYPES } from '../../src/sim/entities/AdopterType';
+import { GREAT_LETTERS, HARD_LETTERS, OK_LETTERS, VILLAGE_LETTERS } from '../../src/sim/systems/MailSystem';
 import { LEDGER_NAMES_TR } from '../../src/sim/systems/EconomySystem';
 import { TOOL_DEFS } from '../../src/sim/systems/Interaction';
 import { SEASON_NAMES_TR, WEATHER_NAMES_TR } from '../../src/sim/systems/WeatherSystem';
@@ -81,6 +82,7 @@ function tableValues(): string[] {
   for (const d of DIRECTION_NAMES_TR) out.push(d);
   push(LIKE_NAMES_TR);
   for (const d of Object.values(ADOPTER_TYPES)) out.push(d.name, d.trait);
+  for (const l of [...Object.values(GREAT_LETTERS).flat(), ...OK_LETTERS, ...HARD_LETTERS, ...VILLAGE_LETTERS]) out.push(l);
   return out.filter((v) => typeof v === 'string' && v.length > 0);
 }
 

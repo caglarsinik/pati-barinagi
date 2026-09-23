@@ -77,6 +77,7 @@ import { type DaySnapshot, type MorningReport, buildMorningReport, daySnapshotFr
 import { type MarketItem, type ShopItem, type Supplies, type SupplyKind, bicycleExertion, buyMarket, buyShop, giveSupply } from './systems/ShopSystem';
 import { VillagerSystem } from './systems/VillagerSystem';
 import { QuestSystem } from './systems/QuestSystem';
+import { type Letter, MailSystem } from './systems/MailSystem';
 import { SIGN_NAMES_TR, type SignId, type Signpost, landingTile, signKnown, signposts, travelMinutes } from './world/Signposts';
 
 export type Mode = 'avatar' | 'manage';
@@ -133,6 +134,8 @@ export interface SimEvents extends Record<string, unknown> {
   villageGrew: { stage: number; added: VillageBuilding[] };
   /** Hızlı seyahat bitti (0.20.3): kamera oyuncuya atlar. */
   traveled: { to: SignId; minutes: number };
+  /** Sahiplendirilen köpeğin ailesinden mektup geldi (0.21.1). */
+  letter: Letter;
   /** Uyku / bayılma gibi zaman atlamaları (arayüz karartma yapar). */
   slept: { minutes: number; passedOut: boolean };
   /** Oyuncuya kısa bildirim. */
@@ -203,7 +206,8 @@ export type Command =
   | { type: 'travel'; to: SignId }
   | { type: 'questAccept'; id: number }
   | { type: 'questDeliver'; id: number }
-  | { type: 'questAbandon'; id: number };
+  | { type: 'questAbandon'; id: number }
+  | { type: 'readMail'; id?: number };
 
 /** Tam ekran haritada konan işaret (0.18.1; kayıtta). color: 0-4 renk sırası. */
 export interface MapMarker {
@@ -343,6 +347,8 @@ export class Sim {
   readonly villagers: VillagerSystem;
   /** Köylü görevleri (0.20.4; kayıtta): köy panosundaki ilanlar ve kabul edilenler. */
   readonly quests: QuestSystem;
+  /** Sahiplendirme mektupları (0.21.1; kayıtta). */
+  readonly mail: MailSystem;
   readonly illness: IllnessSystem;
   readonly nav: PlayerNav;
   readonly pilot: Autopilot;
@@ -442,6 +448,7 @@ export class Sim {
     this.goals = new GoalSystem(this);
     this.villagers = new VillagerSystem(this);
     this.quests = new QuestSystem(this);
+    this.mail = new MailSystem(this);
     this.illness = new IllnessSystem(this);
     this.nav = new PlayerNav(this);
     this.pilot = new Autopilot(this);
@@ -455,6 +462,7 @@ export class Sim {
     this.events.on('hour', (h) => this.eventSys.onHour(h));
     this.events.on('week', (w) => this.onWeek(w));
     this.events.on('hour', (h) => this.onHour(h));
+    this.events.on('hour', (h) => this.mail.onHour(h));
   }
 
   static create(seed: number, difficulty: Difficulty = 'normal', starter: StarterKind = 'ready'): Sim {
@@ -1047,6 +1055,8 @@ export class Sim {
         return this.quests.deliver(cmd.id);
       case 'questAbandon':
         return this.quests.abandon(cmd.id);
+      case 'readMail':
+        return this.mail.markRead(cmd.id);
       case 'buyShop':
         return buyShop(this, cmd.item, cmd.qty);
       case 'buyMarket':
@@ -1652,6 +1662,7 @@ export class Sim {
       marketEggWeek: this.marketEggWeek,
       villageStage: this.villageStage,
       quests: this.quests.toJSON(),
+      mail: this.mail.toJSON(),
       loan: this.loan,
       negativeWeeks: this.negativeWeeks,
       gameOver: this.gameOver,
@@ -2033,6 +2044,7 @@ export class Sim {
     sim.dayStart = daySnapshotFrom(data.dayStart) ?? takeDaySnapshot(sim);
     sim.lastDay = daySnapshotFrom(data.lastDay);
     sim.quests.load(data.quests);
+    sim.mail.load(data.mail);
     sim.alerts.refresh();
     return sim;
   }

@@ -1339,6 +1339,107 @@ select,
   margin-top: 4px;
 }
 
+/* --- Posta: mektup ve fotoğraf (0.21.1) --- */
+.adopter-card.unread {
+  border-color: var(--accent);
+}
+
+.letter-view {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  align-items: flex-start;
+  padding: 4px;
+}
+
+.letter-body {
+  flex: 1;
+  min-width: 180px;
+}
+
+.letter-text {
+  font-style: italic;
+  line-height: 1.4;
+  margin: 2px 0 6px;
+}
+
+.photo {
+  position: relative;
+  flex: none;
+  width: 172px;
+  padding: 6px 6px 24px;
+  background: #fbf8f0;
+  border-radius: 2px;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.45);
+  transform: rotate(-2deg);
+}
+
+.photo-scene {
+  position: relative;
+  height: 112px;
+  overflow: hidden;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  background: linear-gradient(#8fd0f0 0 55%, #7cc26a 55%);
+}
+
+.photo-scene .portrait {
+  image-rendering: pixelated;
+  background: transparent;
+  border: none;
+  margin-bottom: -6px;
+}
+
+.photo-props {
+  position: absolute;
+  top: 4px;
+  right: 6px;
+  font-size: 1.25rem;
+}
+
+.photo-paw {
+  font-size: 2.4rem;
+  margin-bottom: 12px;
+}
+
+.photo-caption {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 4px;
+  text-align: center;
+  color: #3a3550;
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
+.photo.scene-park .photo-scene {
+  background: linear-gradient(#bfe6f5 0 50%, #92c96f 50%);
+}
+
+.photo.scene-beach .photo-scene {
+  background: linear-gradient(#8fd0f0 0 42%, #4f9fd6 42% 58%, #f0d9a0 58%);
+}
+
+.photo.scene-sofa .photo-scene {
+  background: linear-gradient(#e6c9a8 0 62%, #8a5a33 62%);
+}
+
+.photo.scene-farm .photo-scene {
+  background: linear-gradient(#a8d8f0 0 50%, #e2c36a 50%);
+}
+
+.photo.scene-studio .photo-scene {
+  background: linear-gradient(#f3ead8 0 62%, #b37a48 62%);
+}
+
+.photo.scene-village .photo-scene {
+  background: linear-gradient(#bfe6f5 0 50%, #cdb88f 50%);
+}
+
 /* --- Olaylar ve başarımlar --- */
 .event-log {
   margin-top: 8px;

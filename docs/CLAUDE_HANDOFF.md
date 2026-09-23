@@ -57,6 +57,27 @@
   köpek paneli, araç şeridi, alt menü listesi, ana menü, Ayarlar: çakışma yok, taşma yok. Alt menü açılır listesi köpek
   panelinin üstüne gelebilir (geçici popover, üstte kalır) — kabul edildi. Gerçek cihaz testi kullanıcıda.
 
+## 0.21.1 — Mektup ve fotoğraf (M13; Claude, 2026-09-23)
+- Yeni `src/sim/systems/MailSystem.ts` (`sim.mail`, kayıtta `mail: { next, list }`): `schedule(record)` geri gelmeyecek her
+  sahiplendirmede (`AdoptionSystem.adopt`'un else dalı, köpek isteği görevi) kayda `letterDay = gün + 3…7` yazar (ayrı RNG
+  `hash3(seed, key, 0x1e77)`; anahtarsız eski kayıtta yok). `onHour` saat `BALANCE.stories.letterHour` (11) `deliverDue`:
+  vakti gelen (`letterDay ≤ bugün`, `lettered` değil, `returned` değil) kayıt için bir kez `Letter { id, day, key, dogName,
+  from, type, line, scene, genome, stage, donation, rep, read }`; satır Türkçe anahtar olarak saklanır, gösterirken `t()`.
+- Satırlar: `GREAT_LETTERS` (tip başına 3, puan ≥70), `OK_LETTERS` (50–69), `HARD_LETTERS` (<50 ama dönmedi),
+  `VILLAGE_LETTERS` (köylü, ≥50); sahne `TYPE_SCENE` (Aile bahçe, Emekli park, Sporcu sahil, Öğrenci kanepe, Çiftçi çiftlik,
+  Sanatçı atölye), köylüde `village`. ≥70'te bağış (60 + 0…80) × `generosity`, 10'a yuvarlı, 40–200 (defter 'donation',
+  "Mektupla bağış: aile") ve itibar +1, günde en çok 2 (`repPerDay`). Olay `letter` (ses: bağışlıysa coin) + bildirim.
+  Posta en çok 40 (önce okunmuş eski düşer). Komut `readMail { id? }` (id yoksa hepsi).
+- Arayüz: yeni `MailPanel.tsx` (panel 'mail'; sahiplendirme masasının `.adopt-layout`/`.adopter-card` yerleşimi, telefonda kartlar
+  yatay kayar), `LetterPhoto` polaroid (sahne degradesi CSS'te `.photo.scene-*`, süs emojisi, `DogPortrait` saydam arka planla);
+  açılan mektup okundu sayılır (kendiliğinden seçilen mektup sabitlenir: yoksa okundukça sıradakine atlayıp hepsini okurdu).
+  Giriş: ☰ Menü → Posta, ofis bilgisayarı "📬 Posta (n yeni)"; sabah raporu "📬 n okunmamış mektup".
+- Testler `tests/unit/mail.test.ts` (4): mektup günü aralığı ve 11:00 teslimi, tipe göre satır/sahne/bağış/itibar/defter;
+  geri gelecek köpeğe yok, idare eden/zayıf/köylü satırları; günlük itibar tavanı ve 40 sınırı; kayıt turu, eski kayıt, ana RNG
+  değişmez. 398 test. Tarayıcı 812×375: köylü mektubu köy meydanı fotoğrafıyla, Sanatçı mektubu atölye fotoğrafıyla, "📬 Posta
+  (1 yeni)", bilgisayarda Posta düğmesi; dokunma senaryoları 15/15.
+- Sıradaki: 0.21.2 mezunlar albümü + tekrar gelen aileler.
+
 ## 0.21.0 — Sahiplenici kimliği (M13 ilk dilimi; Claude, 2026-09-23)
 - M13 dilimlendi (0.21.0–0.21.5, `docs/PLAN.md` §7): kimlik → mektup ve fotoğraf → mezunlar albümü + tekrar gelen aileler →
   sahiplendirme günü + bağış kampanyası → can dostları → cila.

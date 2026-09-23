@@ -8,6 +8,7 @@ export function ComputerPanel() {
   const sim = app.sim;
   if (!sim) return null;
   const waiting = sim.adopters.filter((a) => a.state === 'waiting').length;
+  const unread = sim.mail.unread();
   const open = (p: Panel): void => {
     store.panel.value = p;
   };
@@ -35,6 +36,9 @@ export function ComputerPanel() {
           </button>
           <button class="btn" onClick={() => open('goals')}>
             {t('🎯 Hedefler')}
+          </button>
+          <button class={unread > 0 ? 'btn primary' : 'btn'} onClick={() => open('mail')}>
+            {unread > 0 ? t('📬 Posta ({n} yeni)', { n: unread }) : t('📬 Posta')}
           </button>
         </div>
       </div>

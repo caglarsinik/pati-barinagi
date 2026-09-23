@@ -26,6 +26,7 @@ import { ToyShopPanel } from './ToyShopPanel';
 import { MarketPanel } from './MarketPanel';
 import { TravelPanel } from './TravelPanel';
 import { QuestPanel } from './QuestPanel';
+import { MailPanel } from './MailPanel';
 
 export function App() {
   store.lang.value;
@@ -65,6 +66,7 @@ export function App() {
           {panel === 'market' && <MarketPanel />}
           {panel === 'travel' && <TravelPanel />}
           {panel === 'quests' && <QuestPanel />}
+          {panel === 'mail' && <MailPanel />}
           {store.report.value && <WeeklyReport />}
           {store.pauseMenu.value && <PauseMenu />}
           {store.gameOver.value && <GameOverPanel />}

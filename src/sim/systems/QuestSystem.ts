@@ -268,6 +268,7 @@ export class QuestSystem {
       dog.walking = false;
       sim.removeDog(dog.id);
       sim.adoptions.push(record);
+      sim.mail.schedule(record);
       sim.stats.adopted++;
       extra = ' · ' + t('onu köyde görebilirsin');
     }

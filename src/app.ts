@@ -293,6 +293,7 @@ class AppController {
       sim.events.on('slept', () => audio.play('sleep')),
       sim.events.on('buildingReady', () => audio.play('build')),
       sim.events.on('goal', () => audio.play('coin')),
+      sim.events.on('letter', (l) => audio.play(l.donation > 0 ? 'coin' : 'pick')),
       sim.events.on('morning', (r) => this.showMorning(r)),
     );
     audio.startMusic(sim.clock.isNight() ? 'night' : 'day');

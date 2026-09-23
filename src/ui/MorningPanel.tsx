@@ -44,6 +44,7 @@ export function MorningPanel() {
   if (r.goal) today.push({ text: t('🎯 Hedef: {goal}', { goal: t(r.goal.title) }) + (r.goal.reward > 0 ? ' · ' + formatMoney(r.goal.reward) : '') });
   for (const q of r.quests) today.push({ text: t('📋 {title} · {time}', { title: q.title, time: questTimeText(q.minutesLeft) }), warn: q.minutesLeft < MINUTES_PER_DAY });
   if (r.questOffers > 0 && r.weekday === 0) today.push({ text: t('📋 Köy panosuna yeni ilanlar asıldı ({n})', { n: r.questOffers }) });
+  if (r.mailUnread > 0) today.push({ text: t('📬 {n} okunmamış mektup: ☰ Menü → Posta', { n: r.mailUnread }) });
   return (
     <div class="overlay">
       <div class="menu-card panel morning">
