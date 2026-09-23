@@ -24,6 +24,13 @@ const ROWS: Array<[string, string, string]> = [
   ['Esc', 'Paneli kapat / menü', 'Aracı bırak / paneli kapat / menü'],
 ];
 
+/** [konu, açıklama] İlk adımlar (0.19.3). */
+const START_ROWS: Array<[string, string]> = [
+  ['Kuruluş', 'Yeni oyunda "Kuruluş" seçilirse küçük arsa, ofis ve ilk köpeğinle başlarsın; kulübe, kap, yalak ve kuluçkayı sen kurarsın.'],
+  ['🎯 Hedefler', 'Sol üstteki karta ya da Menü → Hedefler\'e dokun: sıradaki belediye hedefi, ödülü ve "Göster" (aracı ya da paneli açar).'],
+  ['Sabah raporu', 'Uyuyunca dünün özeti ve bugünün işleri gelir; kayıttan dönünce "Hoş geldin" kartı. Ayarlar\'dan kapatılır.'],
+];
+
 /** [hareket, ne yapar] */
 const TOUCH_ROWS: Array<[string, string]> = [
   ['Dokun', 'Avatar oraya yürür (yol bulur)'],
@@ -44,7 +51,7 @@ export function HelpSheet() {
   store.lang.value;
   return (
     <div class="overlay">
-      <div class="menu-card panel wide">
+      <div class="menu-card panel wide help">
         <div class="panel-head">
           <h2>{t('Kontroller')}</h2>
           <button class="btn small close" onClick={() => (store.panel.value = 'none')}>
@@ -52,6 +59,19 @@ export function HelpSheet() {
           </button>
         </div>
         <p class="muted small-text">{t('Alt çubuk her an E ile ne yapacağını yazar. Sağ üstteki uyarılara tıklayınca ilgili köpeğe gidersin.')}</p>
+        <h4>{t('İlk adımlar')}</h4>
+        <div class="table-scroll">
+          <table class="help-table">
+            <tbody>
+              {START_ROWS.map(([k, v]) => (
+                <tr key={k}>
+                  <td>{t(k)}</td>
+                  <td>{t(v)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
         <div class="table-scroll">
           <table class="help-table">
             <thead>

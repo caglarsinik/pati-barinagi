@@ -1272,4 +1272,11 @@ export const EN: Record<string, string> = {
   'Her şey yolunda.': 'All is well.',
   'Güne başla': 'Start the day',
   'Sabah raporunu göster': 'Show morning report',
+  // 0.19.3: yardımda İlk adımlar
+  'İlk adımlar': 'First steps',
+  'Kuruluş': 'Founding',
+  'Yeni oyunda "Kuruluş" seçilirse küçük arsa, ofis ve ilk köpeğinle başlarsın; kulübe, kap, yalak ve kuluçkayı sen kurarsın.': 'Choose "Founding" for a new game to start with a small plot, the office and your first dog; you build the kennel, bowl, trough and incubator yourself.',
+  "Sol üstteki karta ya da Menü → Hedefler'e dokun: sıradaki belediye hedefi, ödülü ve \"Göster\" (aracı ya da paneli açar).": 'Tap the card at the top left or Menu → Goals: the next municipal goal, its reward and "Show" (opens the tool or panel).',
+  'Sabah raporu': 'Morning report',
+  "Uyuyunca dünün özeti ve bugünün işleri gelir; kayıttan dönünce \"Hoş geldin\" kartı. Ayarlar'dan kapatılır.": "After sleeping you get a summary of yesterday and today's tasks; returning to a save shows a \"Welcome back\" card. Can be turned off in Settings.",
 };

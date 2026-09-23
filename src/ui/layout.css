@@ -488,6 +488,11 @@
   -webkit-overflow-scrolling: touch;
 }
 
+/* Yardım sayfası (0.19.3): tablolar küçülüp kendi içinde kaymasın; telefonda sayfa bütün olarak kayar. */
+.help .table-scroll {
+  flex: none;
+}
+
 .help-table {
   border-collapse: collapse;
   width: 100%;

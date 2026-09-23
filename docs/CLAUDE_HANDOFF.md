@@ -57,6 +57,21 @@
   köpek paneli, araç şeridi, alt menü listesi, ana menü, Ayarlar: çakışma yok, taşma yok. Alt menü açılır listesi köpek
   panelinin üstüne gelebilir (geçici popover, üstte kalır) — kabul edildi. Gerçek cihaz testi kullanıcıda.
 
+## 0.19.3 — Cila, M17 tamam (Claude, 2026-09-23)
+- `runTouchScenarios` artık açık oyunu kullanmaz: `app.startDebugGame(seed, starter)` ile kayda dokunmayan test oyunu kurar
+  (`App.debugGame` bayrağı: `save()` yazmaz; `newGame` ve `continueGame` bayrağı sıfırlar). 1–12 sabit tohumlu hazır
+  barınakta (1942), 13 kuruluşta (1913): sıradaki hedef → `goalShowTool` → `app.showBuild` (yönetim modu, inşa çubuğu, araç
+  seçili) → `tapTile` ile kulübe (90,92), kap (93,92), yalak (94,92), kuluçka (104,92) → üç belediye hedefi. `DebugApp`
+  arayüzüne `startDebugGame`, `showBuild` ve `game.step` eklendi; sahne yeni sim'le kurulmazsa `game.step` ile ilerletilir.
+  Tarayıcıda 13/13; senaryolardan sonra `save(true)` çağrılsa da yuva 0 değişmedi. Senaryolardan sonra test oyunu açık kalır.
+- Kontroller sayfasının başında "İlk adımlar" (Kuruluş, 🎯 Hedefler, Sabah raporu). Telefonda yardım tabloları dikey flex
+  içinde küçülüp kendi içinde kayıyordu, üçüncü tablo tek satır bile göstermiyordu: `.help .table-scroll { flex: none }`,
+  sayfa bütün olarak kayar.
+- 0.19.2'de denenmemiş kalan Pazartesi durumu tarayıcıda doğrulandı: yedinci uykuda haftalık rapor ve Günaydın birlikte
+  açılır; haftalık rapor üstte durur ve oyunu duraklatır; kapatınca Günaydın kalır ve oyun sürer.
+- README "İlk 10 dakika" başlığı altında kuruluş, belediye hedefleri ve sabah raporu; geliştirici notu 13 senaryo. 366 test.
+- M17 tamam. Sıradaki (plan dosyası): M11 kalanı, 0.20.0 oyuncak/ilaç dükkânı ve pazar günü.
+
 ## 0.19.2 — Sabah raporu ve dönüş kartı (M17; Claude, 2026-09-23)
 - Yeni `src/sim/systems/DayReport.ts`: `DaySnapshot` (day, money, adopted, hatched, strays, cured, fed, eggsFound),
   `takeDaySnapshot`, `diffDay`, `daySnapshotFrom` (kayıt doğrulaması), `MorningReport` ve `buildMorningReport(sim, kind,

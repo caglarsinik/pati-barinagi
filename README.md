@@ -44,7 +44,13 @@ Yerel ağdan denemek için `npm run build` sonra `npm run preview -- --host` ve 
 - **Güncelleme:** yeni sürüm yayınlanınca oyun "Yeni sürüm indirildi" der; Ayarlar → **Şimdi yenile**. Kayıt tarayıcıda
   kalır (localStorage), sürüm geçişinde silinmez; yedek için Ayarlar → Kaydı panoya kopyala / Dosya olarak indir.
 
-## Yeni oyun: kuruluş ya da hazır barınak
+## İlk 10 dakika
+
+Yeni oyuncunun ilk dakikalarda kaybolmaması için dört parça birlikte çalışır (M17, 0.19.0–0.19.3): kuruluş açılışı küçük bir
+arsayla başlatır, belediye hedefleri her an sıradaki işi ve ödülünü gösterir, sabah raporu dünü özetleyip bugünü anlatır,
+oyuna dönünce "Hoş geldin" kartı karşılar. Kontroller sayfasının başında "İlk adımlar" özeti vardır.
+
+### Yeni oyun: kuruluş ya da hazır barınak
 
 Ana menüde **Başlangıç türü** seçilir (0.19.0):
 
@@ -55,7 +61,7 @@ Ana menüde **Başlangıç türü** seçilir (0.19.0):
 
 Eski kayıtlar hazır barınak sayılır.
 
-## Belediye hedefleri
+### Belediye hedefleri
 
 Sol üstteki 🎯 kart sıradaki belediye hedefini ve ödülünü gösterir (0.19.1; telefonda tek satır). Karta dokununca, ☰ Menü →
 Hedefler ya da ofis bilgisayarı → Hedefler ile **Belediye hedefleri** paneli açılır: sıradaki hedefin açıklaması, **Göster**
@@ -69,7 +75,7 @@ köy, aynı anda 5 köpek, veteriner odası, 10 sahiplendirme, lisans 2, yuva ev
 gelince hemen tamamlanır. Hazır barınakta kurulu gelenler ve eski kayıtlarda zaten yapılmış olanlar ödülsüz tamam sayılır.
 Kart Ayarlar → "Hedef kartını göster" ile gizlenir.
 
-## Sabah raporu
+### Sabah raporu
 
 Ofiste uyuyunca ya da dışarıda bayılınca sabah **Günaydın** kartı açılır (0.19.2). **Dün** bölümü kasanın ne kadar
 değiştiğini ve sahiplendirme, çatlayan yavru, katılan sokak köpeği, tedavi, bulunan yumurta ve yenen öğün sayılarını
@@ -364,7 +370,7 @@ Bilgisayar değiştirirken ya da yedek almak için kullan.
 - [x] 0.19.0 Kuruluş açılışı: küçük arsa + ofis, belediye hedefleri (kulübe, kap+yalak, kuluçka), ilk genişletme 1.500 ₺
 - [x] 0.19.1 Hedef zinciri: 22 belediye hedefi, 🎯 kart, Hedefler paneli ve Göster, eski kayıtlar sessizce yetişir
 - [x] 0.19.2 Sabah raporu (dün ve bugün) ve kayıttan dönünce "Hoş geldin" kartı
-- [ ] M17 İlk 10 dakika (0.19.3): kuruluş dokunma senaryosu, yardım ve belgeler
+- [x] 0.19.3 Cila: dokunma senaryoları kendi test oyununu kurar (13/13, kuruluş senaryosu), Kontroller'de İlk adımlar — M17 tamam
 - [ ] M11 Yaşayan Dünya kalanı (0.20.x): dükkân ve pazar, köylü rutini, köy kademesi, hızlı seyahat, görevler
 - [ ] Sonrası: M13 Sahiplendirme Hikâyeleri, yuva evi içi, kuzey/batı arsa genişletme
 - [ ] Sonraki paketler (`docs/PLAN.md` §7): M11 Yaşayan Dünya, M13 Sahiplendirme Hikâyeleri
@@ -377,9 +383,11 @@ npm run typecheck # tsc --noEmit
 npm run build     # dist/index.html
 ```
 
-Dokunma testleri: oyunu `?touch=1&debug=1` ile açıp yeni oyun başlatınca konsolda
-`__pati.debug.runTouchScenarios()` 8 senaryoyu (eğit → yürü, E düğmesi, pinch + iptal, takılı parmak, yönetim modu,
-uzun basış, köpeğin dibinde dokunuş, otopilot) koşar ve `{ summary, results }` döndürür; `__pati.debug.snapshot()` o anki
+Dokunma testleri: oyunu `?touch=1&debug=1` ile açıp bir oyun başlatınca konsolda `__pati.debug.runTouchScenarios()`
+13 senaryoyu koşar ve `{ summary, results }` döndürür: 1–12 sabit tohumlu hazır barınakta (eğit → yürü, E düğmesi,
+pinch + iptal, takılı parmak, yönetim modu, uzun basış, köpeğin dibinde dokunuş, otopilot, ofis ve kiler iç mekânları),
+13 kuruluş oyununda (hedef "Göster" → dokunarak kulübe, kap, yalak, kuluçka → üç belediye hedefi). Senaryolar açık oyunun
+yerine kendi test oyununu kurar; test oyunu kaydedilmez, yeni oyun ya da devam et ile normal oyuna dönülür. `__pati.debug.snapshot()` o anki
 dokunma/yürüyüş durumunu verir. `?debug=1` olmadan kanca bağlanmaz. Gerçek cihaz kontrol listesi: `docs/CLAUDE_HANDOFF.md`.
 
 Kod yapısı:

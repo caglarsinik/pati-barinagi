@@ -463,14 +463,14 @@ iflas/kredi ve bina döndürme M10'da yapıldı.
   binada yumurta belirir (E ile çantaya, kuluçkaya) → köpek başına 4 hafta bekleme; lisans sınırı sayar.
 - Köpek panelinde "Soy ağacı" satırı (anne/baba adı); başarımlar "İlk soy", "Efsanevi soy".
 
-### M17 İlk 10 dakika (2026-09-23 tasarım tartışması "oyuncuyu tutmak"; sürüyor: 0.19.x)
+### M17 İlk 10 dakika (2026-09-23 tasarım tartışması "oyuncuyu tutmak"; tamamlandı: 0.19.0–0.19.3)
 
 | Sürüm | Konu |
 |---|---|
 | 0.19.0 ✅ | Kuruluş açılışı: 24×20 çekirdek arsa (dünya üretimi 40×32 rezervle aynen), yalnız ofis + ilk köpek, belediye hedefleri (kulübe, kap+yalak, kuluçka), ilk genişletme 1.500 ₺; menüde "Başlangıç türü" |
 | 0.19.1 ✅ | Hedef zinciri (22 halka, yalnız sıradaki ödüllenir), HUD 🎯 kart, Hedefler paneli ("Göster"), eski kayıt sessizce yetişir |
 | 0.19.2 ✅ | Sabah raporu (dün/bugün; gün dönümü sayaçları kayıtta) + oyuna dönünce "Hoş geldin" kartı |
-| 0.19.3 | Cila: dokunma senaryosu 13 "kuruluş", yardım, README |
+| 0.19.3 ✅ | Cila: senaryolar kendi test oyununu kurar (kaydedilmez), senaryo 13 "kuruluş", Kontroller'de İlk adımlar, README "İlk 10 dakika" |
 
 Kararlar: sınırsız harita yapılmaz (çizim tek parça, kayıt kare indeksli; tutma getirmez). Oyuncuyu köpekler, ilk 10 dakika,
 görünen hedef ve dünyanın tepkisi tutar. Köy sonradan büyüyebilir; köylü rutini ve sahiplenilen köpeklerin köyde görünmesi

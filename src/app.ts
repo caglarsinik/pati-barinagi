@@ -31,6 +31,8 @@ function viewport(): { w: number; h: number } {
 class AppController {
   game: Phaser.Game | null = null;
   sim: Sim | null = null;
+  /** Dokunma senaryolarının test oyunu (0.19.3, yalnız ?debug=1): kaydedilmez; yeni oyun ya da devam et sıfırlar. */
+  private debugGame = false;
   private unsub: Array<() => void> = [];
   private pausedBeforeMenu = false;
   /** Kullanıcı en az bir kez dokundu (karma cihazlarda otomatik dokunmatik). */
@@ -217,6 +219,7 @@ class AppController {
   }
 
   newGame(seedInput: string, difficulty: Difficulty = 'normal', slot: number = store.saveSlot.value, starter: StarterKind = 'guided'): void {
+    this.debugGame = false;
     this.useSlot(slot);
     const seed = parseSeed(seedInput);
     try {
@@ -234,6 +237,7 @@ class AppController {
   }
 
   continueGame(slot: number = store.saveSlot.value): boolean {
+    this.debugGame = false;
     this.useSlot(slot);
     const data = SaveManager.read(store.saveSlot.value);
     if (!data) {
@@ -315,7 +319,7 @@ class AppController {
   }
 
   save(silent = false): boolean {
-    if (!this.sim) return false;
+    if (!this.sim || this.debugGame) return false;
     const ok = SaveManager.write(store.saveSlot.value, this.sim.toJSON());
     if (ok) this.refreshSlots();
     if (!silent) showToast(ok ? t('Oyun kaydedildi') : t('Kayıt yazılamadı'));
@@ -437,6 +441,14 @@ class AppController {
       this.sim.alerts.refresh();
       syncStore(this.sim);
     }
+  }
+
+  /** Dokunma senaryoları için kayda dokunmayan test oyunu (0.19.3; `__pati.debug`). */
+  startDebugGame(seed: number, starter: StarterKind): Sim {
+    const sim = Sim.create(seed, 'normal', starter);
+    this.debugGame = true;
+    this.start(sim);
+    return sim;
   }
 
   /** Sabah raporu ya da hoş geldin kartı (0.19.2); Ayarlar'dan kapatılabilir. */

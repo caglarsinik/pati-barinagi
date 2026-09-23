@@ -7,7 +7,9 @@ import { BALANCE } from '../config/balance';
 import { GAME } from '../config/game';
 import type { GesturePointer } from '../scenes/TouchGestures';
 import type { WorldScene } from '../scenes/WorldScene';
-import type { Sim } from '../sim/Sim';
+import type { BuildingType } from '../content/buildings';
+import type { Sim, StarterKind } from '../sim/Sim';
+import { goalShowTool } from '../sim/systems/Goals';
 import type { Dog } from '../sim/entities/Dog';
 import { buildingDoorTile, isReady } from '../sim/entities/Building';
 import type { TilePos } from '../sim/world/TileWorld';
@@ -28,8 +30,17 @@ export interface DebugApp {
     scene: { getScene(key: string): unknown };
     events: { emit(event: string): unknown };
     canvas: HTMLCanvasElement;
+    step(time: number, delta: number): void;
   } | null;
+  /** Kayda dokunmayan test oyunu başlatır (0.19.3). */
+  startDebugGame(seed: number, starter: StarterKind): Sim;
+  /** Hedef "Göster" ile aynı yol: yönetim modu, inşa çubuğu, araç. */
+  showBuild(target: BuildingType | 'plot'): void;
 }
+
+/** Senaryoların sabit tohumları (0.19.3): 1–12 hazır barınakta, 13 kuruluşta. */
+const SCENARIO_SEED_READY = 1942;
+const SCENARIO_SEED_GUIDED = 1913;
 
 export function debugEnabled(search: string): boolean {
   return new URLSearchParams(search).get('debug') === '1';
@@ -69,6 +80,19 @@ export function createTouchDebug(app: DebugApp) {
     const scene = app.game?.scene.getScene('World') as WorldScene | undefined;
     if (!sim || !scene) throw new Error('oyun başlamadı');
     return { sim, scene };
+  };
+
+  /** Kayda dokunmayan yeni test oyunu; sahne yeni sim'le kurulana kadar kareler elle ilerletilir (gizli bölmede RAF yavaş). */
+  const freshGame = (starter: StarterKind, seed: number): Sim => {
+    const sim = app.startDebugGame(seed, starter);
+    const ready = (): boolean => (app.game?.scene.getScene('World') as { sim?: Sim } | undefined)?.sim === sim;
+    let now = performance.now();
+    for (let i = 0; i < 10 && !ready(); i++) {
+      now += 16;
+      app.game?.step(now, 16);
+    }
+    if (!ready()) throw new Error('sahne yeni oyunla kurulmadı');
+    return sim;
   };
 
   /** Dünya karesi → tuval koordinatı (kameranın ters dönüşümü). */
@@ -140,9 +164,8 @@ export function createTouchDebug(app: DebugApp) {
       };
     },
     runTouchScenarios(): { summary: string; results: ScenarioResult[] } {
-      const { sim } = need();
-      // Senaryolar hazır barınağın binalarını varsayar (0.19.0; kuruluş senaryosu 0.19.3'te).
-      if (sim.starter === 'guided') return { summary: 'kuruluş oyununda koşulmaz: "Hazır barınak" ile yeni oyun başlat', results: [] };
+      // 0.19.3: senaryolar kendi dünyalarını kurar (sabit tohum, kayda dokunmaz): 1–12 hazır barınakta, 13 kuruluşta.
+      const sim = freshGame('ready', SCENARIO_SEED_READY);
       const results: ScenarioResult[] = [];
       const run = (frames: number, until?: () => boolean): void => {
         for (let i = 0; i < frames && !(until && until()); i++) sim.update(1 / 30);
@@ -373,6 +396,46 @@ export function createTouchDebug(app: DebugApp) {
       });
 
       prepare();
+
+      scenario('13 kuruluş: Göster → dokunarak kur → üç belediye hedefi', () => {
+        const g = freshGame('guided', SCENARIO_SEED_GUIDED);
+        api.cancelTouches();
+        store.panel.value = 'none';
+        const spots: Partial<Record<BuildingType, TilePos>> = {
+          kennelSmall: { x: 90, y: 92 },
+          bowl: { x: 93, y: 92 },
+          trough: { x: 94, y: 92 },
+          incubator: { x: 104, y: 92 },
+        };
+        const m0 = g.money;
+        const log: string[] = [];
+        for (let step = 0; step < 4; step++) {
+          const goal = g.goals.current;
+          const tool = goal ? goalShowTool(g, goal) : null;
+          const spot = tool ? spots[tool] : undefined;
+          if (!goal || !tool || !spot) return [false, `adım ${step + 1}: hedef=${goal?.id ?? 'yok'} araç=${tool ?? 'yok'}`];
+          app.showBuild(tool);
+          const sel = store.build.value;
+          const selected = g.mode === 'manage' && store.buildBar.value && sel.kind === 'building' && sel.type === tool;
+          // Köpekler yerleştirmeyi engellemesin.
+          for (const d of g.shelterDogs()) {
+            d.x = g.world.plot.x + g.world.plot.w - 3.5;
+            d.y = g.world.plot.y + g.world.plot.h - 3.5;
+            d.path = [];
+          }
+          const before = g.buildings.length;
+          api.tapTile(spot.x + 0.5, spot.y + 0.5);
+          const placed = g.buildings.length === before + 1;
+          for (let i = 0; i < 90; i++) g.update(1 / 30);
+          log.push(`${tool}:${selected ? 'seçili' : 'seçilmedi'}/${placed ? 'kuruldu' : 'kurulmadı'}`);
+          if (!selected || !placed) return [false, log.join(' ')];
+        }
+        const done = ['kennel', 'bowlTrough', 'incubator'].every((id) => g.goals.done.has(id));
+        store.build.value = { kind: 'none' };
+        g.setMode('avatar');
+        return [done, `${log.join(' ')} hedefler=${[...g.goals.done].join(',')} kasa=${Math.round(g.money - m0)}`];
+      });
+
       return { summary: summarize(results), results };
     },
   };
