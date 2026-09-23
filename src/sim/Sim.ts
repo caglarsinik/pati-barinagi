@@ -60,6 +60,8 @@ import { kitchenWaterPerHour } from './systems/KitchenSystem';
 import { vaccinate } from './systems/ClinicSystem';
 import { seasonForWeek } from './systems/WeatherSystem';
 import { VILLAGE_ID_BASE, restampVillage, villageDoorTile, villageInteriorKind, wholesaleBagPrice } from './world/Village';
+import { applyFoundingPlot } from './world/PlotReserve';
+import { FOUNDING_GOALS, type GoalDef, GoalSystem } from './systems/Goals';
 
 export type Mode = 'avatar' | 'manage';
 
@@ -78,6 +80,10 @@ export interface GameOverInfo {
   reason: 'bankrupt';
   week: number;
 }
+
+/** Yeni oyun başlangıcı (0.19.0): kuruluş (küçük arsa, adım adım) ya da hazır barınak. */
+export type StarterKind = 'guided' | 'ready';
+export const STARTER_KINDS: readonly StarterKind[] = ['guided', 'ready'];
 
 export interface SimEvents extends Record<string, unknown> {
   /** Saat başı geçildi (0-23). */
@@ -103,6 +109,8 @@ export interface SimEvents extends Record<string, unknown> {
   weatherChanged: Weather;
   gameEvent: GameEvent;
   achievement: AchievementDef;
+  /** Belediye hedefi tamamlandı (0.19.0). */
+  goal: GoalDef;
   /** Uyku / bayılma gibi zaman atlamaları (arayüz karartma yapar). */
   slept: { minutes: number; passedOut: boolean };
   /** Oyuncuya kısa bildirim. */
@@ -298,6 +306,7 @@ export class Sim {
   readonly weatherSys: WeatherSystem;
   readonly eventSys: EventSystem;
   readonly achievements: AchievementSystem;
+  readonly goals: GoalSystem;
   readonly illness: IllnessSystem;
   readonly nav: PlayerNav;
   readonly pilot: Autopilot;
@@ -316,6 +325,8 @@ export class Sim {
   markers: MapMarker[] = [];
   /** Köy bulundu mu (0.18.2; kayıtta). */
   villageFound = false;
+  /** Başlangıç türü (0.19.0; kayıtta, eski kayıt 'ready'). */
+  starter: StarterKind = 'ready';
   readonly gates: GateSystem;
   flags: SimFlags = { foodDiscountDay: 0, extraAdoptersDay: 0, growlUntil: 0, growlA: '', growlB: '' };
   speed: Speed = 1;
@@ -380,6 +391,7 @@ export class Sim {
     this.weatherSys = new WeatherSystem(this);
     this.eventSys = new EventSystem(this);
     this.achievements = new AchievementSystem(this);
+    this.goals = new GoalSystem(this);
     this.illness = new IllnessSystem(this);
     this.nav = new PlayerNav(this);
     this.pilot = new Autopilot(this);
@@ -394,12 +406,15 @@ export class Sim {
     this.events.on('hour', (h) => this.onHour(h));
   }
 
-  static create(seed: number, difficulty: Difficulty = 'normal'): Sim {
+  static create(seed: number, difficulty: Difficulty = 'normal', starter: StarterKind = 'ready'): Sim {
     const world = generateWorld(seed);
+    if (starter === 'guided') applyFoundingPlot(world);
     const player = new Player(world.spawn.x, world.spawn.y);
     const sim = new Sim(seed, world, new Clock(), player, BALANCE.difficulty[difficulty].startMoney);
     sim.difficulty = difficulty;
-    sim.setupStarterShelter();
+    sim.starter = starter;
+    sim.goals.index = starter === 'guided' ? 0 : FOUNDING_GOALS;
+    sim.setupStarterShelter(starter);
     sim.spawnStrays();
     sim.revealPlayer(true);
     sim.staffSystem.refreshCandidates();
@@ -488,6 +503,7 @@ export class Sim {
       this.alerts.refresh();
       this.checkVictory();
       this.achievements.check();
+      this.goals.check();
     }
     this.staffSystem.update(dtMin);
     this.gates.update(0);
@@ -1344,7 +1360,7 @@ export class Sim {
   }
 
   /** Yeni oyunda hazır gelen küçük barınak. */
-  private setupStarterShelter(): void {
+  private setupStarterShelter(starter: StarterKind = 'ready'): void {
     const w = this.world;
     const p = w.plot;
     const x0 = p.x;
@@ -1380,23 +1396,28 @@ export class Sim {
       if (!b) throw new Error(`Başlangıç binası yerleşmedi: ${type} @ ${dx},${dy}`);
       return b;
     };
-    place('office', 19, 2);
-    place('kennelSmall', 4, 5);
-    place('kennelSmall', 8, 5);
-    place('shed', 30, 3);
-    const bowl = place('bowl', 6, 9);
-    place('trough', 8, 9);
-    place('incubator', 14, 4);
-    place('toyBall', 23, 12);
-    place('bin', 34, 19); // tuvalet alanının hemen üstü: kapasite +4
-    bowl.food = BALANCE.shelter.startBowlFood;
+    const guided = starter === 'guided';
+    if (guided) {
+      // Kuruluş (0.19.0): yalnız ofis (kapısı yol sütununda); gerisini oyuncu belediye hedefleriyle kurar.
+      place('office', 11, 2);
+    } else {
+      place('office', 19, 2);
+      place('kennelSmall', 4, 5);
+      place('kennelSmall', 8, 5);
+      place('shed', 30, 3);
+      const bowl = place('bowl', 6, 9);
+      place('trough', 8, 9);
+      place('incubator', 14, 4);
+      place('toyBall', 23, 12);
+      place('bin', 34, 19); // tuvalet alanının hemen üstü: kapasite +4
+      bowl.food = BALANCE.shelter.startBowlFood;
+      for (let y = y0 + 20; y < y0 + 25; y++) for (let x = x0 + 30; x < x0 + 36; x++) w.setZone(x, y, Zone.Toilet);
+    }
     this.foodStock = BALANCE.shelter.startFoodPortions;
-
-    for (let y = y0 + 20; y < y0 + 25; y++) for (let x = x0 + 30; x < x0 + 36; x++) w.setZone(x, y, Zone.Toilet);
 
     const genome = randomGenome(this.rng.fork(1), 'common');
     genome.size = genome.size === 'L' ? 'M' : genome.size;
-    this.addDog(genome, 'egg', 20, x0 + 10.5, y0 + 11.5);
+    this.addDog(genome, 'egg', 20, x0 + (guided ? 6.5 : 10.5), y0 + (guided ? 10.5 : 11.5));
 
     // Öğretici: kapının hemen dışında bir yumurta yuvası.
     const nestX = gateX + 4;
@@ -1455,6 +1476,8 @@ export class Sim {
       bakesToday: this.bakesToday,
       markers: this.markers.map((m) => ({ ...m })),
       villageFound: this.villageFound,
+      starter: this.starter,
+      goals: this.goals.toJSON(),
       loan: this.loan,
       negativeWeeks: this.negativeWeeks,
       gameOver: this.gameOver,
@@ -1525,12 +1548,17 @@ export class Sim {
   /** Doğrulayarak yükler: bozuk alanlar varsayılana döner, imkânsız konumlar düzeltilir. */
   static fromJSON(data: SaveData): Sim {
     const world = generateWorld(data.seed >>> 0);
+    // Kuruluş oyunu (0.19.0): arsa çekirdekten başlar, rezerv her yüklemede aynı biçimde budanır.
+    const starter: StarterKind = data.starter === 'guided' ? 'guided' : 'ready';
+    if (starter === 'guided') applyFoundingPlot(world);
     const clock = Clock.fromJSON(data.clock);
     const player = Player.fromJSON(data.player, world.spawn);
     const difficulty: Difficulty = DIFFICULTIES.includes(data.difficulty as Difficulty) ? (data.difficulty as Difficulty) : 'normal';
     const money = typeof data.money === 'number' && Number.isFinite(data.money) ? data.money : BALANCE.difficulty[difficulty].startMoney;
     const sim = new Sim(data.seed >>> 0, world, clock, player, money);
     sim.difficulty = difficulty;
+    sim.starter = starter;
+    sim.goals.load(data.goals, starter === 'guided' ? 0 : FOUNDING_GOALS);
     sim.autopilot = data.autopilot === true;
     sim.coffeeDay = numOr(data.coffeeDay, 0, 0);
     sim.bakeDay = numOr(data.bakeDay, 0, 0);

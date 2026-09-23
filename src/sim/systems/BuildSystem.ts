@@ -131,6 +131,13 @@ export function paintZone(sim: Sim, zone: Zone, x0: number, y0: number, x1: numb
   return { ok: n > 0, count: n, message: n > 0 ? undefined : t('Bölge değişmedi') };
 }
 
+/** Arsa genişletme bedeli: kuruluş çekirdeğinden ilk genişletme ucuzdur (0.19.0). */
+export function plotExpansionCost(sim: Sim): number {
+  const p = sim.world.plot;
+  const c = BALANCE.world.plotCore;
+  return p.w <= c.w && p.h <= c.h ? BALANCE.world.firstExpansionCost : PLOT_EXPANSION_COST;
+}
+
 export type ExpandDir = 'east' | 'south';
 
 /** Arsayı doğuya ya da güneye 16 kare genişletir: alan temizlenir, çit taşınır, yol kapıları açılır. */
@@ -141,7 +148,8 @@ export function tryExpandPlot(sim: Sim, dir: ExpandDir): BuildResult {
   const next = dir === 'east' ? { x: p.x, y: p.y, w: p.w + step, h: p.h } : { x: p.x, y: p.y, w: p.w, h: p.h + step };
   if (next.w > BALANCE.world.plotMaxW || next.h > BALANCE.world.plotMaxH) return { ok: false, message: t('Arsa bu yönde daha fazla büyüyemez') };
   if (next.x + next.w >= w.width - 3 || next.y + next.h >= w.height - 3) return { ok: false, message: t('Harita kenarına dayandı') };
-  if (sim.money < PLOT_EXPANSION_COST) return { ok: false, message: t('Yeterli para yok ({cost} ₺)', { cost: PLOT_EXPANSION_COST }) };
+  const cost = plotExpansionCost(sim);
+  if (sim.money < cost) return { ok: false, message: t('Yeterli para yok ({cost} ₺)', { cost }) };
 
   const oldRight = p.x + p.w - 1;
   const oldBottom = p.y + p.h - 1;
@@ -192,9 +200,9 @@ export function tryExpandPlot(sim: Sim, dir: ExpandDir): BuildResult {
     fenceAt(next.x, y);
     fenceAt(right, y);
   }
-  sim.addExpense('land', PLOT_EXPANSION_COST, t('Parsel'));
+  sim.addExpense('land', cost, t('Parsel'));
   sim.stats.built++;
-  return { ok: true, cost: PLOT_EXPANSION_COST, message: dir === 'east' ? t('Arsa doğuya genişledi') : t('Arsa güneye genişledi') };
+  return { ok: true, cost, message: dir === 'east' ? t('Arsa doğuya genişledi') : t('Arsa güneye genişledi') };
 }
 
 function clearFence(sim: Sim, x: number, y: number): void {

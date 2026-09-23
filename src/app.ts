@@ -14,7 +14,7 @@ import { SaveManager } from './core/SaveManager';
 import { BootScene } from './scenes/BootScene';
 import { WorldScene } from './scenes/WorldScene';
 import { OverlayScene } from './scenes/OverlayScene';
-import { Sim, DIFFICULTIES, type Difficulty } from './sim/Sim';
+import { Sim, DIFFICULTIES, STARTER_KINDS, type Difficulty, type StarterKind } from './sim/Sim';
 import { showToast, store, syncStore } from './ui/store';
 
 
@@ -155,6 +155,17 @@ class AppController {
     return 'normal';
   }
 
+  /** Son seçilen başlangıç türü (0.19.0; varsayılan kuruluş). */
+  lastStarter(): StarterKind {
+    try {
+      const v = localStorage.getItem(`${SaveManager.key(0)}.starter`);
+      if (v && (STARTER_KINDS as readonly string[]).includes(v)) return v as StarterKind;
+    } catch {
+      /* yoksay */
+    }
+    return 'guided';
+  }
+
   setTouchMode(mode: TouchMode): void {
     store.touchMode.value = mode;
     try {
@@ -202,17 +213,21 @@ class AppController {
     showToast(t('Yuva {n} silindi', { n: slot + 1 }));
   }
 
-  newGame(seedInput: string, difficulty: Difficulty = 'normal', slot: number = store.saveSlot.value): void {
+  newGame(seedInput: string, difficulty: Difficulty = 'normal', slot: number = store.saveSlot.value, starter: StarterKind = 'guided'): void {
     this.useSlot(slot);
     const seed = parseSeed(seedInput);
     try {
       localStorage.setItem(`${SaveManager.key(0)}.difficulty`, difficulty);
+      localStorage.setItem(`${SaveManager.key(0)}.starter`, starter);
     } catch {
       /* yoksay */
     }
-    this.start(Sim.create(seed, difficulty));
+    const sim = Sim.create(seed, difficulty, starter);
+    this.start(sim);
     this.save(true);
     showToast(t('Yeni dünya · tohum {seed} · yuva {n}', { seed, n: store.saveSlot.value + 1 }));
+    const goal = sim.goals.current;
+    if (starter === 'guided' && goal) showToast(t('Belediye bu arsayı sana emanet etti. İlk hedef: {goal}', { goal: t(goal.title) }), 6000);
   }
 
   continueGame(slot: number = store.saveSlot.value): boolean {
@@ -267,6 +282,7 @@ class AppController {
       sim.events.on('adopterArrived', () => audio.play('alert')),
       sim.events.on('slept', () => audio.play('sleep')),
       sim.events.on('buildingReady', () => audio.play('build')),
+      sim.events.on('goal', () => audio.play('coin')),
     );
     audio.startMusic(sim.clock.isNight() ? 'night' : 'day');
     const sm = this.game.scene;

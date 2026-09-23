@@ -1186,4 +1186,18 @@ export const EN: Record<string, string> = {
   'Araçlar': 'Tools',
   'Yönet': 'Manage',
   'Avatar': 'Avatar',
+  // 0.19.0: kuruluş açılışı ve belediye hedefleri
+  'Köpeğine kulübe kur': 'Build a kennel for your dog',
+  'Yönetim modunda inşa çubuğundan küçük kulübe seç ve arsaya yerleştir.': 'In manage mode, pick a small kennel from the build bar and place it on your plot.',
+  'Yem kabı ve su yalağı koy': 'Place a food bowl and a water trough',
+  'Köpeğin yiyip içebilsin: inşa çubuğundan yem kabı ve su yalağı yerleştir.': 'So your dog can eat and drink: place a food bowl and a water trough from the build bar.',
+  'Kuluçka makinesi kur': 'Build an incubator',
+  'Kapının dışındaki yuvadan yumurta getireceksin; kuluçka onu yavruya çevirir.': 'You will bring an egg from the nest outside the gate; the incubator turns it into a puppy.',
+  'Belediye ödülü: {goal}': 'Municipal reward: {goal}',
+  '🎯 Hedef tamam: {goal} (+{money} ₺) · Sıradaki: {next}': '🎯 Goal done: {goal} (+{money} ₺) · Next: {next}',
+  '🎯 Hedef tamam: {goal} (+{money} ₺)': '🎯 Goal done: {goal} (+{money} ₺)',
+  'Belediye bu arsayı sana emanet etti. İlk hedef: {goal}': 'The municipality entrusted this plot to you. First goal: {goal}',
+  'Başlangıç türü': 'Start type',
+  'Kuruluş: küçük arsa, adım adım (önerilir)': 'Founding: small plot, step by step (recommended)',
+  'Hazır barınak: büyük arsa, binalar kurulu': 'Ready shelter: large plot, buildings in place',
 };

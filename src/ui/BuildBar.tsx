@@ -9,6 +9,7 @@ import {
   TILE_TOOL_DEFS,
 } from '../content/buildings';
 import { t } from '../i18n';
+import { plotExpansionCost } from '../sim/systems/BuildSystem';
 import { ZONE_NAMES_TR, Zone } from '../sim/world/tiles';
 import { formatMoney } from './HUD';
 import { type BuildTool, showToast, store } from './store';
@@ -33,6 +34,7 @@ export function BuildBar() {
   if (!sim) return null;
   const tool = store.build.value;
   const money = store.money.value;
+  const expandCost = sim ? plotExpansionCost(sim) : PLOT_EXPANSION_COST;
   const pick = (x: BuildTool): void => app.setBuildTool(sameTool(tool, x) ? { kind: 'none' } : x);
 
   const tabs: Array<[Tab, string]> = [
@@ -104,19 +106,19 @@ export function BuildBar() {
         {tab === 'arsa' && (
           <>
             <div class="muted small-text">
-              {t('Arsa {w}×{h} kare. Genişletme {cost}; alan temizlenir, çit taşınır.', { w: sim.world.plot.w, h: sim.world.plot.h, cost: formatMoney(PLOT_EXPANSION_COST) })}
+              {t('Arsa {w}×{h} kare. Genişletme {cost}; alan temizlenir, çit taşınır.', { w: sim.world.plot.w, h: sim.world.plot.h, cost: formatMoney(expandCost) })}
             </div>
             {(['east', 'south'] as const).map((dir) => (
               <button
                 key={dir}
-                class={'build-item' + (money < PLOT_EXPANSION_COST ? ' poor' : '')}
+                class={'build-item' + (money < expandCost ? ' poor' : '')}
                 onClick={() => {
                   const r = sim.command({ type: 'expandPlot', dir });
                   if (r.message) showToast(r.message);
                 }}
               >
                 <span class="bi-name">{dir === 'east' ? t('Doğuya genişlet') : t('Güneye genişlet')}</span>
-                <span class="bi-cost">{t('+16 kare · {cost}', { cost: formatMoney(PLOT_EXPANSION_COST) })}</span>
+                <span class="bi-cost">{t('+16 kare · {cost}', { cost: formatMoney(expandCost) })}</span>
               </button>
             ))}
           </>

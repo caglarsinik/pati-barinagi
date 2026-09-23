@@ -44,6 +44,18 @@ Yerel ağdan denemek için `npm run build` sonra `npm run preview -- --host` ve 
 - **Güncelleme:** yeni sürüm yayınlanınca oyun "Yeni sürüm indirildi" der; Ayarlar → **Şimdi yenile**. Kayıt tarayıcıda
   kalır (localStorage), sürüm geçişinde silinmez; yedek için Ayarlar → Kaydı panoya kopyala / Dosya olarak indir.
 
+## Yeni oyun: kuruluş ya da hazır barınak
+
+Ana menüde **Başlangıç türü** seçilir (0.19.0):
+
+- **Kuruluş (önerilir, varsayılan):** belediye sana 24×20 karelik küçük, çitli bir arsayı ve ofisi emanet eder; ilk köpeğin
+  yanındadır. Rehberin en üstündeki 🎯 kart sıradaki belediye hedefini ve ödülünü gösterir (telefonda da görünür): kulübe kur
+  (200 ₺) → yem kabı ve su yalağı koy (100 ₺) → kuluçka kur (150 ₺). Her hedef bir kez ödüllenir ve +1 itibar verir.
+  Kapıların önünden yollara kısa bir patika iner. İlk arsa genişletmesi 1.500 ₺, sonrakiler 2.500 ₺.
+- **Hazır barınak:** eski başlangıç; 40×32 arsada ofis, iki kulübe, kiler, kap, yalak, kuluçka, top ve çöp kurulu gelir.
+
+Eski kayıtlar hazır barınak sayılır.
+
 ## Kontroller
 
 | Tuş | Avatar modu | Yönetim modu |
@@ -130,7 +142,7 @@ yeniden denemez. Otopilot inşaat, işe alım ve sahiplendirme kararı vermez.
 - Yönetim modunda B ile inşa çubuğu açılır: kategori → bina. Hayalet yeşilse yerleşir, kırmızıysa sığmıyor ya da para yetmiyor. R ile kare olmayan binalar (büyük kulübe, mutfak, personel odası, tünel, bank) 90° döner; ön yüz ve kapı hep güneyde kalır.
 - Çit ve yol sürükleyerek düz çizgi halinde çekilir; kapı çitin üstüne konur. **Kapı kapalıyken geçilmez:** sen, personel, sahiplenici ve tasmalı köpek yaklaşınca kendiliğinden açılır, geçince kapanır; serbest köpekler kapıdan çıkamaz (gece kaçış yine çitten atlamadır). Bölgeler (tuvalet, oyun bahçesi, eğitim, karantina, personel) dikdörtgen sürükleyerek boyanır.
 - Büyük binalar inşaat süresi boyunca yarı saydamdır ve kullanılamaz. Yıkım bedelin yarısını iade eder.
-- Arsa sekmesinden doğuya/güneye 16 kare genişletilir (2.500 ₺); alan temizlenir, çit ve yol kapıları yeniden kurulur.
+- Arsa sekmesinden doğuya/güneye 16 kare genişletilir (2.500 ₺; kuruluş oyununda ilk genişletme 1.500 ₺); alan temizlenir, çit ve yol kapıları yeniden kurulur.
 - Tımar istasyonu yakındaki köpeği yıkar, veteriner odası tedavi eder, mutfak kapların kapasitesini ikiye katlar, yalakları kendiliğinden doldurur ve personelin yem/su işini %40 hızlandırır; oyuncaklar köpeklerin kendi kendine oynamasını sağlar. Otomatik yem makinesi (2.500 ₺) her saat 8 kare içindeki kaplara kilerden 2 porsiyon koyar; o kapların yem görevi daha az acil olur.
 - Ofis lisansla büyür: lisans 2'de bayrak ve yan pencere, lisans 3'te çatı penceresi ve yıldızlı tabela; Sv3 ofiste en fazla 16 personel çalışır (öncesinde 12).
 - Dekor puanı: çiçek 1, bank 3, tabela 5 (bir tabela sayılır), lamba 0,5; en çok 20. Puan sahiplenicilerin sabrını uzatır, günlük sahiplenici sayısını biraz artırır ve haftalık denetimde "Çevre" kalemi olarak sayılır.
@@ -328,7 +340,9 @@ Bilgisayar değiştirirken ya da yedek almak için kullan.
 - [x] 0.18.0 İnler mevsimlik dolar, dışarıda hava (fırtına dayanıklılık, kış gecesi karanlık)
 - [x] 0.18.1 Tam ekran harita (M, 🗺️, mini haritaya dokun): dokunarak işaret koy (en çok 5), "Git" ile işarete yürü
 - [x] 0.18.2 Köy (güney yolun ucu) ve yem toptancısı (çuval %30 ucuz, en az 3), "Köyü buldun" başarımı
-- [ ] M11 Yaşayan Dünya (0.18.x): harita/işaretler, köy ve dükkânlar, hızlı seyahat, görevler, terk edilmiş ev, taş/odun
+- [x] 0.19.0 Kuruluş açılışı: küçük arsa + ofis, belediye hedefleri (kulübe, kap+yalak, kuluçka), ilk genişletme 1.500 ₺
+- [ ] M17 İlk 10 dakika (0.19.x): hedef zinciri, sabah raporu ve dönüş kartı, kuruluş dokunma senaryosu
+- [ ] M11 Yaşayan Dünya kalanı (0.20.x): dükkân ve pazar, köylü rutini, köy kademesi, hızlı seyahat, görevler
 - [ ] Sonrası: M13 Sahiplendirme Hikâyeleri, yuva evi içi, kuzey/batı arsa genişletme
 - [ ] Sonraki paketler (`docs/PLAN.md` §7): M11 Yaşayan Dünya, M13 Sahiplendirme Hikâyeleri
 

@@ -57,6 +57,38 @@
   köpek paneli, araç şeridi, alt menü listesi, ana menü, Ayarlar: çakışma yok, taşma yok. Alt menü açılır listesi köpek
   panelinin üstüne gelebilir (geçici popover, üstte kalır) — kabul edildi. Gerçek cihaz testi kullanıcıda.
 
+## 0.19.0 — Kuruluş açılışı (M17; Claude, 2026-09-23)
+- Tasarım kararı (kullanıcıyla): oyuncuyu tutmak için önce "İlk 10 dakika" paketi (M17: 0.19.0–0.19.3), M11 kalanı 0.20.x.
+  Sınırsız harita yapılmayacak.
+- `Sim.create(seed, difficulty, starter = 'ready')`, `StarterKind = 'guided' | 'ready'`, `sim.starter` (kayıtta; alan
+  yoksa 'ready'). Varsayılan 'ready' olduğu için bütün eski testler ve dokunma senaryoları aynı dünyayı kurar.
+- Yeni `src/sim/world/PlotReserve.ts`: `WorldGen` DEĞİŞMEDİ, arsayı hep 40×32 "rezerv" olarak üretir (RNG sırası aynı).
+  `applyFoundingPlot(world)` arsayı `plotCoreRect()` = `BALANCE.world.plotCore` {dx 8, dy 6, 24×20} → mutlak {88,90,24,20}
+  yapar; `trimReserve` rezervin arsa dışında kalan karelerini RNG'siz çayıra çevirir ve güney kapıdan (x 100–101, y 110–115)
+  ve doğu kapıdan (x 112–119, y 100–101) üretimdeki yolların başına kısa yol çeker. Çekirdeğin kapı sütunu/satırı (100)
+  rezervin ortasıyla aynı, bu yüzden yollar hizalı. `Sim.fromJSON` 'guided' kayıtta `generateWorld`'ün hemen ardından
+  `applyFoundingPlot` çağırır; sonra her zamanki arsa geri yükleme (genişlemiş arsa) ve nesne değişiklikleri gelir.
+- `setupStarterShelter(starter)`: kuruluşta yalnız ofis (dx 11, dy 2; kapısı yol sütununda), ilk köpek (plandan sapma:
+  köpek kuruluşta da var, ilk dakikalarda bakacak biri olsun), tuvalet bölgesi yok, kapı dışındaki öğretici yuva (104,113).
+  Hazır yolun kodu ve sırası aynen.
+- Yeni `src/sim/systems/Goals.ts`: `GOALS` (0.19.0'da 3: kennel 200, bowlTrough 100, incubator 150), `GoalSystem`
+  (`index`, `current`, `check()` sim dakikasında başarımlardan sonra, dakikada en çok bir hedef; ödül `addIncome('aid')`
+  "Belediye ödülü", +`BALANCE.goals.reputation`, olay `goal` + mesaj), `FOUNDING_GOALS` 3 (hazır başlangıç ve eski kayıt
+  bu sırayla başlar), kayıt `goals: { index }`. `BALANCE.goals { rewardMul, reputation }`.
+- Genişletme: `plotExpansionCost(sim)` (`BuildSystem`): arsa çekirdek boyutundaysa `BALANCE.world.firstExpansionCost` 1.500,
+  yoksa `PLOT_EXPANSION_COST` 2.500; `tryExpandPlot` ve `BuildBar` bunu kullanır.
+- Arayüz: `MainMenu` "Başlangıç türü" seçimi (Kuruluş varsayılan; `app.lastStarter()` localStorage `…starter`),
+  `app.newGame(seed, difficulty, slot, starter)` kuruluşta "Belediye bu arsayı sana emanet etti…" bildirimi; `Guide`
+  en üstte 🎯 hedef + ödül + açıklama; telefonda rehber gizliydi → `.guide.has-goal` hedef varken telefonda da görünür
+  (pil: "🎯 Yem kabı ve su yalağı koy · 100 ₺"). `goal` olayında `coin` sesi.
+- `runTouchScenarios` kuruluş oyununda koşmaz ("Hazır barınak ile yeni oyun başlat" özeti); kuruluş senaryosu 0.19.3'te.
+- Testler `tests/unit/founding.test.ts` (3): 3 tohumda çekirdek, çit/kapılar, yol bağları, şerit çayır, öğretici yuva,
+  ofis kapısından iki yola yol bulma, hazır başlangıç değişmedi; hedeflerin sırası (kuluçka önce kurulsa da kulübe
+  beklenir), ödül/para/itibar/mesaj; kayıt turu (genişlemiş ve genişlememiş kuruluş dünyası birebir), ilk genişletme 1.500
+  sonra 2.500, eski kayıt 'ready' + hedefler tamam. 358 test. Tarayıcı 812×375: menü seçimi, kuruluş dünyası, kulübe →
+  "+200 ₺" bildirimi ve kart "Yem kabı ve su yalağı koy · 100 ₺"; hazır barınakla `runTouchScenarios` 12/12.
+- Sıradaki: 0.19.1 hedef zinciri (Guide'ın 9 adımı zincire döner, GoalsPanel, catchUp).
+
 ## 0.18.2 — Köy ve yem toptancısı (M11; Claude, 2026-09-23)
 - Yeni `src/sim/world/Village.ts`: `stampVillage(world)` üretimin sonunda (WorldGen adım 8, `recomputeAllSolid`'den önce), **RNG
   kullanmadan**: köyün üst satırı `height - 3 - 16`; o satırdaki ilk yol karesi `roadX`, köy `left = roadX - 11` (sınır dışıysa köy

@@ -463,18 +463,33 @@ iflas/kredi ve bina döndürme M10'da yapıldı.
   binada yumurta belirir (E ile çantaya, kuluçkaya) → köpek başına 4 hafta bekleme; lisans sınırı sayar.
 - Köpek panelinde "Soy ağacı" satırı (anne/baba adı); başarımlar "İlk soy", "Efsanevi soy".
 
-### M11 Yaşayan Dünya (2026-09-23 dilimlendi; sürüyor: 0.18.x)
+### M17 İlk 10 dakika (2026-09-23 tasarım tartışması "oyuncuyu tutmak"; sürüyor: 0.19.x)
+
+| Sürüm | Konu |
+|---|---|
+| 0.19.0 ✅ | Kuruluş açılışı: 24×20 çekirdek arsa (dünya üretimi 40×32 rezervle aynen), yalnız ofis + ilk köpek, belediye hedefleri (kulübe, kap+yalak, kuluçka), ilk genişletme 1.500 ₺; menüde "Başlangıç türü" |
+| 0.19.1 | Hedef zinciri (~21 halka), HUD 🎯 kart, Hedefler paneli ("Göster"), eski kayıt sessizce yetişir |
+| 0.19.2 | Sabah raporu (dün/bugün) + oyuna dönünce "Hoş geldin" kartı |
+| 0.19.3 | Cila: dokunma senaryosu 13 "kuruluş", yardım, README |
+
+Kararlar: sınırsız harita yapılmaz (çizim tek parça, kayıt kare indeksli; tutma getirmez). Oyuncuyu köpekler, ilk 10 dakika,
+görünen hedef ve dünyanın tepkisi tutar. Köy sonradan büyüyebilir; köylü rutini ve sahiplenilen köpeklerin köyde görünmesi
+M11 kalanına alındı (M13 ile birleşir).
+
+### M11 Yaşayan Dünya (2026-09-23 dilimlendi; 0.18.0–0.18.2 bitti, kalanı M17'den sonra 0.20.x)
 
 | Sürüm | Konu |
 |---|---|
 | 0.18.0 ✅ | İnler mevsimlik dolar (ayrı RNG, en çok 8 vahşi) + dışarıda hava (fırtına/kar dayanıklılık, kış gecesi karanlık) |
 | 0.18.1 ✅ | Tam ekran harita (M / 🗺️ / mini harita), işaret koyma (en çok 5), işarete git |
 | 0.18.2 ✅ | Köy (güney yolun ucu, RNG'siz yerleşim) + yem toptancısı içi (çuval ×0,7, en az 3) + "Köyü buldun" |
-| 0.18.3 | Oyuncak/ilaç dükkânı (oyuncak paketi, vitamin, bisiklet) + pazar günü |
-| 0.18.4 | Yol tabelaları + hızlı seyahat; bisikletle koşu ×1,5 |
-| 0.18.5 | Köylü görevleri (kayıp köpek, belli renkte yavru, yem getir) |
-| 0.18.6 | Terk edilmiş ev (iç mekân, bir kerelik bulgu) + taş/odun toplama → inşa indirimi |
-| 0.18.7 | Cila: otopilot uzak işlere gitmez, dokunma senaryoları 13–14, yardım |
+| 0.20.0 | Oyuncak/ilaç dükkânı (oyuncak paketi, vitamin, bisiklet) + pazar günü |
+| 0.20.1 | Köylü rutini (ev → iş → ev, Pazar meydanda, E ile konuş) |
+| 0.20.2 | Köy kademesi (itibarla yeni binalar) + sahiplenilen köpekler köyde sahibiyle |
+| 0.20.3 | Yol tabelaları + hızlı seyahat; bisikletle koşu ×1,5 |
+| 0.20.4 | Köylü görevleri (kayıp köpek, belli renkte yavru, yem getir) |
+| 0.20.5 | Cila: otopilot uzak işlere gitmez, dokunma senaryoları, yardım |
+| isteğe bağlı | Terk edilmiş ev (iç mekân, bir kerelik bulgu) + taş/odun toplama → inşa indirimi |
 
 Özgün notlar:
 - Sokak köpeği inleri mevsimlik yeniden dolar; terk edilmiş ev POI'si.

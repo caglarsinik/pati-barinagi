@@ -23,6 +23,9 @@ export const BALANCE = {
     height: 200,
     /** Barınak arsası (kare). Merkezde, genişletilebilir. */
     plot: { x: 80, y: 84, w: 40, h: 32 },
+    /** Kuruluş açılışı (0.19.0): rezerv arsanın içindeki çekirdek (kapıları yollarla hizalı) ve ondan ilk genişletmenin bedeli. */
+    plotCore: { dx: 8, dy: 6, w: 24, h: 20 },
+    firstExpansionCost: 1500,
     plotMaxW: 88,
     plotMaxH: 64,
     nestMinDistance: 12,
@@ -401,6 +404,11 @@ export const BALANCE = {
   village: {
     wholesaleMul: 0.7,
     minBags: 3,
+  },
+  /** Belediye hedefleri (0.19.0): ödül çarpanı ve hedef başına itibar. */
+  goals: {
+    rewardMul: 1,
+    reputation: 1,
   },
   /** Tam ekran harita (0.18.1): en çok işaret sayısı. */
   map: {

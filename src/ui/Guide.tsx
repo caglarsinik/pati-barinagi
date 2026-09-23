@@ -2,6 +2,8 @@ import { useState } from 'preact/hooks';
 import { app } from '../app';
 import { t } from '../i18n';
 import { isReady } from '../sim/entities/Building';
+import { goalReward } from '../sim/systems/Goals';
+import { formatMoney } from './format';
 import { store } from './store';
 
 interface Step {
@@ -28,17 +30,19 @@ export function Guide() {
   ];
   const remaining = steps.filter((s) => !s.done);
   const [expanded, setExpanded] = useState(false);
-  if (remaining.length === 0) return null;
-  const shown = remaining.slice(0, 4);
+  // Belediye hedefi (0.19.0): rehberin en üstünde; rehber adımları bitse de hedef varken kart kalır.
+  const goal = sim.goals.current;
+  if (remaining.length === 0 && !goal) return null;
+  const shown = remaining.slice(0, goal ? 3 : 4);
   if (store.layout.value !== 'desktop' && !expanded) {
     return (
-      <button class="guide guide-pill panel" onClick={() => setExpanded(true)} title={t('Başlangıç rehberi')}>
-        ☐ {t('Rehber {n}/{total}', { n: steps.length - remaining.length, total: steps.length })} ▸
+      <button class={'guide guide-pill panel' + (goal ? ' has-goal' : '')} onClick={() => setExpanded(true)} title={t('Başlangıç rehberi')}>
+        {goal ? `🎯 ${t(goal.title)} · ${formatMoney(goalReward(goal))}` : `☐ ${t('Rehber {n}/{total}', { n: steps.length - remaining.length, total: steps.length })}`} ▸
       </button>
     );
   }
   return (
-    <div class="guide panel" onClick={() => store.layout.value !== 'desktop' && setExpanded(false)}>
+    <div class={'guide panel' + (goal ? ' has-goal' : '')} onClick={() => store.layout.value !== 'desktop' && setExpanded(false)}>
       <div class="guide-head">
         <b>{t('Başlangıç rehberi')}</b>
         <span class="muted small-text">
@@ -48,6 +52,12 @@ export function Guide() {
           ✕
         </button>
       </div>
+      {goal && (
+        <div class="guide-goal">
+          🎯 <b>{t(goal.title)}</b> · {formatMoney(goalReward(goal))}
+          <div class="muted small-text">{t(goal.desc)}</div>
+        </div>
+      )}
       {shown.map((s) => (
         <div key={s.text} class="guide-step">
           ☐ {t(s.text)}

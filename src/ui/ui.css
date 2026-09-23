@@ -1274,6 +1274,12 @@ select,
   padding: 1px 0;
 }
 
+.guide-goal {
+  padding: 2px 0 4px;
+  margin-bottom: 2px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.12);
+}
+
 /* --- Olaylar ve başarımlar --- */
 .event-log {
   margin-top: 8px;

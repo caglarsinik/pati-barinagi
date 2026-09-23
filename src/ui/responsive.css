@@ -302,6 +302,11 @@ html.is-touch .build-item {
     display: none;
   }
 
+  /* Belediye hedefi (0.19.0) telefonda da görünür. */
+  .guide.has-goal {
+    display: block;
+  }
+
   /* Alt menü öğeleri daralabilir; E düğmesi küçülür. */
   .nav-item {
     width: auto;

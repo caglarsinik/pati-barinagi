@@ -141,6 +141,8 @@ export function createTouchDebug(app: DebugApp) {
     },
     runTouchScenarios(): { summary: string; results: ScenarioResult[] } {
       const { sim } = need();
+      // Senaryolar hazır barınağın binalarını varsayar (0.19.0; kuruluş senaryosu 0.19.3'te).
+      if (sim.starter === 'guided') return { summary: 'kuruluş oyununda koşulmaz: "Hazır barınak" ile yeni oyun başlat', results: [] };
       const results: ScenarioResult[] = [];
       const run = (frames: number, until?: () => boolean): void => {
         for (let i = 0; i < frames && !(until && until()); i++) sim.update(1 / 30);

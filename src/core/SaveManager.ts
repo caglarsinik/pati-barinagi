@@ -24,6 +24,8 @@ export interface SaveData {
   bakesToday?: number;
   markers?: unknown[];
   villageFound?: boolean;
+  starter?: string;
+  goals?: unknown;
   foodStock?: number;
   nextId?: number;
   stats?: unknown;

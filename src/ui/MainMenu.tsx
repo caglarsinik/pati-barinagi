@@ -4,7 +4,7 @@ import { GAME } from '../config/game';
 import { BALANCE } from '../config/balance';
 import type { SaveSummary } from '../core/SaveManager';
 import { getLang, t } from '../i18n';
-import { DIFFICULTIES, DIFFICULTY_NAMES_TR, type Difficulty } from '../sim/Sim';
+import { DIFFICULTIES, DIFFICULTY_NAMES_TR, type Difficulty, type StarterKind } from '../sim/Sim';
 import { formatMoney } from './format';
 import { InstallControls } from './InstallControls';
 import { store } from './store';
@@ -95,6 +95,7 @@ export function MainMenu() {
   store.lang.value;
   const [seed, setSeed] = useState('');
   const [difficulty, setDifficulty] = useState<Difficulty>(() => app.lastDifficulty());
+  const [starter, setStarter] = useState<StarterKind>(() => app.lastStarter());
   const [confirmOverwrite, setConfirmOverwrite] = useState(false);
   const D = BALANCE.difficulty[difficulty];
   const booted = store.booted.value;
@@ -108,7 +109,7 @@ export function MainMenu() {
       return;
     }
     setConfirmOverwrite(false);
-    app.newGame(seed, difficulty, selected);
+    app.newGame(seed, difficulty, selected, starter);
   };
   const select = (i: number): void => {
     store.saveSlot.value = i;
@@ -157,6 +158,13 @@ export function MainMenu() {
             <span class="muted small-text">
               {t('Başlangıç {money} · yardım ×{aid} · ihtiyaç hızı ×{needs}', { money: formatMoney(D.startMoney), aid: D.aidMul, needs: D.needsMul })}
             </span>
+          </label>
+          <label class="field">
+            <span>{t('Başlangıç türü')}</span>
+            <select value={starter} onChange={(e) => setStarter((e.target as HTMLSelectElement).value as StarterKind)}>
+              <option value="guided">{t('Kuruluş: küçük arsa, adım adım (önerilir)')}</option>
+              <option value="ready">{t('Hazır barınak: büyük arsa, binalar kurulu')}</option>
+            </select>
           </label>
           <button class={'btn' + (confirmOverwrite ? ' danger' : '')} disabled={!booted} onClick={startNew}>
             {confirmOverwrite ? t('Yuva {n} silinip yeni oyun başlasın mı? Onayla', { n: selected + 1 }) : occupied ? t('Yeni oyun (yuva {n}, üzerine yazar)', { n: selected + 1 }) : t('Yeni oyun (yuva {n})', { n: selected + 1 })}
