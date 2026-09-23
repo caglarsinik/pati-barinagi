@@ -57,6 +57,29 @@
   köpek paneli, araç şeridi, alt menü listesi, ana menü, Ayarlar: çakışma yok, taşma yok. Alt menü açılır listesi köpek
   panelinin üstüne gelebilir (geçici popover, üstte kalır) — kabul edildi. Gerçek cihaz testi kullanıcıda.
 
+## 0.20.1 — Köylüler (M11; Claude, 2026-09-23)
+- Yeni `src/sim/entities/Villager.ts` (`VillagerRole`, `VillagerPlace` = home/work/spot/spot2/plaza, `VILLAGER_ROLE_NAMES_TR`)
+  ve `src/sim/systems/VillagerSystem.ts` (`Sim.villagers`, `stepSim` içinde `update(dtMin)`). Köy bulununca (`villageFound`)
+  tohumdan altı köylü kurulur: toptancı çırağı (iş: toptancı), dükkâncı (iş: oyuncak dükkânı), yaşlı, çocuk, bahçıvan, gezgin;
+  üç eve ikişer. Adlar `hash3(seed, …)` ayrı RNG'sinden, görünüm tohumu `hash3`; ana RNG'ye dokunmaz, KAYDEDİLMEZ (yeri
+  saatten çıkar).
+- Çizelge `ROLES`: hafta içi dilimler (ör. çırak 7 iş, 17 çeşme yanı, 19 ev), Pazar (`BALANCE.shop.marketWeekday`) herkes
+  meydanda; ilk dilimden önce evde. Ev ve iş yerinde kapı önüne gidip "içeride" (gizli) olur; noktalar köy dikdörtgenine göre
+  (çeşme çevresi, meydan, bahçe, yol başı; testte hepsi yürünebilir ve evden yol var).
+- Oyuncu köyün `BALANCE.villagers.nearTiles` 40 karesindeyse (içeride değil) köylü `findPath` (köy bölgesi, 4.000 düğüm) ile
+  `speed` 1,4 kare/oyun dakikası yürür; uzaktayken yerine anında yerleşir.
+- Konuşma: `resolveAction` baktığın noktada görünen köylü (`villagers.at`, erim 0,8) → `talk` "E: {ad} ile konuş (rol)";
+  `villagers.talk` köylüyü oyuncuya döndürür, `TALK_LINES` (10 ipucu/dedikodu) günün tohumuyla başlayıp sırayla söyler. Dokunuş:
+  `WorldScene.touchTap` köylüye dokununca `NavGoal { kind: 'villager' }` (yanına git, dön, konuş).
+- Çizim: `WorldScene.syncVillagers` (sahiplenici gibi insan dokusu, yürüme animasyonu, içerideyken gizli). Sahne kapanırken
+  `villagerSprites` temizlenir (yoksa yeni oyunda silinmiş görseller kalıyordu; tarayıcıda yakalandı).
+- Kontroller'de dokunma satırı "Köylüye dokun". i18n testine rol adları ve konuşma satırları eklendi.
+- Testler `tests/unit/villagers.test.ts` (5): köy bulunmadan yok, tohumdan aynı altı köylü, ana RNG sırası; çizelge (hafta içi,
+  gece, Pazar); yakındayken adım adım yürüyüş (evden çıkış, iş yerine giriş, adım ≤ hız × süre); E ile konuşma; yerlerin
+  yürünebilirliği ve yollar (üç tohum). 375 test. Tarayıcı 812×375: Pazartesi 10:00 köyde yaşlı, çocuk, bahçıvan dışarıda,
+  çalışanlar içeride; E ile ve dokunarak konuşma; 11:00'da çocuk ikinci noktasına yürüdü; `runTouchScenarios` 13/13.
+- Sıradaki: 0.20.2 köy kademesi ve sahiplenilen köpekler köyde.
+
 ## 0.20.0 — Oyuncak ve ilaç dükkânı, Pazar tezgâhı (M11; Claude, 2026-09-23)
 - Yeni `src/sim/systems/ShopSystem.ts`: `Supplies { toy, vitamin }`, `shopPrice(item, market)`, `buyShop` (yalnız `toyShop`
   iç mekânında; her türden en çok `BALANCE.shop.maxSupply` 20; bisiklet bir kez), `buyMarket` (yalnız Pazar = `clock.weekday`

@@ -44,6 +44,7 @@ const TOUCH_ROWS: Array<[string, string]> = [
   ['🤖 düğmesi (üst şerit)', 'Otopilot: yem, su, temizlik, köpek işleri, yumurta, gece uykusu, ödül maması pişirme; haritaya dokununca kapanır'],
   ['İki parmak', 'Yakınlaştır · yönetim modunda kaydır'],
   ['Sürükle (yönetim)', 'Kamerayı kaydır · araç seçiliyse çit/yol/bölge çiz'],
+  ['Köylüye dokun', 'Yanına gidip konuşur: ipucu ve köy dedikodusu'],
 ];
 
 /** Kontroller sayfası: klavye ve fare tablosu. Alt menü → Menü → Kontroller ya da duraklatma menüsünden açılır. */

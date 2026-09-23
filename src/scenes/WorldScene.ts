@@ -109,6 +109,8 @@ export class WorldScene extends Phaser.Scene {
   private interiorExtras: Phaser.GameObjects.GameObject[] = [];
   /** Pazar tezgâhının satıcısı: yalnız Pazar görünür (0.20.0). */
   private marketVendor: Phaser.GameObjects.Sprite | null = null;
+  /** Köylü görselleri (0.20.1). */
+  private villagerSprites = new Map<number, Phaser.GameObjects.Sprite>();
   private buildingImages = new Map<number, Phaser.GameObjects.Image>();
   private dogSprites = new Map<number, Phaser.GameObjects.Sprite>();
   /** Doku temizliği için köpek id → genom. */
@@ -355,6 +357,7 @@ export class WorldScene extends Phaser.Scene {
       this.dogSprites.clear();
       this.adopterSprites.clear();
       this.staffSprites.clear();
+      this.villagerSprites.clear();
     });
 
     syncStore(this.sim);
@@ -370,6 +373,7 @@ export class WorldScene extends Phaser.Scene {
     this.syncPlayerSprite();
     this.syncDogs();
     this.syncAdopters();
+    this.syncVillagers();
     this.syncStaff();
     this.syncBuildings();
     this.marketVendor?.setVisible(isMarketDay(this.sim));
@@ -478,6 +482,7 @@ export class WorldScene extends Phaser.Scene {
         wholesale: 'click',
         toyShop: 'click',
         market: 'click',
+        talk: 'click',
       };
       const name = sfx[kind];
       if (name) audio.play(name);
@@ -699,7 +704,10 @@ export class WorldScene extends Phaser.Scene {
     const w = sim.world;
     if (!w.inBounds(tx, ty)) return;
     // Köpeğin dibindeyken çevresine dokunuş yürüyüştür (pick.interact false): aşağıdaki kare mantığına düşer.
+    // Köylüye dokunuş (0.20.1): yanına gidip konuş.
+    const villager = pick?.interact ? null : sim.villagers.at(wx, wy, BALANCE.villagers.talkReach + 0.3);
     if (pick?.interact) sim.command({ type: 'goInteract', goal: { kind: 'dog', id: pick.dog.id } });
+    else if (villager) sim.command({ type: 'goInteract', goal: { kind: 'villager', index: villager.index } });
     else {
       const bid = w.buildingIdAt(tx, ty);
       const o = w.objectAt(tx, ty);
@@ -857,6 +865,32 @@ export class WorldScene extends Phaser.Scene {
       if (!seen.has(id)) {
         s.destroy();
         this.dogSprites.delete(id);
+      }
+    }
+  }
+
+  /** Köylüler (0.20.1): evde ya da işteyken gizli; yürürken yürüme animasyonu. */
+  private syncVillagers(): void {
+    const T = GAME.tile;
+    for (const v of this.sim.villagers.list) {
+      const key = ensureHumanTexture(this, v.look);
+      let s = this.villagerSprites.get(v.index);
+      if (!s) {
+        s = this.add.sprite(0, 0, key, 0).setOrigin(0.5, 1);
+        this.villagerSprites.set(v.index, s);
+      }
+      s.setVisible(!v.inside);
+      if (v.inside) continue;
+      const px = Math.round(v.x * T);
+      const py = Math.round(v.y * T + 6);
+      s.setPosition(px, py);
+      s.setDepth(100 + py);
+      if (v.moving && !this.sim.paused) {
+        s.anims.play(`${key}-walk-${v.facing}`, true);
+        s.anims.timeScale = Math.max(0.6, Math.min(3, this.sim.speed * 0.9));
+      } else {
+        s.anims.stop();
+        s.setFrame(v.facing * 3);
       }
     }
   }

@@ -17,6 +17,7 @@ import { incubatorSlots, incubatorTimeMul } from './IncubatorSystem';
 import { RARITY_NAMES_TR } from '../entities/DogGenome';
 import { VILLAGE_NAMES_TR, villageInteriorKind, wholesaleBagPrice } from '../world/Village';
 import { isMarketDay } from './ShopSystem';
+import { VILLAGER_ROLE_NAMES_TR } from '../entities/Villager';
 
 export type Tool = 'pet' | 'play' | 'train' | 'feed' | 'clean' | 'call';
 
@@ -70,6 +71,7 @@ export type ActionKind =
   | 'wholesale'
   | 'toyShop'
   | 'market'
+  | 'talk'
   | 'none';
 
 export interface ResolvedAction {
@@ -80,6 +82,8 @@ export interface ResolvedAction {
   tile?: TilePos;
   /** Köy binası sırası (0.18.2). */
   village?: number;
+  /** Konuşulacak köylü (0.20.1). */
+  villager?: number;
 }
 
 /** Oyuncunun önündeki nokta (kare biriminde). */
@@ -255,6 +259,17 @@ export function resolveAction(sim: Sim): ResolvedAction {
     return { kind: 'berries', hint: t('E: böğürtlen topla (ödül maması +{n})', { n: BALANCE.eggs.treatsPerBush + sim.weatherSys.modifiers().berryBonus }), tile };
   }
   if (obj === Obj.Den) return { kind: 'none', hint: t('Sokak köpeği ini'), tile };
+
+  // Köylü (0.20.1): baktığın yerde duran köylüyle konuş.
+  const villager = sim.villagers.at(fp.x, fp.y);
+  if (villager) {
+    return {
+      kind: 'talk',
+      hint: t('E: {name} ile konuş ({role})', { name: villager.name, role: t(VILLAGER_ROLE_NAMES_TR[villager.role]) }),
+      villager: villager.index,
+      tile,
+    };
+  }
 
   // Köy binası (0.18.2).
   const vb = w.villageAt(tile.x, tile.y);
@@ -570,6 +585,8 @@ export function performAction(sim: Sim): ActionOutcome {
       return { ok: true, open: 'toyShop' };
     case 'market':
       return { ok: true, open: 'market' };
+    case 'talk':
+      return r.villager !== undefined ? sim.villagers.talk(r.villager) : { ok: false };
     case 'sleep':
       if (!canSleepAt(sim.clock.hour)) return { ok: false, message: t("Henüz erken: {h}:00'den sonra uyunabilir", { h: BALANCE.time.sleepFromHour }) };
       return sim.command({ type: 'sleep' });

@@ -428,6 +428,12 @@ export const BALANCE = {
     /** Tezgâhtan alışveriş için en çok uzaklık (kare). */
     marketReach: 3,
   },
+  /** Köylüler (0.20.1): yürüme hızı (kare/oyun dakikası), yürüyüşün görüldüğü uzaklık (kare), konuşma erimi. */
+  villagers: {
+    speed: 1.4,
+    nearTiles: 40,
+    talkReach: 0.8,
+  },
   /** Belediye hedefleri (0.19.0): ödül çarpanı ve hedef başına itibar. */
   goals: {
     rewardMul: 1,

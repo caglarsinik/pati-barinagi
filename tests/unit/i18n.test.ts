@@ -17,6 +17,8 @@ import {
 import { ATTR_NAMES_TR, ROLE_NAMES_TR, TASK_NAMES_TR, TRAIT_INFO_TR } from '../../src/sim/entities/Staff';
 import { ACHIEVEMENTS } from '../../src/sim/systems/Achievements';
 import { GOALS } from '../../src/sim/systems/Goals';
+import { VILLAGER_ROLE_NAMES_TR } from '../../src/sim/entities/Villager';
+import { TALK_LINES } from '../../src/sim/systems/VillagerSystem';
 import { LEDGER_NAMES_TR } from '../../src/sim/systems/EconomySystem';
 import { TOOL_DEFS } from '../../src/sim/systems/Interaction';
 import { SEASON_NAMES_TR, WEATHER_NAMES_TR } from '../../src/sim/systems/WeatherSystem';
@@ -69,6 +71,8 @@ function tableValues(): string[] {
   for (const x of Object.values(TRAIT_INFO_TR)) out.push(x.name, x.desc);
   for (const a of ACHIEVEMENTS) out.push(a.name, a.desc);
   for (const g of GOALS) out.push(g.title, g.desc);
+  for (const l of TALK_LINES) out.push(l);
+  push(VILLAGER_ROLE_NAMES_TR);
   return out.filter((v) => typeof v === 'string' && v.length > 0);
 }
 

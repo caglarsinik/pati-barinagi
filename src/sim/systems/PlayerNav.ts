@@ -17,6 +17,8 @@ export type NavGoal =
   | { kind: 'enter'; id: number }
   /** Köy binası (0.18.2): kapı önüne yürü, içeri gir. */
   | { kind: 'village'; index: number }
+  /** Köylü (0.20.1): yanına git, dönüp konuş. */
+  | { kind: 'villager'; index: number }
   | { kind: 'object'; tile: TilePos };
 
 interface Target {
@@ -78,6 +80,11 @@ export class PlayerNav {
       if (!d) return null;
       anchor = { x: d.tileX, y: d.tileY };
       face = { x: d.x, y: d.y - 0.3 };
+    } else if (goal.kind === 'villager') {
+      const v = sim.villagers.list[goal.index];
+      if (!v || v.inside) return null;
+      anchor = { x: Math.floor(v.x), y: Math.floor(v.y) };
+      face = { x: v.x, y: v.y - 0.35 };
     } else if (goal.kind === 'village') {
       const vb = sim.world.villageBuildings[goal.index];
       if (!vb) return null;

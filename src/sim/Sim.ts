@@ -64,6 +64,7 @@ import { applyFoundingPlot } from './world/PlotReserve';
 import { type GoalDef, GoalSystem } from './systems/Goals';
 import { type DaySnapshot, type MorningReport, buildMorningReport, daySnapshotFrom, diffDay, takeDaySnapshot } from './systems/DayReport';
 import { type MarketItem, type ShopItem, type Supplies, type SupplyKind, bicycleExertion, buyMarket, buyShop, giveSupply } from './systems/ShopSystem';
+import { VillagerSystem } from './systems/VillagerSystem';
 
 export type Mode = 'avatar' | 'manage';
 
@@ -314,6 +315,8 @@ export class Sim {
   readonly eventSys: EventSystem;
   readonly achievements: AchievementSystem;
   readonly goals: GoalSystem;
+  /** Köylüler (0.20.1; kaydedilmez, tohumdan ve saatten çıkar). */
+  readonly villagers: VillagerSystem;
   readonly illness: IllnessSystem;
   readonly nav: PlayerNav;
   readonly pilot: Autopilot;
@@ -407,6 +410,7 @@ export class Sim {
     this.eventSys = new EventSystem(this);
     this.achievements = new AchievementSystem(this);
     this.goals = new GoalSystem(this);
+    this.villagers = new VillagerSystem(this);
     this.illness = new IllnessSystem(this);
     this.nav = new PlayerNav(this);
     this.pilot = new Autopilot(this);
@@ -524,6 +528,7 @@ export class Sim {
       this.goals.check();
     }
     this.staffSystem.update(dtMin);
+    this.villagers.update(dtMin);
     this.gates.update(0);
   }
 
