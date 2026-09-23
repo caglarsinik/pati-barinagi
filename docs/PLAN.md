@@ -469,7 +469,7 @@ iflas/kredi ve bina döndürme M10'da yapıldı.
 |---|---|
 | 0.18.0 ✅ | İnler mevsimlik dolar (ayrı RNG, en çok 8 vahşi) + dışarıda hava (fırtına/kar dayanıklılık, kış gecesi karanlık) |
 | 0.18.1 ✅ | Tam ekran harita (M / 🗺️ / mini harita), işaret koyma (en çok 5), işarete git |
-| 0.18.2 | Köy (güney yolun ucu) + yem toptancısı içi (ucuz çuval) |
+| 0.18.2 ✅ | Köy (güney yolun ucu, RNG'siz yerleşim) + yem toptancısı içi (çuval ×0,7, en az 3) + "Köyü buldun" |
 | 0.18.3 | Oyuncak/ilaç dükkânı (oyuncak paketi, vitamin, bisiklet) + pazar günü |
 | 0.18.4 | Yol tabelaları + hızlı seyahat; bisikletle koşu ×1,5 |
 | 0.18.5 | Köylü görevleri (kayıp köpek, belli renkte yavru, yem getir) |

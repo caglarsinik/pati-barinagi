@@ -15,6 +15,7 @@ import { bake, bakeIssue, bakesLeft, kitchenWaterPerHour } from './KitchenSystem
 import { treatmentCost } from './ClinicSystem';
 import { incubatorSlots, incubatorTimeMul } from './IncubatorSystem';
 import { RARITY_NAMES_TR } from '../entities/DogGenome';
+import { VILLAGE_NAMES_TR, villageInteriorKind, wholesaleBagPrice } from '../world/Village';
 
 export type Tool = 'pet' | 'play' | 'train' | 'feed' | 'clean' | 'call';
 
@@ -64,6 +65,8 @@ export type ActionKind =
   | 'autoOrder'
   | 'bake'
   | 'clinic'
+  | 'enterVillage'
+  | 'wholesale'
   | 'none';
 
 export interface ResolvedAction {
@@ -72,6 +75,8 @@ export interface ResolvedAction {
   dog?: Dog;
   building?: Building;
   tile?: TilePos;
+  /** Köy binası sırası (0.18.2). */
+  village?: number;
 }
 
 /** Oyuncunun önündeki nokta (kare biriminde). */
@@ -139,6 +144,12 @@ function resolveInterior(sim: Sim, tile: TilePos): ResolvedAction {
       return { kind: 'none', hint: t('TV: molada moral saatte +1'), tile };
     case 'fridge':
       return { kind: 'none', hint: t('Buzdolabı: personel moladan enerjisi tam dolunca döner'), tile };
+    case 'bulkSacks':
+      return { kind: 'none', hint: t('Toptan çuvallar: tezgâhtan satın al'), tile };
+    case 'crates':
+      return { kind: 'none', hint: t('Mama kasaları'), tile };
+    case 'shopCounter':
+      return { kind: 'wholesale', hint: t('E: tezgâh · toptan çuval ({p} ₺/çuval)', { p: wholesaleBagPrice() }), tile };
     case 'tray': {
       const b = sim.buildingById(it.buildingId);
       const first = (item.slot ?? 0) * 3;
@@ -202,6 +213,7 @@ function resolveInterior(sim: Sim, tile: TilePos): ResolvedAction {
         tile,
       };
     default:
+      if (it.kind === 'wholesaler') return { kind: 'none', hint: t('Yem toptancısı · tezgâha bakıp E: toptan çuval · çıkmak için kapıya yürü'), tile };
       if (it.kind === 'hatchery') return { kind: 'none', hint: t('Kuluçka · kontrol paneline bakıp E: yumurta koy/al · raf: eşya al · çıkmak için kapıya yürü'), tile };
       if (it.kind === 'clinic') return { kind: 'none', hint: t('Veteriner odası · muayene masasına bakıp E: aşı · resepsiyon: eşya al · çıkmak için kapıya yürü'), tile };
       if (it.kind === 'kitchen') return { kind: 'none', hint: t('Mutfak · fırına bakıp E: ödül maması · tezgâh: eşya al · çıkmak için kapıya yürü'), tile };
@@ -234,6 +246,15 @@ export function resolveAction(sim: Sim): ResolvedAction {
     return { kind: 'berries', hint: t('E: böğürtlen topla (ödül maması +{n})', { n: BALANCE.eggs.treatsPerBush + sim.weatherSys.modifiers().berryBonus }), tile };
   }
   if (obj === Obj.Den) return { kind: 'none', hint: t('Sokak köpeği ini'), tile };
+
+  // Köy binası (0.18.2).
+  const vb = w.villageAt(tile.x, tile.y);
+  if (vb) {
+    const name = t(VILLAGE_NAMES_TR[vb.kind]);
+    if (villageInteriorKind(vb.kind)) return { kind: 'enterVillage', hint: t('E: {name} · içeri gir', { name }), village: vb.index, tile };
+    if (vb.kind === 'toyShop') return { kind: 'none', hint: t('Oyuncak ve ilaç dükkânı: yakında açılacak'), tile };
+    return { kind: 'none', hint: name, tile };
+  }
 
   // Bina.
   const bid = w.buildingIdAt(tile.x, tile.y);
@@ -356,7 +377,7 @@ export interface ActionOutcome {
   ok: boolean;
   message?: string;
   /** UI'nın açması gereken panel. */
-  open?: 'shed' | 'kennel' | 'incubator' | 'office' | 'nursery' | 'computer' | 'order' | 'help' | 'furniture' | 'autoOrder' | 'clinic';
+  open?: 'shed' | 'kennel' | 'incubator' | 'office' | 'nursery' | 'computer' | 'order' | 'help' | 'furniture' | 'autoOrder' | 'clinic' | 'wholesale';
   building?: Building;
   dog?: Dog;
 }
@@ -529,6 +550,10 @@ export function performAction(sim: Sim): ActionOutcome {
     }
     case 'clinic':
       return { ok: true, open: 'clinic' };
+    case 'enterVillage':
+      return r.village !== undefined ? sim.enterVillage(r.village) : { ok: false };
+    case 'wholesale':
+      return { ok: true, open: 'wholesale' };
     case 'sleep':
       if (!canSleepAt(sim.clock.hour)) return { ok: false, message: t("Henüz erken: {h}:00'den sonra uyunabilir", { h: BALANCE.time.sleepFromHour }) };
       return sim.command({ type: 'sleep' });

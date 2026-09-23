@@ -57,6 +57,33 @@
   köpek paneli, araç şeridi, alt menü listesi, ana menü, Ayarlar: çakışma yok, taşma yok. Alt menü açılır listesi köpek
   panelinin üstüne gelebilir (geçici popover, üstte kalır) — kabul edildi. Gerçek cihaz testi kullanıcıda.
 
+## 0.18.2 — Köy ve yem toptancısı (M11; Claude, 2026-09-23)
+- Yeni `src/sim/world/Village.ts`: `stampVillage(world)` üretimin sonunda (WorldGen adım 8, `recomputeAllSolid`'den önce), **RNG
+  kullanmadan**: köyün üst satırı `height - 3 - 16`; o satırdaki ilk yol karesi `roadX`, köy `left = roadX - 11` (sınır dışıysa köy
+  yok). 24×16 alan temizlenir (üst sıradaki ağaç tepeleri dahil), biyom `Biome.Village` (yeni, 11, "Köy"), yol bandı (sütun
+  11–12) düz `Path`/`Road`, meydan 4–10. satırlar `Path`; alandaki yuva/in listeden çıkar. Binalar sabit `LAYOUT`: toptancı
+  4×3, ev, oyuncak dükkânı 4×3 (0.18.3'te açılacak; şimdilik "yakında açılacak"), ev, çeşme 2×2, ev. `buildingSolid` ile katı,
+  `world.village` / `world.villageBuildings` (kaydedilmez, her yüklemede üretilir), `TileWorld.villageAt`, `villageDoorTile`,
+  `villageInteriorKind` (yalnız toptancı), `wholesaleBagPrice` (80 × `BALANCE.village.wholesaleMul` 0,7 = 56 ₺),
+  `restampVillage` (`Sim.fromJSON` nesne değişiklikleri yeniden uygulandıktan sonra köyü tekrar temizler).
+- Eski kayıtlar: dünya tohumdan yeniden üretildiği için köy eski kayıtlarda da aynı yerde; yuva sayaçları kare indeksli.
+- `Sim.enterVillage(index)` (iç mekân `buildingId = VILLAGE_ID_BASE - index`, -1000'den geriye), `Sim.villageFound` (kayıtta;
+  `revealPlayer` köy alanına girilince bulur, mesaj), başarım `village` "Köyü buldun" (toplam 28). Komut `buyWholesale { bags }`
+  (yalnız toptancı içindeyken, en az 3, "Yem" gideri, kilere anında).
+- Etkileşim: köy binasına bakınca `enterVillage` ("E: Yem toptancısı · içeri gir") ya da ipucu; `ResolvedAction.village`.
+  Dokun-git: `NavGoal { kind: 'village', index }` (kapı önüne yürü, `enterVillage`); `WorldScene.touchTap` köy binasına dokunuşu
+  ayırır (girilemeyenlerde kapı önüne yürür).
+- İç mekân `wholesaler` (10×7): dolu çuval rafları (`bulkSacks`), tezgâh (`shopCounter` → yeni `src/ui/WholesalePanel.tsx`,
+  panel `'wholesale'`: 3/5/10 çuval), kasalar; tezgâh arkasında satıcı (`ensureHumanTexture(11, 'caretaker')`,
+  `WorldScene.interiorExtras`).
+- Görsel: `BuildingArt.drawVillageBuilding(kind, w, h)` (toptancı: ahşap, çuval tabelası; oyuncak dükkânı: beyaz, top ve haç
+  tabelası; ev: yeşil çatı; çeşme), `WorldScene.addVillageImage`; mini harita keşfedilmiş köy binalarını çizer.
+- Testler `tests/unit/village.test.ts` (3): 3 tohumda köy üretimi (yer, katılık, kapılar, yuva/in yok, yol bandı, deterministik),
+  bulma + başarım + kayıt, toptancıya E ve dokun-git ile giriş, tezgâh paneli, fiyat/en az 3/yalnız içeride, oyuncak dükkânı
+  kapalı, çizimler. 355 test. Tarayıcı: köy (x 92, y 181) dışarıdan, bulma bildirimi ve başarım, toptancı içi + satıcı,
+  3 çuval 168 ₺, `runTouchScenarios` 12/12.
+- Sıradaki: 0.18.3 oyuncak/ilaç dükkânı (oyuncak paketi, vitamin, bisiklet) + pazar günü.
+
 ## 0.18.1 — Tam ekran harita ve işaretler (M11; Claude, 2026-09-23)
 - `Sim.markers: MapMarker { id, x, y, color }[]` (kayıtta; yüklemede tamsayı, harita içi, en çok `BALANCE.map.maxMarkers` 5,
   renk 0–4). Komutlar: `addMarker { x, y }` (kare tabana yuvarlanır; sınır mesajı "En çok 5 işaret konabilir"; ilk boş renk,

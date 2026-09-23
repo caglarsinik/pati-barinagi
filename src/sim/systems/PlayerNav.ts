@@ -6,6 +6,7 @@ import type { TilePos } from '../world/TileWorld';
 import type { Sim } from '../Sim';
 import { performAction, resolveAction } from './Interaction';
 import { t } from '../../i18n';
+import { villageDoorTile } from '../world/Village';
 
 /** Dokun-git hedefi: boş kare ya da etkileşilecek şey (köpek, bina, yuva/çalı/pislik). */
 export type NavGoal =
@@ -14,6 +15,8 @@ export type NavGoal =
   | { kind: 'building'; id: number }
   /** Binanın kapı karesine dokunuş (0.17.0): kapı önüne yürü, E yerine içeri gir. */
   | { kind: 'enter'; id: number }
+  /** Köy binası (0.18.2): kapı önüne yürü, içeri gir. */
+  | { kind: 'village'; index: number }
   | { kind: 'object'; tile: TilePos };
 
 interface Target {
@@ -75,6 +78,11 @@ export class PlayerNav {
       if (!d) return null;
       anchor = { x: d.tileX, y: d.tileY };
       face = { x: d.x, y: d.y - 0.3 };
+    } else if (goal.kind === 'village') {
+      const vb = sim.world.villageBuildings[goal.index];
+      if (!vb) return null;
+      const door = villageDoorTile(vb);
+      return { tile: door, face: { x: door.x + 0.5, y: door.y - 0.5 } };
     } else if (goal.kind === 'building' || goal.kind === 'enter') {
       const b = sim.buildingById(goal.id);
       if (!b) return null;
@@ -243,6 +251,11 @@ export class PlayerNav {
     if (goal.kind === 'enter') {
       const result = sim.enterBuilding(goal.id);
       sim.events.emit('interacted', { kind: 'enter', result });
+      return;
+    }
+    if (goal.kind === 'village') {
+      const result = sim.enterVillage(goal.index);
+      sim.events.emit('interacted', { kind: 'enterVillage', result });
       return;
     }
     const kind = resolveAction(sim).kind;

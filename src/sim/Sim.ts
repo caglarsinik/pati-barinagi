@@ -59,6 +59,7 @@ import { t } from '../i18n';
 import { kitchenWaterPerHour } from './systems/KitchenSystem';
 import { vaccinate } from './systems/ClinicSystem';
 import { seasonForWeek } from './systems/WeatherSystem';
+import { VILLAGE_ID_BASE, restampVillage, villageDoorTile, villageInteriorKind, wholesaleBagPrice } from './world/Village';
 
 export type Mode = 'avatar' | 'manage';
 
@@ -164,7 +165,8 @@ export type Command =
   | { type: 'vaccinate'; dogId: number }
   | { type: 'addMarker'; x: number; y: number }
   | { type: 'removeMarker'; id: number }
-  | { type: 'goToMarker'; id: number };
+  | { type: 'goToMarker'; id: number }
+  | { type: 'buyWholesale'; bags: number };
 
 /** Tam ekran haritada konan işaret (0.18.1; kayıtta). color: 0-4 renk sırası. */
 export interface MapMarker {
@@ -312,6 +314,8 @@ export class Sim {
   bakesToday = 0;
   /** Harita işaretleri (0.18.1). */
   markers: MapMarker[] = [];
+  /** Köy bulundu mu (0.18.2; kayıtta). */
+  villageFound = false;
   readonly gates: GateSystem;
   flags: SimFlags = { foodDiscountDay: 0, extraAdoptersDay: 0, growlUntil: 0, growlA: '', growlB: '' };
   speed: Speed = 1;
@@ -504,6 +508,11 @@ export class Sim {
     if (!force && i === this.lastRevealTile) return;
     this.lastRevealTile = i;
     revealAround(this, this.player.tileX, this.player.tileY);
+    const v = this.world.village;
+    if (!this.villageFound && v && this.player.tileX >= v.x && this.player.tileY >= v.y && this.player.tileX < v.x + v.w && this.player.tileY < v.y + v.h) {
+      this.villageFound = true;
+      this.events.emit('message', t('🏘️ Köyü buldun! Yem toptancısında çuvallar %30 ucuz.'));
+    }
   }
 
   /** Sabah 06:00'ya kadar zamanı hızlıca geçirir; köpekler ve inşaatlar normal işler. */
@@ -863,6 +872,15 @@ export class Sim {
         this.setAutopilot(false);
         return { ok: this.nav.goTo({ x: m.x, y: m.y }) };
       }
+      case 'buyWholesale': {
+        if (this.interior?.kind !== 'wholesaler') return { ok: false, message: t('Toptancıda değilsin') };
+        const bags = Math.max(BALANCE.village.minBags, Math.floor(cmd.bags));
+        const cost = bags * wholesaleBagPrice();
+        if (this.money < cost) return { ok: false, message: t('Yeterli para yok') };
+        this.addExpense('food', cost, t('Toptan {n} çuval', { n: bags }));
+        this.foodStock += bags * BALANCE.economy.foodBagPortions;
+        return { ok: true, message: t('{n} çuval toptan alındı ({cost} ₺), kilere gönderildi', { n: bags, cost }) };
+      }
       case 'vaccinate': {
         const dog = this.dogById(cmd.dogId);
         return dog ? vaccinate(this, dog) : { ok: false };
@@ -1028,6 +1046,23 @@ export class Sim {
       this.enterPushSec = 0;
       this.enterBuilding(b.id);
     }
+  }
+
+  /** Köy binasına gir (0.18.2): kapı önünde E ya da dokunuş; oda kimliği VILLAGE_ID_BASE - index. */
+  enterVillage(index: number): ActionOutcome {
+    if (this.mode !== 'avatar' || this.interior) return { ok: false };
+    const vb = this.world.villageBuildings[index];
+    const kind = vb ? villageInteriorKind(vb.kind) : null;
+    if (!vb || !kind) return { ok: false };
+    const map = buildInterior(kind);
+    const door = villageDoorTile(vb);
+    this.nav.cancel();
+    this.interior = { ...map, buildingId: VILLAGE_ID_BASE - index, back: { x: door.x + 0.5, y: door.y + 0.9 } };
+    this.player.x = map.spawn.x;
+    this.player.y = map.spawn.y;
+    this.player.facing = 3;
+    this.events.emit('interiorChanged', this.interior);
+    return { ok: true };
   }
 
   /** İçinde bulunulan odanın eşyaları değişince odayı yeniden kurar (oyuncu yerinde kalır). */
@@ -1419,6 +1454,7 @@ export class Sim {
       bakeDay: this.bakeDay,
       bakesToday: this.bakesToday,
       markers: this.markers.map((m) => ({ ...m })),
+      villageFound: this.villageFound,
       loan: this.loan,
       negativeWeeks: this.negativeWeeks,
       gameOver: this.gameOver,
@@ -1499,6 +1535,7 @@ export class Sim {
     sim.coffeeDay = numOr(data.coffeeDay, 0, 0);
     sim.bakeDay = numOr(data.bakeDay, 0, 0);
     sim.bakesToday = Math.floor(numOr(data.bakesToday, 0, 0));
+    sim.villageFound = data.villageFound === true;
     sim.markers = Array.isArray(data.markers)
       ? data.markers
           .filter((raw): raw is MapMarker => {
@@ -1560,6 +1597,8 @@ export class Sim {
         if ((o === Obj.NestEggs || o === Obj.Nest) && !world.nests.some((nn) => nn.x === x && nn.y === y)) world.nests.push({ x, y });
       }
     }
+    // Köy alanı eski nesne değişikliklerinden sonra yeniden temizlenir (0.18.2).
+    restampVillage(world);
     const p = world.plot;
     const n = p.w * p.h;
     const objs = Array.isArray(data.plotObjects) && data.plotObjects.length === n ? data.plotObjects : null;

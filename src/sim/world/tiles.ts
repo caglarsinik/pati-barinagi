@@ -90,6 +90,8 @@ export enum Biome {
   Swamp = 8,
   Plot = 9,
   Road = 10,
+  /** Köy (0.18.2). */
+  Village = 11,
 }
 
 export const BIOME_NAMES_TR: Record<Biome, string> = {
@@ -104,6 +106,7 @@ export const BIOME_NAMES_TR: Record<Biome, string> = {
   [Biome.Swamp]: 'Bataklık',
   [Biome.Plot]: 'Barınak',
   [Biome.Road]: 'Yol',
+  [Biome.Village]: 'Köy',
 };
 
 export enum Zone {
@@ -183,4 +186,5 @@ export const BIOME_COLORS: Record<Biome, number> = {
   [Biome.Swamp]: 0x4f6142,
   [Biome.Plot]: 0x9ad86e,
   [Biome.Road]: 0xb69465,
+  [Biome.Village]: 0xc9a27a,
 };

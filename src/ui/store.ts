@@ -39,7 +39,8 @@ export type Panel =
   | 'computer'
   | 'furniture'
   | 'autoOrder'
-  | 'clinic';
+  | 'clinic'
+  | 'wholesale';
 
 export type BuildTool =
   | { kind: 'none' }

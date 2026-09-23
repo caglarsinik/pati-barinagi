@@ -28,6 +28,8 @@ import { SEASON_TINT } from '../sim/systems/WeatherSystem';
 import { t } from '../i18n';
 import type { Staff } from '../sim/entities/Staff';
 import { drawEgg } from '../render/EggArt';
+import { type VillageBuilding, villageDoorTile, villageInteriorKind } from '../sim/world/Village';
+import { drawVillageBuilding } from '../render/BuildingArt';
 
 type KeyName =
   | 'W' | 'A' | 'S' | 'D' | 'UP' | 'DOWN' | 'LEFT' | 'RIGHT' | 'SHIFT' | 'E' | 'I' | 'B' | 'X' | 'Z' | 'O' | 'N' | 'P' | 'F' | 'TAB' | 'SPACE' | 'ESC'
@@ -102,6 +104,8 @@ export class WorldScene extends Phaser.Scene {
   /** Kuluçka içindeki yumurta görselleri ve kurulduğu yumurta kümesi (0.17.3). */
   private interiorEggs: Phaser.GameObjects.Image[] = [];
   private interiorEggSig = '';
+  /** İç odadaki eşya dışı görseller (0.18.2: toptancı satıcısı). */
+  private interiorExtras: Phaser.GameObjects.GameObject[] = [];
   private buildingImages = new Map<number, Phaser.GameObjects.Image>();
   private dogSprites = new Map<number, Phaser.GameObjects.Sprite>();
   /** Doku temizliği için köpek id → genom. */
@@ -222,6 +226,9 @@ export class WorldScene extends Phaser.Scene {
     this.busyBar = this.add.graphics().setDepth(7000);
 
     // --- Seçim halkası ve inşa hayaleti ---
+    // Köy binaları (0.18.2): oyuncuya ait değil, yalnız görsel (katılık dünya üretiminde).
+    for (const vb of world.villageBuildings) this.addVillageImage(vb);
+
     this.selectRing = this.add.ellipse(0, 0, 22, 11).setStrokeStyle(1.5, 0xf6d55c, 0.95).setDepth(60).setVisible(false);
     this.ghostImage = this.add.image(0, 0, buildingTextureKey('bowl')).setOrigin(0, 1).setAlpha(0.6).setDepth(6000).setVisible(false);
     this.ghostGfx = this.add.graphics().setDepth(6001);
@@ -451,6 +458,8 @@ export class WorldScene extends Phaser.Scene {
         autoOrder: 'click',
         bake: 'feed',
         clinic: 'click',
+        enterVillage: 'click',
+        wholesale: 'click',
       };
       const name = sfx[kind];
       if (name) audio.play(name);
@@ -478,6 +487,7 @@ export class WorldScene extends Phaser.Scene {
       store.panel.value = 'furniture';
     } else if (r.open === 'autoOrder') store.panel.value = 'autoOrder';
     else if (r.open === 'clinic') store.panel.value = 'clinic';
+    else if (r.open === 'wholesale') store.panel.value = 'wholesale';
   }
 
   private readInput(): PlayerInput {
@@ -673,7 +683,11 @@ export class WorldScene extends Phaser.Scene {
     else {
       const bid = w.buildingIdAt(tx, ty);
       const o = w.objectAt(tx, ty);
-      if (bid >= 0) sim.command({ type: 'goInteract', goal: this.isDoorTile(bid, tx, ty) ? { kind: 'enter', id: bid } : { kind: 'building', id: bid } });
+      const vb = w.villageAt(tx, ty);
+      if (vb) {
+        const d = villageDoorTile(vb);
+        sim.command(villageInteriorKind(vb.kind) ? { type: 'goInteract', goal: { kind: 'village', index: vb.index } } : { type: 'goTo', x: d.x, y: d.y });
+      } else if (bid >= 0) sim.command({ type: 'goInteract', goal: this.isDoorTile(bid, tx, ty) ? { kind: 'enter', id: bid } : { kind: 'building', id: bid } });
       else if (o === Obj.NestEggs || o === Obj.Nest || o === Obj.BerryBush || o === Obj.Mess || o === Obj.Den) sim.command({ type: 'goInteract', goal: { kind: 'object', tile: { x: tx, y: ty } } });
       else sim.command({ type: 'goTo', x: tx, y: ty });
     }
@@ -1144,6 +1158,8 @@ export class WorldScene extends Phaser.Scene {
     for (const e of this.interiorEggs) e.destroy();
     this.interiorEggs = [];
     this.interiorEggSig = '';
+    for (const e of this.interiorExtras) e.destroy();
+    this.interiorExtras = [];
     if (this.interiorView) {
       for (const img of this.interiorView.items) img.destroy();
       this.interiorView.map.destroy();
@@ -1168,12 +1184,29 @@ export class WorldScene extends Phaser.Scene {
       });
       this.interiorView = { map, items };
       this.syncInteriorEggs();
+      if (it.kind === 'wholesaler') {
+        // Tezgâhın arkasında satıcı.
+        const key = ensureHumanTexture(this, 11, 'caretaker');
+        const py = 2 * T + 14;
+        this.interiorExtras.push(this.add.sprite(ox + 6.5 * T, py, key, 0).setOrigin(0.5, 1).setDepth(100 + py));
+      }
     } else {
       cam.setBounds(0, 0, this.sim.world.width * T, this.sim.world.height * T);
     }
     this.syncPlayerSprite();
     this.fitInteriorBounds();
     cam.centerOn(this.playerSprite.x, this.playerSprite.y - 8);
+  }
+
+  /** Köy binası görseli (0.18.2). */
+  private addVillageImage(vb: VillageBuilding): void {
+    const T = GAME.tile;
+    const key = `village-${vb.kind}-${vb.w}x${vb.h}`;
+    if (!this.textures.exists(key)) this.textures.addCanvas(key, drawVillageBuilding(vb.kind, vb.w, vb.h).toCanvas());
+    this.add
+      .image(vb.x * T, (vb.y + vb.h) * T, key)
+      .setOrigin(0, 1)
+      .setDepth(100 + (vb.y + vb.h) * T);
   }
 
   /** İç mekânlı binanın alt-orta karesi (kapının hemen üstü): dokunuş içeri sokar (0.17.0). */

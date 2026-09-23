@@ -4,10 +4,10 @@ import { TileWorld, type TilePos } from '../world/TileWorld';
 import { Ground } from '../world/tiles';
 
 /** Girilebilen binaların iç mekân türü (M15; diğer binalar sonra eklenir). */
-export type InteriorKind = 'office' | 'restRoom' | 'pantry' | 'kitchen' | 'clinic' | 'hatchery';
+export type InteriorKind = 'office' | 'restRoom' | 'pantry' | 'kitchen' | 'clinic' | 'hatchery' | 'wholesaler';
 
 /** İç mekân eşyası: kare dikdörtgeni katıdır, önünde E ile kullanılır. */
-export type InteriorItemType = 'desk' | 'board' | 'window' | 'bookshelf' | 'coffee' | 'phone' | 'bed' | 'plant' | 'restBoard' | 'sofa' | 'tv' | 'fridge' | 'sacks' | 'ledger' | 'orderBoard' | 'counter' | 'oven' | 'waterTank' | 'spiceRack' | 'foodShelf' | 'examTable' | 'medCabinet' | 'reception' | 'waitChairs' | 'xray' | 'tray' | 'controlPanel' | 'heatLamp' | 'supplies';
+export type InteriorItemType = 'desk' | 'board' | 'window' | 'bookshelf' | 'coffee' | 'phone' | 'bed' | 'plant' | 'restBoard' | 'sofa' | 'tv' | 'fridge' | 'sacks' | 'ledger' | 'orderBoard' | 'counter' | 'oven' | 'waterTank' | 'spiceRack' | 'foodShelf' | 'examTable' | 'medCabinet' | 'reception' | 'waitChairs' | 'xray' | 'tray' | 'controlPanel' | 'heatLamp' | 'supplies' | 'bulkSacks' | 'shopCounter' | 'crates';
 
 /** İç mekâna satın alınan eşyalar (0.16.3 dinlenme odası). Fiyat ve üst sınır BALANCE.interior.furniture. */
 export type FurnitureType = 'sofa' | 'coffee' | 'tv' | 'fridge' | 'waterTank' | 'oven2' | 'medCabinet' | 'heatLamp';
@@ -41,6 +41,7 @@ export const FURNITURE_BY_KIND: Record<InteriorKind, readonly FurnitureType[]> =
   kitchen: ['waterTank', 'oven2'],
   clinic: ['medCabinet'],
   hatchery: ['heatLamp'],
+  wholesaler: [],
 };
 
 /** Kayıttan gelen eşya listesini temizler: odanın kataloğundaki türler, her türden en çok üst sınır kadar. */
@@ -173,6 +174,16 @@ const TEMPLATES: Record<InteriorKind, InteriorTemplate> = {
       { type: 'tray', x: 4, y: 2, w: 2, h: 1, slot: 1, minLevel: 2 },
       { type: 'heatLamp', x: 6, y: 2, w: 1, h: 1, buy: 'heatLamp' },
       { type: 'supplies', x: 6, y: 4, w: 1, h: 1 },
+    ],
+  },
+  // 0.18.2 köydeki yem toptancısı: dolu çuval rafları, tezgâh (toptan çuval paneli; satıcı sahnede arkasında), kasalar.
+  wholesaler: {
+    rows: ['##########', '#========#', '#........#', '#........#', '#........#', '#........#', '####D#####'],
+    items: [
+      { type: 'bulkSacks', x: 1, y: 2, w: 2, h: 1 },
+      { type: 'bulkSacks', x: 3, y: 2, w: 2, h: 1 },
+      { type: 'shopCounter', x: 5, y: 3, w: 3, h: 1 },
+      { type: 'crates', x: 8, y: 5, w: 1, h: 1 },
     ],
   },
 };

@@ -23,6 +23,7 @@ export interface SaveData {
   bakeDay?: number;
   bakesToday?: number;
   markers?: unknown[];
+  villageFound?: boolean;
   foodStock?: number;
   nextId?: number;
   stats?: unknown;

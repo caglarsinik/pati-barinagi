@@ -244,6 +244,13 @@ oraya renkli bir işaret konur (en çok 5); bir işarete dokunmak onu seçer. Sa
 **Git** haritayı kapatıp seni oraya yürütür (yol yoksa söyler), **✕** işareti siler. İşaretler mini haritada da görünür ve
 kayıtla korunur. İç mekândayken önce dışarı çıkmak gerekir.
 
+## Köy
+
+Güney yolunu harita kenarına kadar izleyince **köye** varırsın (0.18.2; haritada "Köy" biyomu, mini haritada kahverengi
+binalar). Köye ilk girişte "Köyü buldun" başarımı açılır. **Yem toptancısına** kapısında E ile ya da binaya dokunarak girersin;
+tezgâhta çuval 56 ₺'dir (kilerden siparişte 80 ₺), en az 3 çuval alınır ve kilere hemen gönderilir. Oyuncak ve ilaç dükkânı
+yakında açılacak. Köy eski kayıtlarda da aynı yerdedir.
+
 ## Hava, mevsim ve olaylar
 
 - Her mevsim 2 hafta sürer (ilkbahar → yaz → sonbahar → kış). HUD'ın ortasında mevsim ve hava yazar; hava 6-14 saatte bir değişir.
@@ -260,7 +267,7 @@ kayıtla korunur. İç mekândayken önce dışarı çıkmak gerekir.
 
 ## Başarımlar
 
-H tuşu ya da ofis panelinden 27 başarımın listesi açılır (ilk yumurta, 10 sahiplendirme, 95+ eşleşme, 1,4 denetim çarpanı, 20.000 ₺, efsanevi köpek, bir yıl dayanmak...). Her başarım açıldığında itibar +1 verir; kayıtla korunur.
+H tuşu ya da ofis panelinden 28 başarımın listesi açılır (ilk yumurta, 10 sahiplendirme, 95+ eşleşme, 1,4 denetim çarpanı, 20.000 ₺, efsanevi köpek, bir yıl dayanmak...). Her başarım açıldığında itibar +1 verir; kayıtla korunur.
 
 ## Dil
 
@@ -320,6 +327,7 @@ Bilgisayar değiştirirken ya da yedek almak için kullan.
 - [x] 0.17.4 Cila: otopilot mutfakta ödül maması pişirir, dokunma senaryoları 11–12 — M16 tamam
 - [x] 0.18.0 İnler mevsimlik dolar, dışarıda hava (fırtına dayanıklılık, kış gecesi karanlık)
 - [x] 0.18.1 Tam ekran harita (M, 🗺️, mini haritaya dokun): dokunarak işaret koy (en çok 5), "Git" ile işarete yürü
+- [x] 0.18.2 Köy (güney yolun ucu) ve yem toptancısı (çuval %30 ucuz, en az 3), "Köyü buldun" başarımı
 - [ ] M11 Yaşayan Dünya (0.18.x): harita/işaretler, köy ve dükkânlar, hızlı seyahat, görevler, terk edilmiş ev, taş/odun
 - [ ] Sonrası: M13 Sahiplendirme Hikâyeleri, yuva evi içi, kuzey/batı arsa genişletme
 - [ ] Sonraki paketler (`docs/PLAN.md` §7): M11 Yaşayan Dünya, M13 Sahiplendirme Hikâyeleri

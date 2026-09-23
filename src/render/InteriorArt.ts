@@ -27,6 +27,12 @@ export function drawInteriorItem(type: InteriorItemType, variant = 3): Pixels {
       return drawBed();
     case 'plant':
       return drawPlant();
+    case 'bulkSacks':
+      return drawSackShelf(3);
+    case 'shopCounter':
+      return drawShopCounter();
+    case 'crates':
+      return drawCrates();
     case 'tray':
       return drawTray();
     case 'controlPanel':
@@ -612,6 +618,43 @@ function drawSupplies(): Pixels {
   p.fillRect(3, 13, 10, 5, hex(0xcdb977));
   for (const x of [4, 7, 10]) p.ellipse(x + 0.5, 14, 1.2, 1, PAPER);
   p.fillRect(3, 20, 10, 5, hex(0xcdb977));
+  p.outline(P.outline);
+  return p;
+}
+
+/** Dükkân tezgâhı (3 kare): tahta ön yüz, tabla, terazi, kasa ve fiyat kâğıdı. */
+function drawShopCounter(): Pixels {
+  const w = TILE * 3;
+  const p = new Pixels(w, 24);
+  p.fillRect(0, 10, w, 14, P.trunk);
+  for (let x = 4; x < w; x += 8) p.fillRect(x, 12, 1, 12, P.trunkDark);
+  p.fillRect(0, 8, w, 3, P.trunkLight);
+  p.fillRect(5, 3, 10, 2, STEEL_DARK);
+  p.fillRect(9, 5, 2, 3, STEEL_DARK);
+  p.fillRect(4, 1, 5, 2, BURLAP);
+  p.fillRect(30, 2, 10, 6, SCREEN);
+  p.fillRect(31, 3, 8, 2, P.grassLight);
+  p.fillRect(20, 4, 6, 4, PAPER);
+  p.fillRect(21, 5, 4, 1, hex(0xbabcc1));
+  p.outline(P.outline);
+  return p;
+}
+
+/** Üst üste iki tahta kasa. */
+function drawCrates(): Pixels {
+  const p = new Pixels(TILE, 22);
+  for (const [y, h] of [
+    [12, 10],
+    [3, 9],
+  ] as const) {
+    p.fillRect(1, y, 14, h, P.trunkLight);
+    p.fillRect(1, y, 14, 1, P.trunk);
+    p.fillRect(1, y + h - 1, 14, 1, P.trunk);
+    p.fillRect(4, y + 1, 1, h - 2, P.trunk);
+    p.fillRect(11, y + 1, 1, h - 2, P.trunk);
+  }
+  p.set(7, 6, BURLAP_DARK);
+  p.set(8, 16, BURLAP_DARK);
   p.outline(P.outline);
   return p;
 }

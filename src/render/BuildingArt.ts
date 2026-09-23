@@ -349,3 +349,48 @@ function drawHouse(
     p.fillRect(x + w - 8, y + 6, 5, 1, wallDark);
   }
 }
+
+/** Köy binaları (0.18.2): oyuncuya ait değil; dükkân tabelaları kodla. Kökeni sol alt. */
+export function drawVillageBuilding(kind: 'wholesaler' | 'toyShop' | 'house' | 'fountain', wTiles: number, hTiles: number): Pixels {
+  const W = wTiles * T;
+  const H = hTiles * T + BUILDING_OVERHANG;
+  const p = new Pixels(W, H);
+  const y0 = BUILDING_OVERHANG;
+  const bottom = y0 + hTiles * T;
+  const cx = Math.floor(W / 2);
+  switch (kind) {
+    case 'wholesaler':
+      drawHouse(p, 0, y0, W, hTiles * T, C.woodWall, C.woodWallDark, C.roof, C.roofDark, C.roofLight, true);
+      // Tabela: çuval işareti; kapı yanında çuval yığını.
+      p.fillRect(cx - 9, y0 + 12, 18, 7, C.sign);
+      p.fillRect(cx - 3, y0 + 13, 6, 5, C.rope);
+      p.fillRect(cx - 2, y0 + 12, 4, 1, C.ropeDark);
+      p.fillRect(W - 12, bottom - 7, 8, 6, C.rope);
+      p.fillRect(W - 11, bottom - 9, 6, 2, C.ropeDark);
+      break;
+    case 'toyShop':
+      drawHouse(p, 0, y0, W, hTiles * T, C.white, C.wallDark, C.roofPink, C.roofPinkDark, C.roofPink, true);
+      // Tabela: top ve ilaç haçı.
+      p.fillRect(cx - 9, y0 + 12, 18, 7, C.sign);
+      p.ellipse(cx - 4, y0 + 15.5, 2.5, 2.5, C.ball);
+      p.fillRect(cx + 4, y0 + 13, 1, 5, C.cross);
+      p.fillRect(cx + 2, y0 + 15, 5, 1, C.cross);
+      break;
+    case 'house':
+      drawHouse(p, 0, y0, W, hTiles * T, C.wall, C.wallDark, C.roofGreen, C.roofGreenDark, C.roofGreen, true);
+      p.fillRect(3, y0 + 11, 6, 2, C.green);
+      p.set(4, y0 + 10, C.heart);
+      p.set(7, y0 + 10, C.sign);
+      break;
+    case 'fountain':
+      // Taş havuz, su ve ortada fıskiye.
+      p.ellipse(W / 2, bottom - 8, W / 2 - 1, 7, C.metalDark);
+      p.ellipse(W / 2, bottom - 9, W / 2 - 3, 5, C.glassDark);
+      p.ellipse(W / 2, bottom - 10, W / 2 - 6, 3, C.glass);
+      p.fillRect(cx - 2, bottom - 22, 4, 12, C.metal);
+      p.fillRect(cx - 1, bottom - 27, 2, 5, C.glass);
+      break;
+  }
+  p.outline(P.outline);
+  return p;
+}

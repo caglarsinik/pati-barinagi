@@ -1,4 +1,5 @@
 import { Biome, GROUND_SOLID, Ground, OBJ_INFO, Obj, Zone } from './tiles';
+import type { VillageBuilding } from './Village';
 
 export interface Rect {
   x: number;
@@ -35,6 +36,9 @@ export class TileWorld {
   /** Keşfedilen kareler (sis). */
   readonly explored: Uint8Array;
   spawn: { x: number; y: number } = { x: 0, y: 0 };
+  /** Köy dikdörtgeni ve binaları (0.18.2; üretimde kurulur, kaydedilmez). */
+  village: Rect | null = null;
+  villageBuildings: VillageBuilding[] = [];
   dirty: number[] = [];
   /** Üretimden sonra değişen nesne kareleri (kayıt için): kare indeksi → nesne. */
   objectChanges = new Map<number, number>();
@@ -217,6 +221,11 @@ export class TileWorld {
 
   recomputeAllSolid(): void {
     for (let i = 0; i < this.solid.length; i++) this.recomputeSolid(i);
+  }
+
+  /** Karedeki köy binası. */
+  villageAt(x: number, y: number): VillageBuilding | null {
+    return this.villageBuildings.find((b) => x >= b.x && x < b.x + b.w && y >= b.y && y < b.y + b.h) ?? null;
   }
 
   /** Render, kirli kareleri işledikten sonra çağırır. */

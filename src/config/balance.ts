@@ -397,6 +397,11 @@ export const BALANCE = {
   seasons: {
     weeksPerSeason: 2,
   },
+  /** Köy (0.18.2): toptancıda çuval fiyat çarpanı ve en az alım. */
+  village: {
+    wholesaleMul: 0.7,
+    minBags: 3,
+  },
   /** Tam ekran harita (0.18.1): en çok işaret sayısı. */
   map: {
     maxMarkers: 5,
