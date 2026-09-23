@@ -31,12 +31,12 @@ import { drawEgg } from '../render/EggArt';
 
 type KeyName =
   | 'W' | 'A' | 'S' | 'D' | 'UP' | 'DOWN' | 'LEFT' | 'RIGHT' | 'SHIFT' | 'E' | 'I' | 'B' | 'X' | 'Z' | 'O' | 'N' | 'P' | 'F' | 'TAB' | 'SPACE' | 'ESC'
-  | 'PLUS' | 'MINUS' | 'NUMPAD_ADD' | 'NUMPAD_SUBTRACT' | 'ONE' | 'TWO' | 'THREE' | 'FOUR' | 'FIVE' | 'SIX' | 'H' | 'L' | 'R' | 'T';
+  | 'PLUS' | 'MINUS' | 'NUMPAD_ADD' | 'NUMPAD_SUBTRACT' | 'ONE' | 'TWO' | 'THREE' | 'FOUR' | 'FIVE' | 'SIX' | 'H' | 'L' | 'R' | 'T' | 'M';
 type Keys = Record<KeyName, Phaser.Input.Keyboard.Key>;
 
 const KEY_LIST: KeyName[] = [
   'W', 'A', 'S', 'D', 'UP', 'DOWN', 'LEFT', 'RIGHT', 'SHIFT', 'E', 'I', 'B', 'X', 'Z', 'O', 'N', 'P', 'F', 'TAB', 'SPACE', 'ESC',
-  'PLUS', 'MINUS', 'NUMPAD_ADD', 'NUMPAD_SUBTRACT', 'ONE', 'TWO', 'THREE', 'FOUR', 'FIVE', 'SIX', 'H', 'L', 'R', 'T',
+  'PLUS', 'MINUS', 'NUMPAD_ADD', 'NUMPAD_SUBTRACT', 'ONE', 'TWO', 'THREE', 'FOUR', 'FIVE', 'SIX', 'H', 'L', 'R', 'T', 'M',
 ];
 
 const TOOL_KEYS: Array<[KeyName, Tool]> = [
@@ -393,6 +393,7 @@ export class WorldScene extends Phaser.Scene {
     if (JustDown(k.P)) store.panel.value = store.panel.value === 'staff' ? 'none' : 'staff';
     if (JustDown(k.F)) store.panel.value = store.panel.value === 'deployment' ? 'none' : 'deployment';
     if (JustDown(k.H)) store.panel.value = store.panel.value === 'achievements' ? 'none' : 'achievements';
+    if (JustDown(k.M)) store.panel.value = store.panel.value === 'map' ? 'none' : 'map';
     if (JustDown(k.B)) this.game.events.emit('ui:build-toggle');
     if (JustDown(k.L)) this.game.events.emit('ui:labels-toggle');
     if (JustDown(k.T)) this.sim.command({ type: 'setAutopilot', on: !this.sim.autopilot });

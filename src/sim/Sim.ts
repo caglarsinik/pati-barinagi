@@ -161,7 +161,18 @@ export type Command =
   | { type: 'setAutopilot'; on: boolean }
   | { type: 'enterBuilding'; buildingId: number }
   | { type: 'buyFurniture'; buildingId: number; item: FurnitureType }
-  | { type: 'vaccinate'; dogId: number };
+  | { type: 'vaccinate'; dogId: number }
+  | { type: 'addMarker'; x: number; y: number }
+  | { type: 'removeMarker'; id: number }
+  | { type: 'goToMarker'; id: number };
+
+/** Tam ekran haritada konan işaret (0.18.1; kayıtta). color: 0-4 renk sırası. */
+export interface MapMarker {
+  id: number;
+  x: number;
+  y: number;
+  color: number;
+}
 
 export interface Policies {
   autoOrderFood: boolean;
@@ -299,6 +310,8 @@ export class Sim {
   /** Mutfak fırını (0.17.1): son pişirilen gün ve o gün pişirilen ödül maması sayısı. */
   bakeDay = 0;
   bakesToday = 0;
+  /** Harita işaretleri (0.18.1). */
+  markers: MapMarker[] = [];
   readonly gates: GateSystem;
   flags: SimFlags = { foodDiscountDay: 0, extraAdoptersDay: 0, growlUntil: 0, growlA: '', growlB: '' };
   speed: Speed = 1;
@@ -823,6 +836,32 @@ export class Sim {
         b.furniture.push(cmd.item);
         this.refreshInterior(b.id);
         return { ok: true, message: t('{name} yerleştirildi', { name }) };
+      }
+      case 'addMarker': {
+        const x = Math.floor(cmd.x);
+        const y = Math.floor(cmd.y);
+        if (!this.world.inBounds(x, y)) return { ok: false };
+        const max = BALANCE.map.maxMarkers;
+        if (this.markers.length >= max) return { ok: false, message: t('En çok {n} işaret konabilir', { n: max }) };
+        const used = new Set(this.markers.map((m) => m.color));
+        let color = 0;
+        while (used.has(color) && color < max - 1) color++;
+        const id = this.markers.reduce((a, m) => Math.max(a, m.id), 0) + 1;
+        this.markers.push({ id, x, y, color });
+        return { ok: true };
+      }
+      case 'removeMarker': {
+        const before = this.markers.length;
+        this.markers = this.markers.filter((m) => m.id !== cmd.id);
+        return { ok: this.markers.length < before };
+      }
+      case 'goToMarker': {
+        const m = this.markers.find((q) => q.id === cmd.id);
+        if (!m) return { ok: false };
+        if (this.mode !== 'avatar') return { ok: false, message: t('Yürümek için Avatar moduna geç') };
+        if (this.interior) return { ok: false, message: t('Önce dışarı çık') };
+        this.setAutopilot(false);
+        return { ok: this.nav.goTo({ x: m.x, y: m.y }) };
       }
       case 'vaccinate': {
         const dog = this.dogById(cmd.dogId);
@@ -1379,6 +1418,7 @@ export class Sim {
       coffeeDay: this.coffeeDay,
       bakeDay: this.bakeDay,
       bakesToday: this.bakesToday,
+      markers: this.markers.map((m) => ({ ...m })),
       loan: this.loan,
       negativeWeeks: this.negativeWeeks,
       gameOver: this.gameOver,
@@ -1459,6 +1499,15 @@ export class Sim {
     sim.coffeeDay = numOr(data.coffeeDay, 0, 0);
     sim.bakeDay = numOr(data.bakeDay, 0, 0);
     sim.bakesToday = Math.floor(numOr(data.bakesToday, 0, 0));
+    sim.markers = Array.isArray(data.markers)
+      ? data.markers
+          .filter((raw): raw is MapMarker => {
+            const m = raw as Partial<MapMarker> | null;
+            return !!m && Number.isInteger(m.id) && Number.isInteger(m.x) && Number.isInteger(m.y) && Number.isInteger(m.color) && world.inBounds(m.x!, m.y!);
+          })
+          .slice(0, BALANCE.map.maxMarkers)
+          .map((m) => ({ id: m.id, x: m.x, y: m.y, color: Math.max(0, Math.min(BALANCE.map.maxMarkers - 1, m.color)) }))
+      : [];
     // Çanta yumurtalarından önce: büyük çantadaki 4–6. yumurta yüklemede kaybolmasın.
     sim.backpackLevel = data.backpackLevel === 2 ? 2 : 1;
     sim.loan = numOr(data.loan, 0, 0);

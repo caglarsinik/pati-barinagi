@@ -22,6 +22,7 @@ export interface SaveData {
   coffeeDay?: number;
   bakeDay?: number;
   bakesToday?: number;
+  markers?: unknown[];
   foodStock?: number;
   nextId?: number;
   stats?: unknown;

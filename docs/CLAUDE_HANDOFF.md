@@ -57,6 +57,22 @@
   köpek paneli, araç şeridi, alt menü listesi, ana menü, Ayarlar: çakışma yok, taşma yok. Alt menü açılır listesi köpek
   panelinin üstüne gelebilir (geçici popover, üstte kalır) — kabul edildi. Gerçek cihaz testi kullanıcıda.
 
+## 0.18.1 — Tam ekran harita ve işaretler (M11; Claude, 2026-09-23)
+- `Sim.markers: MapMarker { id, x, y, color }[]` (kayıtta; yüklemede tamsayı, harita içi, en çok `BALANCE.map.maxMarkers` 5,
+  renk 0–4). Komutlar: `addMarker { x, y }` (kare tabana yuvarlanır; sınır mesajı "En çok 5 işaret konabilir"; ilk boş renk,
+  yerel artan id — global `nextId` kullanılmaz), `removeMarker { id }`, `goToMarker { id }` (avatar modu, dışarıda olmak
+  gerekir "Önce dışarı çık"; otopilotu kapatır; `nav.goTo` — tam harita araması `BALANCE.nav.maxNodes` 30.000 zaten
+  200×200 haritanın çoğunu kapsıyor, plandaki ara hedefe bölme gerekmedi; güney yolunun ucuna (≈70 kare) yol < 500 ms, test).
+- `PhoneSheets.MapSheet` → tam ekran harita: solda `Minimap inSheet onPick selected` (tuvale dokunuş → kare; 3 kare içindeki
+  işarete dokunmak seçer, yoksa işaret koyar), sağda işaret listesi (renk, "n kare uzakta", Git, ✕). "Git" paneli kapatır.
+  `Minimap` işaretleri (koyu çerçeveli renkli kare, seçili beyaz halka) her modda çizer; masaüstü mini haritasına tıklamak tam
+  haritayı açar; `MARKER_COLORS` dışa aktarılır. CSS `responsive.css` sonunda (`.map-body`, `.map-side`, `.marker-row`).
+- Açma yolları: M tuşu (`KeyName`/`KEY_LIST` + `handleHotkeys`), üst şerit 🗺️ çipi, mini haritaya tıklama. Yardım: klavye
+  "M", dokunmatik "Mini haritaya ya da 🗺️ çipine dokun".
+- Testler `tests/unit/markers.test.ts` (2). 352 test. Tarayıcı (812×375): çipten harita, gerçek tıklamayla 2 işaret, Git →
+  panel kapandı, 51 → 28 kare yaklaştı; M açtı; mini harita tıklaması açtı; `runTouchScenarios` 12/12.
+- Sıradaki: 0.18.2 köy (güney yolun ucu) ve yem toptancısı.
+
 ## 0.18.0 — İnler mevsimlik dolar + dışarıda hava (M11 ilk dilimi; Claude, 2026-09-23)
 - `Sim.refillDens(week)`: `onWeek` mevsim dönümünde (`(week-1) % weeksPerSeason === 0`, week > 1) çağrılır. Her boş in
   (üstünde `d.wild && d.den` eşleşen köpek yok) `new Rng(hash3(seed, denIndex + 1, seasonIndex))` ile `BALANCE.strays.

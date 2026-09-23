@@ -475,3 +475,59 @@ html.is-touch .build-item {
     text-align: left;
   }
 }
+
+/* Tam ekran harita (0.18.1) */
+.map-sheet {
+  width: min(96vw, 900px);
+}
+
+.map-body {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  flex: none;
+}
+
+.map-body .minimap.in-sheet canvas {
+  width: min(66vh, 86vw, 520px);
+  height: min(66vh, 86vw, 520px);
+  cursor: crosshair;
+}
+
+.map-side {
+  flex: 1;
+  min-width: 180px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.marker-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex: none;
+  padding: 2px 4px;
+  border-radius: 6px;
+}
+
+.marker-row.sel {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.marker-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 3px;
+  border: 1px solid #0f0d1a;
+  flex: none;
+}
+
+.marker-dist {
+  flex: 1;
+}
+
+.minimap canvas {
+  cursor: pointer;
+}

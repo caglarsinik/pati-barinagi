@@ -237,6 +237,13 @@ oraya bir `Audio` nesnesi ya da `AudioBufferSourceNode` oynatan bir dal ekleyip 
 Ücretsiz kaynaklar: Kenney (kenney.nl, CC0 efekt paketleri), OpenGameArt (CC0/CC-BY), Kevin MacLeod (incompetech.com, CC-BY müzik).
 Lisans gerektirenleri README'de anmayı unutma.
 
+## Harita ve işaretler
+
+**M** tuşu, üst şeritteki **🗺️** çipi ya da mini haritaya dokunmak tam ekran haritayı açar (0.18.1). Haritaya dokununca
+oraya renkli bir işaret konur (en çok 5); bir işarete dokunmak onu seçer. Sağdaki listede her işaretin uzaklığı yazar;
+**Git** haritayı kapatıp seni oraya yürütür (yol yoksa söyler), **✕** işareti siler. İşaretler mini haritada da görünür ve
+kayıtla korunur. İç mekândayken önce dışarı çıkmak gerekir.
+
 ## Hava, mevsim ve olaylar
 
 - Her mevsim 2 hafta sürer (ilkbahar → yaz → sonbahar → kış). HUD'ın ortasında mevsim ve hava yazar; hava 6-14 saatte bir değişir.
@@ -312,6 +319,7 @@ Bilgisayar değiştirirken ya da yedek almak için kullan.
 - [x] 0.17.3 Kuluçka içi: tepsilerde yumurtalar, ısı lambası (%15 çabuk çatlama)
 - [x] 0.17.4 Cila: otopilot mutfakta ödül maması pişirir, dokunma senaryoları 11–12 — M16 tamam
 - [x] 0.18.0 İnler mevsimlik dolar, dışarıda hava (fırtına dayanıklılık, kış gecesi karanlık)
+- [x] 0.18.1 Tam ekran harita (M, 🗺️, mini haritaya dokun): dokunarak işaret koy (en çok 5), "Git" ile işarete yürü
 - [ ] M11 Yaşayan Dünya (0.18.x): harita/işaretler, köy ve dükkânlar, hızlı seyahat, görevler, terk edilmiş ev, taş/odun
 - [ ] Sonrası: M13 Sahiplendirme Hikâyeleri, yuva evi içi, kuzey/batı arsa genişletme
 - [ ] Sonraki paketler (`docs/PLAN.md` §7): M11 Yaşayan Dünya, M13 Sahiplendirme Hikâyeleri

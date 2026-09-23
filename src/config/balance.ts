@@ -397,6 +397,10 @@ export const BALANCE = {
   seasons: {
     weeksPerSeason: 2,
   },
+  /** Tam ekran harita (0.18.1): en çok işaret sayısı. */
+  map: {
+    maxMarkers: 5,
+  },
   /** Sokak köpekleri (0.18.0): mevsim dönümünde boş inler bu olasılıkla dolar (ayrı RNG); haritada en çok maxWild vahşi köpek. */
   strays: {
     refillChance: 0.6,

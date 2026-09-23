@@ -5,7 +5,14 @@ import { store } from './store';
 import { t } from '../i18n';
 
 /** Biyom renkleriyle çizilen taban; sis, yuva/in işaretleri ve oyuncu her güncellemede üstüne gelir. */
-export function Minimap({ inSheet = false }: { inSheet?: boolean } = {}) {
+/** Harita işaretlerinin renkleri (MapMarker.color sırası). */
+export const MARKER_COLORS = ['#e4514f', '#4fb3e8', '#6dbb4f', '#f6d55c', '#a66bd6'];
+
+export function Minimap({
+  inSheet = false,
+  onPick,
+  selected = null,
+}: { inSheet?: boolean; onPick?: (x: number, y: number) => void; selected?: number | null } = {}) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const baseRef = useRef<HTMLCanvasElement | null>(null);
   /** Sis katmanı: keşif sayısı değişmedikçe yeniden üretilmez. */
@@ -87,17 +94,36 @@ export function Minimap({ inSheet = false }: { inSheet?: boolean } = {}) {
       ctx.fillStyle = '#ff9a3c';
       ctx.fillRect(dog.tileX, dog.tileY, 2, 2);
     }
+    // İşaretler (0.18.1): koyu çerçeveli renkli kare, seçili olan beyaz halkalı; oyuncu üstte kalır.
+    for (const m of sim.markers) {
+      if (m.id === selected) {
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(m.x - 4, m.y - 4, 9, 9);
+      }
+      ctx.fillStyle = '#24203a';
+      ctx.fillRect(m.x - 3, m.y - 3, 7, 7);
+      ctx.fillStyle = MARKER_COLORS[m.color] ?? MARKER_COLORS[0];
+      ctx.fillRect(m.x - 2, m.y - 2, 5, 5);
+    }
     ctx.fillStyle = '#ffffff';
     ctx.fillRect(tile.x - 1, tile.y - 1, 3, 3);
     ctx.fillStyle = '#e4514f';
     ctx.fillRect(tile.x, tile.y, 1, 1);
-  }, [tile, version, Math.floor(tick / 5)]);
+  }, [tile, version, Math.floor(tick / 5), app.sim?.markers.map((m) => m.id).join(',') ?? '', selected]);
+
+  /** Tuvaldeki dokunuşu harita karesine çevirir. */
+  const pickAt = (e: MouseEvent): void => {
+    const c = canvasRef.current;
+    if (!c || !onPick) return;
+    const r = c.getBoundingClientRect();
+    onPick(Math.floor(((e.clientX - r.left) / r.width) * c.width), Math.floor(((e.clientY - r.top) / r.height) * c.height));
+  };
 
   const size = app.sim?.world.width ?? 200;
   if (inSheet) {
     return (
       <div class="minimap in-sheet">
-        <canvas ref={canvasRef} width={size} height={size} />
+        <canvas ref={canvasRef} width={size} height={size} onClick={pickAt} />
       </div>
     );
   }
@@ -113,7 +139,7 @@ export function Minimap({ inSheet = false }: { inSheet?: boolean } = {}) {
       <button class="btn small minimap-toggle" title={t('Mini haritayı gizle')} onClick={() => app.setMinimap(true)}>
         ✕
       </button>
-      <canvas ref={canvasRef} width={size} height={size} />
+      <canvas ref={canvasRef} width={size} height={size} title={t('Dokun: tam ekran harita')} onClick={() => (store.panel.value = 'map')} />
     </div>
   );
 }
