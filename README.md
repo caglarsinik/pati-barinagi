@@ -283,6 +283,14 @@ oraya renkli bir işaret konur (en çok 5); bir işarete dokunmak onu seçer. Sa
 **Git** haritayı kapatıp seni oraya yürütür (yol yoksa söyler), **✕** işareti siler. İşaretler mini haritada da görünür ve
 kayıtla korunur. İç mekândayken önce dışarı çıkmak gerekir.
 
+## Yol tabelaları ve hızlı seyahat
+
+Üç yol tabelası vardır (0.20.3): barınağın güney kapısının hemen dışında (arsa büyüyünce kapıyla birlikte taşınır), doğu
+yolunun arsanın ulaşamayacağı ucunda ve köy girişinde. Tabelalar görülünce keşfedilir (mini haritada sarı nokta). Bir
+tabelanın yanında E'ye bas ya da ona dokun: **Hızlı seyahat** paneli keşfettiğin öbür tabelaları ve yol süresini gösterir.
+"Git" ile ışınlanırsın; yol kadar oyun zamanı geçer (kare başına 0,4 dakika, bisikletle üçte bir kısa), gezdirdiğin ve
+peşindeki köpekler de gelir. Gece saat 2'yi yolda geçirirsen dışarıda bayılma kuralı işler ve ofiste uyanırsın.
+
 ## Köy
 
 Güney yolunu harita kenarına kadar izleyince **köye** varırsın (0.18.2; haritada "Köy" biyomu, mini haritada kahverengi
@@ -390,7 +398,8 @@ Bilgisayar değiştirirken ya da yedek almak için kullan.
 - [x] 0.20.0 Köy: oyuncak ve ilaç dükkânı (oyuncak paketi, vitamin, bisiklet), Pazar tezgâhı ve haftanın yumurtası
 - [x] 0.20.1 Köylüler: ev → iş ya da meydan → ev çizelgesi, Pazar meydanda, E ya da dokunarak konuşma
 - [x] 0.20.2 Köy kademesi (postane, park) ve köylü sahipleniciler: sahiplendirilen köpek köyde sahibiyle, postanede mektup
-- [ ] M11 Yaşayan Dünya kalanı (0.20.x): hızlı seyahat, görevler
+- [x] 0.20.3 Yol tabelaları (barınak, doğu yolu, köy) ve hızlı seyahat: yol kadar zaman geçer, köpekler de gelir
+- [ ] M11 Yaşayan Dünya kalanı (0.20.x): köylü görevleri, cila
 - [ ] Sonrası: M13 Sahiplendirme Hikâyeleri, yuva evi içi, kuzey/batı arsa genişletme
 - [ ] Sonraki paketler (`docs/PLAN.md` §7): M11 Yaşayan Dünya, M13 Sahiplendirme Hikâyeleri
 

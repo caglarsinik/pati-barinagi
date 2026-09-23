@@ -75,6 +75,7 @@ import { type GoalDef, GoalSystem } from './systems/Goals';
 import { type DaySnapshot, type MorningReport, buildMorningReport, daySnapshotFrom, diffDay, takeDaySnapshot } from './systems/DayReport';
 import { type MarketItem, type ShopItem, type Supplies, type SupplyKind, bicycleExertion, buyMarket, buyShop, giveSupply } from './systems/ShopSystem';
 import { VillagerSystem } from './systems/VillagerSystem';
+import { SIGN_NAMES_TR, type SignId, type Signpost, landingTile, signKnown, signposts, travelMinutes } from './world/Signposts';
 
 export type Mode = 'avatar' | 'manage';
 
@@ -128,6 +129,8 @@ export interface SimEvents extends Record<string, unknown> {
   morning: MorningReport;
   /** Köy kademesi atladı (0.20.2): yeni yapılar (çizim onları ekler). */
   villageGrew: { stage: number; added: VillageBuilding[] };
+  /** Hızlı seyahat bitti (0.20.3): kamera oyuncuya atlar. */
+  traveled: { to: SignId; minutes: number };
   /** Uyku / bayılma gibi zaman atlamaları (arayüz karartma yapar). */
   slept: { minutes: number; passedOut: boolean };
   /** Oyuncuya kısa bildirim. */
@@ -194,7 +197,8 @@ export type Command =
   | { type: 'buyWholesale'; bags: number }
   | { type: 'buyShop'; item: ShopItem; qty: number }
   | { type: 'buyMarket'; item: MarketItem; qty: number }
-  | { type: 'giveSupply'; dogId: number; item: SupplyKind };
+  | { type: 'giveSupply'; dogId: number; item: SupplyKind }
+  | { type: 'travel'; to: SignId };
 
 /** Tam ekran haritada konan işaret (0.18.1; kayıtta). color: 0-4 renk sırası. */
 export interface MapMarker {
@@ -358,6 +362,8 @@ export class Sim {
   marketEggWeek = 0;
   /** Köy kademesi (0.20.2; kayıtta): itibarla 1'den 3'e çıkar, düşmez. */
   villageStage = 1;
+  /** Duyurulmuş tabelalar (0.20.3; kaydedilmez, keşif haritasından çıkar). */
+  private announcedSigns = new Set<SignId>();
   readonly gates: GateSystem;
   flags: SimFlags = { foodDiscountDay: 0, extraAdoptersDay: 0, growlUntil: 0, growlA: '', growlB: '' };
   speed: Speed = 1;
@@ -562,6 +568,7 @@ export class Sim {
     if (!force && i === this.lastRevealTile) return;
     this.lastRevealTile = i;
     revealAround(this, this.player.tileX, this.player.tileY);
+    this.checkSigns();
     const v = this.world.village;
     if (!this.villageFound && v && this.player.tileX >= v.x && this.player.tileY >= v.y && this.player.tileX < v.x + v.w && this.player.tileY < v.y + v.h) {
       this.villageFound = true;
@@ -569,7 +576,67 @@ export class Sim {
     }
   }
 
-  /** Sabah 06:00'ya kadar zamanı hızlıca geçirir; köpekler ve inşaatlar normal işler. */
+  /** Oyuncunun yanında durduğu bilinen tabela (0.20.3). */
+  signHere(): Signpost | null {
+    if (this.interior) return null;
+    const p = this.player;
+    let best: Signpost | null = null;
+    let bestD: number = BALANCE.travel.reach;
+    for (const s of signposts(this.world)) {
+      if (!signKnown(this.world, s)) continue;
+      const d = Math.hypot(s.x + 0.5 - p.x, s.y + 0.5 - (p.y - 0.2));
+      if (d <= bestD) {
+        best = s;
+        bestD = d;
+      }
+    }
+    return best;
+  }
+
+  /**
+   * Hızlı seyahat (0.20.3): tabeladan keşfedilmiş başka bir tabelaya. Yol kadar oyun zamanı uyku gibi adım adım geçer (saat
+   * 2'de dışarıdaysa bayılma kuralı işler ve varış olmaz); gezdirilen ve peşindeki köpekler de gelir.
+   */
+  travel(to: SignId): { ok: boolean; message?: string } {
+    if (this.mode !== 'avatar' || this.interior) return { ok: false };
+    const from = this.signHere();
+    if (!from) return { ok: false, message: t('Hızlı seyahat için bir tabelanın yanına git.') };
+    const dest = signposts(this.world).find((s) => s.id === to);
+    if (!dest || !signKnown(this.world, dest)) return { ok: false, message: t('Bu tabelayı henüz görmedin') };
+    if (dest.id === from.id) return { ok: false, message: t('Zaten buradasın') };
+    const minutes = travelMinutes(from, dest, this.bicycle);
+    const slept = this.stats.slept;
+    this.nav.cancel();
+    const target = this.clock.totalMinutes + minutes;
+    while (this.clock.totalMinutes < target && !this.gameOver && this.stats.slept === slept) {
+      this.stepSim(Math.min(5, target - this.clock.totalMinutes));
+    }
+    if (this.gameOver || this.stats.slept !== slept) return { ok: true };
+    const land = landingTile(this.world, dest);
+    this.player.x = land.x + 0.5;
+    this.player.y = land.y + 0.9;
+    this.player.facing = 0;
+    this.player.busy = 0;
+    for (const dog of this.dogs) {
+      if (!dog.following && !dog.walking) continue;
+      dog.x = this.player.x + 1;
+      dog.y = this.player.y;
+      dog.path = [];
+    }
+    this.revealPlayer(true);
+    this.events.emit('traveled', { to: dest.id, minutes });
+    return { ok: true, message: t('🚏 {place}: {n} dakikalık yol', { place: t(SIGN_NAMES_TR[dest.id]), n: minutes }) };
+  }
+
+  /** Keşfedilen tabela bir kez duyurulur (0.20.3). */
+  private checkSigns(): void {
+    for (const s of signposts(this.world)) {
+      if (this.announcedSigns.has(s.id) || !signKnown(this.world, s)) continue;
+      this.announcedSigns.add(s.id);
+      if (s.id !== 'shelter') this.events.emit('message', t('🚏 Tabela buldun: {name}. Tabelada E ile hızlı seyahat edebilirsin.', { name: t(SIGN_NAMES_TR[s.id]) }));
+    }
+  }
+
   /** Köy kademesi (0.20.2): köy bulunduysa itibar eşiklerini geçince yeni yapılar açılır; kademe düşmez. */
   updateVillageStage(): void {
     if (!this.villageFound || !this.world.village) return;
@@ -599,6 +666,7 @@ export class Sim {
     this.dayStart = now;
   }
 
+  /** Sabah 06:00'ya kadar zamanı hızlıca geçirir; köpekler ve inşaatlar normal işler. */
   sleepUntilMorning(passedOut = false): void {
     this.nav.cancel();
     const c = this.clock;
@@ -956,6 +1024,8 @@ export class Sim {
         this.setAutopilot(false);
         return { ok: this.nav.goTo({ x: m.x, y: m.y }) };
       }
+      case 'travel':
+        return this.travel(cmd.to);
       case 'buyShop':
         return buyShop(this, cmd.item, cmd.qty);
       case 'buyMarket':

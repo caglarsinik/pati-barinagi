@@ -45,6 +45,7 @@ const TOUCH_ROWS: Array<[string, string]> = [
   ['İki parmak', 'Yakınlaştır · yönetim modunda kaydır'],
   ['Sürükle (yönetim)', 'Kamerayı kaydır · araç seçiliyse çit/yol/bölge çiz'],
   ['Köylüye dokun', 'Yanına gidip konuşur: ipucu ve köy dedikodusu'],
+  ['Tabelaya dokun', 'Hızlı seyahat: keşfettiğin tabelalar arasında git (yol kadar zaman geçer)'],
 ];
 
 /** Kontroller sayfası: klavye ve fare tablosu. Alt menü → Menü → Kontroller ya da duraklatma menüsünden açılır. */

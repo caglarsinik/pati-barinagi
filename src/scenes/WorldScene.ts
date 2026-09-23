@@ -30,7 +30,8 @@ import type { Staff } from '../sim/entities/Staff';
 import { drawEgg } from '../render/EggArt';
 import { type VillageBuilding, villageDoorTile, villageInteractive } from '../sim/world/Village';
 import { isMarketDay } from '../sim/systems/ShopSystem';
-import { drawVillageBuilding } from '../render/BuildingArt';
+import { drawSignpost, drawVillageBuilding } from '../render/BuildingArt';
+import { type SignId, signKnown, signposts } from '../sim/world/Signposts';
 
 type KeyName =
   | 'W' | 'A' | 'S' | 'D' | 'UP' | 'DOWN' | 'LEFT' | 'RIGHT' | 'SHIFT' | 'E' | 'I' | 'B' | 'X' | 'Z' | 'O' | 'N' | 'P' | 'F' | 'TAB' | 'SPACE' | 'ESC'
@@ -121,6 +122,9 @@ export class WorldScene extends Phaser.Scene {
   private villagerSprites = new Map<number, Phaser.GameObjects.Sprite>();
   /** Köylülerin sahiplendiği köpekler (0.20.2), köylü indeksiyle. */
   private villageDogSprites = new Map<number, Phaser.GameObjects.Sprite>();
+  /** Yol tabelaları (0.20.3). */
+  private signImages = new Map<SignId, Phaser.GameObjects.Image>();
+  private signFrame = 0;
   private buildingImages = new Map<number, Phaser.GameObjects.Image>();
   private dogSprites = new Map<number, Phaser.GameObjects.Sprite>();
   /** Doku temizliği için köpek id → genom. */
@@ -216,6 +220,11 @@ export class WorldScene extends Phaser.Scene {
       this.sim.events.on('message', (m) => showToast(m)),
       this.sim.events.on('villageGrew', (e) => {
         for (const vb of e.added) this.addVillageImage(vb);
+      }),
+      this.sim.events.on('traveled', () => {
+        const T = GAME.tile;
+        this.cameras.main.centerOn(this.sim.player.x * T, this.sim.player.y * T);
+        this.cameras.main.flash(250, 10, 8, 20);
       }),
       this.sim.events.on('slept', () => this.cameras.main.flash(600, 10, 8, 20)),
       this.sim.events.on('dogHatched', (d) => {
@@ -372,6 +381,8 @@ export class WorldScene extends Phaser.Scene {
       this.staffSprites.clear();
       this.villagerSprites.clear();
       this.villageDogSprites.clear();
+      this.signImages.clear();
+      this.signFrame = 0;
     });
 
     syncStore(this.sim);
@@ -388,6 +399,7 @@ export class WorldScene extends Phaser.Scene {
     this.syncDogs();
     this.syncAdopters();
     this.syncVillagers();
+    this.syncSigns();
     this.syncStaff();
     this.syncBuildings();
     this.marketVendor?.setVisible(isMarketDay(this.sim));
@@ -498,6 +510,7 @@ export class WorldScene extends Phaser.Scene {
         market: 'click',
         talk: 'click',
         post: 'click',
+        travel: 'click',
       };
       const name = sfx[kind];
       if (name) audio.play(name);
@@ -528,6 +541,7 @@ export class WorldScene extends Phaser.Scene {
     else if (r.open === 'wholesale') store.panel.value = 'wholesale';
     else if (r.open === 'toyShop') store.panel.value = 'toyShop';
     else if (r.open === 'market') store.panel.value = 'market';
+    else if (r.open === 'travel') store.panel.value = 'travel';
   }
 
   private readInput(): PlayerInput {
@@ -721,8 +735,11 @@ export class WorldScene extends Phaser.Scene {
     // Köpeğin dibindeyken çevresine dokunuş yürüyüştür (pick.interact false): aşağıdaki kare mantığına düşer.
     // Köylüye dokunuş (0.20.1): yanına gidip konuş.
     const villager = pick?.interact ? null : sim.villagers.at(wx, wy, BALANCE.villagers.talkReach + 0.3);
+    // Tabelaya dokunuş (0.20.3): yanına git, hızlı seyahat paneli.
+    const sign = pick?.interact || villager ? undefined : signposts(w).find((s) => signKnown(w, s) && Math.hypot(s.x + 0.5 - wx, s.y + 0.5 - wy) <= 0.9);
     if (pick?.interact) sim.command({ type: 'goInteract', goal: { kind: 'dog', id: pick.dog.id } });
     else if (villager) sim.command({ type: 'goInteract', goal: { kind: 'villager', index: villager.index } });
+    else if (sign) sim.command({ type: 'goInteract', goal: { kind: 'object', tile: { x: sign.x, y: sign.y } } });
     else {
       const bid = w.buildingIdAt(tx, ty);
       const o = w.objectAt(tx, ty);
@@ -881,6 +898,22 @@ export class WorldScene extends Phaser.Scene {
         s.destroy();
         this.dogSprites.delete(id);
       }
+    }
+  }
+
+  /** Yol tabelaları (0.20.3): barınak tabelası arsa büyüyünce taşınır; konumlar 30 karede bir yenilenir. */
+  private syncSigns(): void {
+    if (this.signFrame++ % 30 !== 0 && this.signImages.size > 0) return;
+    const T = GAME.tile;
+    if (!this.textures.exists('signpost')) this.textures.addCanvas('signpost', drawSignpost().toCanvas());
+    for (const s of signposts(this.sim.world)) {
+      let img = this.signImages.get(s.id);
+      if (!img) {
+        img = this.add.image(0, 0, 'signpost').setOrigin(0.5, 1);
+        this.signImages.set(s.id, img);
+      }
+      const py = (s.y + 1) * T;
+      img.setPosition((s.x + 0.5) * T, py).setDepth(100 + py);
     }
   }
 

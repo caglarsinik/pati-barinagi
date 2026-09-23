@@ -434,3 +434,19 @@ export function drawVillageBuilding(kind: 'wholesaler' | 'toyShop' | 'house' | '
   p.outline(P.outline);
   return p;
 }
+
+/** Yol tabelası (0.20.3): direk ve iki ok levha (üstteki sağa, alttaki sola). */
+export function drawSignpost(): Pixels {
+  const p = new Pixels(T, 26);
+  p.fillRect(7, 6, 2, 20, C.woodWallDark);
+  p.fillRect(2, 3, 10, 5, C.sign);
+  p.fillRect(12, 4, 1, 3, C.sign);
+  p.set(13, 5, C.sign);
+  p.fillRect(4, 5, 6, 1, C.ropeDark);
+  p.fillRect(4, 10, 10, 5, C.sign);
+  p.fillRect(3, 11, 1, 3, C.sign);
+  p.set(2, 12, C.sign);
+  p.fillRect(6, 12, 6, 1, C.ropeDark);
+  p.outline(P.outline);
+  return p;
+}

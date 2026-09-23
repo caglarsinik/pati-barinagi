@@ -438,6 +438,13 @@ export const BALANCE = {
     nearTiles: 40,
     talkReach: 0.8,
   },
+  /** Hızlı seyahat (0.20.3): kare başına oyun dakikası, bisiklet çarpanı, en kısa süre, tabelaya yakınlık (kare). */
+  travel: {
+    minutesPerTile: 0.4,
+    bicycleMul: 0.67,
+    minMinutes: 5,
+    reach: 1.6,
+  },
   /** Belediye hedefleri (0.19.0): ödül çarpanı ve hedef başına itibar. */
   goals: {
     rewardMul: 1,

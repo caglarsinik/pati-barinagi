@@ -3,6 +3,7 @@ import { app } from '../app';
 import { BIOME_COLORS, type Biome, Obj } from '../sim/world/tiles';
 import { store } from './store';
 import { t } from '../i18n';
+import { signKnown, signposts } from '../sim/world/Signposts';
 
 /** Biyom renkleriyle çizilen taban; sis, yuva/in işaretleri ve oyuncu her güncellemede üstüne gelir. */
 /** Harita işaretlerinin renkleri (MapMarker.color sırası). */
@@ -95,6 +96,9 @@ export function Minimap({
       ctx.fillStyle = vb.kind === 'fountain' ? '#6faae0' : vb.kind === 'market' ? '#e27aa8' : '#7d5430';
       ctx.fillRect(vb.x, vb.y, vb.w, vb.h);
     }
+    // Yol tabelaları (0.20.3), keşfedildiyse.
+    ctx.fillStyle = '#e8c547';
+    for (const s of signposts(sim.world)) if (signKnown(sim.world, s)) ctx.fillRect(s.x - 1, s.y - 1, 3, 3);
     for (const dog of sim.dogs) {
       if (!dog.wild || !dog.following) continue;
       ctx.fillStyle = '#ff9a3c';

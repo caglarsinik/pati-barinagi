@@ -57,6 +57,28 @@
   köpek paneli, araç şeridi, alt menü listesi, ana menü, Ayarlar: çakışma yok, taşma yok. Alt menü açılır listesi köpek
   panelinin üstüne gelebilir (geçici popover, üstte kalır) — kabul edildi. Gerçek cihaz testi kullanıcıda.
 
+## 0.20.3 — Yol tabelaları ve hızlı seyahat (M11; Claude, 2026-09-23)
+- Yeni `src/sim/world/Signposts.ts` (RNG yok, kaydedilmez): `signposts(world)` üç tabela hesaplar: `shelter` güney çitindeki
+  kapının hemen dışında (kapı yoksa ortada; arsa büyüyünce taşınır), `east` doğu yolunda arsanın en büyük hâlinin hemen
+  doğusundaki ilk boş kare (yol dağ arasından geçiyorsa yolun üst şeridi; tanı: tohum 2301'de doğu ucu dağ), `village` köy
+  girişi (köy +13,0). `signKnown` (keşif haritası), `signAt`, `landingTile`, `travelMinutes` (kuş uçuşu × `BALANCE.travel`
+  0,4 dk/kare, bisiklet ×0,67, en az 5). Tabelalar katı değildir.
+- `Sim.travel(to)` (komut `travel`): bilinen bir tabelanın `travel.reach` 1,6 karesindeyken bilinen başka tabelaya; zaman
+  uyku gibi 5 dakikalık adımlarla geçer (saat 2'de dışarıdaysa bayılır ve varış olmaz), oyuncu varış karesine, gezdirilen ve
+  peşindeki köpekler yanına; olay `traveled` (kamera ortalar, kısa flaş). `signHere()`; `checkSigns()` `revealPlayer`'da yeni
+  keşfedilen tabelayı bir kez duyurur (barınak hariç; duyurulanlar bellekte, yüklemede sessizce dolar).
+- Etkileşim `travel` (tabelaya bakınca "E: tabela (ad) · hızlı seyahat") → yeni `TravelPanel` (panel 'travel'): keşfedilmiş
+  tabelalar ve süre, keşfedilmemişler kapalı. Dokunuş: `WorldScene.touchTap` bilinen tabelaya `NavGoal object`.
+- Çizim: `drawSignpost()` (BuildingArt), `WorldScene.syncSigns` 30 karede bir konum yeniler; mini haritada keşfedilmiş tabela
+  sarı nokta. Kontroller'de "Tabelaya dokun". Ayrıca `Sim`'de 0.19.2'den beri yanlış yerde duran "Sabah 06:00'ya kadar…"
+  yorumu `sleepUntilMorning`'in üstüne taşındı.
+- Testler `tests/unit/travel.test.ts` (4): üç tohum × iki başlangıçta tabelalar (sıra, yürünebilirlik, arsa dışı, doğu
+  tabelası arsa sınırının ötesinde), güneye genişleyince barınak tabelası taşınır; keşif ve tek duyuru; seyahat (tabela şartı,
+  keşif şartı, süre, varış, gezdirilen köpek, bisiklet, dönüş); gece 2'de bayılma. 382 test. Tarayıcı 812×375: barınak
+  tabelası kapının dışında, panel, "Köy · 26 dakika" ile köye ışınlanma (06:04 → 06:31), dokunarak tabelaya gidip paneli açma;
+  `runTouchScenarios` 13/13.
+- Sıradaki: 0.20.4 köylü görevleri.
+
 ## 0.20.2 — Köy kademesi ve köylü sahipleniciler (M11; Claude, 2026-09-23)
 - `Sim.villageStage` 1–3 (kayıtta, düşmez). `Sim.updateVillageStage()` sim dakikasında (hedeflerden sonra): köy bulunduysa
   `BALANCE.village.stageReputation` [0, 40, 70] eşiklerine göre kademe; atlayınca `stampVillageStage(world, kademe)`, olay

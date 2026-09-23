@@ -18,6 +18,7 @@ import { RARITY_NAMES_TR } from '../entities/DogGenome';
 import { VILLAGE_NAMES_TR, villageInteriorKind, wholesaleBagPrice } from '../world/Village';
 import { isMarketDay } from './ShopSystem';
 import { VILLAGER_ROLE_NAMES_TR } from '../entities/Villager';
+import { SIGN_NAMES_TR, signAt } from '../world/Signposts';
 
 export type Tool = 'pet' | 'play' | 'train' | 'feed' | 'clean' | 'call';
 
@@ -73,6 +74,7 @@ export type ActionKind =
   | 'market'
   | 'talk'
   | 'post'
+  | 'travel'
   | 'none';
 
 export interface ResolvedAction {
@@ -261,6 +263,10 @@ export function resolveAction(sim: Sim): ResolvedAction {
   }
   if (obj === Obj.Den) return { kind: 'none', hint: t('Sokak köpeği ini'), tile };
 
+  // Yol tabelası (0.20.3): hızlı seyahat.
+  const sign = signAt(w, fp.x, fp.y);
+  if (sign) return { kind: 'travel', hint: t('E: tabela ({name}) · hızlı seyahat', { name: t(SIGN_NAMES_TR[sign.id]) }), tile };
+
   // Köylü (0.20.1): baktığın yerde duran köylüyle konuş.
   const villager = sim.villagers.at(fp.x, fp.y);
   if (villager) {
@@ -406,7 +412,7 @@ export interface ActionOutcome {
   ok: boolean;
   message?: string;
   /** UI'nın açması gereken panel. */
-  open?: 'shed' | 'kennel' | 'incubator' | 'office' | 'nursery' | 'computer' | 'order' | 'help' | 'furniture' | 'autoOrder' | 'clinic' | 'wholesale' | 'toyShop' | 'market';
+  open?: 'shed' | 'kennel' | 'incubator' | 'office' | 'nursery' | 'computer' | 'order' | 'help' | 'furniture' | 'autoOrder' | 'clinic' | 'wholesale' | 'toyShop' | 'market' | 'travel';
   building?: Building;
   dog?: Dog;
 }
@@ -591,6 +597,8 @@ export function performAction(sim: Sim): ActionOutcome {
       return r.villager !== undefined ? sim.villagers.talk(r.villager) : { ok: false };
     case 'post':
       return sim.villagers.postNews();
+    case 'travel':
+      return { ok: true, open: 'travel' };
     case 'sleep':
       if (!canSleepAt(sim.clock.hour)) return { ok: false, message: t("Henüz erken: {h}:00'den sonra uyunabilir", { h: BALANCE.time.sleepFromHour }) };
       return sim.command({ type: 'sleep' });
