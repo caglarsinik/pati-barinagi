@@ -482,7 +482,7 @@ kuluçka iç mekânları sonra.
 | Sürüm | Konu |
 |---|---|
 | 0.16.0 ✅ | İç mekân altyapısı: ofise gir/çık, iç oda (12×8), dokun-yürü, masa = ofis paneli |
-| 0.16.1 | Ofis eşyaları |
+| 0.16.1 ✅ | Ofis eşyaları: bilgisayar, lisans panosu, yatak, kahve, telefon, kitaplık, pencere/saksı |
 | 0.16.2 | Personel tuvalet ihtiyacı + Personel WC |
 | 0.16.3 | Dinlenme odası içi |
 | 0.16.4 | Cila: otopilot iç mekânda, dokunma senaryoları 9–10, yardım |

@@ -284,6 +284,8 @@ export class Sim {
   autopilot = false;
   /** İçinde bulunulan bina odası (M15); dışarıdayken null. Kayda yazılmaz (içerideyken kapı önü kaydedilir). */
   interior: ActiveInterior | null = null;
+  /** Ofis kahve makinesinden son kahve içilen gün (günde bir). */
+  coffeeDay = 0;
   readonly gates: GateSystem;
   flags: SimFlags = { foodDiscountDay: 0, extraAdoptersDay: 0, growlUntil: 0, growlA: '', growlB: '' };
   speed: Speed = 1;
@@ -1287,6 +1289,7 @@ export class Sim {
       money: this.money,
       difficulty: this.difficulty,
       autopilot: this.autopilot,
+      coffeeDay: this.coffeeDay,
       loan: this.loan,
       negativeWeeks: this.negativeWeeks,
       gameOver: this.gameOver,
@@ -1363,6 +1366,7 @@ export class Sim {
     const sim = new Sim(data.seed >>> 0, world, clock, player, money);
     sim.difficulty = difficulty;
     sim.autopilot = data.autopilot === true;
+    sim.coffeeDay = numOr(data.coffeeDay, 0, 0);
     // Çanta yumurtalarından önce: büyük çantadaki 4–6. yumurta yüklemede kaybolmasın.
     sim.backpackLevel = data.backpackLevel === 2 ? 2 : 1;
     sim.loan = numOr(data.loan, 0, 0);

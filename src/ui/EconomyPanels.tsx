@@ -49,8 +49,6 @@ export function OfficePanel() {
   store.tick.value;
   const sim = app.sim;
   if (!sim) return null;
-  const h = sim.clock.hour;
-  const canSleep = h >= BALANCE.time.sleepFromHour || h < BALANCE.time.nightEndHour;
   const cost = licenseUpgradeCost(sim.licenseLevel);
   const waiting = sim.adopters.filter((a) => a.state === 'waiting').length;
   return (
@@ -159,17 +157,7 @@ export function OfficePanel() {
               ))}
           </div>
         )}
-        <button
-          class="btn primary"
-          disabled={!canSleep}
-          title={canSleep ? '' : t("{h}:00'den sonra uyunabilir", { h: BALANCE.time.sleepFromHour })}
-          onClick={() => {
-            store.panel.value = 'none';
-            run(sim.command({ type: 'sleep' }));
-          }}
-        >
-          {t('Sabaha kadar uyu')}
-        </button>
+        <p class="muted small-text">{t('Uyku: ofisteki yatakta, {h}:00 ile 06:00 arası.', { h: BALANCE.time.sleepFromHour })}</p>
       </div>
     </div>
   );

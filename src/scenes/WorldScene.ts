@@ -436,6 +436,10 @@ export class WorldScene extends Phaser.Scene {
         nursery: 'click',
         office: 'click',
         enter: 'click',
+        computer: 'click',
+        order: 'click',
+        books: 'click',
+        coffee: 'pick',
       };
       const name = sfx[kind];
       if (name) audio.play(name);
@@ -455,7 +459,9 @@ export class WorldScene extends Phaser.Scene {
     } else if (r.open === 'nursery' && r.building) {
       store.panelBuildingId.value = r.building.id;
       store.panel.value = 'nursery';
-    }
+    } else if (r.open === 'computer') store.panel.value = 'computer';
+    else if (r.open === 'order') store.panel.value = 'shed';
+    else if (r.open === 'help') store.panel.value = 'help';
   }
 
   private readInput(): PlayerInput {

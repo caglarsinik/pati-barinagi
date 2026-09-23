@@ -6,7 +6,7 @@ import { Ground } from '../world/tiles';
 export type InteriorKind = 'office';
 
 /** İç mekân eşyası: kare dikdörtgeni katıdır, önünde E ile kullanılır. */
-export type InteriorItemType = 'desk';
+export type InteriorItemType = 'desk' | 'board' | 'window' | 'bookshelf' | 'coffee' | 'phone' | 'bed' | 'plant';
 
 export interface InteriorItem {
   type: InteriorItemType;
@@ -34,7 +34,17 @@ const TEMPLATES: Record<InteriorKind, InteriorTemplate> = {
       '#..........#',
       '#####D######',
     ],
-    items: [{ type: 'desk', x: 2, y: 2, w: 2, h: 1 }],
+    // 0.16.1 ofis eşyaları. Pano ve pencere duvarda (duvar yüzü satırı), diğerleri döşemede.
+    items: [
+      { type: 'desk', x: 2, y: 2, w: 2, h: 1 },
+      { type: 'coffee', x: 1, y: 2, w: 1, h: 1 },
+      { type: 'board', x: 5, y: 1, w: 2, h: 1 },
+      { type: 'window', x: 7, y: 1, w: 1, h: 1 },
+      { type: 'bookshelf', x: 9, y: 2, w: 2, h: 1 },
+      { type: 'bed', x: 10, y: 4, w: 1, h: 2 },
+      { type: 'plant', x: 10, y: 6, w: 1, h: 1 },
+      { type: 'phone', x: 1, y: 5, w: 1, h: 1 },
+    ],
   },
 };
 

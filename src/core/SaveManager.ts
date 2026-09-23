@@ -19,6 +19,7 @@ export interface SaveData {
   volunteerOffer?: unknown;
   tool?: string;
   autopilot?: boolean;
+  coffeeDay?: number;
   foodStock?: number;
   nextId?: number;
   stats?: unknown;

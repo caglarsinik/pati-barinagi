@@ -207,12 +207,12 @@ describe('Uyku ve keşif', () => {
     const office = sim.buildings.find((b) => b.type === 'office')!;
     sim.clock.totalMinutes = 21 * 60;
     face(sim, office.x + 1, office.y + 2);
-    // 0.16.0: kapıda E içeri sokar; ofis paneli içerideki masada.
+    // 0.16.0: kapıda E içeri sokar; 0.16.1: ofis paneli içerideki lisans panosunda.
     expect(resolveAction(sim).kind).toBe('enter');
     expect(performAction(sim).ok).toBe(true);
-    const desk = sim.interior!.items[0];
-    sim.player.x = desk.x + 0.5;
-    sim.player.y = desk.y + 1.7;
+    const board = sim.interior!.items.find((i) => i.type === 'board')!;
+    sim.player.x = board.x + 0.5;
+    sim.player.y = board.y + 1.7;
     sim.player.facing = 3;
     expect(resolveAction(sim).kind).toBe('office');
     expect(performAction(sim).open).toBe('office');

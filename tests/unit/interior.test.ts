@@ -77,8 +77,8 @@ describe('İç mekân altyapısı (0.16.0)', () => {
     expect(sim.command({ type: 'goInteract', goal: { kind: 'object', tile: { x: desk.x + 1, y: desk.y } } }).ok).toBe(true);
     stepUntil(sim, IDLE, 8, () => got !== null);
     expect(got).not.toBeNull();
-    expect(got!.open).toBe('office');
-    expect(resolveAction(sim).kind).toBe('office');
+    expect(got!.open).toBe('computer');
+    expect(resolveAction(sim).kind).toBe('computer');
     expect(sim.command({ type: 'goTo', x: it.door.x, y: it.door.y }).ok).toBe(true);
     stepUntil(sim, IDLE, 8, () => sim.interior === null);
     expect(sim.interior).toBeNull();

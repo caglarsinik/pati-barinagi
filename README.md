@@ -148,13 +148,17 @@ yeniden denemez. Otopilot inşaat, işe alım ve sahiplendirme kararı vermez.
   yumurtayı alıp kuluçkaya koyar. Başarımlar: "İlk soy", "Efsanevi soy".
 - Uzaktaki inlerde (turuncu nokta) sokak köpekleri yaşar. Böğürtlen çalısından ödül maması topla, köpeğe 3 kez ver (cesur huyluya 2); peşine takılır, barınağa girince katılır.
 - **Ofise girmek (0.16.0):** ofisin kapısında E'ye bas ya da ofise dokun; ayrı bir iç odaya geçersin (dışarıda zaman akar,
-  içerisi gece de aydınlık). İçerideki masaya bakıp E (ya da masaya dokun) ofis panelini açar: lisans, kredi, hedef, uyku.
-  Çıkmak için alttaki paspaslı kapı karesine yürü ya da dokun. Yönetim moduna geçmek ve otopilotu açmak seni dışarı çıkarır.
-- Gece 20:00'den sonra ofisteki masadan sabaha kadar uyursun. Dışarıda 02:00'ye kadar kalırsan bayılıp ofiste uyanırsın.
+  içerisi gece de aydınlık). Çıkmak için alttaki paspaslı kapı karesine yürü ya da dokun. Yönetim moduna geçmek ve otopilotu
+  açmak seni dışarı çıkarır.
+- **Ofis eşyaları (0.16.1):** eşyaya bakıp E'ye bas ya da eşyaya dokun. **Bilgisayar** (masada): sahiplendirme, finans,
+  personel ve başarım ekranları. **Lisans panosu** (duvarda): ofis paneli — lisans, büyük çanta, kredi, hedef. **Yatak**:
+  20:00–06:00 arası sabaha kadar uyutur (erken ise "henüz erken"). **Kahve makinesi**: dayanıklılığı doldurur, günde bir.
+  **Telefon**: yem siparişi. **Kitaplık**: kontroller sayfası. Pencere ve saksı süs.
+- Gece 20:00'den sonra ofisteki yatakta sabaha kadar uyursun. Dışarıda 02:00'ye kadar kalırsan bayılıp ofiste uyanırsın.
 
 ## Ekonomi ve sahiplendirme
 
-- Sahiplenici 10:00-16:00 arasında kapıdan gelir, ofisin önünde yaklaşık 2,5 saat bekler. O tuşu ya da ofiste E ile masayı aç; istek kartına göre en uygun köpeği puanla gör ve sahiplendir. Zayıf eşleşme (puan < 50) itibar düşürür, köpek geri gelebilir.
+- Sahiplenici 10:00-16:00 arasında kapıdan gelir, ofisin önünde yaklaşık 2,5 saat bekler. O tuşu ya da ofisteki bilgisayarı (E) aç; istek kartına göre en uygun köpeği puanla gör ve sahiplendir. Zayıf eşleşme (puan < 50) itibar düşürür, köpek geri gelebilir.
 - Köpek sahiplendirilebilmek için sağlıklı, temiz ve sana güvenir olmalı (sadakat 30+).
 - Her Pazartesi 06:00 hafta raporu: denetim (temizlik, sağlık, keyif, pislik, kulübe, yem) yardım çarpanını (0,4-1,5) belirler; köpek başına 150 ₺ × çarpan devlet yardımı yatar, bina bakım gideri düşer.
 - Lisans seviyesi yardım alınan köpek sayısını sınırlar (8/20/45); ofisten yükseltilir. Finans (N) kasa hareketlerini, son 8 haftanın gelir/gider grafiğini ve geçmiş haftaları gösterir; nakit tahmini son 3 haftanın ortalamasına bugünkü maaş ve kredi faizini ekleyip "Bu gidişle n hafta sonra kasa eksiye düşer" uyarısı verir.
@@ -254,6 +258,7 @@ Bilgisayar değiştirirken ya da yedek almak için kullan.
 - [x] 0.15.1 Yuva evi: iki dost yetişkin köpek 5 günde soylu yumurta verir, 4 hafta dinlenir
 - [x] 0.15.2 Soy ağacı (anne-baba, dede-nine, yavrular), "İlk soy"/"Efsanevi soy" başarımları, otopilot yuva evi yumurtası — M14 Soy tamam
 - [x] 0.16.0 İç mekân altyapısı: ofise gir/çık (ayrı iç oda), içeride dokun-yürü, masa = ofis paneli
+- [x] 0.16.1 Ofis eşyaları: bilgisayar menüsü, lisans panosu, yatak, kahve makinesi, telefon, kitaplık, pencere/saksı
 - [ ] M15 İç Mekânlar ve Personel Konforu (0.16.x): ofis eşyaları, personel WC, dinlenme odası
 - [ ] Sonraki paketler (`docs/PLAN.md` §7): M11 Yaşayan Dünya, M13 Sahiplendirme Hikâyeleri
 

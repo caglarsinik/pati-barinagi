@@ -57,6 +57,23 @@
   köpek paneli, araç şeridi, alt menü listesi, ana menü, Ayarlar: çakışma yok, taşma yok. Alt menü açılır listesi köpek
   panelinin üstüne gelebilir (geçici popover, üstte kalır) — kabul edildi. Gerçek cihaz testi kullanıcıda.
 
+## 0.16.1 — Ofis eşyaları (M15; Claude, 2026-09-23)
+- Ofis şablonuna 8 eşya (`Interiors.ts` `TEMPLATES.office.items`; masa listede ilk kalır): masa-bilgisayar (2,2 2×1),
+  kahve köşesi (1,2), lisans panosu (5,1 2×1, duvarda), pencere (7,1, duvarda), kitaplık (9,2 2×1), yatak (10,4 1×2),
+  saksı (10,6), telefon sehpası (1,5). Hepsi `buildingSolid` ile katı; önlerine girişten yürünür (test).
+- `Interaction.resolveInterior` eşya → eylem: masa `computer` (yeni `src/ui/ComputerPanel.tsx`: Sahiplendirme / Finans /
+  Personel / Başarımlar kısayolları; panel anahtarı `'computer'`), pano `office` (ofis paneli), yatak `sleep`
+  (`canSleepAt(hour)` 20:00–06:00; erken ise "Henüz erken" mesajı; uyuyunca oyuncu içeride uyanır), kahve `coffee`
+  (dayanıklılık dolar, günde bir: `Sim.coffeeDay` kayıtta), telefon `order` (kiler paneli = yem siparişi; bina gerekmez),
+  kitaplık `books` (Kontroller sayfası), pencere/saksı yalnız ipucu. `ActionOutcome.open` += `computer | order | help`.
+- Ofis panelindeki "Sabaha kadar uyu" düğmesi kaldırıldı (yerine "Uyku: ofisteki yatakta" notu). Otopilot uykusu hâlâ kapı
+  önünden `sleep` komutuyla (0.16.4'te yatağa taşınacak).
+- `src/render/InteriorArt.ts`: 8 eşya çizimi (duvar eşyaları 16 px yükseklikte, alt 3 satır süpürgelik için boş).
+- Testler: `tests/unit/office-items.test.ts` (4); `interior.test.ts` masa artık `computer`; `eggs.test.ts` uyku testi panoya.
+  321 test. Tarayıcı (812×375): masa → Bilgisayar menüsü, telefon → Kiler, kitaplık → Kontroller, pano → Ofis; gece 23:00
+  yatak → 2. gün 06:00, içeride; kahve dayanıklılığı 100 yaptı; kapıdan çıkış; `runTouchScenarios` 8/8.
+- Sıradaki: 0.16.2 personel tuvalet ihtiyacı + Personel WC binası.
+
 ## 0.16.0 — İç mekân altyapısı: ofise gir/çık (M15 ilk dilimi; Claude, 2026-09-23)
 - `src/sim/interior/Interiors.ts`: metin ızgara şablonları (`#` duvar üstü, `=` duvar yüzü, `.` döşeme, `c` halı, `D` kapı),
   `buildInterior(kind)` → ayrı küçük `TileWorld` (ofis 12×8) + kapı + giriş noktası + eşyalar; `interiorItemAt`,

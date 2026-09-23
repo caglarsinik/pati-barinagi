@@ -10,6 +10,7 @@ import { cleanMess } from './MessSystem';
 import { harvestBerries, harvestNest } from './NestSystem';
 import { t } from '../../i18n';
 import { interiorItemAt } from '../interior/Interiors';
+import { WEATHER_NAMES_TR } from './WeatherSystem';
 
 export type Tool = 'pet' | 'play' | 'train' | 'feed' | 'clean' | 'call';
 
@@ -50,6 +51,11 @@ export type ActionKind =
   | 'call'
   | 'office'
   | 'enter'
+  | 'computer'
+  | 'sleep'
+  | 'coffee'
+  | 'order'
+  | 'books'
   | 'none';
 
 export interface ResolvedAction {
@@ -80,21 +86,46 @@ function nearestDog(sim: Sim, x: number, y: number, radius: number): Dog | null 
   return best;
 }
 
-/** İç mekânda E: baktığı eşya (0.16.0'da ofis masası = ofis paneli); boşta çıkış ipucu. */
+/** Uyku saatinde mi (20:00–06:00)? Ofisteki yatak bu kuralla uyutur. */
+export function canSleepAt(hour: number): boolean {
+  return hour >= BALANCE.time.sleepFromHour || hour < BALANCE.time.nightEndHour;
+}
+
+/** İç mekânda E: baktığı eşyanın eylemi (ofis eşyaları 0.16.1); boşta çıkış ipucu. */
 function resolveInterior(sim: Sim, tile: TilePos): ResolvedAction {
   const it = sim.interior!;
   const item = interiorItemAt(it, tile.x, tile.y);
-  if (item?.type === 'desk') {
-    const waiting = sim.adopters.filter((a) => a.state === 'waiting').length;
-    const building = sim.buildingById(it.buildingId);
-    return {
-      kind: 'office',
-      hint: waiting > 0 ? t('E: masa · ofis işleri ({n} sahiplenici bekliyor)', { n: waiting }) : t('E: masa · ofis işleri (lisans, kredi, uyku)'),
-      building,
-      tile,
-    };
+  switch (item?.type) {
+    case 'desk': {
+      const waiting = sim.adopters.filter((a) => a.state === 'waiting').length;
+      return {
+        kind: 'computer',
+        hint: waiting > 0 ? t('E: bilgisayar ({n} sahiplenici bekliyor)', { n: waiting }) : t('E: bilgisayar (sahiplendirme, finans, personel)'),
+        tile,
+      };
+    }
+    case 'board':
+      return { kind: 'office', hint: t('E: lisans panosu (lisans, kredi, hedef)'), building: sim.buildingById(it.buildingId), tile };
+    case 'bed':
+      return {
+        kind: 'sleep',
+        hint: canSleepAt(sim.clock.hour) ? t('E: sabaha kadar uyu') : t("Yatak: {h}:00'den sonra uyunabilir", { h: BALANCE.time.sleepFromHour }),
+        tile,
+      };
+    case 'coffee':
+      if (sim.coffeeDay === sim.clock.day) return { kind: 'none', hint: t('Bugünkü kahveni içtin'), tile };
+      return { kind: 'coffee', hint: t('E: kahve iç (dayanıklılık dolar, günde bir)'), tile };
+    case 'phone':
+      return { kind: 'order', hint: t('E: telefon · yem siparişi (kilerde {n} porsiyon)', { n: Math.floor(sim.foodStock) }), tile };
+    case 'bookshelf':
+      return { kind: 'books', hint: t('E: kitaplık (kontroller ve ipuçları)'), tile };
+    case 'window':
+      return { kind: 'none', hint: t('Pencere: dışarıda hava {w}', { w: t(WEATHER_NAMES_TR[sim.weatherSys.weather]).toLocaleLowerCase('tr') }), tile };
+    case 'plant':
+      return { kind: 'none', hint: t('Saksı çiçeği ofise renk katıyor'), tile };
+    default:
+      return { kind: 'none', hint: t('Ofis içi · eşyaya bakıp E · çıkmak için kapıya yürü'), tile };
   }
-  return { kind: 'none', hint: t('Ofis içi · masaya bakıp E · çıkmak için kapıya yürü'), tile };
 }
 
 /**
@@ -239,7 +270,7 @@ export interface ActionOutcome {
   ok: boolean;
   message?: string;
   /** UI'nın açması gereken panel. */
-  open?: 'shed' | 'kennel' | 'incubator' | 'office' | 'nursery';
+  open?: 'shed' | 'kennel' | 'incubator' | 'office' | 'nursery' | 'computer' | 'order' | 'help';
   building?: Building;
   dog?: Dog;
 }
@@ -395,6 +426,23 @@ export function performAction(sim: Sim): ActionOutcome {
     }
     case 'enter':
       return r.building ? sim.enterBuilding(r.building.id) : { ok: false };
+    case 'computer':
+      return { ok: true, open: 'computer' };
+    case 'order':
+      return { ok: true, open: 'order' };
+    case 'books':
+      return { ok: true, open: 'help' };
+    case 'sleep':
+      if (!canSleepAt(sim.clock.hour)) return { ok: false, message: t("Henüz erken: {h}:00'den sonra uyunabilir", { h: BALANCE.time.sleepFromHour }) };
+      return sim.command({ type: 'sleep' });
+    case 'coffee': {
+      if (sim.coffeeDay === sim.clock.day) return { ok: false, message: t('Bugünkü kahveni içtin') };
+      sim.coffeeDay = sim.clock.day;
+      p.stamina = BALANCE.player.staminaMax;
+      p.exhausted = false;
+      p.setBusy(1, 'coffee');
+      return { ok: true, message: t('☕ Kahve içtin: dayanıklılık doldu') };
+    }
     case 'office':
       return { ok: true, open: 'office', building: r.building };
     case 'shed':

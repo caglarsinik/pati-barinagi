@@ -15,6 +15,7 @@ import { AlertsSheet, BackpackSheet, MapSheet } from './PhoneSheets';
 import { t } from '../i18n';
 import { PauseMenu } from './PauseMenu';
 import { store } from './store';
+import { ComputerPanel } from './ComputerPanel';
 
 export function App() {
   store.lang.value;
@@ -43,6 +44,7 @@ export function App() {
           {panel === 'alerts' && <AlertsSheet />}
           {panel === 'backpack' && <BackpackSheet />}
           {panel === 'map' && <MapSheet />}
+          {panel === 'computer' && <ComputerPanel />}
           {store.report.value && <WeeklyReport />}
           {store.pauseMenu.value && <PauseMenu />}
           {store.gameOver.value && <GameOverPanel />}
