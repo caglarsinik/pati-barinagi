@@ -31,6 +31,15 @@ const START_ROWS: Array<[string, string]> = [
   ['Sabah raporu', 'Uyuyunca dünün özeti ve bugünün işleri gelir; kayıttan dönünce "Hoş geldin" kartı. Ayarlar\'dan kapatılır.'],
 ];
 
+/** [konu, açıklama] Köy ve dünya (0.20.5). */
+const WORLD_ROWS: Array<[string, string]> = [
+  ['🏘️ Köy', 'Güney yolunun ucunda: yem toptancısı (ucuz çuval), oyuncak ve ilaç dükkânı, Pazar tezgâhı; itibar arttıkça postane ve park açılır.'],
+  ['👥 Köylüler', 'Sabah işe, akşam eve giderler; E ile konuş. Köylünün sahiplendiği köpek köyde sahibiyle yaşar.'],
+  ['🚏 Tabelalar', 'Barınak kapısının dışında, doğu yolunda ve köy girişinde; görünce keşfedilir, tabelada E ile hızlı seyahat (yol kadar zaman geçer, köpekler de gelir).'],
+  ['📋 Görev panosu', 'Köy meydanında; her Pazartesi en çok üç ilan: kayıp köpek, köpek isteği, ödül maması. Panoda kabul et, süresi dolmadan köylüye ya da panoya teslim et.'],
+  ['🤖 Otopilot', 'Yalnız barınak işlerini yapar: köy, tabela, köylü ve görev işlerine dokunmaz, barınaktan uzaktaki yuva ve çalılara gitmez.'],
+];
+
 /** [hareket, ne yapar] */
 const TOUCH_ROWS: Array<[string, string]> = [
   ['Dokun', 'Avatar oraya yürür (yol bulur)'],
@@ -41,7 +50,7 @@ const TOUCH_ROWS: Array<[string, string]> = [
   ['Uzun bas', 'Köpeği seç (panel açılır)'],
   ['E düğmesi', 'Baktığın işi yap (düğme işi yazar)'],
   ['Koş düğmesi', 'Koşarak yürü (dayanıklılık harcar)'],
-  ['🤖 düğmesi (üst şerit)', 'Otopilot: yem, su, temizlik, köpek işleri, yumurta, gece uykusu, ödül maması pişirme; haritaya dokununca kapanır'],
+  ['🤖 düğmesi (üst şerit)', 'Otopilot: yem, su, temizlik, köpek işleri, yumurta, gece uykusu, ödül maması pişirme; köy işlerine gitmez; haritaya dokununca kapanır'],
   ['İki parmak', 'Yakınlaştır · yönetim modunda kaydır'],
   ['Sürükle (yönetim)', 'Kamerayı kaydır · araç seçiliyse çit/yol/bölge çiz'],
   ['Köylüye dokun', 'Yanına gidip konuşur: ipucu ve köy dedikodusu'],
@@ -100,6 +109,19 @@ export function HelpSheet() {
           <table class="help-table">
             <tbody>
               {TOUCH_ROWS.map(([k, v]) => (
+                <tr key={k}>
+                  <td>{t(k)}</td>
+                  <td>{t(v)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        <h4>{t('Köy ve dünya')}</h4>
+        <div class="table-scroll">
+          <table class="help-table">
+            <tbody>
+              {WORLD_ROWS.map(([k, v]) => (
                 <tr key={k}>
                   <td>{t(k)}</td>
                   <td>{t(v)}</td>

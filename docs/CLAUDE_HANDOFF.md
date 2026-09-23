@@ -57,6 +57,27 @@
   köpek paneli, araç şeridi, alt menü listesi, ana menü, Ayarlar: çakışma yok, taşma yok. Alt menü açılır listesi köpek
   panelinin üstüne gelebilir (geçici popover, üstte kalır) — kabul edildi. Gerçek cihaz testi kullanıcıda.
 
+## 0.20.5 — Cila: otopilot köy işlerine dokunmaz, dokunma senaryoları 14–15 (M11 son dilimi; Claude, 2026-09-23)
+- `Interaction.MANUAL_ACTIONS` (köy binasına girme, toptancı, dükkân, pazar, köylüyle konuşma, postane, tabela, görev panosu,
+  kayıp köpek): `PlayerNav.arrive` otopilot açıkken bu eylemleri yapmaz (`goal.kind === 'village'` dahil); `interacted`
+  `{ ok: false }` yayar, otopilot işi başarısız sayıp kara listeye alır, panel açılmaz. `resolveAction` artık köy dalından
+  önce hesaplanıyor (yan etkisiz).
+- `Autopilot.nearHome`: yuva ve çalı işleri yalnız arsaya en çok `BALANCE.autopilot.homeRange` (40) kare ve köyün
+  `villageMargin` (6) karelik çevresinin dışında; oyuncu köydeyken otopilot oralarda iş aramaz, barınak işine (eve) yürür.
+  `travel` komutu otopilotu kapatır (varınca eve yürümesin).
+- Dokunuş cilası (`WorldScene.touchTap`): kayıp köpek dokunulan noktaya sokak ya da barınak köpeğinden yakınsa köpek seçimi ona
+  bırakılır (in yanındaki sokak köpekleri dokunuşu kapmasın); panonun önünden geçen köylü dokunuşu kapmaz (pano daha yakınsa
+  pano).
+- Dokunma senaryoları (`src/debug/touchDebug.ts`) 14–15 taze hazır oyunda (tohum 1942): 14 barınak tabelasına dokun → yürür
+  → hızlı seyahat paneli → köye git (26 dk); 15 panoya dokun → panel → kabul → kayıp köpeğin yanına geç, ona dokun → bulunur →
+  panoya dön (köpek yanına gelir) → teslim; otopilot açıkken panoya varınca panel açılmaz, sonra eve doğru yürür. 15/15.
+- Kontroller: yeni "Köy ve dünya" bölümü (köy, köylüler, tabelalar, görev panosu, otopilot), 🤖 satırına "köy işlerine
+  gitmez". README otopilot bölümü, dokunma testleri paragrafı ve durum listesi (M11 tamam), PLAN M11 tablosu.
+- Testler `tests/unit/autopilot.test.ts` "Otopilot 4" (2): varışta pano/tabela/kayıp köpek eylemi yapılmaz, elle dokununca
+  yapılır ve otopilot kapanır, hızlı seyahat otopilotu kapatır; köyün yakınındaki yuva ve çalıya gitmez. 390 test.
+- M11 Yaşayan Dünya tamam (0.18.0–0.18.2, 0.20.0–0.20.5). Sıradaki: kullanıcı seçer (M13 Sahiplendirme Hikâyeleri, isteğe
+  bağlı terk edilmiş ev + taş/odun, yuva evi içi, kuzey/batı arsa genişletme, açık küçük işler).
+
 ## 0.20.4 — Köylü görevleri (M11; Claude, 2026-09-23)
 - Yeni `src/sim/systems/QuestSystem.ts` (`sim.quests`, kayıtta `quests: { v, week, next, list }`): köy bulununca
   `clock.week` değişince pano yenilenir (`roll`, ayrı RNG `hash3(seed, week, 0x9e57)`; ana `sim.rng` sırası değişmez, testte

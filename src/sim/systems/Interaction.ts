@@ -79,6 +79,12 @@ export type ActionKind =
   | 'lostDog'
   | 'none';
 
+/**
+ * Köy, tabela ve görev eylemleri (0.20.5): yalnız oyuncu elle yapar. Otopilot varınca bunları yapmaz (panel açılmaz,
+ * köylüyle konuşulmaz, kayıp köpek bulunmaz, köy binasına girilmez); `PlayerNav.arrive` denetler.
+ */
+export const MANUAL_ACTIONS: ReadonlySet<ActionKind> = new Set<ActionKind>(['enterVillage', 'wholesale', 'toyShop', 'market', 'talk', 'post', 'travel', 'quests', 'lostDog']);
+
 export interface ResolvedAction {
   kind: ActionKind;
   hint: string;

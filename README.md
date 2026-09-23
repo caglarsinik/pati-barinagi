@@ -143,7 +143,9 @@ yumurta, çalıdan böğürtlen toplar; böğürtlen yoksa, ödül maması 3'ün
 mutfağa girip fırında ödül maması pişirir; bugün sevilmemiş köpeği sever. Uzak hedefe dayanıklılık yettiği sürece koşar. Alt
 satır o an ne yaptığını yazar ("🤖 Yem kabını dolduruyor"). **Elle müdahale kapatır:** WASD, haritaya/köpeğe dokunma, E.
 Yönetim moduna geçince bekler, avatara dönünce sürer. Uyuyan ya da bitkin köpekle oynamaz; ulaşamadığı hedefi 30 saniye
-yeniden denemez. Otopilot inşaat, işe alım ve sahiplendirme kararı vermez.
+yeniden denemez. Otopilot inşaat, işe alım ve sahiplendirme kararı vermez. **Yalnız barınak işlerini yapar** (0.20.5): köye
+gitmez; tabela, köylü, köy dükkânları ve görev panosuyla ilgili işlere dokunmaz (varınca E yerine işi bırakır), yuva ve çalı
+toplamaya arsadan en çok 40 kare uzağa gider, köyün çevresine hiç gitmez. Hızlı seyahat otopilotu kapatır.
 
 ## Köpek bakımı
 
@@ -410,9 +412,9 @@ Bilgisayar değiştirirken ya da yedek almak için kullan.
 - [x] 0.20.2 Köy kademesi (postane, park) ve köylü sahipleniciler: sahiplendirilen köpek köyde sahibiyle, postanede mektup
 - [x] 0.20.3 Yol tabelaları (barınak, doğu yolu, köy) ve hızlı seyahat: yol kadar zaman geçer, köpekler de gelir
 - [x] 0.20.4 Köylü görevleri: köy panosu, kayıp köpek, köpek isteği (köylü sahiplenir), ödül maması; haftalık ilanlar
-- [ ] M11 Yaşayan Dünya kalanı (0.20.5): cila
+- [x] 0.20.5 Cila: otopilot köy, tabela ve görev işlerine dokunmaz, barınaktan uzak yuva ve çalıya gitmez; dokunma senaryoları 14–15; Kontroller'de "Köy ve dünya" — M11 Yaşayan Dünya tamam
 - [ ] Sonrası: M13 Sahiplendirme Hikâyeleri, yuva evi içi, kuzey/batı arsa genişletme
-- [ ] Sonraki paketler (`docs/PLAN.md` §7): M11 Yaşayan Dünya, M13 Sahiplendirme Hikâyeleri
+- [ ] Sonraki paketler (`docs/PLAN.md` §7): M13 Sahiplendirme Hikâyeleri; isteğe bağlı terk edilmiş ev + taş/odun
 
 ## Geliştirme
 
@@ -423,9 +425,11 @@ npm run build     # dist/index.html
 ```
 
 Dokunma testleri: oyunu `?touch=1&debug=1` ile açıp bir oyun başlatınca konsolda `__pati.debug.runTouchScenarios()`
-13 senaryoyu koşar ve `{ summary, results }` döndürür: 1–12 sabit tohumlu hazır barınakta (eğit → yürü, E düğmesi,
+15 senaryoyu koşar ve `{ summary, results }` döndürür: 1–12 sabit tohumlu hazır barınakta (eğit → yürü, E düğmesi,
 pinch + iptal, takılı parmak, yönetim modu, uzun basış, köpeğin dibinde dokunuş, otopilot, ofis ve kiler iç mekânları),
-13 kuruluş oyununda (hedef "Göster" → dokunarak kulübe, kap, yalak, kuluçka → üç belediye hedefi). Senaryolar açık oyunun
+13 kuruluş oyununda (hedef "Göster" → dokunarak kulübe, kap, yalak, kuluçka → üç belediye hedefi), 14–15 taze hazır oyunda
+köyde (tabelaya dokun → hızlı seyahat paneli → köye git; görev panosu → kayıp köpeği bul → panoda teslim, otopilot panoyu
+açmadan eve yürür). Senaryolar açık oyunun
 yerine kendi test oyununu kurar; test oyunu kaydedilmez, yeni oyun ya da devam et ile normal oyuna dönülür. `__pati.debug.snapshot()` o anki
 dokunma/yürüyüş durumunu verir. `?debug=1` olmadan kanca bağlanmaz. Gerçek cihaz kontrol listesi: `docs/CLAUDE_HANDOFF.md`.
 

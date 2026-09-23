@@ -1037,6 +1037,8 @@ export class Sim {
         return { ok: this.nav.goTo({ x: m.x, y: m.y }) };
       }
       case 'travel':
+        // Hızlı seyahat oyuncunun kararı: otopilot kapanır (0.20.5; varınca eve yürümesin).
+        this.setAutopilot(false);
         return this.travel(cmd.to);
       case 'questAccept':
         return this.quests.accept(cmd.id);

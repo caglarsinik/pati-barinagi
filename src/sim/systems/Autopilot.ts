@@ -40,6 +40,8 @@ interface Job {
  * sırayla: gece ofiste uyku, çantadaki yumurtayı kuluçkaya koyma, keşfedilmiş yuvadan yumurta / çalıdan böğürtlen,
  * bugün sevilmemiş köpeği sevme. Uzak hedefe dayanıklılık yettiği sürece koşar. Personelle aynı tahtayı kullanır (görevi PILOT_ID ile üstlenir, bitince
  * düşürür ya da bırakır); elle girdi otopilotu kapatır (Sim.update ve UI komutları). Phaser'sız, test edilebilir.
+ * 0.20.5: yalnız barınak işleri: köy, tabela ve görev eylemlerini varışta yapmaz (`MANUAL_ACTIONS`, `PlayerNav.arrive`),
+ * yuva ve çalı işleri barınağın çevresinde (`nearHome`); hızlı seyahat otopilotu kapatır.
  */
 export class Autopilot {
   /** Üstlenilen iş; yürüyüş ve varış bitene kadar tutulur. */
@@ -308,7 +310,7 @@ export class Autopilot {
     let bestD = radius;
     for (const tile of tiles) {
       const i = w.idx(tile.x, tile.y);
-      if (!w.explored[i] || this.blocked.has(`${prefix}:${i}`)) continue;
+      if (!w.explored[i] || this.blocked.has(`${prefix}:${i}`) || !this.nearHome(tile)) continue;
       const d = Math.hypot(tile.x + 0.5 - p.x, tile.y + 0.5 - p.y);
       if (d < bestD) {
         bestD = d;
@@ -316,6 +318,22 @@ export class Autopilot {
       }
     }
     return best;
+  }
+
+  /**
+   * Yuva ve çalı işleri yalnız barınağın çevresinde (0.20.5): arsaya en çok homeRange kare, köyün yakını değil. Oyuncu köyde ya
+   * da uzaktayken otopilot oralarda iş aramaz, barınak işlerine döner.
+   */
+  private nearHome(tile: TilePos): boolean {
+    const A = BALANCE.autopilot;
+    const w = this.sim.world;
+    const p = w.plot;
+    const dx = Math.max(p.x - tile.x, 0, tile.x - (p.x + p.w - 1));
+    const dy = Math.max(p.y - tile.y, 0, tile.y - (p.y + p.h - 1));
+    if (Math.hypot(dx, dy) > A.homeRange) return false;
+    const v = w.village;
+    const m = A.villageMargin;
+    return !v || tile.x < v.x - m || tile.y < v.y - m || tile.x >= v.x + v.w + m || tile.y >= v.y + v.h + m;
   }
 
   private taskDog(task: Task): Dog | null {

@@ -587,6 +587,9 @@ export const BALANCE = {
     nestRadius: 40,
     /** Keşfedilmiş böğürtlen çalısı bu kadar kare içindeyse gidilir. */
     bushRadius: 25,
+    /** Yuva ve çalı işleri arsaya en çok bu kadar kare uzakta ve köye bu kadar kareden yakın değil (0.20.5). */
+    homeRange: 40,
+    villageMargin: 6,
     /** Ödül maması bunun altındaysa (böğürtlen yoksa, keşfedilmiş vahşi köpek varsa) mutfakta pişirir (0.17.4). */
     bakeBelowTreats: 3,
     /** Koşu: dayanıklılık bunun üstünde ve kalan yol runMinTiles'tan uzunsa başlar... */

@@ -17,6 +17,8 @@ import { Obj } from '../sim/world/tiles';
 import { store } from '../ui/store';
 import { resolveAction } from '../sim/systems/Interaction';
 import { interiorItemAt } from '../sim/interior/Interiors';
+import { signposts } from '../sim/world/Signposts';
+import { questBoardTile } from '../sim/world/Village';
 
 export interface ScenarioResult {
   name: string;
@@ -38,7 +40,7 @@ export interface DebugApp {
   showBuild(target: BuildingType | 'plot'): void;
 }
 
-/** Senaryoların sabit tohumları (0.19.3): 1–12 hazır barınakta, 13 kuruluşta. */
+/** Senaryoların sabit tohumları (0.19.3): 1–12 hazır barınakta, 13 kuruluşta; 14–15 taze hazır oyunda köy (0.20.5). */
 const SCENARIO_SEED_READY = 1942;
 const SCENARIO_SEED_GUIDED = 1913;
 
@@ -164,7 +166,7 @@ export function createTouchDebug(app: DebugApp) {
       };
     },
     runTouchScenarios(): { summary: string; results: ScenarioResult[] } {
-      // 0.19.3: senaryolar kendi dünyalarını kurar (sabit tohum, kayda dokunmaz): 1–12 hazır barınakta, 13 kuruluşta.
+      // 0.19.3: senaryolar kendi dünyalarını kurar (sabit tohum, kayda dokunmaz): 1–12 hazır barınakta, 13 kuruluşta, 14–15 köyde.
       const sim = freshGame('ready', SCENARIO_SEED_READY);
       const results: ScenarioResult[] = [];
       const run = (frames: number, until?: () => boolean): void => {
@@ -434,6 +436,109 @@ export function createTouchDebug(app: DebugApp) {
         store.build.value = { kind: 'none' };
         g.setMode('avatar');
         return [done, `${log.join(' ')} hedefler=${[...g.goals.done].join(',')} kasa=${Math.round(g.money - m0)}`];
+      });
+
+      // 14–15 (0.20.5): köy: tabeladan hızlı seyahat, görev panosu, otopilotun köy işine dokunmaması (taze hazır oyun).
+      const vg = freshGame('ready', SCENARIO_SEED_READY);
+      const vrun = (frames: number, until?: () => boolean): void => {
+        for (let i = 0; i < frames && !(until && until()); i++) vg.update(1 / 30);
+      };
+      const inVillage = (): boolean => {
+        const r = vg.world.village;
+        const p = vg.player;
+        return !!r && p.tileX >= r.x && p.tileY >= r.y && p.tileX < r.x + r.w && p.tileY < r.y + r.h;
+      };
+      const villageReset = (): void => {
+        api.cancelTouches();
+        vg.setAutopilot(false);
+        vg.nav.cancel();
+        vg.player.busy = 0;
+        store.panel.value = 'none';
+      };
+
+      scenario('14 tabelaya dokun → hızlı seyahat paneli → köye git', () => {
+        villageReset();
+        const signs = signposts(vg.world);
+        const home = signs.find((s) => s.id === 'shelter');
+        const village = signs.find((s) => s.id === 'village');
+        if (!home || !village) return [false, 'tabela yok'];
+        // Köy tabelası görülmüş sayılır (oraya yürümek uzun sürer).
+        vg.world.explored[vg.world.idx(village.x, village.y)] = 1;
+        api.tapTile(home.x + 0.5, home.y + 0.5);
+        const walking = vg.nav.goal?.kind === 'object';
+        vrun(400, () => store.panel.value === 'travel');
+        const panel = store.panel.value === 'travel';
+        // Paneldeki "Git" düğmesinin komutu.
+        const t0 = vg.clock.totalMinutes;
+        const r = vg.command({ type: 'travel', to: 'village' });
+        if (r.ok) store.panel.value = 'none';
+        const minutes = Math.round(vg.clock.totalMinutes - t0);
+        return [walking && panel && r.ok && inVillage() && vg.villageFound, `yürüdü=${walking} panel=${panel} köyde=${inVillage()} yol=${minutes} dk`];
+      });
+
+      scenario('15 görev panosu → kayıp köpeği bul → panoda teslim; otopilot panoyu açmaz, eve yürür', () => {
+        villageReset();
+        const board = questBoardTile(vg.world);
+        if (!inVillage() || !board) return [false, 'köyde değil'];
+        vg.stepSim(1);
+        const q = vg.quests.list.find((x) => x.kind === 'lost');
+        const d = q?.dog;
+        if (!q || !d) return [false, `ilanlar=${vg.quests.list.map((x) => x.kind).join(',')}`];
+        api.tapTile(board.x + 0.5, board.y + 0.5);
+        vrun(400, () => store.panel.value === 'quests');
+        const panel = store.panel.value === 'quests';
+        // Paneldeki "Kabul et" düğmesinin komutu.
+        const accepted = vg.command({ type: 'questAccept', id: q.id }).ok;
+        store.panel.value = 'none';
+        // Köpeğin birkaç kare ötesine geç (oraya yürümek uzun sürer), sonra köpeğe dokun.
+        const w = vg.world;
+        let near: TilePos | null = null;
+        for (let r = 2; r <= 5 && !near; r++) {
+          for (const [dx, dy] of [
+            [r, 0],
+            [-r, 0],
+            [0, r],
+            [0, -r],
+          ]) {
+            const x = d.spotX + dx;
+            const y = d.spotY + dy;
+            if (!near && w.inBounds(x, y) && !w.isSolid(x, y)) near = { x, y };
+          }
+        }
+        if (!near) return [false, 'köpeğin yanında boş kare yok'];
+        vg.player.x = near.x + 0.5;
+        vg.player.y = near.y + 0.7;
+        vrun(2);
+        api.tapTile(d.x, d.y - 0.3);
+        vrun(400, () => d.found);
+        const found = d.found;
+        // Panoya dön (köpek yanına gelir), panoya dokun, teslim et.
+        vg.player.x = board.x + 0.5;
+        vg.player.y = board.y + 2.7;
+        vrun(3);
+        const m0 = vg.money;
+        api.tapTile(board.x + 0.5, board.y + 0.5);
+        vrun(400, () => store.panel.value === 'quests');
+        // Paneldeki "Teslim et" düğmesinin komutu.
+        const paid = vg.command({ type: 'questDeliver', id: q.id }).ok && vg.money > m0;
+        store.panel.value = 'none';
+        // Otopilot açıkken panoya varsa da açmaz; sonra barınak işine (eve) yürür.
+        vg.player.x = board.x + 0.5;
+        vg.player.y = board.y + 2.7;
+        const plot = vg.world.plot;
+        const home = (): number => Math.hypot(vg.player.x - (plot.x + plot.w / 2), vg.player.y - (plot.y + plot.h / 2));
+        vg.setAutopilot(true);
+        vg.nav.goInteract({ kind: 'object', tile: board });
+        vrun(120, () => !vg.nav.active);
+        const noPanel = store.panel.value === 'none';
+        const h0 = home();
+        vrun(240);
+        const homeward = home() < h0 - 5;
+        villageReset();
+        return [
+          panel && accepted && found && paid && noPanel && homeward,
+          `panel=${panel} kabul=${accepted} bulundu=${found} teslim=${paid} otopilot: pano=${noPanel ? 'kapalı' : 'açıldı'} eve=${homeward}`,
+        ];
       });
 
       return { summary: summarize(results), results };

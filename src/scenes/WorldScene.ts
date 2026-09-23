@@ -736,14 +736,20 @@ export class WorldScene extends Phaser.Scene {
       this.interiorTap(Math.floor(wx), Math.floor(wy));
       return;
     }
-    const pick = pickTapDog(sim.dogs, sim.player, wx, wy);
+    let pick = pickTapDog(sim.dogs, sim.player, wx, wy);
     const tx = Math.floor(wx);
     const ty = Math.floor(wy);
     const w = sim.world;
     if (!w.inBounds(tx, ty)) return;
     // Köpeğin dibindeyken çevresine dokunuş yürüyüştür (pick.interact false): aşağıdaki kare mantığına düşer.
     // Köylüye dokunuş (0.20.1): yanına gidip konuş.
-    const villager = pick?.interact ? null : sim.villagers.at(wx, wy, BALANCE.villagers.talkReach + 0.3);
+    // Kayıp köpek (0.20.4) dokunulan noktaya barınak ya da sokak köpeğinden yakınsa köpek seçimi ona bırakılır (0.20.5).
+    const lost = sim.quests.lostDogAt(wx, wy, 0.9);
+    if (lost && pick && Math.hypot(lost.x - wx, lost.y - 0.3 - wy) <= Math.hypot(pick.dog.x - wx, pick.dog.y - 0.2 - wy)) pick = null;
+    let villager = pick?.interact ? null : sim.villagers.at(wx, wy, BALANCE.villagers.talkReach + 0.3);
+    // Panonun önünden geçen köylü dokunuşu kapmasın (0.20.5): pano daha yakınsa pano.
+    const board = questBoardTile(w);
+    if (villager && board && Math.hypot(board.x + 0.5 - wx, board.y + 0.5 - wy) < Math.hypot(villager.x - wx, villager.y - 0.35 - wy)) villager = null;
     // Tabelaya dokunuş (0.20.3): yanına git, hızlı seyahat paneli.
     const sign = pick?.interact || villager ? undefined : signposts(w).find((s) => signKnown(w, s) && Math.hypot(s.x + 0.5 - wx, s.y + 0.5 - wy) <= 0.9);
     // Görev panosu ve kayıp köpek (0.20.4): yanına git, E.

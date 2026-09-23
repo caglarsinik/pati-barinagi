@@ -4,7 +4,7 @@ import { IDLE_INPUT, type PlayerInput } from '../entities/Player';
 import { findPath } from '../world/Pathfinder';
 import type { TilePos } from '../world/TileWorld';
 import type { Sim } from '../Sim';
-import { performAction, resolveAction } from './Interaction';
+import { MANUAL_ACTIONS, performAction, resolveAction } from './Interaction';
 import { t } from '../../i18n';
 import { villageDoorTile, villageInteriorKind } from '../world/Village';
 
@@ -260,6 +260,12 @@ export class PlayerNav {
       sim.events.emit('interacted', { kind: 'enter', result });
       return;
     }
+    const kind = resolveAction(sim).kind;
+    // Otopilot köy, tabela ve görev işlerini yapmaz (0.20.5): iş başarısız sayılır, panel açılmaz, köylüyle konuşulmaz.
+    if (sim.autopilot && (goal.kind === 'village' || MANUAL_ACTIONS.has(kind))) {
+      sim.events.emit('interacted', { kind, result: { ok: false } });
+      return;
+    }
     if (goal.kind === 'village') {
       // Girilebilen köy binası içeri sokar; pazar tezgâhında önüne gelince E işi yapılır (aşağıda).
       const vb = sim.world.villageBuildings[goal.index];
@@ -269,7 +275,6 @@ export class PlayerNav {
         return;
       }
     }
-    const kind = resolveAction(sim).kind;
     const result = performAction(sim);
     sim.events.emit('interacted', { kind, result });
   }

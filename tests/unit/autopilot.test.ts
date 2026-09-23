@@ -10,6 +10,8 @@ import { GOALS } from '../../src/sim/systems/Goals';
 import { placeMess } from '../../src/sim/systems/MessSystem';
 import { harvestNest } from '../../src/sim/systems/NestSystem';
 import { Obj } from '../../src/sim/world/tiles';
+import { landingTile, signposts } from '../../src/sim/world/Signposts';
+import { questBoardTile } from '../../src/sim/world/Village';
 
 function runSeconds(sim: Sim, sec: number): void {
   for (let i = 0; i < Math.ceil(sec * 30); i++) sim.update(1 / 30, IDLE_INPUT);
@@ -437,5 +439,96 @@ describe('Otopilot 3: yumurta, böğürtlen, uyku, koşu', () => {
     runSeconds(sim, 0.2);
     expect(sim.player.running).toBe(false);
     expect(sim.pilot.run()).toBe(false);
+  });
+});
+
+describe('Otopilot 4: köy, tabela ve görevler (0.20.5)', () => {
+  it('varışta köy, tabela ve görev eylemlerini yapmaz; elle dokununca yapılır; hızlı seyahat otopilotu kapatır', () => {
+    const sim = pilotOn(1341);
+    calmDogs(sim);
+    sim.villageFound = true;
+    sim.stepSim(1);
+    const w = sim.world;
+    const seen: string[] = [];
+    sim.events.on('interacted', (e) => seen.push(`${e.kind}:${e.result.ok}:${e.result.open ?? '-'}`));
+    const arrive = (tile: { x: number; y: number }): string => {
+      expect(sim.nav.goInteract({ kind: 'object', tile })).toBe(true);
+      for (let i = 0; i < 300 && sim.nav.active; i++) sim.update(1 / 30, IDLE_INPUT);
+      return seen[seen.length - 1] ?? '';
+    };
+    // Görev panosu: panel açılmaz.
+    const board = questBoardTile(w)!;
+    sim.player.x = board.x + 0.5;
+    sim.player.y = board.y + 2.7;
+    expect(arrive(board)).toBe('quests:false:-');
+    // Köy tabelası: hızlı seyahat paneli açılmaz.
+    const sign = signposts(w).find((s) => s.id === 'village')!;
+    w.explored[w.idx(sign.x, sign.y)] = 1;
+    const land = landingTile(w, sign);
+    sim.player.x = land.x + 0.5;
+    sim.player.y = land.y + 0.9;
+    expect(arrive({ x: sign.x, y: sign.y })).toBe('travel:false:-');
+    // Kayıp köpek: otopilot bulmaz, elle dokununca bulunur (otopilot kapanır).
+    sim.player.x = board.x + 0.5;
+    sim.player.y = board.y + 1.7;
+    const q = sim.quests.list.find((x) => x.kind === 'lost')!;
+    expect(sim.command({ type: 'questAccept', id: q.id }).ok).toBe(true);
+    const d = q.dog!;
+    const spot = { x: d.spotX, y: d.spotY };
+    const nb = [
+      [0, 1],
+      [-1, 0],
+      [1, 0],
+      [0, -1],
+    ]
+      .map(([dx, dy]) => ({ x: spot.x + dx, y: spot.y + dy }))
+      .find((c) => !w.isSolid(c.x, c.y))!;
+    sim.player.x = nb.x + 0.5;
+    sim.player.y = nb.y + 0.7;
+    expect(arrive(spot)).toBe('lostDog:false:-');
+    expect(d.found).toBe(false);
+    expect(sim.autopilot).toBe(true);
+    expect(sim.command({ type: 'goInteract', goal: { kind: 'object', tile: spot } }).ok).toBe(true);
+    for (let i = 0; i < 300 && sim.nav.active; i++) sim.update(1 / 30, IDLE_INPUT);
+    expect(sim.autopilot).toBe(false);
+    expect(d.found).toBe(true);
+    // Hızlı seyahat otopilotu kapatır (varınca eve yürümesin).
+    sim.setAutopilot(true);
+    sim.player.x = land.x + 0.5;
+    sim.player.y = land.y + 0.9;
+    expect(sim.command({ type: 'travel', to: 'shelter' }).ok).toBe(true);
+    expect(sim.autopilot).toBe(false);
+  });
+
+  it('yuva ve çalı işleri barınağın çevresinde: köyün yakınındaki yuvaya ve çalıya gitmez', () => {
+    const sim = pilotOn(1342);
+    calmDogs(sim);
+    sim.backpack = [];
+    sim.treats = 0;
+    const w = sim.world;
+    for (const n of w.nests) w.explored[w.idx(n.x, n.y)] = 0;
+    const v = w.village!;
+    const free: Array<{ x: number; y: number }> = [];
+    for (let y = v.y - 12; y < v.y - 7 && free.length < 2; y++) {
+      for (let x = v.x; x < v.x + v.w && free.length < 2; x++) {
+        if (!w.isSolid(x, y) && w.objectAt(x, y) === Obj.None && w.buildingIdAt(x, y) === -1) free.push({ x, y });
+      }
+    }
+    expect(free).toHaveLength(2);
+    const [nest, bush] = free;
+    w.setObject(nest.x, nest.y, Obj.NestEggs);
+    w.nests.push({ x: nest.x, y: nest.y });
+    w.setObject(bush.x, bush.y, Obj.BerryBush);
+    w.explored[w.idx(nest.x, nest.y)] = 1;
+    w.explored[w.idx(bush.x, bush.y)] = 1;
+    // Oyuncu köy girişinde: yuva ve çalı otopilotun yarıçapında ama barınaktan uzak.
+    const land = landingTile(w, signposts(w).find((s) => s.id === 'village')!);
+    sim.player.x = land.x + 0.5;
+    sim.player.y = land.y + 0.9;
+    expect(Math.hypot(nest.x - sim.player.x, nest.y - sim.player.y)).toBeLessThan(BALANCE.autopilot.nestRadius);
+    runSeconds(sim, 15);
+    expect(sim.stats.eggsFound).toBe(0);
+    expect(w.objectAt(nest.x, nest.y)).toBe(Obj.NestEggs);
+    expect(w.objectAt(bush.x, bush.y)).toBe(Obj.BerryBush);
   });
 });
