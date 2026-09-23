@@ -3,6 +3,8 @@ import { app } from '../app';
 import { audio } from '../audio/audio';
 import { t } from '../i18n';
 import { ADOPTER_TYPES } from '../sim/entities/AdopterType';
+import type { GrowthStage } from '../sim/entities/Dog';
+import type { DogGenome } from '../sim/entities/DogGenome';
 import type { Letter, PhotoScene } from '../sim/systems/MailSystem';
 import { DogPortrait } from './DogPortrait';
 import { formatMoney } from './format';
@@ -19,17 +21,21 @@ const SCENE_PROPS: Record<PhotoScene, string> = {
   village: '⛲🏘️',
 };
 
-/** Polaroid fotoğraf: köpek yeni evinde. */
-export function LetterPhoto({ letter }: { letter: Letter }) {
+/** Polaroid fotoğraf: köpek yeni evinde (mektupta büyük, albümde küçük; görünümü yoksa pati silüeti). */
+export function ScenePhoto({ scene, genome, stage, caption, small = false }: { scene: PhotoScene; genome?: DogGenome; stage?: GrowthStage; caption: string; small?: boolean }) {
   return (
-    <div class={'photo scene-' + letter.scene}>
+    <div class={'photo scene-' + scene + (small ? ' small' : '')}>
       <div class="photo-scene">
-        <span class="photo-props">{SCENE_PROPS[letter.scene]}</span>
-        {letter.genome ? <DogPortrait genome={letter.genome} stage={letter.stage ?? 'adult'} scale={3} /> : <span class="photo-paw">🐾</span>}
+        <span class="photo-props">{SCENE_PROPS[scene]}</span>
+        {genome ? <DogPortrait genome={genome} stage={stage ?? 'adult'} scale={small ? 2 : 3} /> : <span class="photo-paw">🐾</span>}
       </div>
-      <span class="photo-caption">{letter.dogName}</span>
+      <span class="photo-caption">{caption}</span>
     </div>
   );
+}
+
+export function LetterPhoto({ letter }: { letter: Letter }) {
+  return <ScenePhoto scene={letter.scene} genome={letter.genome} stage={letter.stage} caption={letter.dogName} />;
 }
 
 /** Posta (0.21.1): sahiplendirilen köpeklerin ailelerinden gelen fotoğraflı mektuplar; açılan mektup okundu sayılır. */
@@ -98,6 +104,9 @@ export function MailPanel() {
                   {open.type ? ' · ' + t(ADOPTER_TYPES[open.type].name) : ''}
                 </p>
                 {open.donation > 0 && <p class="small-text">{t('💝 Mektupla birlikte {money} bağış geldi.', { money: formatMoney(open.donation) })}</p>}
+                <button class="btn small" onClick={() => (store.panel.value = 'album')}>
+                  {t('📖 Albümde gör')}
+                </button>
               </div>
             </div>
           </div>

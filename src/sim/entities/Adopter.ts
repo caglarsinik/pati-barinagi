@@ -100,6 +100,8 @@ export interface Adopter {
   villager?: number;
   /** Kişilik tipi (0.21.0). */
   type: AdopterType;
+  /** Tekrar gelen aile (0.21.2): ailenin ilk sahiplendirme anahtarı. */
+  family?: number;
 }
 
 export interface AdopterSave {
@@ -115,6 +117,7 @@ export interface AdopterSave {
   queueSlot: number;
   villager?: number;
   type?: string;
+  family?: number;
 }
 
 const SIZES: SizeClass[] = ['S', 'M', 'L'];
@@ -243,5 +246,6 @@ export function adopterFromJSON(data: unknown): Adopter | null {
     ...(typeof d.villager === 'number' ? { villager: d.villager } : {}),
     // Eski kayıtta tip yok: Sim.fromJSON kimlikten (köylüde rolden) türetir.
     type: isAdopterType(d.type) ? d.type : 'family',
+    ...(typeof d.family === 'number' && Number.isFinite(d.family) ? { family: d.family } : {}),
   };
 }

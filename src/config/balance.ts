@@ -475,6 +475,18 @@ export const BALANCE = {
     donationMax: 200,
     repPerDay: 2,
     maxLetters: 40,
+    /**
+     * Tekrar gelen aile (0.21.2): olasılık = taban + uygun aile başına artış (tavanlı); son sahiplendirmeden en az gün, en çok
+     * sahiplendirme; ücret ve sabır çarpanı, iyi eşleşmede ek itibar.
+     */
+    returnChanceBase: 0.12,
+    returnChancePerFamily: 0.01,
+    returnChanceMax: 0.3,
+    returnMinDays: 7,
+    returnMaxAdoptions: 3,
+    returnFeeMul: 1.25,
+    returnPatienceMul: 1.5,
+    returnRep: 1,
   },
   /** Belediye hedefleri (0.19.0): ödül çarpanı ve hedef başına itibar. */
   goals: {

@@ -2,6 +2,7 @@ import { BALANCE } from '../../config/balance';
 import { PERSON_NAMES } from '../../content/names';
 import { type Adopter, adoptable, matchScore, randomRequest, requestFee } from '../entities/Adopter';
 import { ADOPTER_TYPES, type AdopterType, VILLAGER_ADOPTER_TYPE, adopterIdentity, typedFee, withTypeLikes } from '../entities/AdopterType';
+import { familyLast, pickReturningFamily } from './Stories';
 import type { GrowthStage } from '../entities/Dog';
 import type { DogGenome } from '../entities/DogGenome';
 import { buildingDoorTile } from '../entities/Building';
@@ -34,6 +35,8 @@ export interface AdoptionRecord {
   /** Ailenin mektup yazacağı gün ve yazdı mı (0.21.1; geri gelecek köpekte yok). */
   letterDay?: number;
   lettered?: boolean;
+  /** Aile (0.21.2): ailenin ilk sahiplendirme anahtarı; tekrar gelen ailede eski kayıtla aynı. */
+  family?: number;
 }
 
 export interface PendingReturn {
@@ -126,11 +129,25 @@ export class AdoptionSystem {
       a.name = villager.name;
       a.look = villager.look;
       a.type = VILLAGER_ADOPTER_TYPE[villager.role];
+    } else {
+      // Tekrar gelen aile (0.21.2; ayrı RNG): mutlu eski aile yeniden gelir; adı, görünümü ve tipi ailenin.
+      const back = pickReturningFamily(sim, a.id);
+      if (back) {
+        a.family = back.family;
+        a.name = back.last.adopterName;
+        if (back.last.look !== undefined) a.look = back.last.look;
+        if (back.last.type) a.type = back.last.type;
+      }
     }
     // Tip: sevdikleri isteğe eklenir, ücret ve sabır çarpanı (dekor sabrı ayrıca eklenir).
     a.request = withTypeLikes(a.request, a.type);
     a.fee = typedFee(a.fee, a.type);
     a.patienceLeft = BALANCE.adoption.patienceMinutes * ADOPTER_TYPES[a.type].patienceMul + sim.decorScore() * BALANCE.decor.patiencePerPoint;
+    if (a.family !== undefined) {
+      const S = BALANCE.stories;
+      a.fee = Math.min(BALANCE.adoption.feeMax, Math.round((a.fee * S.returnFeeMul) / 10) * 10);
+      a.patienceLeft *= S.returnPatienceMul;
+    }
     const target = this.queueTile(office, a.queueSlot);
     a.path = findPath(sim.world, gate, target, { maxNodes: 6000, adjacentOk: true, throughGates: true }) ?? [];
     sim.adopters.push(a);
@@ -224,6 +241,9 @@ export class AdoptionSystem {
     if (score <= 0) return { ok: false, message: t('{name} bu köpeği istemiyor', { name: a.name }) };
     const B = BALANCE.adoption;
     let rep = score >= 70 ? B.repGood + Math.round((score - 70) / 10) : score >= 50 ? B.repOk : -B.repBad;
+    // Tekrar gelen aile (0.21.2): eski köpeği hatırlanır, iyi eşleşmede ek itibar.
+    const old = a.family !== undefined ? familyLast(sim, a.family) : null;
+    if (old && score >= 50) rep += BALANCE.stories.returnRep;
     sim.reputation = clamp100(sim.reputation + rep);
     sim.addIncome('adoption', a.fee, `${dog.name} → ${a.name}`);
     const record: AdoptionRecord = {
@@ -237,6 +257,7 @@ export class AdoptionSystem {
       look: a.look,
       genome: { ...dog.genome },
       stage: dog.stage,
+      family: a.family ?? a.id,
     };
     sim.adoptions.push(record);
     sim.stats.adopted++;
@@ -253,7 +274,8 @@ export class AdoptionSystem {
     }
     this.leave(a);
     const repText = rep >= 0 ? t('itibar +{n}', { n: rep }) : t('itibar {n}', { n: rep });
-    const message = t('{dog}, {person} ile yeni evine gitti (+{fee} ₺, {rep})', { dog: dog.name, person: a.name, fee: a.fee, rep: repText });
+    let message = t('{dog}, {person} ile yeni evine gitti (+{fee} ₺, {rep})', { dog: dog.name, person: a.name, fee: a.fee, rep: repText });
+    if (old) message += ' · ' + t('🔁 {dog}, {old} ile tanışacak', { dog: dog.name, old: old.dogName });
     return { ok: true, message: record.villager !== undefined ? message + ' · ' + t('onu köyde görebilirsin') : message };
   }
 

@@ -32,6 +32,7 @@ import { type VillageBuilding, questBoardTile, villageDoorTile, villageInteracti
 import { isMarketDay } from '../sim/systems/ShopSystem';
 import { drawQuestBoard, drawSignpost, drawVillageBuilding } from '../render/BuildingArt';
 import { type SignId, signKnown, signposts } from '../sim/world/Signposts';
+import { familyLast } from '../sim/systems/Stories';
 
 type KeyName =
   | 'W' | 'A' | 'S' | 'D' | 'UP' | 'DOWN' | 'LEFT' | 'RIGHT' | 'SHIFT' | 'E' | 'I' | 'B' | 'X' | 'Z' | 'O' | 'N' | 'P' | 'F' | 'TAB' | 'SPACE' | 'ESC'
@@ -135,6 +136,8 @@ export class WorldScene extends Phaser.Scene {
   /** Hazır lambalar (bina değişince yenilenir). */
   private lamps: Building[] = [];
   private adopterSprites = new Map<number, Phaser.GameObjects.Sprite>();
+  /** Tekrar gelen ailenin yanındaki eski köpeği (0.21.2), sahiplenici kimliğiyle. */
+  private adopterDogSprites = new Map<number, Phaser.GameObjects.Sprite>();
   private staffSprites = new Map<number, Phaser.GameObjects.Sprite>();
 
   constructor() {
@@ -238,7 +241,14 @@ export class WorldScene extends Phaser.Scene {
         store.report.value = w;
         this.sim.setSpeed(0);
       }),
-      this.sim.events.on('adopterArrived', (a) => showToast(t('{name} kapıdan geldi: sahiplenmek istiyor', { name: a.name }))),
+      this.sim.events.on('adopterArrived', (a) => {
+        const old = a.family !== undefined ? familyLast(this.sim, a.family) : null;
+        showToast(
+          old
+            ? t('🔁 {name} yine geldi: {dog} çok mutluymuş, bir dost daha istiyorlar', { name: a.name, dog: old.dogName })
+            : t('{name} kapıdan geldi: sahiplenmek istiyor', { name: a.name }),
+        );
+      }),
       this.sim.events.on('gameEvent', () => audio.play('alert')),
       this.sim.events.on('achievement', () => audio.play('adopt')),
       this.sim.events.on('interacted', (e) => this.afterInteract(e.kind, e.result)),
@@ -381,6 +391,7 @@ export class WorldScene extends Phaser.Scene {
       this.buildingImages.clear();
       this.dogSprites.clear();
       this.adopterSprites.clear();
+      this.adopterDogSprites.clear();
       this.staffSprites.clear();
       this.villagerSprites.clear();
       this.villageDogSprites.clear();
@@ -1056,11 +1067,35 @@ export class WorldScene extends Phaser.Scene {
         s.anims.stop();
         s.setFrame(a.facing * 3);
       }
+      // Tekrar gelen aile (0.21.2): eski köpeği yanında; yürürken bir adım geride, beklerken yanında oturur.
+      const old = a.family !== undefined ? familyLast(this.sim, a.family) : null;
+      if (!old?.genome) continue;
+      const dkey = ensureDogTexture(this, old.genome, old.stage ?? 'adult');
+      let ds = this.adopterDogSprites.get(a.id);
+      if (!ds) {
+        ds = this.add.sprite(0, 0, dkey, 0).setOrigin(0.5, 1);
+        this.adopterDogSprites.set(a.id, ds);
+      }
+      const back = VILLAGE_DOG_BACK[a.facing];
+      const dpx = Math.round((a.x + (a.moving ? back.x : 0.8)) * T);
+      const dpy = Math.round((a.y + (a.moving ? back.y : 0.1)) * T + 6);
+      ds.setPosition(dpx, dpy).setDepth(100 + dpy);
+      if (a.moving && !this.sim.paused) ds.anims.play(`${dkey}-walk-${a.facing}`, true);
+      else {
+        ds.anims.stop();
+        ds.setFrame(a.facing * DOG_FRAMES + DOG_FRAME_SIT);
+      }
     }
     for (const [id, s] of this.adopterSprites) {
       if (!seen.has(id)) {
         s.destroy();
         this.adopterSprites.delete(id);
+      }
+    }
+    for (const [id, s] of this.adopterDogSprites) {
+      if (!seen.has(id)) {
+        s.destroy();
+        this.adopterDogSprites.delete(id);
       }
     }
   }

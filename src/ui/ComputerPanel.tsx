@@ -40,6 +40,9 @@ export function ComputerPanel() {
           <button class={unread > 0 ? 'btn primary' : 'btn'} onClick={() => open('mail')}>
             {unread > 0 ? t('📬 Posta ({n} yeni)', { n: unread }) : t('📬 Posta')}
           </button>
+          <button class="btn" onClick={() => open('album')}>
+            {t('📖 Mezunlar')}
+          </button>
         </div>
       </div>
     </div>

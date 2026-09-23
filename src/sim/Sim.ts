@@ -1714,6 +1714,7 @@ export class Sim {
         queueSlot: a.queueSlot,
         villager: a.villager,
         type: a.type,
+        family: a.family,
       })),
       ledger: this.ledger.map((e) => ({ ...e })),
       weeks: this.weeks.map((w) => ({ ...w })),

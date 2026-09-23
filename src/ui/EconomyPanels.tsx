@@ -5,6 +5,7 @@ import { BALANCE } from '../config/balance';
 import { t } from '../i18n';
 import { adoptable, hardMismatch, likeHits, matchScore, requestText } from '../sim/entities/Adopter';
 import { ADOPTER_TYPES } from '../sim/entities/AdopterType';
+import { familyLast } from '../sim/systems/Stories';
 import { STAGE_NAMES_TR } from '../sim/entities/Dog';
 import { DIFFICULTY_NAMES_TR } from '../sim/Sim';
 import { LEDGER_NAMES_TR, type LedgerCategory, licenseUpgradeCost, projectCash } from '../sim/systems/EconomySystem';
@@ -214,6 +215,7 @@ export function AdoptionDesk() {
                 <div class="muted small-text">
                   {t(ADOPTER_TYPES[a.type].name)} · {t(ADOPTER_TYPES[a.type].trait)}
                 </div>
+                {a.family !== undefined && <div class="small-text">🔁 {t('Yine geldi · önceki köpeği {dog}', { dog: familyLast(sim, a.family)?.dogName ?? '?' })}</div>}
                 <div class="small-text">{requestText(a.request)}</div>
                 <div class="muted small-text">{t('Sabrı: {min} dk', { min: Math.max(0, Math.round(a.patienceLeft)) })}</div>
               </button>
@@ -260,7 +262,14 @@ export function AdoptionDesk() {
             </div>
           )}
         </div>
-        {last && <p class="muted small-text">{t('Son sahiplendirme: {dog} → {person} (puan {score})', { dog: last.dogName, person: last.adopterName, score: last.score })}</p>}
+        {last && (
+          <p class="muted small-text">
+            {t('Son sahiplendirme: {dog} → {person} (puan {score})', { dog: last.dogName, person: last.adopterName, score: last.score })}{' '}
+            <button class="btn small" onClick={() => (store.panel.value = 'album')}>
+              {t('📖 Mezunlar')}
+            </button>
+          </p>
+        )}
       </div>
     </div>
   );

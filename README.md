@@ -225,6 +225,12 @@ toplamaya arsadan en çok 40 kare uzağa gider, köyün çevresine hiç gitmez. 
   atölye ya da köy meydanı). Harika eşleşmede aile 40–200 ₺ bağış gönderir (Sanatçı ve Emekli cömert, Öğrenci az) ve itibar +1
   (günde en çok 2). Geri getirilecek köpeğe mektup gelmez. Mektuplar ☰ Menü → Posta'da ve ofis bilgisayarında okunur (en çok 40
   tutulur); sabah raporu okunmamışları hatırlatır.
+- **Mezunlar albümü ve tekrar gelen aileler** (0.21.2): ☰ Menü → Mezunlar (ofis bilgisayarında ve masadaki "Son sahiplendirme"
+  satırında da) sahiplendirdiğin bütün köpekleri fotoğraflarıyla gösterir: eşleşme yıldızı (1–5), aile ve tipi, gün, rozetler
+  (🏘️ köyde, 🔁 tekrar gelen aile, ↩️ geri döndü) ve son mektuptan bir cümle; üstte mezun sayısı, mutlu yüzdesi ve geri
+  dönenler, süzgeçler Tümü / Mektuplu / Köyde. Köpeğini mutlu eden (eşleşme ≥70) ve hiç köpek geri getirmeyen bir aile en az 7
+  gün sonra yeniden gelebilir (en çok 3 sahiplendirme): eski köpeği yanında yürür, kartta "🔁 Yine geldi", ücret ×1,25, sabır
+  ×1,5, iyi eşleşmede itibar +1. Başarımlar "Sadık aile" ve "Mezunlar" (25 sahiplendirme).
 
 ## Personel ve görevlendirme
 
@@ -354,7 +360,7 @@ Görevi olan köylünün başında soru balonu çıkar; sabah raporu kalan süre
 
 ## Başarımlar
 
-H tuşu ya da ofis panelinden 30 başarımın listesi açılır (ilk yumurta, 10 sahiplendirme, 95+ eşleşme, 1,4 denetim çarpanı, 20.000 ₺, efsanevi köpek, bir yıl dayanmak...). Her başarım açıldığında itibar +1 verir; kayıtla korunur.
+H tuşu ya da ofis panelinden 32 başarımın listesi açılır (ilk yumurta, 10 sahiplendirme, 95+ eşleşme, 1,4 denetim çarpanı, 20.000 ₺, efsanevi köpek, bir yıl dayanmak...). Her başarım açıldığında itibar +1 verir; kayıtla korunur.
 
 ## Dil
 
@@ -427,7 +433,8 @@ Bilgisayar değiştirirken ya da yedek almak için kullan.
 - [x] 0.20.5 Cila: otopilot köy, tabela ve görev işlerine dokunmaz, barınaktan uzak yuva ve çalıya gitmez; dokunma senaryoları 14–15; Kontroller'de "Köy ve dünya" — M11 Yaşayan Dünya tamam
 - [x] 0.21.0 Sahiplenici kimliği: ad soyad, 6 kişilik tipi (sevdiği özelliğe +6, ücret, sabır), kayıtta köpeğin görünümü
 - [x] 0.21.1 Mektup ve fotoğraf: aile 3–7 gün sonra yazar, köpek yeni evinde fotoğrafta, harika eşleşmede bağış ve itibar; 📬 Posta
-- [ ] M13 Sahiplendirme Hikâyeleri (dilimlendi, `docs/PLAN.md` §7): 0.21.0 ✅ kimlik → 0.21.1 ✅ mektup ve fotoğraf → 0.21.2 mezunlar albümü + tekrar gelen aileler → 0.21.3 sahiplendirme günü + bağış kampanyası → 0.21.4 can dostları → 0.21.5 cila
+- [x] 0.21.2 Mezunlar albümü (fotoğraf, yıldız, rozet, son mektup) ve tekrar gelen aileler (eski köpeğiyle gelir)
+- [ ] M13 Sahiplendirme Hikâyeleri (dilimlendi, `docs/PLAN.md` §7): 0.21.0 ✅ kimlik → 0.21.1 ✅ mektup ve fotoğraf → 0.21.2 ✅ mezunlar albümü + tekrar gelen aileler → 0.21.3 sahiplendirme günü + bağış kampanyası → 0.21.4 can dostları → 0.21.5 cila
 - [ ] Sonrası: yuva evi içi, kuzey/batı arsa genişletme; isteğe bağlı terk edilmiş ev + taş/odun
 
 ## Geliştirme

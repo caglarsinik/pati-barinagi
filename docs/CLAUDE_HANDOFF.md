@@ -57,6 +57,28 @@
   köpek paneli, araç şeridi, alt menü listesi, ana menü, Ayarlar: çakışma yok, taşma yok. Alt menü açılır listesi köpek
   panelinin üstüne gelebilir (geçici popover, üstte kalır) — kabul edildi. Gerçek cihaz testi kullanıcıda.
 
+## 0.21.2 — Mezunlar albümü ve tekrar gelen aileler (M13; Claude, 2026-09-23)
+- Yeni `src/sim/systems/Stories.ts` (saf): `familyKey(r)` (`family ?? key`), `familyLast(sim, family)`,
+  `returningCandidates(sim)` (köylü değil, hiç `returned` yok, son sahiplendirme ≥70 ve en az `returnMinDays` 7 gün önce, en çok
+  `returnMaxAdoptions` 3, şu an sırada değil), `pickReturningFamily(sim, adopterId)` (ayrı RNG `hash3(seed, id, 0xfa11)`,
+  olasılık 0,12 + aile başına 0,01, tavan 0,3), `albumEntries(sim, filter)` (yeniden eskiye; yıldız `ceil(puan/20)`, sahne,
+  köy/tekrar gelen/geri döndü rozetleri, anahtara göre son mektup), `albumStats`.
+- `AdoptionRecord.family` (ilk sahiplendirmenin anahtarı; yeni kayıtta `a.family ?? a.id`), `Adopter.family` (kayıtta).
+  `spawnAdopter`: köylü değilse `pickReturningFamily`; gelirse ailenin adı, görünümü ve tipi, ücret ×`returnFeeMul` 1,25 (10'a,
+  tavanlı), sabır ×`returnPatienceMul` 1,5. `adopt`: eski köpek `familyLast` ile (kayıttan önce), puan ≥50'de itibar +`returnRep`,
+  mesaja "🔁 yeni, eski ile tanışacak". Ana RNG sırası değişmez (testte).
+- Arayüz: yeni `AlbumPanel.tsx` (panel 'album'; `.album-grid` kartları, küçük polaroid), `MailPanel`'deki fotoğraf `ScenePhoto`
+  olarak ortaklaştı (`small`: albüm; görünümsüz eski kayıtta 🐾). Giriş: ☰ Menü → Mezunlar, bilgisayar "📖 Mezunlar", masadaki
+  "Son sahiplendirme" satırı, Posta'da "📖 Albümde gör". Masa kartında "🔁 Yine geldi · önceki köpeği X"; geliş bildirimi "🔁 X yine
+  geldi: Y çok mutluymuş…". `WorldScene.adopterDogSprites`: tekrar gelen ailenin yanında eski köpeği (köy köpeği gibi; yürürken
+  bir adım geride, beklerken yanında oturur; SHUTDOWN'da temizlenir).
+- Başarımlar "Sadık aile" (bir aile ikinci kez), "Mezunlar" (25 sahiplendirme); toplam 32.
+- Testler `tests/unit/album.test.ts` (4): albüm sırası/yıldız/sahne/rozet/mektup, süzgeçler, başlık; aday kuralları ve
+  deterministik seçim; tekrar gelen sahipleniciyle sahiplendirme (ad, görünüm, tip, sabır, ek itibar, aile bağı, başarım); kayıt
+  turu ve ana RNG. 402 test. Tarayıcı 812×375: albüm "3 mezun · %33 mutlu · 1 geri döndü" (sahil, köy, atölye fotoğrafları), geri
+  gelen Melis Ünal'ın yanında Kömür, masada "🔁 Yine geldi · önceki köpeği Kömür" (sabır 157 dk); dokunma senaryoları 15/15.
+- Sıradaki: 0.21.3 sahiplendirme günü + bağış kampanyası.
+
 ## 0.21.1 — Mektup ve fotoğraf (M13; Claude, 2026-09-23)
 - Yeni `src/sim/systems/MailSystem.ts` (`sim.mail`, kayıtta `mail: { next, list }`): `schedule(record)` geri gelmeyecek her
   sahiplendirmede (`AdoptionSystem.adopt`'un else dalı, köpek isteği görevi) kayda `letterDay = gün + 3…7` yazar (ayrı RNG

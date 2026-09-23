@@ -1440,6 +1440,62 @@ select,
   background: linear-gradient(#bfe6f5 0 50%, #cdb88f 50%);
 }
 
+/* --- Mezunlar albümü (0.21.2) --- */
+.album-filters {
+  gap: 6px;
+  margin: 4px 0 8px;
+}
+
+.album-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 10px;
+}
+
+.album-card {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  padding: 8px;
+  background: #2a2640;
+  border: 1px solid #4a4468;
+  border-radius: 3px;
+}
+
+.album-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.album .stars {
+  color: #f6d55c;
+  letter-spacing: 1px;
+}
+
+.photo.small {
+  width: 104px;
+  padding: 4px 4px 18px;
+  transform: rotate(-1.5deg);
+}
+
+.photo.small .photo-scene {
+  height: 72px;
+}
+
+.photo.small .photo-props {
+  font-size: 0.9rem;
+}
+
+.photo.small .photo-caption {
+  font-size: 0.72rem;
+  bottom: 2px;
+}
+
+.photo.small .photo-paw {
+  font-size: 1.6rem;
+  margin-bottom: 8px;
+}
+
 /* --- Olaylar ve başarımlar --- */
 .event-log {
   margin-top: 8px;

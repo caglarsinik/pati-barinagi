@@ -48,7 +48,8 @@ export type Panel =
   | 'market'
   | 'travel'
   | 'quests'
-  | 'mail';
+  | 'mail'
+  | 'album';
 
 export type BuildTool =
   | { kind: 'none' }
