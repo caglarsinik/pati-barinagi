@@ -3,7 +3,8 @@ import { app } from '../app';
 import { audio } from '../audio/audio';
 import { BALANCE } from '../config/balance';
 import { t } from '../i18n';
-import { adoptable, hardMismatch, matchScore, requestText } from '../sim/entities/Adopter';
+import { adoptable, hardMismatch, likeHits, matchScore, requestText } from '../sim/entities/Adopter';
+import { ADOPTER_TYPES } from '../sim/entities/AdopterType';
 import { STAGE_NAMES_TR } from '../sim/entities/Dog';
 import { DIFFICULTY_NAMES_TR } from '../sim/Sim';
 import { LEDGER_NAMES_TR, type LedgerCategory, licenseUpgradeCost, projectCash } from '../sim/systems/EconomySystem';
@@ -207,8 +208,11 @@ export function AdoptionDesk() {
             {waiting.map((a) => (
               <button key={a.id} class={'adopter-card' + (selected?.id === a.id ? ' active' : '')} onClick={() => setSelected(a.id)}>
                 <div class="adopter-name">
-                  🧑 {a.name}
+                  {ADOPTER_TYPES[a.type].icon} {a.name}
                   {a.villager !== undefined && <span class="muted small-text"> ({t('köyden')})</span>} · <b>{formatMoney(a.fee)}</b>
+                </div>
+                <div class="muted small-text">
+                  {t(ADOPTER_TYPES[a.type].name)} · {t(ADOPTER_TYPES[a.type].trait)}
                 </div>
                 <div class="small-text">{requestText(a.request)}</div>
                 <div class="muted small-text">{t('Sabrı: {min} dk', { min: Math.max(0, Math.round(a.patienceLeft)) })}</div>
@@ -234,7 +238,10 @@ export function AdoptionDesk() {
                     <span class="muted small-text">
                       {t(STAGE_NAMES_TR[dog.stage])} · {t('eğitim {n}/6', { n: dog.trainingLevel() })}
                     </span>
-                    <div class="small-text">{why ? <span class="bad">{why}</span> : score >= 70 ? t('Harika eşleşme') : score >= 50 ? t('İdare eder') : t('Zayıf eşleşme (geri gelebilir)')}</div>
+                    <div class="small-text">
+                      {why ? <span class="bad">{why}</span> : score >= 70 ? t('Harika eşleşme') : score >= 50 ? t('İdare eder') : t('Zayıf eşleşme (geri gelebilir)')}
+                      {!why && likeHits(dog, selected.request) > 0 ? ' · 💛 ' + t('sevdiği gibi') : ''}
+                    </div>
                   </div>
                   <div class={'score' + (score >= 70 ? ' good' : score >= 50 ? ' mid' : ' low')}>{score}</div>
                   <button

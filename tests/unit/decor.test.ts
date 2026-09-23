@@ -1,3 +1,4 @@
+import { ADOPTER_TYPES } from '../../src/sim/entities/AdopterType';
 import { describe, expect, it } from 'vitest';
 import { BALANCE } from '../../src/config/balance';
 import { type BuildingType } from '../../src/content/buildings';
@@ -52,7 +53,9 @@ describe('Dekor', () => {
     const p0 = a0.patienceLeft;
     for (let i = 0; i < 3; i++) put(sim, 'bench');
     const a1 = sim.adoption.spawnAdopter()!;
-    expect(a1.patienceLeft).toBeCloseTo(p0 + 3 * BALANCE.decor.points.bench * BALANCE.decor.patiencePerPoint);
+    // Temel sabır kişilik tipine göre çarpılır (0.21.0); dekor payı ayrıca eklenir.
+    const typed = (a: typeof a0): number => BALANCE.adoption.patienceMinutes * ADOPTER_TYPES[a.type].patienceMul;
+    expect(a1.patienceLeft - typed(a1)).toBeCloseTo(p0 - typed(a0) + 3 * BALANCE.decor.points.bench * BALANCE.decor.patiencePerPoint);
   });
 
   it('denetimde Çevre kalemi dekorla artar', () => {

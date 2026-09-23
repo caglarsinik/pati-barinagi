@@ -57,6 +57,30 @@
   köpek paneli, araç şeridi, alt menü listesi, ana menü, Ayarlar: çakışma yok, taşma yok. Alt menü açılır listesi köpek
   panelinin üstüne gelebilir (geçici popover, üstte kalır) — kabul edildi. Gerçek cihaz testi kullanıcıda.
 
+## 0.21.0 — Sahiplenici kimliği (M13 ilk dilimi; Claude, 2026-09-23)
+- M13 dilimlendi (0.21.0–0.21.5, `docs/PLAN.md` §7): kimlik → mektup ve fotoğraf → mezunlar albümü + tekrar gelen aileler →
+  sahiplendirme günü + bağış kampanyası → can dostları → cila.
+- Yeni `src/sim/entities/AdopterType.ts`: `AdopterType` (family, retiree, athlete, student, farmer, artist), `ADOPTER_TYPES`
+  (simge, ad, kısa huy, `likes`, `seniorOk`, `feeMul`, `patienceMul`, `generosity` 0.21.1 için, `pairs` 0.21.4 için),
+  `VILLAGER_ADOPTER_TYPE` (rol → tip), `adopterIdentity(seed, id)` (ayrı RNG `hash3(seed, id, 0xad0b)`: tip ve ad soyad,
+  `FIRST_NAMES` 60 × `SURNAMES` 40, `src/content/names.ts`), `withTypeLikes`, `typedFee`.
+- Plandan sapma: tip "yumuşak tercih" olarak eklenmedi. `AdoptionRequest.likes` yalnız **artı** verir (`likeHits` ×
+  `BALANCE.adoption.likeBonus` 6, `matchScore`'un iki dalında, tavan 100), eksikliği puan düşürmez. Neden: yumuşak tercih
+  tercihsiz isteklerin 85+ puanını 40'a indirip sahiplendirmeyi ve itibarı düşürürdü. Boy/yaş sert şartları aynı; `seniorOk`
+  (emekli) yaşlı köpek cezasını kaldırır. İstek metninde "Sever: …", masada uyan köpekte "💛 sevdiği gibi".
+- `spawnAdopter`: ana RNG çekilişleri aynı (istek, `PERSON_NAMES` adı yalnız sıra için, ücret, görünüm; testte denetlenir),
+  sonra kimlik ayrı RNG'den, köylüde tip rolden; ücret ×`feeMul` (10'a yuvarlı, tavanlı), sabır = 150 × `patienceMul` + dekor.
+- `AdoptionRecord` yeni alanlar: `key` (sahiplenici kimliği; köpek isteği görevinde `-görev kimliği`), `type`, `look`,
+  `returned`; `genome`/`stage` artık her sahiplendirmede (köyde çizim yine `villager` koşuluyla). `PendingReturn.key`: köpek
+  geri gelince kayıt `returned`. `Adopter.type` kayıtta; eski kayıtta kimlikten (köylüde rolden) türetilir; `likes` yüklemede
+  süzülür.
+- Masa kartı: tip simgesi + ad soyad, "Tip · huy" satırı (huy kısa; sevdikleri "Sever:" satırında). Testler
+  `tests/unit/adopters.test.ts` (4): kimlik ve ana RNG sırası, artı/ceza yok/emekli, ücret-sabır-köylü tipi, kayıt ve geri
+  getirme; `decor.test.ts` ve `economy.test.ts` sabır beklentisi tipe göre güncellendi. 394 test. Tarayıcı 812×375: masada
+  "👵 Hakan Akın · Emekli · sabırlı, yaşlı köpeğe de kucak açar · Sever: sakin, sakin tempolu · Sabrı: 225 dk", eşleşmede
+  "💛 sevdiği gibi"; dokunma senaryoları 15/15.
+- Sıradaki: 0.21.1 mektup ve fotoğraf.
+
 ## 0.20.5 — Cila: otopilot köy işlerine dokunmaz, dokunma senaryoları 14–15 (M11 son dilimi; Claude, 2026-09-23)
 - `Interaction.MANUAL_ACTIONS` (köy binasına girme, toptancı, dükkân, pazar, köylüyle konuşma, postane, tabela, görev panosu,
   kayıp köpek): `PlayerNav.arrive` otopilot açıkken bu eylemleri yapmaz (`goal.kind === 'village'` dahil); `interacted`

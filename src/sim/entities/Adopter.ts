@@ -15,6 +15,49 @@ import {
 import type { Facing } from './Player';
 import type { TilePos } from '../world/TileWorld';
 import { t } from '../../i18n';
+import { type AdopterType, isAdopterType } from './AdopterType';
+
+/** Kişilik tipinin sevdiği özellik (0.21.0): uyan köpeğe eşleşme artısı verir, eksikliği puan düşürmez. */
+export type AdopterLike = 'young' | 'small' | 'large' | 'rare' | 'calm' | 'playful' | 'bold' | 'energetic' | 'relaxed';
+
+export const LIKE_NAMES_TR: Record<AdopterLike, string> = {
+  young: 'yavru ya da genç',
+  small: 'küçük boy',
+  large: 'büyük boy',
+  rare: 'nadir köpek',
+  calm: 'sakin',
+  playful: 'oyuncu',
+  bold: 'cesur',
+  energetic: 'enerjik',
+  relaxed: 'sakin tempolu',
+};
+
+export function likeOk(dog: Dog, like: AdopterLike): boolean {
+  const g = dog.genome;
+  switch (like) {
+    case 'young':
+      return dog.stage === 'puppy' || dog.stage === 'young';
+    case 'small':
+      return g.size === 'S';
+    case 'large':
+      return g.size === 'L';
+    case 'rare':
+      return RARITY_ORDER[g.rarity] >= RARITY_ORDER.rare;
+    case 'calm':
+    case 'playful':
+    case 'bold':
+      return g.temperament === like;
+    case 'energetic':
+      return g.energy >= 4;
+    case 'relaxed':
+      return g.energy <= 2;
+  }
+}
+
+/** Köpeğin uyduğu sevgi sayısı. */
+export function likeHits(dog: Dog, r: AdoptionRequest): number {
+  return (r.likes ?? []).filter((l) => likeOk(dog, l)).length;
+}
 
 /** Sahiplenicinin isteği: zorunlu şartlar ve ağırlıklı tercihler. */
 export interface AdoptionRequest {
@@ -27,6 +70,10 @@ export interface AdoptionRequest {
   pottyTrained?: boolean;
   /** 'high' enerjik, 'low' sakin. */
   energy?: 'high' | 'low';
+  /** Kişilik tipinin sevdikleri (0.21.0): uyan köpeğe artı, eksikliği ceza değil. */
+  likes?: AdopterLike[];
+  /** Yaşlı köpeğe puan cezası yok (emekli, 0.21.0). */
+  seniorOk?: boolean;
 }
 
 export type AdopterState = 'walking' | 'waiting' | 'leaving';
@@ -51,6 +98,8 @@ export interface Adopter {
   queueSlot: number;
   /** Köyden gelen sahiplenici (0.20.2): köylü indeksi. */
   villager?: number;
+  /** Kişilik tipi (0.21.0). */
+  type: AdopterType;
 }
 
 export interface AdopterSave {
@@ -65,6 +114,7 @@ export interface AdopterSave {
   look: number;
   queueSlot: number;
   villager?: number;
+  type?: string;
 }
 
 const SIZES: SizeClass[] = ['S', 'M', 'L'];
@@ -141,11 +191,12 @@ export function adoptable(dog: Dog, allowWalking = false): string | null {
 export function matchScore(dog: Dog, r: AdoptionRequest): number {
   if (hardMismatch(dog, r)) return 0;
   const prefs = softPrefs(r);
-  const seniorPenalty = dog.stage === 'senior' && r.stage !== 'senior' ? 10 : 0;
+  const seniorPenalty = dog.stage === 'senior' && r.stage !== 'senior' && !r.seniorOk ? 10 : 0;
+  const likeBonus = likeHits(dog, r) * BALANCE.adoption.likeBonus;
   // Öğrenilmiş beceriler: istekten fazlası küçük bonus, "otur" ayrıca artı.
   const K = BALANCE.dogs.skills;
   const skillBonus = Math.min(K.extraSkillBonusMax, K.extraSkillBonus * Math.max(0, dog.trainingLevel() - (r.minTraining ?? 0))) + (dog.skills.sit >= 100 ? K.sitMatchBonus : 0);
-  if (prefs.length === 0) return Math.max(1, Math.min(100, 85 + Math.min(15, RARITY_ORDER[dog.genome.rarity] * 5) + skillBonus) - seniorPenalty);
+  if (prefs.length === 0) return Math.max(1, Math.min(100, 85 + Math.min(15, RARITY_ORDER[dog.genome.rarity] * 5) + skillBonus + likeBonus) - seniorPenalty);
   let total = 0;
   let got = 0;
   for (const p of prefs) {
@@ -153,7 +204,7 @@ export function matchScore(dog: Dog, r: AdoptionRequest): number {
     if (p.ok(dog)) got += p.weight;
   }
   const base = 40 + 60 * (got / total);
-  return Math.max(1, Math.round(Math.min(100, base + RARITY_ORDER[dog.genome.rarity] * 3 + skillBonus) - seniorPenalty));
+  return Math.max(1, Math.round(Math.min(100, base + RARITY_ORDER[dog.genome.rarity] * 3 + skillBonus + likeBonus) - seniorPenalty));
 }
 
 /** İstek kartı metni. */
@@ -165,13 +216,16 @@ export function requestText(r: AdoptionRequest): string {
   const parts: string[] = [];
   parts.push(hard.length ? t('Şart: {list}', { list: hard.join(', ') }) : t('Boyut ve yaş fark etmez'));
   if (soft.length) parts.push(t('Tercih: {list}', { list: soft.join(', ') }));
+  if (r.likes?.length) parts.push(t('Sever: {list}', { list: r.likes.map((l) => t(LIKE_NAMES_TR[l])).join(', ') }));
   return parts.join(' · ');
 }
 
 export function adopterFromJSON(data: unknown): Adopter | null {
   const d = data as Partial<AdopterSave> | null;
   if (!d || typeof d.id !== 'number' || typeof d.name !== 'string' || typeof d.x !== 'number' || typeof d.y !== 'number') return null;
-  const req = (d.request && typeof d.request === 'object' ? d.request : {}) as AdoptionRequest;
+  const req = (d.request && typeof d.request === 'object' ? { ...d.request } : {}) as AdoptionRequest;
+  if (Array.isArray(req.likes)) req.likes = req.likes.filter((l): l is AdopterLike => typeof l === 'string' && l in LIKE_NAMES_TR);
+  else delete req.likes;
   return {
     id: d.id,
     name: d.name,
@@ -187,5 +241,7 @@ export function adopterFromJSON(data: unknown): Adopter | null {
     look: typeof d.look === 'number' ? d.look : 0,
     queueSlot: typeof d.queueSlot === 'number' ? d.queueSlot : 0,
     ...(typeof d.villager === 'number' ? { villager: d.villager } : {}),
+    // Eski kayıtta tip yok: Sim.fromJSON kimlikten (köylüde rolden) türetir.
+    type: isAdopterType(d.type) ? d.type : 'family',
   };
 }

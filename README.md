@@ -213,6 +213,12 @@ toplamaya arsadan en çok 40 kare uzağa gider, köyün çevresine hiç gitmez. 
 - **Sahiplendirmeyi kapatmak:** ofisteki ya da masadaki "Sahiplendirmeye açık" anahtarı kapalıyken sahiplenici gelmez,
   bekleyenler itibar kaybı olmadan uğurlanır (üst şeritte 🚫 çipi, alt menüde rozet). **Bu köpeği tut:** köpek panelindeki
   kutu o köpeği sahiplendirme listesinden çıkarır (listede 🔒, "Tutulan" filtresi).
+- **Sahiplenici kimliği** (0.21.0): her sahiplenicinin adı soyadı ve altı kişilik tipinden biri vardır: 👨‍👩‍👧 Aile, 👵 Emekli,
+  🏃 Sporcu, 🎒 Öğrenci, 🚜 Çiftçi, 🎨 Sanatçı. Kartın "Sever:" satırı tipin sevdiklerini yazar (yavru ya da genç, sakin,
+  enerjik, küçük ya da büyük boy, nadir köpek…): uyan her özellik eşleşmeye +6 katar ("💛 sevdiği gibi"), uymaması puan
+  düşürmez. Emekli sabırlıdır (×1,5) ve yaşlı köpeğe puan cezası vermez; Sanatçı cömert (ücret ×1,4) ama sabırsız (×0,7);
+  Öğrencinin bütçesi dardır (×0,7); Sporcu aceleci (×0,8). Köyden gelen sahiplenicinin tipi köydeki işinden gelir (çocuk →
+  Aile, yaşlı → Emekli, gezgin → Sporcu, çırak → Öğrenci, bahçıvan → Çiftçi, dükkâncı → Sanatçı).
 
 ## Personel ve görevlendirme
 
@@ -413,8 +419,9 @@ Bilgisayar değiştirirken ya da yedek almak için kullan.
 - [x] 0.20.3 Yol tabelaları (barınak, doğu yolu, köy) ve hızlı seyahat: yol kadar zaman geçer, köpekler de gelir
 - [x] 0.20.4 Köylü görevleri: köy panosu, kayıp köpek, köpek isteği (köylü sahiplenir), ödül maması; haftalık ilanlar
 - [x] 0.20.5 Cila: otopilot köy, tabela ve görev işlerine dokunmaz, barınaktan uzak yuva ve çalıya gitmez; dokunma senaryoları 14–15; Kontroller'de "Köy ve dünya" — M11 Yaşayan Dünya tamam
-- [ ] Sonrası: M13 Sahiplendirme Hikâyeleri, yuva evi içi, kuzey/batı arsa genişletme
-- [ ] Sonraki paketler (`docs/PLAN.md` §7): M13 Sahiplendirme Hikâyeleri; isteğe bağlı terk edilmiş ev + taş/odun
+- [x] 0.21.0 Sahiplenici kimliği: ad soyad, 6 kişilik tipi (sevdiği özelliğe +6, ücret, sabır), kayıtta köpeğin görünümü
+- [ ] M13 Sahiplendirme Hikâyeleri (dilimlendi, `docs/PLAN.md` §7): 0.21.0 ✅ kimlik → 0.21.1 mektup ve fotoğraf → 0.21.2 mezunlar albümü + tekrar gelen aileler → 0.21.3 sahiplendirme günü + bağış kampanyası → 0.21.4 can dostları → 0.21.5 cila
+- [ ] Sonrası: yuva evi içi, kuzey/batı arsa genişletme; isteğe bağlı terk edilmiş ev + taş/odun
 
 ## Geliştirme
 

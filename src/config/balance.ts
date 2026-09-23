@@ -200,6 +200,8 @@ export const BALANCE = {
     repReturn: 3,
     returnChanceBadMatch: 0.2,
     returnAfterDays: 3,
+    /** Kişilik tipinin sevdiği her özellik için eşleşme artısı (0.21.0; eksikliği puan düşürmez). */
+    likeBonus: 6,
   },
   /** Dekor puanı: çiçek/bank/tabela/lamba toplamı (tavanlı); sahiplenici sabrı, geliş sıklığı ve denetime etki eder. */
   decor: {

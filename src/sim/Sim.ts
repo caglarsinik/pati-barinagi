@@ -8,6 +8,7 @@ import { Rng, hash2, hash3 } from '../core/Rng';
 import type { SaveData } from '../core/SaveManager';
 import { type Building, type BuildingSave, buildingDef, buildingDoorTile, canPlaceBuilding, isReady, kennelRestTile, stampBuilding, unstampBuilding, normalizeRot, type Rotation } from './entities/Building';
 import { type Adopter, adopterFromJSON } from './entities/Adopter';
+import { VILLAGER_ADOPTER_TYPE, adopterIdentity, isAdopterType } from './entities/AdopterType';
 import { Dog, type DogOrigin, SKILL_KEYS, STAGE_NAMES_TR, type SkillKey, clamp100, defaultNeeds } from './entities/Dog';
 import { type DogGenome, randomGenome } from './entities/DogGenome';
 import { type Egg, eggFromJSON } from './entities/Egg';
@@ -1701,6 +1702,7 @@ export class Sim {
         look: a.look,
         queueSlot: a.queueSlot,
         villager: a.villager,
+        type: a.type,
       })),
       ledger: this.ledger.map((e) => ({ ...e })),
       weeks: this.weeks.map((w) => ({ ...w })),
@@ -1994,6 +1996,11 @@ export class Sim {
       for (const raw of data.adopters) {
         const a = adopterFromJSON(raw);
         if (!a) continue;
+        // 0.21.0 öncesi kayıt: kişilik tipi kimlikten, köylüde rolünden türetilir.
+        if (!isAdopterType((raw as { type?: unknown }).type)) {
+          const v = a.villager !== undefined && sim.villagers.ensure() ? sim.villagers.list[a.villager] : undefined;
+          a.type = v ? VILLAGER_ADOPTER_TYPE[v.role] : adopterIdentity(sim.seed, a.id).type;
+        }
         const ax = Math.floor(a.x);
         const ay = Math.floor(a.y);
         if (world.isSolid(ax, ay) && world.objectAt(ax, ay) !== Obj.Gate) continue;

@@ -14,6 +14,7 @@ import { questBoardTile } from '../world/Village';
 import { Obj } from '../world/tiles';
 import type { AdoptionRecord } from './AdoptionSystem';
 import { facingFor } from './VillagerSystem';
+import { VILLAGER_ADOPTER_TYPE } from '../entities/AdopterType';
 
 /** Köylü görevleri (0.20.4): kayıp köpek, köpek isteği, ödül maması. */
 export type QuestKind = 'lost' | 'pup' | 'treats';
@@ -257,7 +258,13 @@ export class QuestSystem {
         villager: q.villager,
         genome: { ...dog.genome },
         stage: dog.stage,
+        key: -q.id,
       };
+      const owner = sim.villagers.list[q.villager];
+      if (owner) {
+        record.type = VILLAGER_ADOPTER_TYPE[owner.role];
+        record.look = owner.look;
+      }
       dog.walking = false;
       sim.removeDog(dog.id);
       sim.adoptions.push(record);

@@ -77,7 +77,7 @@ describe('Sahiplendirme', () => {
     a.state = 'waiting';
     a.path = [];
     const rep0 = sim.reputation;
-    runMinutes(sim, BALANCE.adoption.patienceMinutes + 30);
+    runMinutes(sim, a.patienceLeft + 30);
     expect(sim.reputation).toBe(rep0 - BALANCE.adoption.repLeaveUnserved);
     expect(sim.adopters.find((x) => x.id === a.id)?.state ?? 'gone').not.toBe('waiting');
   });

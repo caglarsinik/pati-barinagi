@@ -528,7 +528,21 @@ dokunmak ya da ↑ basılı tutmak içeri. Eşya fiyatları ortak katalogda (`BA
 | 0.17.3 ✅ | Kuluçka içi: tepsilerde yumurtalar (Sv2'de iki tepsi), ısı lambası (süre ×0,85) |
 | 0.17.4 ✅ | Cila: otopilot mutfakta ödül maması, dokunma senaryoları 11–12, yardım |
 
-### M13 Sahiplendirme Hikâyeleri
+### M13 Sahiplendirme Hikâyeleri (2026-09-23 dilimlendi: 0.21.0–0.21.5)
+
+Köylü sahipleniciler, köyde görünen köpekler ve postane mektupları M11'de geldi (0.20.2, 0.20.4); M13 bunların üstüne kurulur.
+Kişilik boy/yaş sert şartlarını değiştirmez; kimlik, mektup, bağış ve tekrar gelme ayrı RNG'den (ana sıra değişmez).
+
+| Sürüm | Konu |
+|---|---|
+| 0.21.0 ✅ | Sahiplenici kimliği: ad soyad (60 × 40), 6 kişilik tipi (Aile, Emekli, Sporcu, Öğrenci, Çiftçi, Sanatçı: sevdiği özelliğe +6, eksikliği ceza değil; ücret, sabır; köylüde rolden), kayıtta tip, görünüm ve köpeğin genomu |
+| 0.21.1 | Mektup ve fotoğraf: sahiplendirmeden 3–7 gün sonra tipe ve eşleşmeye göre; küçük bağış ve itibar; 📬 Posta paneli |
+| 0.21.2 | Mezunlar albümü + tekrar gelen aileler (eski köpeğiyle gelir; ücret ve sabır artısı) |
+| 0.21.3 | Sahiplendirme günü (300 ₺, haftada bir, ×3 sahiplenici) + bağış kampanyası (150 ₺, haftada bir, 3 gün, mezun aileleri bağışlar) |
+| 0.21.4 | Can dostları: karşılıklı dostluk ≥ 70 olan iki köpek birlikte verilir (ücret ×1,7); ayrı verilirse kalan üzülür |
+| 0.21.5 | Cila: dokunma senaryosu 16, Kontroller'de "Sahiplendirme", başarımlar, belgeler |
+
+Özgün notlar:
 - Sahiplenici kimliği: 100+ isim, 6 kişilik tipi, tekrar gelen sahiplenici.
 - Sahiplendirme sonrası mektup/fotoğraf (3–7 gün sonra: köpeğin durumu, küçük bağış, itibar).
 - "Mezunlar" albümü paneli; sahiplendirme günü etkinliği (300 ₺, o gün 3× sahiplenici); bağış kampanyası (haftada 1).

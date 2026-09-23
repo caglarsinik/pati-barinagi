@@ -1,6 +1,7 @@
 import { BALANCE } from '../../config/balance';
 import { PERSON_NAMES } from '../../content/names';
 import { type Adopter, adoptable, matchScore, randomRequest, requestFee } from '../entities/Adopter';
+import { ADOPTER_TYPES, type AdopterType, VILLAGER_ADOPTER_TYPE, adopterIdentity, typedFee, withTypeLikes } from '../entities/AdopterType';
 import type { GrowthStage } from '../entities/Dog';
 import type { DogGenome } from '../entities/DogGenome';
 import { buildingDoorTile } from '../entities/Building';
@@ -18,16 +19,26 @@ export interface AdoptionRecord {
   adopterName: string;
   fee: number;
   score: number;
-  /** Köylü sahiplendiyse (0.20.2): köylü indeksi ve köyde çizilecek köpeğin görünümü. */
+  /** Köylü sahiplendiyse (0.20.2): köylü indeksi (köpek köyde sahibiyle çizilir). */
   villager?: number;
+  /** Köpeğin görünümü: 0.20.2'de yalnız köylüde, 0.21.0'dan beri her sahiplendirmede (albüm, mektup fotoğrafı). */
   genome?: DogGenome;
   stage?: GrowthStage;
+  /** Sahiplenici kimliği (0.21.0; köpek isteği görevinde -görev kimliği): mektup, albüm ve geri getirme bağı. */
+  key?: number;
+  /** Sahiplenicinin kişilik tipi ve görünümü (0.21.0). */
+  type?: AdopterType;
+  look?: number;
+  /** Köpek geri getirildi (0.21.0). */
+  returned?: boolean;
 }
 
 export interface PendingReturn {
   day: number;
   dog: ReturnType<Dog['toJSON']>;
   adopterName: string;
+  /** Sahiplendirme kaydının anahtarı (0.21.0): köpek dönünce kayıt işaretlenir. */
+  key?: number;
 }
 
 /**
@@ -99,14 +110,24 @@ export class AdoptionSystem {
       path: [],
       look: rng.int(0, 0xffff),
       queueSlot: this.freeQueueSlot(),
+      type: 'family',
     };
+    // Kimlik (0.21.0; ayrı RNG, ana sıra değişmez): kişilik tipi ve ad soyad. Yukarıdaki ad çekilişi sıra için kalır.
+    const id = adopterIdentity(sim.seed, a.id);
+    a.type = id.type;
+    a.name = id.name;
     // Köylü sahiplenici (0.20.2; karar ayrı RNG ile, ana sıra değişmez): adı ve görünümü köylününki olur.
     const villager = sim.villagers.adopterFor(a.id);
     if (villager) {
       a.villager = villager.index;
       a.name = villager.name;
       a.look = villager.look;
+      a.type = VILLAGER_ADOPTER_TYPE[villager.role];
     }
+    // Tip: sevdikleri isteğe eklenir, ücret ve sabır çarpanı (dekor sabrı ayrıca eklenir).
+    a.request = withTypeLikes(a.request, a.type);
+    a.fee = typedFee(a.fee, a.type);
+    a.patienceLeft = BALANCE.adoption.patienceMinutes * ADOPTER_TYPES[a.type].patienceMul + sim.decorScore() * BALANCE.decor.patiencePerPoint;
     const target = this.queueTile(office, a.queueSlot);
     a.path = findPath(sim.world, gate, target, { maxNodes: 6000, adjacentOk: true, throughGates: true }) ?? [];
     sim.adopters.push(a);
@@ -202,19 +223,28 @@ export class AdoptionSystem {
     let rep = score >= 70 ? B.repGood + Math.round((score - 70) / 10) : score >= 50 ? B.repOk : -B.repBad;
     sim.reputation = clamp100(sim.reputation + rep);
     sim.addIncome('adoption', a.fee, `${dog.name} → ${a.name}`);
-    const record: AdoptionRecord = { day: sim.clock.day, dogName: dog.name, adopterName: a.name, fee: a.fee, score };
+    const record: AdoptionRecord = {
+      day: sim.clock.day,
+      dogName: dog.name,
+      adopterName: a.name,
+      fee: a.fee,
+      score,
+      key: a.id,
+      type: a.type,
+      look: a.look,
+      genome: { ...dog.genome },
+      stage: dog.stage,
+    };
     sim.adoptions.push(record);
     sim.stats.adopted++;
     sim.events.emit('emote', { kind: 'adopter', id: a.id, emote: 'heart', seconds: 3 });
     const saved = dog.toJSON();
     sim.removeDog(dog.id);
     if (score < 50 && sim.rng.chance(B.returnChanceBadMatch)) {
-      sim.pendingReturns.push({ day: sim.clock.day + B.returnAfterDays, dog: saved, adopterName: a.name });
+      sim.pendingReturns.push({ day: sim.clock.day + B.returnAfterDays, dog: saved, adopterName: a.name, key: a.id });
     } else if (a.villager !== undefined) {
       // Köylü sahiplendi (geri dönmeyecek): köpek köyde sahibiyle görünür.
       record.villager = a.villager;
-      record.genome = { ...dog.genome };
-      record.stage = dog.stage;
     }
     this.leave(a);
     const repText = rep >= 0 ? t('itibar +{n}', { n: rep }) : t('itibar {n}', { n: rep });
@@ -250,6 +280,8 @@ export class AdoptionSystem {
       const dog = Dog.fromJSON(r.dog);
       if (!dog) continue;
       const at = entryPoint(sim.world, 'east')?.inside ?? { x: Math.floor(sim.world.spawn.x), y: Math.floor(sim.world.spawn.y) };
+      const rec = r.key === undefined ? undefined : sim.adoptions.find((x) => x.key === r.key);
+      if (rec) rec.returned = true;
       const back = sim.addDog(dog.genome, dog.origin, dog.ageWeeks, at.x + 0.5, at.y + 0.5, dog.name);
       back.skills = { ...dog.skills };
       back.parents = dog.parents;
