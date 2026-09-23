@@ -177,6 +177,10 @@ yeniden denemez. Otopilot inşaat, işe alım ve sahiplendirme kararı vermez.
 - F tuşu görevlendirme ekranı: **Vardiya** sekmesinde 24 saatlik çizelgeyi boyarsın (çalış/mola/izin), **Öncelikler** sekmesinde her personel için görev türlerine 0-5 öncelik verirsin (bakıcı tedavi yapamaz, veteriner en iyi tedaviyi yapar), **Politikalar** sekmesinde otomatik yem siparişi, eğitim hedefi ve hasta köpeği karantinada tutma seçeneği vardır.
 - Görev tahtası barınağın ihtiyaçlarından otomatik dolar: boş yem kabı, boş su yalağı, pislik, sıkılan/kirli/hasta köpek, eğitim. Personel aciliyet, verim, öncelik ve mesafeye göre iş seçer; oyuncu işi yaparsa görev düşer. Görevler saatlerce beklerse darboğaz uyarısı çıkar.
 - Personel enerjisi bitince personel odasında (yoksa personel bölgesinde ya da ofis önünde) mola verir.
+- **Personel WC (0.16.2):** personelin tuvalet ihtiyacı vardiyada saatte 12 artar; 70 olunca en yakın Personel WC'ye
+  (1×2, 400 ₺, Personel kategorisi) gidip 8 dakikada boşaltır ve işine döner. WC yoksa 90 üstünde saatte moral −4 ve verim
+  ×0,9 (sıkışma morali 25 altına indirmez, yalnız WC yüzünden istifa olmaz); uyarı listesinde "Personel tuvaleti yok"
+  çıkar. Personel kartında Tuvalet çubuğu var.
 - **Seviye ve moral:** her tamamlanan görev deneyim verir; eşikte personel seviye atlar (Sv5'e kadar) ve rolünün ana
   niteliği (bakıcıda çalışkanlık, eğitmen/veterinerde beceri) artar. Moral yorgun çalışmak, iş yükü ve ödenmemiş maaşla
   düşer; mola odası, izin ve seviye atlamak yükseltir. Moral 30'un altındayken verim %20 düşer, 3 gün 10'un altında kalan
@@ -259,6 +263,7 @@ Bilgisayar değiştirirken ya da yedek almak için kullan.
 - [x] 0.15.2 Soy ağacı (anne-baba, dede-nine, yavrular), "İlk soy"/"Efsanevi soy" başarımları, otopilot yuva evi yumurtası — M14 Soy tamam
 - [x] 0.16.0 İç mekân altyapısı: ofise gir/çık (ayrı iç oda), içeride dokun-yürü, masa = ofis paneli
 - [x] 0.16.1 Ofis eşyaları: bilgisayar menüsü, lisans panosu, yatak, kahve makinesi, telefon, kitaplık, pencere/saksı
+- [x] 0.16.2 Personel tuvalet ihtiyacı + "Personel WC" binası, uyarı ve personel kartında Tuvalet çubuğu
 - [ ] M15 İç Mekânlar ve Personel Konforu (0.16.x): ofis eşyaları, personel WC, dinlenme odası
 - [ ] Sonraki paketler (`docs/PLAN.md` §7): M11 Yaşayan Dünya, M13 Sahiplendirme Hikâyeleri
 

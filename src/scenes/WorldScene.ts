@@ -866,6 +866,8 @@ export class WorldScene extends Phaser.Scene {
         sp.setFrame(s.facing * 3);
       }
       sp.setAlpha(s.state === 'working' ? 1 : s.state === 'resting' ? 0.85 : 1);
+      // Tuvaletteyken WC'nin içinde: görünmez.
+      sp.setVisible(s.state !== 'toilet');
     }
     for (const [id, sp] of this.staffSprites) {
       if (!seen.has(id)) {

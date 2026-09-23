@@ -73,7 +73,7 @@ export function xpForLevel(level: number): number {
 /** 0 izin, 1 çalış, 2 mola. */
 export type ShiftKind = 0 | 1 | 2;
 
-export type StaffState = 'offDuty' | 'idle' | 'toTask' | 'working' | 'toRest' | 'resting' | 'leaving';
+export type StaffState = 'offDuty' | 'idle' | 'toTask' | 'working' | 'toRest' | 'resting' | 'toToilet' | 'toilet' | 'leaving';
 
 export interface StaffSave {
   id: number;
@@ -98,6 +98,7 @@ export interface StaffSave {
   courseUntil?: number | null;
   volunteer?: boolean;
   volunteerWeeksLeft?: number;
+  bladder?: number;
 }
 
 export class Staff {
@@ -135,6 +136,8 @@ export class Staff {
   /** Gönüllü: maaşsız, yalnız hafta sonu, kalan maaş günü sayısı kadar kalır. */
   volunteer = false;
   volunteerWeeksLeft = 0;
+  /** Tuvalet ihtiyacı 0-100 (0.16.2): vardiyada artar, Personel WC'de sıfırlanır. */
+  bladder = 0;
 
   constructor(id: number, name: string, role: StaffRole, attrs: StaffAttrs, traits: StaffTrait[], wage: number, look: number, x: number, y: number) {
     this.id = id;
@@ -177,7 +180,8 @@ export class Staff {
       (0.7 + this.attrs.diligence * 0.08) *
       (0.85 + this.attrs.skill * 0.05) *
       (this.morale < M.lowBelow ? M.lowEfficiencyMul : 1) *
-      (this.volunteer ? BALANCE.staff.volunteer.efficiencyMul : 1)
+      (this.volunteer ? BALANCE.staff.volunteer.efficiencyMul : 1) *
+      (this.bladder >= BALANCE.staff.toilet.penaltyAbove ? BALANCE.staff.toilet.efficiencyMul : 1)
     );
   }
 
@@ -213,6 +217,7 @@ export class Staff {
       courseUntil: this.courseUntil,
       volunteer: this.volunteer,
       volunteerWeeksLeft: this.volunteerWeeksLeft,
+      bladder: this.bladder,
     };
   }
 
@@ -248,6 +253,7 @@ export class Staff {
     s.courseUntil = num(d.courseUntil) ? d.courseUntil : null;
     s.volunteer = d.volunteer === true;
     s.volunteerWeeksLeft = s.volunteer && num(d.volunteerWeeksLeft) ? Math.max(0, Math.floor(d.volunteerWeeksLeft)) : 0;
+    s.bladder = num(d.bladder) ? Math.max(0, Math.min(100, d.bladder)) : 0;
     if (s.volunteer) s.wage = 0;
     s.state = d.offDuty === false ? 'idle' : 'offDuty';
     return s;

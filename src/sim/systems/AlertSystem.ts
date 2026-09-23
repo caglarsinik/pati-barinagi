@@ -83,6 +83,11 @@ export class AlertSystem {
       out.push({ id: 'bottleneck', text: t('Görevler {h} saattir bekliyor: personel yetmiyor', { h: Math.round(wait.minutes / 60) }), severity: 'warn' });
     }
     if (sim.shelterDogs().length >= 4 && sim.staff.length === 0) out.push({ id: 'nostaff', text: t('İşler çoğaldı: ofisten personel al'), severity: 'info' });
+    // Personel tuvaleti (0.16.2): personel var ama hazır Personel WC yok; sıkışan varsa uyarı.
+    if (sim.staff.length > 0 && !sim.hasReady('staffToilet')) {
+      const urgent = sim.staff.some((s) => s.onDuty && s.bladder >= BALANCE.staff.toilet.penaltyAbove);
+      out.push({ id: 'staffToilet', text: t('Personel tuvaleti yok: yönetim modunda Personel WC kur'), severity: urgent ? 'warn' : 'info' });
+    }
     const cap = BALANCE.economy.licenseCaps[sim.licenseLevel - 1];
     if (sim.shelterDogs().length > cap) out.push({ id: 'license', text: t('Lisans aşıldı ({n}/{cap}): yardım kesilir', { n: sim.shelterDogs().length, cap }), severity: 'danger' });
 

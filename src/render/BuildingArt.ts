@@ -233,6 +233,20 @@ export function drawBuilding(type: BuildingType, variant = 0, rot: 0 | 1 = 0): P
       p.fillRect(2, y0 + 7, 3, 2, C.cross);
       p.fillRect(8, y0 + 7, 3, 2, C.cross);
       break;
+    case 'staffToilet': {
+      // Küçük mavi çatılı kulübe: kalp oyuklu kapı, üstte "WC" tabelası.
+      drawHouse(p, 0, y0, W, size.h * T, C.white, C.wallDark, C.roofBlue, C.roofBlueDark, C.roofBlue, false);
+      const cx = Math.floor(W / 2);
+      p.fillRect(cx - 4, bottom - 15, 8, 15, C.door);
+      p.fillRect(cx - 1, bottom - 12, 2, 2, C.wallDark);
+      p.set(cx + 2, bottom - 7, P.flowerYellow);
+      p.fillRect(cx - 5, y0 + 3, 11, 5, C.sign);
+      const ink = C.woodWallDark;
+      // W (5×3) ve C (3×3)
+      for (const [dx, dy] of [[0, 0], [2, 0], [4, 0], [0, 1], [2, 1], [4, 1], [1, 2], [3, 2]]) p.set(cx - 4 + dx, y0 + 4 + dy, ink);
+      for (const [dx, dy] of [[1, 0], [2, 0], [0, 1], [1, 2], [2, 2]]) p.set(cx + 2 + dx, y0 + 4 + dy, ink);
+      break;
+    }
     case 'staffRoom':
       drawHouse(p, 0, y0, W, size.h * T, C.wall, C.wallDark, C.roofGreen, C.roofGreenDark, C.roofGreen, true);
       // Kahve fincanı tabelası

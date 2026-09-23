@@ -26,6 +26,8 @@ const STATE_TR: Record<Staff['state'], string> = {
   working: 'Çalışıyor',
   toRest: 'Molaya gidiyor',
   resting: 'Molada',
+  toToilet: 'Tuvalete gidiyor',
+  toilet: 'Tuvalette',
   leaving: 'Eve gidiyor',
 };
 
@@ -124,6 +126,19 @@ export function StaffPanel() {
                   <div class={'fill' + (s.morale < BALANCE.staff.morale.lowBelow ? ' bad' : '')} style={{ width: `${s.morale}%` }} />
                 </div>
                 <span class="need-value">{Math.round(s.morale)}</span>
+              </div>
+              <div
+                class="need"
+                title={t("Tuvalet ihtiyacı vardiyada artar; {go} olunca en yakın Personel WC'ye gider. WC yoksa {pen} üstünde moral ve verim düşer.", {
+                  go: BALANCE.staff.toilet.goAbove,
+                  pen: BALANCE.staff.toilet.penaltyAbove,
+                })}
+              >
+                <span class="need-label">{t('Tuvalet')}</span>
+                <div class="bar">
+                  <div class={'fill' + (s.bladder >= BALANCE.staff.toilet.penaltyAbove ? ' bad' : '')} style={{ width: `${s.bladder}%` }} />
+                </div>
+                <span class="need-value">{Math.round(s.bladder)}</span>
               </div>
               {s.level < BALANCE.staff.progress.maxLevel && (
                 <div class="row">

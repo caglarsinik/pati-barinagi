@@ -186,6 +186,12 @@ export class StaffSystem {
         d = s.energy < M.tiredBelowEnergy ? -M.tiredLoss : M.workGain;
         if (overloaded) d -= M.overloadLoss;
       }
+      // Sıkışmış personel (WC yok ya da ulaşılamıyor) saatte moral kaybeder.
+      // Taban: yalnız sıkışma yüzünden moral moraleFloor altına inmez (istifa etmez).
+      if (s.onDuty && s.bladder >= BALANCE.staff.toilet.penaltyAbove) {
+        const W = BALANCE.staff.toilet;
+        d -= Math.min(W.moraleLossPerHour, Math.max(0, s.morale + d - W.moraleFloor));
+      }
       s.morale = Math.max(0, Math.min(100, s.morale + d));
     }
   }
@@ -252,6 +258,7 @@ export class StaffSystem {
       s.y = at.y + 0.5;
       s.state = 'idle';
       s.energy = Math.max(s.energy, 60);
+      s.bladder = 0;
       // Kapının dışında belirir, içeri yürür (yolu olan boştaki personel yürüyordur).
       s.path = e ? (this.pathTo(s, e.inside) ?? []) : [];
     }
@@ -265,6 +272,8 @@ export class StaffSystem {
     const drain = (s.state === 'working' ? BALANCE.staff.energyDrainWorking : BALANCE.staff.energyDrainIdle) * (night ? 1.3 : 1) * (1.2 - s.attrs.stamina * 0.08);
     if (s.state === 'resting') s.energy = clamp100(s.energy + this.restRate(s) * (dtMin / 60));
     else s.energy = clamp100(s.energy - drain * (dtMin / 60));
+    // Tuvalet ihtiyacı vardiyada artar (tuvaletteyken değil).
+    if (s.state !== 'toilet') s.bladder = Math.min(100, s.bladder + BALANCE.staff.toilet.perHour * (dtMin / 60));
 
     const breakBelow = s.has('lazy') ? BALANCE.staff.breakBelowLazy : BALANCE.staff.breakBelow;
     const needsRest = shift === 2 || s.energy < breakBelow;
@@ -281,6 +290,7 @@ export class StaffSystem {
         }
         if (s.decisionTimer <= 0) {
           s.decisionTimer = BALANCE.staff.decisionIntervalMin;
+          if (s.bladder >= BALANCE.staff.toilet.goAbove && this.goToilet(s)) break;
           this.pickTask(s);
         }
         break;
@@ -309,7 +319,27 @@ export class StaffSystem {
         if (s.path.length === 0) s.state = 'resting';
         break;
       case 'resting':
+        if (s.bladder >= BALANCE.staff.toilet.goAbove && s.decisionTimer <= 0) {
+          s.decisionTimer = BALANCE.staff.decisionIntervalMin;
+          if (this.goToilet(s)) break;
+        }
         if (shift === 1 && s.energy >= BALANCE.staff.restUntil) s.state = 'idle';
+        break;
+      case 'toToilet':
+        this.followPath(s, dtMin);
+        if (s.path.length === 0) {
+          s.state = 'toilet';
+          s.taskLeft = BALANCE.staff.toilet.minutes;
+        }
+        break;
+      case 'toilet':
+        s.taskLeft -= dtMin;
+        if (s.taskLeft <= 0) {
+          s.bladder = 0;
+          s.taskLeft = 0;
+          s.state = 'idle';
+          s.decisionTimer = 0;
+        }
         break;
       default:
         s.state = 'idle';
@@ -492,6 +522,28 @@ export class StaffSystem {
     s.path = [];
     s.state = 'idle';
     s.decisionTimer = 1;
+  }
+
+  /** En yakın hazır Personel WC'nin kapısına yürür; WC ya da yol yoksa false (ceza onHour ve verimde). */
+  private goToilet(s: Staff): boolean {
+    let best: TilePos | null = null;
+    let bestD = Infinity;
+    for (const b of this.sim.buildings) {
+      if (b.type !== 'staffToilet' || !isReady(b)) continue;
+      const door = buildingDoorTile(b);
+      const d = Math.hypot(door.x + 0.5 - s.x, door.y + 0.5 - s.y);
+      if (d < bestD) {
+        bestD = d;
+        best = door;
+      }
+    }
+    if (!best) return false;
+    const path = this.pathTo(s, best);
+    if (!path) return false;
+    this.dropTask(s);
+    s.path = path;
+    s.state = 'toToilet';
+    return true;
   }
 
   private goRest(s: Staff): void {

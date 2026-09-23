@@ -112,6 +112,21 @@ export const BALANCE = {
       quitBelow: 10,
       quitAfterDays: 3,
     },
+    /**
+     * Personel tuvaleti (0.16.2): vardiyada ihtiyaç saatte perHour artar, goAbove'da en yakın hazır Personel WC'ye gider
+     * (minutes dk). WC yoksa penaltyAbove üstünde saatlik moral kaybı ve verim çarpanı. 10 saatlik vardiyada WC'siz
+     * ~2,5 saat ceza (plandaki 9/saat 10 saatte 90'a hiç ulaşmıyordu).
+     */
+    toilet: {
+      perHour: 12,
+      goAbove: 70,
+      minutes: 8,
+      penaltyAbove: 90,
+      moraleLossPerHour: 4,
+      /** Sıkışma morali bunun altına indirmez: verim düşer (lowBelow altı) ama yalnız WC yüzünden istifa olmaz. */
+      moraleFloor: 25,
+      efficiencyMul: 0.9,
+    },
   },
   adoption: {
     dailyBase: 0.6,

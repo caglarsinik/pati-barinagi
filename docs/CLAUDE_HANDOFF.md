@@ -57,6 +57,28 @@
   köpek paneli, araç şeridi, alt menü listesi, ana menü, Ayarlar: çakışma yok, taşma yok. Alt menü açılır listesi köpek
   panelinin üstüne gelebilir (geçici popover, üstte kalır) — kabul edildi. Gerçek cihaz testi kullanıcıda.
 
+## 0.16.2 — Personel tuvalet ihtiyacı + Personel WC (M15; Claude, 2026-09-23)
+- `BALANCE.staff.toilet = { perHour 12, goAbove 70, minutes 8, penaltyAbove 90, moraleLossPerHour 4, moraleFloor 25,
+  efficiencyMul 0.9 }`. Plandaki 9/saat değiştirildi: 10 saatlik gündüz vardiyasında 90'a hiç ulaşmıyordu.
+- `Staff.bladder` (0–100, kayıtta; `StaffSave.bladder?`), yeni durumlar `toToilet` / `toilet`. `StaffSystem.updateStaff`:
+  vardiyada artar (tuvaletteyken değil), vardiya başında 0 (evden gelir); boştayken karar anında ≥ goAbove ise
+  `goToilet` (en yakın hazır `staffToilet` kapısı, yol yoksa false → görev seçimine devam), molada da aynı kontrol
+  (decisionTimer ile kısılır); `toilet` 8 dk sonra ihtiyaç 0, `idle`. `Staff.efficiency` ≥ penaltyAbove'da ×0,9;
+  `onHour` ≥ penaltyAbove'da moral −4, ama yalnız bu ceza morali `moraleFloor` (25) altına indirmez.
+- **Taban neden:** 24 saat vardiyalı personel WC'siz hiç sıfırlanmıyor; tabansız moral çöküp istifa ediyor ve
+  `tests/sim/longrun.test.ts` (4 hafta, 24 saat bakıcı, WC yok) köpek sağlığı 0 ile kırılıyordu. Güncellemeyi alan eski
+  kayıtlarda personel yalnız WC yüzünden istifa etmesin diye taban kondu (verim cezası sürer: moral 30 altı ×0,8).
+- Bina `staffToilet` "Personel WC" (1×2, 400 ₺, 60 dk, kategori personel, `solidRows: 'all'`); `BuildingArt` beyaz
+  kulübe, mavi çatı, "WC" tabelası, kapı. Tuvaletteki personelin sprite'ı gizli (`WorldScene.syncStaff`).
+- `AlertSystem` `staffToilet`: personel var ve hazır WC yoksa "Personel tuvaleti yok: yönetim modunda Personel WC kur"
+  (sıkışan varsa `warn`, yoksa `info`). Personel kartında "Tuvalet" çubuğu (≥ 90 kırmızı), durum adları "Tuvalete gidiyor"
+  / "Tuvalette". README personel bölümü.
+- Testler `tests/unit/staff-toilet.test.ts` (3): saatlik artış, verim ×0,9, moral −4 ve taban, uyarı; WC'ye gidip
+  boşaltma, uyarının kalkması; kayıt gidiş-dönüşü ve çizim. 324 test.
+- Tarayıcı (812×375): WC'siz uyarı çıktı; WC kurulunca ihtiyaç 80 olan bakıcı WC'ye gitti, içerideyken sprite gizli,
+  ihtiyaç 0, işe döndü, uyarı kalktı; personel kartında Tuvalet çubuğu; `runTouchScenarios` 8/8.
+- Sıradaki: 0.16.3 dinlenme odası içi (satın alınan kanepe/kahve köşesi/TV/buzdolabı, molada personel içeride).
+
 ## 0.16.1 — Ofis eşyaları (M15; Claude, 2026-09-23)
 - Ofis şablonuna 8 eşya (`Interiors.ts` `TEMPLATES.office.items`; masa listede ilk kalır): masa-bilgisayar (2,2 2×1),
   kahve köşesi (1,2), lisans panosu (5,1 2×1, duvarda), pencere (7,1, duvarda), kitaplık (9,2 2×1), yatak (10,4 1×2),

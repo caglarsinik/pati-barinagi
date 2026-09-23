@@ -20,7 +20,8 @@ export type BuildingType =
   | 'bench'
   | 'sign'
   | 'feeder'
-  | 'nursery';
+  | 'nursery'
+  | 'staffToilet';
 
 export type BuildingCategory = 'altyapi' | 'barinma' | 'besleme' | 'bakim' | 'buyume' | 'oyun' | 'personel' | 'yonetim' | 'dekor';
 
@@ -262,6 +263,18 @@ export const BUILDING_DEFS: Record<BuildingType, BuildingDef> = {
     solidRows: 'all',
     desc: 'Personel burada mola verir, dayanıklılığını toplar.',
     buildMinutes: 150,
+    buildable: true,
+  },
+  staffToilet: {
+    type: 'staffToilet',
+    name: 'Personel WC',
+    w: 1,
+    h: 2,
+    cost: 400,
+    category: 'personel',
+    solidRows: 'all',
+    desc: 'Personel tuvaleti. Yoksa personel sıkışır: morali ve verimi düşer.',
+    buildMinutes: 60,
     buildable: true,
   },
   lamp: {
