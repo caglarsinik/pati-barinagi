@@ -33,6 +33,9 @@ export function ComputerPanel() {
           <button class="btn" onClick={() => open('achievements')}>
             {t('🏅 Başarımlar')}
           </button>
+          <button class="btn" onClick={() => open('goals')}>
+            {t('🎯 Hedefler')}
+          </button>
         </div>
       </div>
     </div>

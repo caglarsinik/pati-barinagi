@@ -61,7 +61,7 @@ import { vaccinate } from './systems/ClinicSystem';
 import { seasonForWeek } from './systems/WeatherSystem';
 import { VILLAGE_ID_BASE, restampVillage, villageDoorTile, villageInteriorKind, wholesaleBagPrice } from './world/Village';
 import { applyFoundingPlot } from './world/PlotReserve';
-import { FOUNDING_GOALS, type GoalDef, GoalSystem } from './systems/Goals';
+import { type GoalDef, GoalSystem } from './systems/Goals';
 
 export type Mode = 'avatar' | 'manage';
 
@@ -413,8 +413,9 @@ export class Sim {
     const sim = new Sim(seed, world, new Clock(), player, BALANCE.difficulty[difficulty].startMoney);
     sim.difficulty = difficulty;
     sim.starter = starter;
-    sim.goals.index = starter === 'guided' ? 0 : FOUNDING_GOALS;
     sim.setupStarterShelter(starter);
+    // Hazır barınakta kurulu gelenler (kulübe, kap ve yalak, kuluçka, kiler) ödülsüz tamam sayılır (0.19.1).
+    if (starter === 'ready') sim.goals.catchUp();
     sim.spawnStrays();
     sim.revealPlayer(true);
     sim.staffSystem.refreshCandidates();
@@ -1558,7 +1559,7 @@ export class Sim {
     const sim = new Sim(data.seed >>> 0, world, clock, player, money);
     sim.difficulty = difficulty;
     sim.starter = starter;
-    sim.goals.load(data.goals, starter === 'guided' ? 0 : FOUNDING_GOALS);
+    const goalsCurrent = sim.goals.load(data.goals);
     sim.autopilot = data.autopilot === true;
     sim.coffeeDay = numOr(data.coffeeDay, 0, 0);
     sim.bakeDay = numOr(data.bakeDay, 0, 0);
@@ -1838,6 +1839,8 @@ export class Sim {
       sim.staffSystem.refreshCandidates();
       sim.candidatesDay = sim.clock.day;
     }
+    // Hedef zincirinden önceki kayıt (0.19.1 öncesi): sağlanan hedefler ödülsüz tamam sayılır.
+    if (!goalsCurrent) sim.goals.catchUp();
     sim.alerts.refresh();
     return sim;
   }

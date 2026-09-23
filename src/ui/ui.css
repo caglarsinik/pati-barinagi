@@ -1280,6 +1280,29 @@ select,
   border-bottom: 1px solid rgba(0, 0, 0, 0.12);
 }
 
+.guide .btn.small {
+  margin-top: 4px;
+}
+
+/* --- Belediye hedefleri paneli (0.19.1) --- */
+.goals .goal-current {
+  padding: 4px 0 8px;
+  margin-bottom: 6px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.12);
+}
+
+.goals .goal-current p {
+  margin: 4px 0 8px;
+}
+
+.goals .goal-row {
+  padding: 2px 0;
+}
+
+.goals h4 {
+  margin: 10px 0 4px;
+}
+
 /* --- Olaylar ve başarımlar --- */
 .event-log {
   margin-top: 8px;

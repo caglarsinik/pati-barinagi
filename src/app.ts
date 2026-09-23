@@ -15,6 +15,7 @@ import { BootScene } from './scenes/BootScene';
 import { WorldScene } from './scenes/WorldScene';
 import { OverlayScene } from './scenes/OverlayScene';
 import { Sim, DIFFICULTIES, STARTER_KINDS, type Difficulty, type StarterKind } from './sim/Sim';
+import { BUILDING_DEFS, type BuildingType } from './content/buildings';
 import { showToast, store, syncStore } from './ui/store';
 
 
@@ -367,6 +368,21 @@ class AppController {
 
   togglePanel(panel: Panel): void {
     store.panel.value = store.panel.value === panel ? 'none' : panel;
+  }
+
+  /** Hedef "Göster" (0.19.1): yönetim moduna geçer, inşa çubuğunu binanın sekmesinde açıp aracı seçer ya da Arsa sekmesini açar. */
+  showBuild(target: BuildingType | 'plot'): void {
+    if (!this.sim) return;
+    store.panel.value = 'none';
+    if (this.sim.mode !== 'manage') this.sim.setMode('manage');
+    store.buildBar.value = true;
+    if (target === 'plot') {
+      store.buildTab.value = 'arsa';
+      store.build.value = { kind: 'none' };
+    } else {
+      store.buildTab.value = BUILDING_DEFS[target].category;
+      store.build.value = { kind: 'building', type: target };
+    }
   }
 
   /** İnşa çubuğunu açar (gerekirse yönetim moduna geçer). */

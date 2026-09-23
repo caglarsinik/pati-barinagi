@@ -4,7 +4,7 @@ import { BUILDING_DEFS, PLOT_EXPANSION_COST, type BuildingType } from '../../src
 import { SaveManager } from '../../src/core/SaveManager';
 import { IDLE_INPUT } from '../../src/sim/entities/Player';
 import { Sim } from '../../src/sim/Sim';
-import { FOUNDING_GOALS, GOALS, goalReward } from '../../src/sim/systems/Goals';
+import { GOALS, goalReward } from '../../src/sim/systems/Goals';
 import { findPath } from '../../src/sim/world/Pathfinder';
 import { plotCoreRect } from '../../src/sim/world/PlotReserve';
 import { Biome, Ground, Obj } from '../../src/sim/world/tiles';
@@ -80,7 +80,8 @@ describe('Kuruluş açılışı (0.19.0)', () => {
       expect(ready.starter).toBe('ready');
       expect(ready.world.plot).toEqual({ x: R.x, y: R.y, w: R.w, h: R.h });
       expect(ready.buildings).toHaveLength(9);
-      expect(ready.goals.index).toBe(FOUNDING_GOALS);
+      expect([...ready.goals.done]).toEqual(['kennel', 'bowlTrough', 'incubator', 'shed']);
+      expect(ready.goals.current?.id).toBe('eggFound');
     }
   });
 
@@ -113,9 +114,9 @@ describe('Kuruluş açılışı (0.19.0)', () => {
     // Kap + yalak biter; kuluçka zaten kurulu olduğu için bir sonraki dakikada o da biter.
     expect(done).toEqual(['kennel', 'bowlTrough', 'incubator']);
     expect(sim.money).toBe(m0 - BUILDING_DEFS.trough.cost + goalReward(GOALS[1]) + goalReward(GOALS[2]));
-    expect(sim.goals.current).toBeNull();
+    expect(sim.goals.current?.id).toBe('eggFound');
     expect(sim.reputation).toBeGreaterThanOrEqual(rep0 + 3 * BALANCE.goals.reputation - 0.001);
-    // Zincir bitince yeni ödül yok.
+    // Sıradaki hedef (yumurta) sağlanmadıkça yeni ödül yok.
     minutes(sim, 3);
     expect(done).toHaveLength(3);
   });
@@ -131,11 +132,11 @@ describe('Kuruluş açılışı (0.19.0)', () => {
     expect(sim.money).toBe(10000 - BALANCE.world.firstExpansionCost - PLOT_EXPANSION_COST);
     place(sim, 'kennelSmall', 90, 92);
     minutes(sim, 3);
-    expect(sim.goals.index).toBe(1);
+    expect([...sim.goals.done]).toEqual(['kennel']);
 
     const back = Sim.fromJSON(SaveManager.parse(JSON.stringify(sim.toJSON()))!);
     expect(back.starter).toBe('guided');
-    expect(back.goals.index).toBe(1);
+    expect([...back.goals.done]).toEqual(['kennel']);
     expect(back.world.plot).toEqual(sim.world.plot);
     expect(back.buildings.map((b) => b.type)).toEqual(sim.buildings.map((b) => b.type));
     for (let y = R.y - 2; y < R.y + R.h + 22; y++) {
@@ -159,7 +160,8 @@ describe('Kuruluş açılışı (0.19.0)', () => {
     delete old.goals;
     const b3 = Sim.fromJSON(SaveManager.parse(JSON.stringify(old))!);
     expect(b3.starter).toBe('ready');
-    expect(b3.goals.index).toBe(FOUNDING_GOALS);
+    expect(b3.goals.done.has('shed')).toBe(true);
+    expect(b3.goals.current?.id).toBe('eggFound');
     expect(b3.world.plot).toEqual({ x: R.x, y: R.y, w: R.w, h: R.h });
     // Hazır barınakta genişletme eski fiyatla.
     b3.money = 10000;

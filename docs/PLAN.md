@@ -468,7 +468,7 @@ iflas/kredi ve bina döndürme M10'da yapıldı.
 | Sürüm | Konu |
 |---|---|
 | 0.19.0 ✅ | Kuruluş açılışı: 24×20 çekirdek arsa (dünya üretimi 40×32 rezervle aynen), yalnız ofis + ilk köpek, belediye hedefleri (kulübe, kap+yalak, kuluçka), ilk genişletme 1.500 ₺; menüde "Başlangıç türü" |
-| 0.19.1 | Hedef zinciri (~21 halka), HUD 🎯 kart, Hedefler paneli ("Göster"), eski kayıt sessizce yetişir |
+| 0.19.1 ✅ | Hedef zinciri (22 halka, yalnız sıradaki ödüllenir), HUD 🎯 kart, Hedefler paneli ("Göster"), eski kayıt sessizce yetişir |
 | 0.19.2 | Sabah raporu (dün/bugün) + oyuna dönünce "Hoş geldin" kartı |
 | 0.19.3 | Cila: dokunma senaryosu 13 "kuruluş", yardım, README |
 

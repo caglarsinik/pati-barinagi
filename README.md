@@ -49,12 +49,25 @@ Yerel ağdan denemek için `npm run build` sonra `npm run preview -- --host` ve 
 Ana menüde **Başlangıç türü** seçilir (0.19.0):
 
 - **Kuruluş (önerilir, varsayılan):** belediye sana 24×20 karelik küçük, çitli bir arsayı ve ofisi emanet eder; ilk köpeğin
-  yanındadır. Rehberin en üstündeki 🎯 kart sıradaki belediye hedefini ve ödülünü gösterir (telefonda da görünür): kulübe kur
-  (200 ₺) → yem kabı ve su yalağı koy (100 ₺) → kuluçka kur (150 ₺). Her hedef bir kez ödüllenir ve +1 itibar verir.
+  yanındadır. İlk belediye hedefleri kulübe (200 ₺), yem kabı ile su yalağı (100 ₺) ve kuluçkadır (150 ₺); ayrıntı aşağıda.
   Kapıların önünden yollara kısa bir patika iner. İlk arsa genişletmesi 1.500 ₺, sonrakiler 2.500 ₺.
 - **Hazır barınak:** eski başlangıç; 40×32 arsada ofis, iki kulübe, kiler, kap, yalak, kuluçka, top ve çöp kurulu gelir.
 
 Eski kayıtlar hazır barınak sayılır.
+
+## Belediye hedefleri
+
+Sol üstteki 🎯 kart sıradaki belediye hedefini ve ödülünü gösterir (0.19.1; telefonda tek satır). Karta dokununca, ☰ Menü →
+Hedefler ya da ofis bilgisayarı → Hedefler ile **Belediye hedefleri** paneli açılır: sıradaki hedefin açıklaması, **Göster**
+düğmesi (bina hedefinde inşa çubuğunu o bina seçili açar, arsa hedefinde Arsa sekmesini; diğerlerinde haritayı, personel,
+sahiplendirme ya da ofis panelini), sonraki iki hedef ve tamamlananlar.
+
+Zincir 22 halkadır: kuruluş adımları (kulübe, kap ve yalak, kuluçka), yuvadan yumurta, yumurtayı kuluçkaya koymak, kabı
+doldurmak, sevip temizlemek, kiler, ofiste uyku, sokak köpeği, personel, ilk yavru, ilk sahiplendirme, arsa genişletme, mutfak,
+köy, aynı anda 5 köpek, veteriner odası, 10 sahiplendirme, lisans 2, yuva evinden ilk yavru ve sonunda Yılın Barınağı.
+Ödül yalnız sıradaki hedefe verilir (toplam yaklaşık 7.000 ₺, her hedef +1 itibar); önceden yaptığın bir hedef sırası
+gelince hemen tamamlanır. Hazır barınakta kurulu gelenler ve eski kayıtlarda zaten yapılmış olanlar ödülsüz tamam sayılır.
+Kart Ayarlar → "Hedef kartını göster" ile gizlenir.
 
 ## Kontroller
 
@@ -341,7 +354,8 @@ Bilgisayar değiştirirken ya da yedek almak için kullan.
 - [x] 0.18.1 Tam ekran harita (M, 🗺️, mini haritaya dokun): dokunarak işaret koy (en çok 5), "Git" ile işarete yürü
 - [x] 0.18.2 Köy (güney yolun ucu) ve yem toptancısı (çuval %30 ucuz, en az 3), "Köyü buldun" başarımı
 - [x] 0.19.0 Kuruluş açılışı: küçük arsa + ofis, belediye hedefleri (kulübe, kap+yalak, kuluçka), ilk genişletme 1.500 ₺
-- [ ] M17 İlk 10 dakika (0.19.x): hedef zinciri, sabah raporu ve dönüş kartı, kuruluş dokunma senaryosu
+- [x] 0.19.1 Hedef zinciri: 22 belediye hedefi, 🎯 kart, Hedefler paneli ve Göster, eski kayıtlar sessizce yetişir
+- [ ] M17 İlk 10 dakika (0.19.x): sabah raporu ve dönüş kartı, kuruluş dokunma senaryosu
 - [ ] M11 Yaşayan Dünya kalanı (0.20.x): dükkân ve pazar, köylü rutini, köy kademesi, hızlı seyahat, görevler
 - [ ] Sonrası: M13 Sahiplendirme Hikâyeleri, yuva evi içi, kuzey/batı arsa genişletme
 - [ ] Sonraki paketler (`docs/PLAN.md` §7): M11 Yaşayan Dünya, M13 Sahiplendirme Hikâyeleri

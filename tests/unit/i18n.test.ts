@@ -16,6 +16,7 @@ import {
 } from '../../src/sim/entities/DogGenome';
 import { ATTR_NAMES_TR, ROLE_NAMES_TR, TASK_NAMES_TR, TRAIT_INFO_TR } from '../../src/sim/entities/Staff';
 import { ACHIEVEMENTS } from '../../src/sim/systems/Achievements';
+import { GOALS } from '../../src/sim/systems/Goals';
 import { LEDGER_NAMES_TR } from '../../src/sim/systems/EconomySystem';
 import { TOOL_DEFS } from '../../src/sim/systems/Interaction';
 import { SEASON_NAMES_TR, WEATHER_NAMES_TR } from '../../src/sim/systems/WeatherSystem';
@@ -67,6 +68,7 @@ function tableValues(): string[] {
   for (const d of TOOL_DEFS) out.push(d.name, d.desc);
   for (const x of Object.values(TRAIT_INFO_TR)) out.push(x.name, x.desc);
   for (const a of ACHIEVEMENTS) out.push(a.name, a.desc);
+  for (const g of GOALS) out.push(g.title, g.desc);
   return out.filter((v) => typeof v === 'string' && v.length > 0);
 }
 

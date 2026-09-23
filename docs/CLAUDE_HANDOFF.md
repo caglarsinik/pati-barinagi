@@ -57,6 +57,30 @@
   köpek paneli, araç şeridi, alt menü listesi, ana menü, Ayarlar: çakışma yok, taşma yok. Alt menü açılır listesi köpek
   panelinin üstüne gelebilir (geçici popover, üstte kalır) — kabul edildi. Gerçek cihaz testi kullanıcıda.
 
+## 0.19.1 — Belediye hedef zinciri (M17; Claude, 2026-09-23)
+- `src/sim/systems/Goals.ts` yeniden yazıldı: `GOALS` 22 halka (kennel, bowlTrough, incubator, eggFound, eggPlaced, fillBowl,
+  petClean, shed, sleep, stray, hire, hatch, adopt1, expand, kitchen, village, dogs5, vet, adopt10, license2, nurseryPup,
+  victory; ödül toplamı 6.950 ₺, zafer ödülsüz). "Göster" alanları: `tools` (kurulmamış ilk bina, `goalShowTool`), `plot`
+  (Arsa sekmesi), `panel` (`GoalPanel` = map/staff/adoption/office). Kimlikler kayda yazılır, değiştirilmemeli.
+- `GoalSystem` artık `done: Set<string>` tutar: `current` ilk tamamlanmamış hedef, `upcoming(n)`. `check()` yalnız sıradaki
+  hedefi ödüllendirir (dakikada en çok bir; önceden yapılmış hedef sırası gelince hemen tamamlanır). `catchUp()` sağlanan bütün
+  hedefleri ödülsüz ve sessiz tamam sayar: hazır başlangıçta `Sim.create` içinde (kulübe, kap/yalak, kuluçka, kiler), eski
+  kayıtta `Sim.fromJSON` sonunda. Kayıt `goals: { v: 2, done: [...] }`; `load()` 0.19.0 biçimini (`{ index }` → ilk en çok 3
+  hedef) okur, `v` güncel değilse `false` döner. Güncel kayıtta yetişme yapılmaz, böylece sırası gelmemiş ödül kaybolmaz.
+  `FOUNDING_GOALS` kalktı.
+- Arayüz: `Guide.tsx` tümden zincire döndü (eski 9 rehber adımı kalktı): masaüstünde sıradaki hedef + "Sonra: …" + "Tüm
+  hedefler"; telefonda pil. İkisi de yeni `GoalsPanel.tsx`'i açar (`store.panel 'goals'`): sıradaki (açıklama, ödül, Göster),
+  sonraki 2, tamamlananlar (yeniden eskiye). Göster → `app.showBuild(type | 'plot')`: yönetim modu, inşa çubuğu binanın
+  sekmesinde (`BUILDING_DEFS[type].category`) ve araç seçili; BuildBar sekmesi artık `store.buildTab` sinyali (yerel
+  `useState` kalktı). Ofis bilgisayarında "🎯 Hedefler", ☰ Menü'de "Hedefler"; Ayarlar etiketi "Hedef kartını göster".
+- Testler: yeni `tests/unit/goals.test.ts` (5: zincir bütünlüğü ve çeviriler; yalnız sıradaki ödül ve önceden yapılanın sırası
+  gelince tamamlanması; Göster verisi ve arsa hedefi; zafer ödülsüz; kayıt güncel/eski/0.19.0/bozuk kimlik). `founding.test.ts`
+  `done` kümesine uyarlandı, `i18n.test.ts` hedef metinlerini de denetler. `autopilot.test.ts` yardımcısı zinciri tamam sayar:
+  hedef ödülleri para ölçen iki testi bozuyordu (otopilot yuvadan yumurta alınca +100 ₺). 363 test. Tarayıcı 812×375: pil →
+  panel → Göster → yönetim modu, Barınma sekmesi, küçük kulübe seçili; kulübe → "+200 ₺ · Sıradaki" ve pil ilerler; hazır
+  barınak `eggFound`'dan başlar; `runTouchScenarios` 12/12.
+- Sıradaki: 0.19.2 sabah raporu + dönüş kancası.
+
 ## 0.19.0 — Kuruluş açılışı (M17; Claude, 2026-09-23)
 - Tasarım kararı (kullanıcıyla): oyuncuyu tutmak için önce "İlk 10 dakika" paketi (M17: 0.19.0–0.19.3), M11 kalanı 0.20.x.
   Sınırsız harita yapılmayacak.

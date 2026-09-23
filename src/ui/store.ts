@@ -40,7 +40,8 @@ export type Panel =
   | 'furniture'
   | 'autoOrder'
   | 'clinic'
-  | 'wholesale';
+  | 'wholesale'
+  | 'goals';
 
 export type BuildTool =
   | { kind: 'none' }
@@ -111,6 +112,8 @@ export const store = {
   /** Dil değişince arayüz yeniden çizilsin. */
   lang: signal<'tr' | 'en'>('tr'),
   buildBar: signal(false),
+  /** İnşa çubuğunun açık sekmesi (0.19.1: hedef "Göster" sekmeyi seçer). */
+  buildTab: signal<string>('altyapi'),
   build: signal<BuildTool>({ kind: 'none' }),
   selectedDogId: signal<number | null>(null),
   /** 10 Hz'de artar; panellerin sim'den taze veri çekmesi için. */

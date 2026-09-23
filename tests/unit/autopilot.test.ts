@@ -6,6 +6,7 @@ import { type Building, canPlaceBuilding } from '../../src/sim/entities/Building
 import type { Dog } from '../../src/sim/entities/Dog';
 import { Sim } from '../../src/sim/Sim';
 import { PILOT_ID } from '../../src/sim/systems/Autopilot';
+import { GOALS } from '../../src/sim/systems/Goals';
 import { placeMess } from '../../src/sim/systems/MessSystem';
 import { harvestNest } from '../../src/sim/systems/NestSystem';
 import { Obj } from '../../src/sim/world/tiles';
@@ -16,6 +17,8 @@ function runSeconds(sim: Sim, sec: number): void {
 
 function pilotOn(seed: number): Sim {
   const sim = Sim.create(seed);
+  // Belediye hedef ödülleri (0.19.1) para ölçen otopilot testlerini bozmasın.
+  for (const g of GOALS) sim.goals.done.add(g.id);
   sim.setSpeed(1);
   expect(sim.command({ type: 'setAutopilot', on: true }).ok).toBe(true);
   expect(sim.autopilot).toBe(true);

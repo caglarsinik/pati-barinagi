@@ -1,4 +1,3 @@
-import { useState } from 'preact/hooks';
 import { app } from '../app';
 import {
   BUILDING_DEFS,
@@ -28,7 +27,10 @@ function sameTool(a: BuildTool, b: BuildTool): boolean {
 
 export function BuildBar() {
   store.tick.value;
-  const [tab, setTab] = useState<Tab>('altyapi');
+  const tab = store.buildTab.value as Tab;
+  const setTab = (x: Tab): void => {
+    store.buildTab.value = x;
+  };
   if (!store.buildBar.value || store.mode.value !== 'manage') return null;
   const sim = app.sim;
   if (!sim) return null;
