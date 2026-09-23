@@ -89,6 +89,9 @@ export interface MorningReport {
   questOffers: number;
   /** Okunmamış mektup (0.21.1). */
   mailUnread: number;
+  /** Bugün sahiplendirme günü ve kampanyanın kalan günü (0.21.3). */
+  adoptionDay: boolean;
+  campaignLeft: number;
 }
 
 export function buildMorningReport(sim: Sim, kind: MorningKind, passedOut = false): MorningReport {
@@ -137,5 +140,7 @@ export function buildMorningReport(sim: Sim, kind: MorningKind, passedOut = fals
     quests: sim.quests.list.filter((q) => q.state === 'active').map((q) => ({ title: sim.quests.title(q), minutesLeft: sim.quests.timeLeft(q) })),
     questOffers: sim.quests.list.filter((q) => q.state === 'offer').length,
     mailUnread: sim.mail.unread(),
+    adoptionDay: sim.campaigns.isAdoptionDay(),
+    campaignLeft: sim.flags.campaignLeft,
   };
 }

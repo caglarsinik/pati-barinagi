@@ -45,6 +45,8 @@ export function MorningPanel() {
   for (const q of r.quests) today.push({ text: t('📋 {title} · {time}', { title: q.title, time: questTimeText(q.minutesLeft) }), warn: q.minutesLeft < MINUTES_PER_DAY });
   if (r.questOffers > 0 && r.weekday === 0) today.push({ text: t('📋 Köy panosuna yeni ilanlar asıldı ({n})', { n: r.questOffers }) });
   if (r.mailUnread > 0) today.push({ text: t('📬 {n} okunmamış mektup: ☰ Menü → Posta', { n: r.mailUnread }) });
+  if (r.adoptionDay) today.push({ text: t("🎈 Bugün sahiplendirme günü: sahipleniciler 10:00'dan itibaren akın edecek") });
+  if (r.campaignLeft > 0) today.push({ text: t('📣 Bağış kampanyası sürüyor ({n} gün)', { n: r.campaignLeft }) });
   return (
     <div class="overlay">
       <div class="menu-card panel morning">

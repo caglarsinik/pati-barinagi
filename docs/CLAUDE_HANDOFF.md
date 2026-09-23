@@ -57,6 +57,26 @@
   köpek paneli, araç şeridi, alt menü listesi, ana menü, Ayarlar: çakışma yok, taşma yok. Alt menü açılır listesi köpek
   panelinin üstüne gelebilir (geçici popover, üstte kalır) — kabul edildi. Gerçek cihaz testi kullanıcıda.
 
+## 0.21.3 — Sahiplendirme günü ve bağış kampanyası (M13; Claude, 2026-09-23)
+- Yeni `src/sim/systems/CampaignSystem.ts` (`sim.campaigns`, durum `SimFlags`'te: `adoptionDay`, `adoptionDayWeek`, `campaignLeft`,
+  `campaignWeek`; eski kayıtta 0): `announceAdoptionDay` (300 ₺, defter yeni türü `event` "Etkinlik"; sahiplendirme açıkken,
+  haftada bir; ertesi gün), `isAdoptionDay`/`adoptionDayTomorrow`/`adoptionDayIssue`, `startCampaign` (150 ₺, haftada bir,
+  `campaignDays` 3 tur), `campaignIssue`, `onHour` (10: "Sahiplendirme günü başladı" mesajı; 11: kampanya turu), `onDay` (biten
+  gün sahiplendirme günüyse ve o gün ≥ `adoptionDaySuccess` 3 kayıt varsa itibar +2), `campaignRound` (ayrı RNG
+  `hash3(seed, gün, 0xd0a7)`: itibar × 2 taban, mutlu aile başına bir kez 20–60 × cömertlik, köy bulunduysa köylü başına 10–30;
+  tavan 800; defter 'donation').
+- `AdoptionSystem.planDay`: sahiplendirme gününde beklenen ×3, tavan 6 (gün planının ana RNG'si; yalnız ilan edilen günde
+  fazladan çekiliş, gazete bayrağı gibi). `spawnAdopter`: o gün sabır ×1,5. `pendingArrivals()` (bugün kalan planlı sahiplenici).
+- Arayüz: ofis bilgisayarında "Etkinlikler" (iki düğme, kapalıyken gerekçe satırı), masada durum satırı ve "🎈 Sahiplendirme
+  günü" düğmesi; sabah raporu satırları; `WorldScene.syncFestive` (30 karede bir): sahiplendirme gününde ofis kapısının iki
+  yanında ve doğu kapısının dışında `drawBalloons` balonları, gün bitince kalkar (SHUTDOWN'da sıfırlanır).
+- Testler `tests/unit/campaigns.test.ts` (4): ilan kuralları ve bedel, o gün planlı sahiplenici ≥3 ve ≤6 (aynı tohumlu normal
+  günden fazla), sabır; başarılı gün itibarı; kampanya (taban, aileler bir kez, zayıf/geri getiren yok, köylüler, 11:00 turu,
+  tavan, sonraki hafta); ana RNG değişmez, bayrak kaydı. 406 test. Tarayıcı 812×375: bilgisayarda ilan ve kampanya (düğmeler
+  gerekçeyle kapandı), ertesi gün 10:00 mesajı, 11:00 kampanya turu (40 ₺), ofis kapısında balonlar, masada "🎈 Bugün
+  sahiplendirme günü"; dokunma senaryoları 15/15.
+- Sıradaki: 0.21.4 can dostları (ikili sahiplendirme).
+
 ## 0.21.2 — Mezunlar albümü ve tekrar gelen aileler (M13; Claude, 2026-09-23)
 - Yeni `src/sim/systems/Stories.ts` (saf): `familyKey(r)` (`family ?? key`), `familyLast(sim, family)`,
   `returningCandidates(sim)` (köylü değil, hiç `returned` yok, son sahiplendirme ≥70 ve en az `returnMinDays` 7 gün önce, en çok

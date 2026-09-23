@@ -78,6 +78,7 @@ import { type MarketItem, type ShopItem, type Supplies, type SupplyKind, bicycle
 import { VillagerSystem } from './systems/VillagerSystem';
 import { QuestSystem } from './systems/QuestSystem';
 import { type Letter, MailSystem } from './systems/MailSystem';
+import { CampaignSystem } from './systems/CampaignSystem';
 import { SIGN_NAMES_TR, type SignId, type Signpost, landingTile, signKnown, signposts, travelMinutes } from './world/Signposts';
 
 export type Mode = 'avatar' | 'manage';
@@ -207,7 +208,9 @@ export type Command =
   | { type: 'questAccept'; id: number }
   | { type: 'questDeliver'; id: number }
   | { type: 'questAbandon'; id: number }
-  | { type: 'readMail'; id?: number };
+  | { type: 'readMail'; id?: number }
+  | { type: 'announceAdoptionDay' }
+  | { type: 'startCampaign' };
 
 /** Tam ekran haritada konan işaret (0.18.1; kayıtta). color: 0-4 renk sırası. */
 export interface MapMarker {
@@ -241,6 +244,12 @@ export interface SimFlags {
   growlUntil: number;
   growlA: string;
   growlB: string;
+  /** Sahiplendirme günü (0.21.3): ilan edilen gün ve ilan haftası. */
+  adoptionDay: number;
+  adoptionDayWeek: number;
+  /** Bağış kampanyası (0.21.3): kalan gün ve başladığı hafta. */
+  campaignLeft: number;
+  campaignWeek: number;
 }
 
 export interface SimStats {
@@ -349,6 +358,8 @@ export class Sim {
   readonly quests: QuestSystem;
   /** Sahiplendirme mektupları (0.21.1; kayıtta). */
   readonly mail: MailSystem;
+  /** Sahiplendirme günü ve bağış kampanyası (0.21.3; durumu bayraklarda). */
+  readonly campaigns: CampaignSystem;
   readonly illness: IllnessSystem;
   readonly nav: PlayerNav;
   readonly pilot: Autopilot;
@@ -381,7 +392,17 @@ export class Sim {
   /** Duyurulmuş tabelalar (0.20.3; kaydedilmez, keşif haritasından çıkar). */
   private announcedSigns = new Set<SignId>();
   readonly gates: GateSystem;
-  flags: SimFlags = { foodDiscountDay: 0, extraAdoptersDay: 0, growlUntil: 0, growlA: '', growlB: '' };
+  flags: SimFlags = {
+    foodDiscountDay: 0,
+    extraAdoptersDay: 0,
+    growlUntil: 0,
+    growlA: '',
+    growlB: '',
+    adoptionDay: 0,
+    adoptionDayWeek: 0,
+    campaignLeft: 0,
+    campaignWeek: 0,
+  };
   speed: Speed = 1;
   mode: Mode = 'avatar';
   difficulty: Difficulty = 'normal';
@@ -449,6 +470,7 @@ export class Sim {
     this.villagers = new VillagerSystem(this);
     this.quests = new QuestSystem(this);
     this.mail = new MailSystem(this);
+    this.campaigns = new CampaignSystem(this);
     this.illness = new IllnessSystem(this);
     this.nav = new PlayerNav(this);
     this.pilot = new Autopilot(this);
@@ -463,6 +485,8 @@ export class Sim {
     this.events.on('week', (w) => this.onWeek(w));
     this.events.on('hour', (h) => this.onHour(h));
     this.events.on('hour', (h) => this.mail.onHour(h));
+    this.events.on('hour', (h) => this.campaigns.onHour(h));
+    this.events.on('day', (d) => this.campaigns.onDay(d));
   }
 
   static create(seed: number, difficulty: Difficulty = 'normal', starter: StarterKind = 'ready'): Sim {
@@ -1057,6 +1081,10 @@ export class Sim {
         return this.quests.abandon(cmd.id);
       case 'readMail':
         return this.mail.markRead(cmd.id);
+      case 'announceAdoptionDay':
+        return this.campaigns.announceAdoptionDay();
+      case 'startCampaign':
+        return this.campaigns.startCampaign();
       case 'buyShop':
         return buyShop(this, cmd.item, cmd.qty);
       case 'buyMarket':
@@ -2003,6 +2031,10 @@ export class Sim {
       if (typeof f.growlUntil === 'number') sim.flags.growlUntil = f.growlUntil;
       if (typeof f.growlA === 'string') sim.flags.growlA = f.growlA;
       if (typeof f.growlB === 'string') sim.flags.growlB = f.growlB;
+      for (const k of ['adoptionDay', 'adoptionDayWeek', 'campaignLeft', 'campaignWeek'] as const) {
+        const v = f[k];
+        if (typeof v === 'number' && Number.isFinite(v)) sim.flags[k] = Math.max(0, Math.floor(v));
+      }
     }
     if (Array.isArray(data.adopters)) {
       for (const raw of data.adopters) {

@@ -231,6 +231,12 @@ toplamaya arsadan en çok 40 kare uzağa gider, köyün çevresine hiç gitmez. 
   dönenler, süzgeçler Tümü / Mektuplu / Köyde. Köpeğini mutlu eden (eşleşme ≥70) ve hiç köpek geri getirmeyen bir aile en az 7
   gün sonra yeniden gelebilir (en çok 3 sahiplendirme): eski köpeği yanında yürür, kartta "🔁 Yine geldi", ücret ×1,25, sabır
   ×1,5, iyi eşleşmede itibar +1. Başarımlar "Sadık aile" ve "Mezunlar" (25 sahiplendirme).
+- **Sahiplendirme günü ve bağış kampanyası** (0.21.3): ofis bilgisayarındaki "Etkinlikler"den (sahiplendirme günü masadan da)
+  ilan edilir, ikisi de haftada bir. **Sahiplendirme günü** (300 ₺, sahiplendirme açıkken): ertesi gün sahipleniciler üç katına
+  çıkar (günde en çok 6), sabırları ×1,5, ofis kapısının iki yanı ve doğu kapısı balonlarla süslenir; gün sonunda en az 3 köpek
+  yuvasına kavuştuysa itibar +2. **Bağış kampanyası** (150 ₺): 3 gün boyunca her gün 11:00'de mutlu mezun aileleri (eşleşme ≥70,
+  geri getirmemiş; aile başına bir kez) 20–60 ₺ × cömertlik, köy bulunduysa köylüler 10–30 ₺ bağışlar, üstüne itibar × 2 ₺;
+  günde en çok 800 ₺. Defterde yeni tür "Etkinlik"; sabah raporu ikisini de hatırlatır.
 
 ## Personel ve görevlendirme
 
@@ -434,7 +440,8 @@ Bilgisayar değiştirirken ya da yedek almak için kullan.
 - [x] 0.21.0 Sahiplenici kimliği: ad soyad, 6 kişilik tipi (sevdiği özelliğe +6, ücret, sabır), kayıtta köpeğin görünümü
 - [x] 0.21.1 Mektup ve fotoğraf: aile 3–7 gün sonra yazar, köpek yeni evinde fotoğrafta, harika eşleşmede bağış ve itibar; 📬 Posta
 - [x] 0.21.2 Mezunlar albümü (fotoğraf, yıldız, rozet, son mektup) ve tekrar gelen aileler (eski köpeğiyle gelir)
-- [ ] M13 Sahiplendirme Hikâyeleri (dilimlendi, `docs/PLAN.md` §7): 0.21.0 ✅ kimlik → 0.21.1 ✅ mektup ve fotoğraf → 0.21.2 ✅ mezunlar albümü + tekrar gelen aileler → 0.21.3 sahiplendirme günü + bağış kampanyası → 0.21.4 can dostları → 0.21.5 cila
+- [x] 0.21.3 Sahiplendirme günü (300 ₺, ertesi gün ×3 sahiplenici, balonlar) ve bağış kampanyası (150 ₺, 3 gün mezun aileleri bağışlar)
+- [ ] M13 Sahiplendirme Hikâyeleri (dilimlendi, `docs/PLAN.md` §7): 0.21.0 ✅ kimlik → 0.21.1 ✅ mektup ve fotoğraf → 0.21.2 ✅ mezunlar albümü + tekrar gelen aileler → 0.21.3 ✅ sahiplendirme günü + bağış kampanyası → 0.21.4 can dostları → 0.21.5 cila
 - [ ] Sonrası: yuva evi içi, kuzey/batı arsa genişletme; isteğe bağlı terk edilmiş ev + taş/odun
 
 ## Geliştirme

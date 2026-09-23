@@ -1440,6 +1440,12 @@ select,
   background: linear-gradient(#bfe6f5 0 50%, #cdb88f 50%);
 }
 
+/* --- Sahiplendirme günü (0.21.3) --- */
+.adopt-events {
+  gap: 8px;
+  margin: 2px 0 8px;
+}
+
 /* --- Mezunlar albümü (0.21.2) --- */
 .album-filters {
   gap: 6px;

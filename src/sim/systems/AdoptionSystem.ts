@@ -70,11 +70,19 @@ export class AdoptionSystem {
     if (sim.clock.day <= 2) expected = Math.max(expected, 1);
     expected *= sim.weatherSys.modifiers().adopters;
     if (sim.flags.extraAdoptersDay === sim.clock.day) expected += 2;
+    // Sahiplendirme günü (0.21.3): sahipleniciler katlanır, günlük tavan yükselir.
+    const festive = sim.campaigns.isAdoptionDay();
+    if (festive) expected *= BALANCE.stories.adoptionDayMul;
     let n = Math.floor(expected);
     if (rng.chance(expected - n)) n++;
-    n = Math.min(B.dailyMax, n);
+    n = Math.min(festive ? BALANCE.stories.adoptionDayMax : B.dailyMax, n);
     for (let i = 0; i < n; i++) this.scheduled.push(rng.int(B.arriveFromHour * 60, B.arriveToHour * 60));
     this.scheduled.sort((a, b) => a - b);
+  }
+
+  /** Bugün henüz gelmemiş planlı sahiplenici sayısı. */
+  pendingArrivals(): number {
+    return this.scheduled.length;
   }
 
   update(dtMin: number): void {
@@ -148,6 +156,8 @@ export class AdoptionSystem {
       a.fee = Math.min(BALANCE.adoption.feeMax, Math.round((a.fee * S.returnFeeMul) / 10) * 10);
       a.patienceLeft *= S.returnPatienceMul;
     }
+    // Sahiplendirme gününde sahipleniciler daha sabırlı (0.21.3).
+    if (sim.campaigns.isAdoptionDay()) a.patienceLeft *= BALANCE.stories.adoptionDayPatienceMul;
     const target = this.queueTile(office, a.queueSlot);
     a.path = findPath(sim.world, gate, target, { maxNodes: 6000, adjacentOk: true, throughGates: true }) ?? [];
     sim.adopters.push(a);

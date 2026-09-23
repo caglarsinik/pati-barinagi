@@ -487,6 +487,22 @@ export const BALANCE = {
     returnFeeMul: 1.25,
     returnPatienceMul: 1.5,
     returnRep: 1,
+    /** Sahiplendirme günü (0.21.3): bedel, sahiplenici çarpanı ve günlük tavan, sabır çarpanı, başarılı gün eşiği ve itibarı. */
+    adoptionDayCost: 300,
+    adoptionDayMul: 3,
+    adoptionDayMax: 6,
+    adoptionDayPatienceMul: 1.5,
+    adoptionDaySuccess: 3,
+    adoptionDayRep: 2,
+    /** Bağış kampanyası (0.21.3): bedel, gün sayısı (her gün 11:00), aile ve köylü bağışı aralıkları, itibar başına taban, günlük tavan. */
+    campaignCost: 150,
+    campaignDays: 3,
+    campaignFamilyMin: 20,
+    campaignFamilyMax: 60,
+    campaignVillagerMin: 10,
+    campaignVillagerMax: 30,
+    campaignRepMul: 2,
+    campaignDailyMax: 800,
   },
   /** Belediye hedefleri (0.19.0): ödül çarpanı ve hedef başına itibar. */
   goals: {

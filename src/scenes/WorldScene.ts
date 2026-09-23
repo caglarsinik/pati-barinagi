@@ -30,7 +30,8 @@ import type { Staff } from '../sim/entities/Staff';
 import { drawEgg } from '../render/EggArt';
 import { type VillageBuilding, questBoardTile, villageDoorTile, villageInteractive } from '../sim/world/Village';
 import { isMarketDay } from '../sim/systems/ShopSystem';
-import { drawQuestBoard, drawSignpost, drawVillageBuilding } from '../render/BuildingArt';
+import { drawBalloons, drawQuestBoard, drawSignpost, drawVillageBuilding } from '../render/BuildingArt';
+import { entryPoint } from '../sim/world/gates';
 import { type SignId, signKnown, signposts } from '../sim/world/Signposts';
 import { familyLast } from '../sim/systems/Stories';
 
@@ -128,6 +129,9 @@ export class WorldScene extends Phaser.Scene {
   private signFrame = 0;
   /** Köy görev panosu ve görevdeki kayıp köpek (0.20.4). */
   private questBoardImage: Phaser.GameObjects.Image | null = null;
+  /** Sahiplendirme günü balonları (0.21.3). */
+  private festiveImages: Phaser.GameObjects.Image[] = [];
+  private festiveFrame = 0;
   private lostDogSprite: Phaser.GameObjects.Sprite | null = null;
   private buildingImages = new Map<number, Phaser.GameObjects.Image>();
   private dogSprites = new Map<number, Phaser.GameObjects.Sprite>();
@@ -399,6 +403,8 @@ export class WorldScene extends Phaser.Scene {
       this.signFrame = 0;
       this.questBoardImage = null;
       this.lostDogSprite = null;
+      this.festiveImages = [];
+      this.festiveFrame = 0;
     });
 
     syncStore(this.sim);
@@ -417,6 +423,7 @@ export class WorldScene extends Phaser.Scene {
     this.syncVillagers();
     this.syncSigns();
     this.syncQuests();
+    this.syncFestive();
     this.syncStaff();
     this.syncBuildings();
     this.marketVendor?.setVisible(isMarketDay(this.sim));
@@ -951,6 +958,31 @@ export class WorldScene extends Phaser.Scene {
       }
       const py = (s.y + 1) * T;
       img.setPosition((s.x + 0.5) * T, py).setDepth(100 + py);
+    }
+  }
+
+  /** Sahiplendirme günü (0.21.3): ofis kapısının iki yanında ve doğu kapısında balonlar; gün bitince kalkar. */
+  private syncFestive(): void {
+    if (this.festiveFrame++ % 30 !== 0) return;
+    if (!this.sim.campaigns.isAdoptionDay()) {
+      for (const img of this.festiveImages) img.destroy();
+      this.festiveImages = [];
+      return;
+    }
+    if (this.festiveImages.length > 0) return;
+    if (!this.textures.exists('balloons')) this.textures.addCanvas('balloons', drawBalloons().toCanvas());
+    const T = GAME.tile;
+    const spots: TilePos[] = [];
+    const office = this.sim.buildings.find((b) => b.type === 'office' && isReady(b));
+    if (office) {
+      const d = buildingDoorTile(office);
+      spots.push({ x: d.x - 1, y: d.y }, { x: d.x + 1, y: d.y });
+    }
+    const gate = entryPoint(this.sim.world, 'east');
+    if (gate) spots.push({ x: gate.outside.x, y: gate.outside.y - 1 });
+    for (const s of spots) {
+      const py = (s.y + 1) * T;
+      this.festiveImages.push(this.add.image((s.x + 0.5) * T, py, 'balloons').setOrigin(0.5, 1).setDepth(100 + py));
     }
   }
 

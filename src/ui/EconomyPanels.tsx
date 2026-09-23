@@ -195,6 +195,27 @@ export function AdoptionDesk() {
             ✕
           </button>
         </div>
+        <div class="row adopt-events">
+          <span class="small-text">
+            {sim.campaigns.isAdoptionDay()
+              ? t('🎈 Bugün sahiplendirme günü')
+              : sim.campaigns.adoptionDayTomorrow()
+                ? t('🎈 Yarın sahiplendirme günü')
+                : <span class="muted">{sim.campaigns.adoptionDayIssue() ?? t('Sahiplendirme günü: ertesi gün sahipleniciler katlanır')}</span>}
+          </span>
+          <span class="spacer" />
+          <button
+            class="btn small"
+            disabled={sim.campaigns.adoptionDayIssue() !== null}
+            onClick={() => {
+              const r = sim.command({ type: 'announceAdoptionDay' });
+              run(r);
+              if (r.ok) audio.play('coin');
+            }}
+          >
+            {t('🎈 Sahiplendirme günü · {cost}', { cost: formatMoney(BALANCE.stories.adoptionDayCost) })}
+          </button>
+        </div>
         {!open && <p class="muted">{t('Sahiplendirme kapalı. Sahiplenici gelmesi için aç.')}</p>}
         {open && waiting.length === 0 && (
           <p class="muted">

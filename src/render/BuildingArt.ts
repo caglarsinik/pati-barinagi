@@ -435,6 +435,22 @@ export function drawVillageBuilding(kind: 'wholesaler' | 'toyShop' | 'house' | '
   return p;
 }
 
+/** Sahiplendirme günü balonları (0.21.3): üç balon ve ipleri. */
+export function drawBalloons(): Pixels {
+  const p = new Pixels(22, 34);
+  p.line(6, 13, 11, 33, C.ropeDark);
+  p.line(16, 12, 11, 33, C.ropeDark);
+  p.line(11, 17, 11, 33, C.ropeDark);
+  p.ellipse(6, 8, 4.5, 5.5, C.heart);
+  p.ellipse(16, 7, 4.5, 5.5, C.sign);
+  p.ellipse(11, 12, 4.5, 5.5, C.tunnel);
+  p.set(4, 5, C.white);
+  p.set(14, 4, C.white);
+  p.set(9, 9, C.white);
+  p.outline(P.outline);
+  return p;
+}
+
 /** Köy görev panosu (0.20.4): iki direkli, çatılı tahta pano; üstünde iğneli ilan kâğıtları. */
 export function drawQuestBoard(): Pixels {
   const p = new Pixels(28, 28);
