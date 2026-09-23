@@ -4,12 +4,12 @@ import { TileWorld, type TilePos } from '../world/TileWorld';
 import { Ground } from '../world/tiles';
 
 /** Girilebilen binaların iç mekân türü (M15; diğer binalar sonra eklenir). */
-export type InteriorKind = 'office' | 'restRoom';
+export type InteriorKind = 'office' | 'restRoom' | 'pantry';
 
 /** İç mekân eşyası: kare dikdörtgeni katıdır, önünde E ile kullanılır. */
-export type InteriorItemType = 'desk' | 'board' | 'window' | 'bookshelf' | 'coffee' | 'phone' | 'bed' | 'plant' | 'restBoard' | 'sofa' | 'tv' | 'fridge';
+export type InteriorItemType = 'desk' | 'board' | 'window' | 'bookshelf' | 'coffee' | 'phone' | 'bed' | 'plant' | 'restBoard' | 'sofa' | 'tv' | 'fridge' | 'sacks' | 'ledger' | 'orderBoard';
 
-/** Dinlenme odasına satın alınan eşyalar (0.16.3). Fiyat ve üst sınır BALANCE.staff.rest.furniture. */
+/** İç mekâna satın alınan eşyalar (0.16.3 dinlenme odası). Fiyat ve üst sınır BALANCE.interior.furniture. */
 export type FurnitureType = 'sofa' | 'coffee' | 'tv' | 'fridge';
 export const FURNITURE_TYPES: readonly FurnitureType[] = ['sofa', 'coffee', 'tv', 'fridge'];
 export const FURNITURE_NAMES_TR: Record<FurnitureType, string> = { sofa: 'Kanepe', coffee: 'Kahve köşesi', tv: 'TV', fridge: 'Buzdolabı' };
@@ -20,16 +20,33 @@ export const FURNITURE_DESC_TR: Record<FurnitureType, string> = {
   fridge: 'Personel moladan enerjisi tam dolunca döner.',
 };
 
-/** Kayıttan gelen eşya listesini temizler: bilinen türler, her türden en çok üst sınır kadar. */
-export function sanitizeFurniture(list: unknown): FurnitureType[] {
+/** Oda türü başına satın alınabilen eşyalar (0.17.0 ortak katalog; mutfak, veteriner, kuluçka sonraki sürümlerde). */
+export const FURNITURE_BY_KIND: Record<InteriorKind, readonly FurnitureType[]> = {
+  office: [],
+  restRoom: ['sofa', 'coffee', 'tv', 'fridge'],
+  pantry: [],
+};
+
+/** Kayıttan gelen eşya listesini temizler: odanın kataloğundaki türler, her türden en çok üst sınır kadar. */
+export function sanitizeFurniture(kind: InteriorKind, list: unknown): FurnitureType[] {
   if (!Array.isArray(list)) return [];
+  const allowed = FURNITURE_BY_KIND[kind];
   const out: FurnitureType[] = [];
   for (const f of list) {
-    if (!FURNITURE_TYPES.includes(f as FurnitureType)) continue;
+    if (!allowed.includes(f as FurnitureType)) continue;
     const type = f as FurnitureType;
-    if (out.filter((x) => x === type).length < BALANCE.staff.rest.furniture[type].max) out.push(type);
+    if (out.filter((x) => x === type).length < BALANCE.interior.furniture[type].max) out.push(type);
   }
   return out;
+}
+
+/** Kiler rafı başına çuval (0.17.0). */
+export const SACKS_PER_SHELF = 3;
+
+/** Kiler rafındaki çuval sayısı: stok çuvala yuvarlanır (porsiyon varsa en az 1), raflar soldan dolar, en çok 3 raf × 3. */
+export function sacksOnShelf(foodStock: number, shelf: number): number {
+  const total = Math.min(SACKS_PER_SHELF * 3, Math.ceil(Math.max(0, foodStock) / BALANCE.economy.foodBagPortions));
+  return Math.max(0, Math.min(SACKS_PER_SHELF, total - shelf * SACKS_PER_SHELF));
 }
 
 export interface InteriorItem {
@@ -93,6 +110,17 @@ const TEMPLATES: Record<InteriorKind, InteriorTemplate> = {
       { type: 'sofa', x: 6, y: 4, w: 2, h: 1, buy: 'sofa', slot: 1 },
     ],
   },
+  // 0.17.0 kiler: üç çuval rafı (slot = raf sırası; stoğa göre dolar), sipariş defteri, otomatik sipariş panosu.
+  pantry: {
+    rows: ['########', '#======#', '#......#', '#......#', '#......#', '###D####'],
+    items: [
+      { type: 'sacks', x: 1, y: 2, w: 2, h: 1, slot: 0 },
+      { type: 'sacks', x: 3, y: 2, w: 2, h: 1, slot: 1 },
+      { type: 'sacks', x: 5, y: 2, w: 2, h: 1, slot: 2 },
+      { type: 'ledger', x: 1, y: 4, w: 1, h: 1 },
+      { type: 'orderBoard', x: 6, y: 4, w: 1, h: 1 },
+    ],
+  },
 };
 
 /** Kurulmuş iç oda: ayrı küçük dünya (duvarlar katı), kapı karesi ve giriş noktası. */
@@ -116,7 +144,7 @@ const GROUND_OF: Record<string, Ground> = {
 
 /** Binanın iç mekânı varsa türü. */
 export function interiorKindFor(type: BuildingType): InteriorKind | null {
-  return type === 'office' ? 'office' : type === 'staffRoom' ? 'restRoom' : null;
+  return type === 'office' ? 'office' : type === 'staffRoom' ? 'restRoom' : type === 'shed' ? 'pantry' : null;
 }
 
 export function buildInterior(kind: InteriorKind, owned: readonly string[] = []): InteriorMap {

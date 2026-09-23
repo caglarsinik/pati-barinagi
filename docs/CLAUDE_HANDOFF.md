@@ -57,6 +57,28 @@
   köpek paneli, araç şeridi, alt menü listesi, ana menü, Ayarlar: çakışma yok, taşma yok. Alt menü açılır listesi köpek
   panelinin üstüne gelebilir (geçici popover, üstte kalır) — kabul edildi. Gerçek cihaz testi kullanıcıda.
 
+## 0.17.0 — Ortak giriş kuralı, genel eşya kataloğu, Kiler içi (M16 ilk dilimi; Claude, 2026-09-23)
+- **Giriş kuralı:** E ve binaya dokunmak bugünkü hızlı işi yapar; içeri girmek için binanın alt-orta karesine (kapının hemen
+  üstü) dokun ya da kapı önünde ↑ basılı tut (`BALANCE.interior.pushEnterSec` 0,25 sn). `NavGoal` += `{ kind: 'enter', id }`
+  (PlayerNav bina gibi kapı önüne yürür, varınca `enterBuilding`, `interacted { kind: 'enter' }`); `WorldScene.isDoorTile`
+  dokunuşu ayırır; `Sim.tryPushEnter` (yalnız elle girdi, dışarıdayken, oyuncu karesi = kapı karesi, üstü iç mekânlı hazır
+  bina; bırakınca sayaç sıfır). Kiler ipucuna " · ↑ içeri". Ofis/dinlenme odasında E yine içeri sokar.
+- **Genel katalog:** eşya fiyat/sınırları `BALANCE.staff.rest.furniture` → `BALANCE.interior.furniture` (sayılar aynı);
+  `FURNITURE_BY_KIND` (office [], restRoom 4 eşya, pantry []); `sanitizeFurniture(kind, list)`; `buyFurniture` binanın
+  kataloğuna bakar, mesaj "{name} yerleştirildi". `RestRoomPanel` → genel `src/ui/FurniturePanel.tsx` (panel `'furniture'`,
+  başlık bina adı, moladakiler satırı yalnız dinlenme odasında); `ActionOutcome.open` `'restRoom'` → `'furniture'`.
+- **Kiler içi** (`interiorKindFor('shed') = 'pantry'`, 8×6): üç çuval rafı (`sacks` 2×1, `slot` = raf sırası;
+  `sacksOnShelf(foodStock, shelf)`: stok çuvala yukarı yuvarlanır, raf başına 3, en çok 9), sipariş defteri (`ledger` → `order`
+  = kiler paneli), otomatik sipariş panosu (`orderBoard` → yeni `src/ui/AutoOrderPanel.tsx`, panel `'autoOrder'`: mevcut
+  `autoOrderFood` + `foodThreshold` politikası). `InteriorArt`: raf varyantları `int-sacks-0..3`, kürsülü defter, şövaleli kara
+  tahta. `WorldScene.interiorTexture/refreshInteriorItems` rafları 10 Hz stoğa göre yeniler.
+- Yardım: klavye satırı "↑ (kapıda basılı tut)", dokunmatik "Binanın kapı karesine dokun" ve "İçeride eşyaya / kapıya dokun".
+- Testler `tests/unit/interior-entry.test.ts` (4), `tests/unit/pantry.test.ts` (3); `rest-room.test.ts` katalog taşımasına
+  uyarlandı. 334 test. Tarayıcı (812×375): kilere dokun → Kiler paneli (içeri girmez), kapı karesine dokun → kiler içi, stok
+  55 → 3 çuval, 170 → 9 çuval, defter → Kiler, pano → Otomatik sipariş; `runTouchScenarios` 10/10. Konsoldaki tek 404, Vite'ın
+  silinen `RestRoomPanel.tsx` için HMR isteğiydi (yalnız geliştirmede).
+- Sıradaki: 0.17.1 mutfak içi (fırında ödül maması, su deposu, ikinci fırın).
+
 ## 0.16.4 — İç mekân cilası: otopilot, dokunma senaryoları 9–10, belgeler (M15 son dilimi; Claude, 2026-09-23)
 - `Autopilot.tick`: iç mekândayken yalnız `interiorJob` — gece ve ofiste yatak varsa (uyku kara listede değilse) yatağa
   `object` hedefiyle gidip E (performAction `sleep`), değilse kapı karesine `tile` hedefiyle yürür ("🤖 Dışarı çıkıyor";

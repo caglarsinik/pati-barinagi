@@ -129,12 +129,6 @@ export const BALANCE = {
     },
     /** Dinlenme odası eşyaları (0.16.3): içerideki panodan alınır; etkiler yalnız o odada molada olanlara. */
     rest: {
-      furniture: {
-        sofa: { cost: 300, max: 2 },
-        coffee: { cost: 250, max: 1 },
-        tv: { cost: 400, max: 1 },
-        fridge: { cost: 200, max: 1 },
-      },
       seatsPerSofa: 2,
       /** Kanepede oturanın mola yenilenmesi çarpanı eki (+%25). */
       sofaRegenBonus: 0.25,
@@ -142,6 +136,16 @@ export const BALANCE = {
       tvMoralePerHour: 1,
       /** Buzdolabı: moladan enerji bu değere dolunca dönülür (yoksa restUntil). */
       fridgeRestUntil: 100,
+    },
+  },
+  /** İç mekânlar (M15/M16): kapıda ↑ basılı tutma süresi ve satın alınan eşyaların fiyatı/üst sınırı (tüm odalar). */
+  interior: {
+    pushEnterSec: 0.25,
+    furniture: {
+      sofa: { cost: 300, max: 2 },
+      coffee: { cost: 250, max: 1 },
+      tv: { cost: 400, max: 1 },
+      fridge: { cost: 200, max: 1 },
     },
   },
   adoption: {

@@ -9,7 +9,7 @@ import { BUILDING_DEFS } from '../content/buildings';
 import { DOG_FRAMES, DOG_FRAME_EAT, DOG_FRAME_IDLE, DOG_FRAME_LIE, DOG_FRAME_SIT } from '../render/DogPainter';
 import { TEX, buildingTextureKey, ensureDogTexture, ensureHumanTexture, releaseDogTextures } from '../render/TextureRegistry';
 import { type DogGenome, genomeKey } from '../sim/entities/DogGenome';
-import { type Building, buildingDef, canPlaceBuilding, isReady, buildingSize, solidRowsFor } from '../sim/entities/Building';
+import { type Building, buildingDef, buildingDoorTile, canPlaceBuilding, isReady, buildingSize, solidRowsFor } from '../sim/entities/Building';
 import type { Dog } from '../sim/entities/Dog';
 import type { PlayerInput } from '../sim/entities/Player';
 import type { Mode, Sim } from '../sim/Sim';
@@ -21,7 +21,7 @@ import { audio } from '../audio/audio';
 import { resolveAction } from '../sim/systems/Interaction';
 import { drawLightDisc } from '../render/LightArt';
 import { drawInteriorItem, interiorItemTextureKey } from '../render/InteriorArt';
-import { type ActiveInterior, interiorItemAt } from '../sim/interior/Interiors';
+import { type ActiveInterior, type InteriorItem, interiorItemAt, interiorKindFor, sacksOnShelf } from '../sim/interior/Interiors';
 import { DPR } from '../render/dpr';
 import { Pixels, hex } from '../render/Pixels';
 import { SEASON_TINT } from '../sim/systems/WeatherSystem';
@@ -359,6 +359,7 @@ export class WorldScene extends Phaser.Scene {
     if (this.syncTimer >= 0.1) {
       this.syncTimer = 0;
       syncStore(this.sim);
+      this.refreshInteriorItems();
     }
   }
 
@@ -442,6 +443,7 @@ export class WorldScene extends Phaser.Scene {
         books: 'click',
         coffee: 'pick',
         restShop: 'click',
+        autoOrder: 'click',
       };
       const name = sfx[kind];
       if (name) audio.play(name);
@@ -464,10 +466,10 @@ export class WorldScene extends Phaser.Scene {
     } else if (r.open === 'computer') store.panel.value = 'computer';
     else if (r.open === 'order') store.panel.value = 'shed';
     else if (r.open === 'help') store.panel.value = 'help';
-    else if (r.open === 'restRoom' && r.building) {
+    else if (r.open === 'furniture' && r.building) {
       store.panelBuildingId.value = r.building.id;
-      store.panel.value = 'restRoom';
-    }
+      store.panel.value = 'furniture';
+    } else if (r.open === 'autoOrder') store.panel.value = 'autoOrder';
   }
 
   private readInput(): PlayerInput {
@@ -663,7 +665,7 @@ export class WorldScene extends Phaser.Scene {
     else {
       const bid = w.buildingIdAt(tx, ty);
       const o = w.objectAt(tx, ty);
-      if (bid >= 0) sim.command({ type: 'goInteract', goal: { kind: 'building', id: bid } });
+      if (bid >= 0) sim.command({ type: 'goInteract', goal: this.isDoorTile(bid, tx, ty) ? { kind: 'enter', id: bid } : { kind: 'building', id: bid } });
       else if (o === Obj.NestEggs || o === Obj.Nest || o === Obj.BerryBush || o === Obj.Mess || o === Obj.Den) sim.command({ type: 'goInteract', goal: { kind: 'object', tile: { x: tx, y: ty } } });
       else sim.command({ type: 'goTo', x: tx, y: ty });
     }
@@ -1145,8 +1147,7 @@ export class WorldScene extends Phaser.Scene {
       }
       layer.putTilesAt(rows, 0, 0, false);
       const items = it.items.map((item) => {
-        const key = interiorItemTextureKey(item.type);
-        if (!this.textures.exists(key)) this.textures.addCanvas(key, drawInteriorItem(item.type).toCanvas());
+        const key = this.interiorTexture(item);
         const bottom = (item.y + item.h) * T;
         return this.add.image(ox + item.x * T, bottom, key).setOrigin(0, 1).setDepth(100 + bottom - 1);
       });
@@ -1157,6 +1158,34 @@ export class WorldScene extends Phaser.Scene {
     this.syncPlayerSprite();
     this.fitInteriorBounds();
     cam.centerOn(this.playerSprite.x, this.playerSprite.y - 8);
+  }
+
+  /** İç mekânlı binanın alt-orta karesi (kapının hemen üstü): dokunuş içeri sokar (0.17.0). */
+  private isDoorTile(bid: number, tx: number, ty: number): boolean {
+    const b = this.sim.buildingById(bid);
+    if (!b || !interiorKindFor(b.type)) return false;
+    const d = buildingDoorTile(b);
+    return tx === d.x && ty === d.y - 1;
+  }
+
+  /** Eşyanın dokusu (kiler rafı stoğa göre değişir); yoksa üretir. */
+  private interiorTexture(item: InteriorItem): string {
+    const variant = item.type === 'sacks' ? sacksOnShelf(this.sim.foodStock, item.slot ?? 0) : 0;
+    const key = interiorItemTextureKey(item.type, variant);
+    if (!this.textures.exists(key)) this.textures.addCanvas(key, drawInteriorItem(item.type, variant).toCanvas());
+    return key;
+  }
+
+  /** 10 Hz: stoğa bağlı eşya görsellerini (kiler rafları) yeniler. */
+  private refreshInteriorItems(): void {
+    const v = this.interiorView;
+    const it = this.sim.interior;
+    if (!v || !it) return;
+    it.items.forEach((item, i) => {
+      if (item.type !== 'sacks' || !v.items[i]) return;
+      const key = this.interiorTexture(item);
+      if (v.items[i].texture.key !== key) v.items[i].setTexture(key);
+    });
   }
 
   /** İçerideyken kamera sınırı: oda görüşten küçükse ortalanır (her karede; zoom değişebilir). */

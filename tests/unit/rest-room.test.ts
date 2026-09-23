@@ -56,7 +56,7 @@ describe('Dinlenme odası (0.16.3)', () => {
     const room = placeRoom(sim);
     sim.money = 5000;
     expect(sim.command({ type: 'buyFurniture', buildingId: room.id, item: 'sofa' }).ok).toBe(true);
-    expect(sim.money).toBe(5000 - R.furniture.sofa.cost);
+    expect(sim.money).toBe(5000 - BALANCE.interior.furniture.sofa.cost);
     expect(sim.command({ type: 'buyFurniture', buildingId: room.id, item: 'sofa' }).ok).toBe(true);
     const third = sim.command({ type: 'buyFurniture', buildingId: room.id, item: 'sofa' });
     expect(third.ok).toBe(false);
@@ -71,7 +71,8 @@ describe('Dinlenme odası (0.16.3)', () => {
     expect(room.furniture).toEqual(['sofa', 'sofa', 'tv']);
     const back = Sim.fromJSON(SaveManager.parse(JSON.stringify(sim.toJSON()))!);
     expect(back.buildingById(room.id)!.furniture).toEqual(['sofa', 'sofa', 'tv']);
-    expect(sanitizeFurniture(['sofa', 'sofa', 'sofa', 'tv', 'x', 3])).toEqual(['sofa', 'sofa', 'tv']);
+    expect(sanitizeFurniture('restRoom', ['sofa', 'sofa', 'sofa', 'tv', 'x', 3])).toEqual(['sofa', 'sofa', 'tv']);
+    expect(sanitizeFurniture('pantry', ['sofa'])).toEqual([]);
   });
 
   it('odaya girilir; pano eşya panelini açar; içerideyken alınan eşya hemen yerinde', () => {
@@ -91,7 +92,7 @@ describe('Dinlenme odası (0.16.3)', () => {
     sim.player.facing = 3;
     expect(resolveAction(sim).kind).toBe('restShop');
     const r = performAction(sim);
-    expect(r.open).toBe('restRoom');
+    expect(r.open).toBe('furniture');
     expect(r.building?.id).toBe(room.id);
     let changed = 0;
     sim.events.on('interiorChanged', () => changed++);

@@ -4,12 +4,12 @@ import { P } from './palette';
 import { TILE } from './TileArt';
 
 /** İç mekân eşyalarının doku anahtarı. */
-export function interiorItemTextureKey(type: InteriorItemType): string {
-  return `int-${type}`;
+export function interiorItemTextureKey(type: InteriorItemType, variant = 0): string {
+  return type === 'sacks' ? `int-sacks-${variant}` : `int-${type}`;
 }
 
 /** Eşya çizimi: taban eşyanın kare dikdörtgeni, üst kısmı duvara taşabilir (sprite alt-sol kökenli çizilir). */
-export function drawInteriorItem(type: InteriorItemType): Pixels {
+export function drawInteriorItem(type: InteriorItemType, variant = 3): Pixels {
   switch (type) {
     case 'desk':
       return drawDesk();
@@ -27,6 +27,12 @@ export function drawInteriorItem(type: InteriorItemType): Pixels {
       return drawBed();
     case 'plant':
       return drawPlant();
+    case 'sacks':
+      return drawSackShelf(variant);
+    case 'ledger':
+      return drawLedger();
+    case 'orderBoard':
+      return drawOrderBoard();
     case 'restBoard':
       return drawNotice();
     case 'sofa':
@@ -273,6 +279,70 @@ function drawFridge(): Pixels {
   p.fillRect(8, 3, 3, 3, P.flowerRed);
   p.fillRect(7, 17, 3, 2, P.flowerYellow);
   p.fillRect(1, 28, 14, 2, METAL);
+  p.outline(P.outline);
+  return p;
+}
+
+const BURLAP = hex(0xc9a36b);
+const BURLAP_DARK = hex(0xa4814f);
+const CHALK = hex(0x2f4a3a);
+
+/** Kiler rafı: iki katlı ahşap raf, üstünde n çuval (0–3). Duvara taşar. */
+function drawSackShelf(n: number): Pixels {
+  const w = TILE * 2;
+  const h = 28;
+  const p = new Pixels(w, h);
+  p.fillRect(1, 0, 3, h, P.trunk);
+  p.fillRect(28, 0, 3, h, P.trunk);
+  p.fillRect(1, 12, 30, 2, P.trunkLight);
+  p.fillRect(1, 25, 30, 3, P.trunkLight);
+  p.fillRect(4, 1, 24, 11, P.trunkDark);
+  p.fillRect(4, 14, 24, 11, P.trunkDark);
+  const spots: Array<[number, number]> = [
+    [4, 14],
+    [16, 14],
+    [10, 1],
+  ];
+  for (let i = 0; i < Math.min(3, n); i++) {
+    const [x, y] = spots[i];
+    p.fillRect(x + 1, y + 2, 11, 9, BURLAP);
+    p.fillRect(x + 3, y, 7, 2, BURLAP_DARK);
+    p.fillRect(x + 1, y + 9, 11, 2, BURLAP_DARK);
+    p.set(x + 6, y + 5, P.trunkDark);
+    p.set(x + 5, y + 4, P.trunkDark);
+    p.set(x + 7, y + 4, P.trunkDark);
+  }
+  p.outline(P.outline);
+  return p;
+}
+
+/** Sipariş defteri: ahşap kürsü üstünde açık defter ve kalem. */
+function drawLedger(): Pixels {
+  const p = new Pixels(TILE, 22);
+  p.fillRect(6, 9, 4, 12, P.trunk);
+  p.fillRect(3, 19, 10, 3, P.trunkDark);
+  p.fillRect(1, 5, 14, 5, P.trunkLight);
+  p.fillRect(2, 2, 6, 5, PAPER);
+  p.fillRect(8, 2, 6, 5, hex(0xe8e2d4));
+  p.fillRect(3, 3, 4, 1, hex(0xbabcc1));
+  p.fillRect(9, 4, 4, 1, hex(0xbabcc1));
+  p.fillRect(12, 1, 1, 4, P.flowerBlue);
+  p.outline(P.outline);
+  return p;
+}
+
+/** Otomatik sipariş panosu: şövale üstünde yeşil kara tahta, tebeşir çizgileri ve çuval işareti. */
+function drawOrderBoard(): Pixels {
+  const p = new Pixels(TILE, 26);
+  p.fillRect(2, 14, 2, 12, P.trunk);
+  p.fillRect(12, 14, 2, 12, P.trunk);
+  p.fillRect(1, 1, 14, 14, P.trunkLight);
+  p.fillRect(2, 2, 12, 12, CHALK);
+  p.fillRect(4, 4, 5, 1, PAPER);
+  p.fillRect(4, 7, 7, 1, PAPER);
+  p.fillRect(9, 9, 4, 4, BURLAP);
+  p.set(4, 11, P.flowerYellow);
+  p.set(6, 11, P.flowerYellow);
   p.outline(P.outline);
   return p;
 }

@@ -12,6 +12,8 @@ export type NavGoal =
   | { kind: 'tile'; tile: TilePos }
   | { kind: 'dog'; id: number }
   | { kind: 'building'; id: number }
+  /** Binanın kapı karesine dokunuş (0.17.0): kapı önüne yürü, E yerine içeri gir. */
+  | { kind: 'enter'; id: number }
   | { kind: 'object'; tile: TilePos };
 
 interface Target {
@@ -73,7 +75,7 @@ export class PlayerNav {
       if (!d) return null;
       anchor = { x: d.tileX, y: d.tileY };
       face = { x: d.x, y: d.y - 0.3 };
-    } else if (goal.kind === 'building') {
+    } else if (goal.kind === 'building' || goal.kind === 'enter') {
       const b = sim.buildingById(goal.id);
       if (!b) return null;
       const def = buildingDef(b);
@@ -238,6 +240,11 @@ export class PlayerNav {
       return;
     }
     p.faceToward(target.face.x, target.face.y);
+    if (goal.kind === 'enter') {
+      const result = sim.enterBuilding(goal.id);
+      sim.events.emit('interacted', { kind: 'enter', result });
+      return;
+    }
     const kind = resolveAction(sim).kind;
     const result = performAction(sim);
     sim.events.emit('interacted', { kind, result });

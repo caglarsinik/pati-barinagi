@@ -57,6 +57,7 @@ export type ActionKind =
   | 'order'
   | 'books'
   | 'restShop'
+  | 'autoOrder'
   | 'none';
 
 export interface ResolvedAction {
@@ -132,7 +133,22 @@ function resolveInterior(sim: Sim, tile: TilePos): ResolvedAction {
       return { kind: 'none', hint: t('TV: molada moral saatte +1'), tile };
     case 'fridge':
       return { kind: 'none', hint: t('Buzdolabı: personel moladan enerjisi tam dolunca döner'), tile };
+    case 'sacks':
+      return {
+        kind: 'none',
+        hint: t('Çuval rafı · kilerde {n} porsiyon (~{b} çuval)', { n: Math.floor(sim.foodStock), b: Math.ceil(Math.max(0, sim.foodStock) / BALANCE.economy.foodBagPortions) }),
+        tile,
+      };
+    case 'ledger':
+      return { kind: 'order', hint: t('E: sipariş defteri · yem sipariş et'), tile };
+    case 'orderBoard':
+      return {
+        kind: 'autoOrder',
+        hint: sim.policies.autoOrderFood ? t('E: otomatik sipariş (açık, eşik {n})', { n: sim.policies.foodThreshold }) : t('E: otomatik sipariş (kapalı)'),
+        tile,
+      };
     default:
+      if (it.kind === 'pantry') return { kind: 'none', hint: t('Kiler · deftere bakıp E: sipariş · çıkmak için kapıya yürü'), tile };
       if (it.kind === 'restRoom') return { kind: 'none', hint: t('Dinlenme odası · panoya bakıp E: eşya al · çıkmak için kapıya yürü'), tile };
       return { kind: 'none', hint: t('Ofis içi · eşyaya bakıp E · çıkmak için kapıya yürü'), tile };
   }
@@ -194,7 +210,7 @@ export function resolveAction(sim: Sim): ResolvedAction {
       if (near.needs.health >= 90 && !near.illness) return { kind: 'none', hint: t('{name} sağlıklı', { name: near.name }), building };
       return { kind: 'treat', hint: t("E: {name}'i tedavi et ({price} ₺)", { name: near.name, price: BALANCE.economy.treatmentPrice }), building, dog: near };
     }
-    if (building.type === 'shed') return { kind: 'shed', hint: t('E: kiler ({n} porsiyon)', { n: Math.floor(sim.foodStock) }), building };
+    if (building.type === 'shed') return { kind: 'shed', hint: t('E: kiler ({n} porsiyon)', { n: Math.floor(sim.foodStock) }) + t(' · ↑ içeri'), building };
     if (building.type === 'office') {
       const waiting = sim.adopters.filter((a) => a.state === 'waiting').length;
       return { kind: 'enter', hint: waiting > 0 ? t('E: ofise gir ({n} sahiplenici bekliyor)', { n: waiting }) : t('E: ofise gir'), building };
@@ -281,7 +297,7 @@ export interface ActionOutcome {
   ok: boolean;
   message?: string;
   /** UI'nın açması gereken panel. */
-  open?: 'shed' | 'kennel' | 'incubator' | 'office' | 'nursery' | 'computer' | 'order' | 'help' | 'restRoom';
+  open?: 'shed' | 'kennel' | 'incubator' | 'office' | 'nursery' | 'computer' | 'order' | 'help' | 'furniture' | 'autoOrder';
   building?: Building;
   dog?: Dog;
 }
@@ -444,7 +460,9 @@ export function performAction(sim: Sim): ActionOutcome {
     case 'books':
       return { ok: true, open: 'help' };
     case 'restShop':
-      return { ok: true, open: 'restRoom', building: r.building };
+      return { ok: true, open: 'furniture', building: r.building };
+    case 'autoOrder':
+      return { ok: true, open: 'autoOrder' };
     case 'sleep':
       if (!canSleepAt(sim.clock.hour)) return { ok: false, message: t("Henüz erken: {h}:00'den sonra uyunabilir", { h: BALANCE.time.sleepFromHour }) };
       return sim.command({ type: 'sleep' });
