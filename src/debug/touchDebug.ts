@@ -13,6 +13,8 @@ import { buildingDoorTile, isReady } from '../sim/entities/Building';
 import type { TilePos } from '../sim/world/TileWorld';
 import { Obj } from '../sim/world/tiles';
 import { store } from '../ui/store';
+import { resolveAction } from '../sim/systems/Interaction';
+import { interiorItemAt } from '../sim/interior/Interiors';
 
 export interface ScenarioResult {
   name: string;
@@ -327,6 +329,45 @@ export function createTouchDebug(app: DebugApp) {
         const camOk = bounds.x === 0 && bounds.width === sim.world.width * GAME.tile;
         sim.setMode('avatar');
         return [out && camOk, `dışarı=${out} kamera=${camOk}`];
+      });
+
+      /** Kilerin kapı önüne koyar (dokun-git kısa kalsın). */
+      const atShed = () => {
+        const shed = sim.buildings.find((b) => b.type === 'shed' && isReady(b));
+        if (!shed) throw new Error('kiler yok');
+        const door = buildingDoorTile(shed);
+        sim.player.x = door.x + 0.5;
+        sim.player.y = door.y + 0.9;
+        return { shed, door };
+      };
+
+      scenario('11 kilerin kapı karesine dokun → içeri, rafa dokun, kapıdan çık', () => {
+        prepare();
+        const { door } = atShed();
+        api.tapTile(door.x + 0.5, door.y - 0.5);
+        run(300, () => sim.interior !== null);
+        const it = sim.interior;
+        if (!it || it.kind !== 'pantry') return [false, `içeri=${it?.kind ?? 'yok'}`];
+        const shelf = it.items.find((i) => i.type === 'sacks')!;
+        api.tapTile(shelf.x + 0.5, shelf.y + 0.5);
+        run(300, () => !sim.nav.active);
+        const r = resolveAction(sim);
+        const faced = !!r.tile && interiorItemAt(it, r.tile.x, r.tile.y)?.type === 'sacks';
+        api.tapTile(it.door.x + 0.5, it.door.y + 0.5);
+        run(300, () => sim.interior === null);
+        const out = sim.interior === null && sim.player.tileX === door.x && sim.player.tileY === door.y;
+        return [faced && out, `içeri=pantry raf=${faced} çıktı=${out}`];
+      });
+
+      scenario('12 kilere (binaya) dokun → sipariş paneli, içeri girilmez', () => {
+        prepare();
+        const { shed } = atShed();
+        api.tapTile(shed.x + 0.5, shed.y + 0.5);
+        run(300, () => store.panel.value === 'shed');
+        const panelOk = store.panel.value === 'shed';
+        const outside = sim.interior === null;
+        store.panel.value = 'none';
+        return [panelOk && outside, `panel=${panelOk} dışarıda=${outside}`];
       });
 
       prepare();

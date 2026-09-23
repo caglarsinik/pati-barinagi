@@ -10,6 +10,7 @@ import type { NavGoal } from './PlayerNav';
 import type { Task } from './TaskBoard';
 import { t } from '../../i18n';
 import { treatmentCost } from './ClinicSystem';
+import { bakeIssue } from './KitchenSystem';
 
 /** Görev tahtasında otopilotun sahip kimliği (personel kimlikleri pozitif). */
 export const PILOT_ID = -1;
@@ -121,7 +122,7 @@ export class Autopilot {
       return;
     }
     if (this.tryOrderFood()) return;
-    const job = this.pickJob() ?? this.sleepJob() ?? this.nurseryEggJob() ?? this.placeEggJob() ?? this.nestJob() ?? this.berryJob() ?? this.idlePet();
+    const job = this.pickJob() ?? this.sleepJob() ?? this.nurseryEggJob() ?? this.placeEggJob() ?? this.nestJob() ?? this.berryJob() ?? this.bakeJob() ?? this.idlePet();
     if (job) this.start(job);
   }
 
@@ -216,12 +217,33 @@ export class Autopilot {
     return this.doorJob('sleep', office, t('🤖 Ofise uyumaya gidiyor'), () => this.sim.enterBuilding(office.id).ok);
   }
 
-  /** İç mekânda iş: gece ofisteyse (uyku kara listede değilse) yatağa gidip E, değilse kapı karesine yürüyüp çık. */
+  /** Ödül maması (vahşi köpek evcilleştirmede kullanılır) azsa, böğürtlen yoksa ve keşfedilmiş vahşi köpek varsa: mutfağa gir. */
+  private bakeJob(): Job | null {
+    const sim = this.sim;
+    if (!this.wantsBake()) return null;
+    const w = sim.world;
+    if (!sim.dogs.some((d) => d.wild && w.inBounds(d.tileX, d.tileY) && w.explored[w.idx(d.tileX, d.tileY)] === 1)) return null;
+    const kitchen = sim.buildings.find((b) => b.type === 'kitchen' && isReady(b));
+    if (!kitchen) return null;
+    return this.doorJob('bake', kitchen, t('🤖 Mutfakta ödül maması pişiriyor'), () => sim.enterBuilding(kitchen.id).ok);
+  }
+
+  /** Pişirme gerekli ve mümkün mü (eşik altı, fırın hakkı/kiler/çanta uygun, kara listede değil). */
+  private wantsBake(): boolean {
+    const sim = this.sim;
+    return sim.treats < BALANCE.autopilot.bakeBelowTreats && !this.blocked.has('bake') && bakeIssue(sim) === null;
+  }
+
+  /** İç mekânda iş: gece ofisteyse yatağa gidip E; mutfakta pişirme gerekiyorsa fırına; değilse kapı karesine yürüyüp çık. */
   private interiorJob(): Job {
     const it = this.sim.interior!;
     const bed = it.items.find((i) => i.type === 'bed');
     if (bed && this.isNight() && !this.blocked.has('sleep')) {
       return { key: 'sleep', task: null, plan: { goal: { kind: 'object', tile: { x: bed.x, y: bed.y } } }, text: t('🤖 Yatakta uyuyor') };
+    }
+    const oven = it.items.find((i) => i.type === 'oven');
+    if (oven && this.wantsBake()) {
+      return { key: 'bake', task: null, plan: { goal: { kind: 'object', tile: { x: oven.x, y: oven.y } } }, text: t('🤖 Mutfakta ödül maması pişiriyor') };
     }
     return { key: 'exit', task: null, plan: { goal: { kind: 'tile', tile: { ...it.door } }, onArrive: () => this.sim.interior === null }, text: t('🤖 Dışarı çıkıyor') };
   }

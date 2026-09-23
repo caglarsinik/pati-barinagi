@@ -504,6 +504,8 @@ export const BALANCE = {
     nestRadius: 40,
     /** Keşfedilmiş böğürtlen çalısı bu kadar kare içindeyse gidilir. */
     bushRadius: 25,
+    /** Ödül maması bunun altındaysa (böğürtlen yoksa, keşfedilmiş vahşi köpek varsa) mutfakta pişirir (0.17.4). */
+    bakeBelowTreats: 3,
     /** Koşu: dayanıklılık bunun üstünde ve kalan yol runMinTiles'tan uzunsa başlar... */
     runAboveStamina: 60,
     /** ...bunun altına inince yürümeye döner (histerezis). */

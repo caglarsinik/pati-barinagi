@@ -100,7 +100,8 @@ kaldıkça personelle aynı görev tahtasından iş seçer (aciliyet / mesafe): 
 köpeği klinik yakınındaysa ve para varsa tedavi et). Kiler boşsa ve para varsa bir çuval yem sipariş eder. Tahta boşken
 sırayla: gece (20:00–06:00) ofise girip yatakta sabaha kadar uyur (sabah kapıdan çıkar; içerideyken açılırsa önce kapıdan
 yürüyerek çıkar); çantadaki yumurtayı kuluçkaya koyar; keşfedilmiş yakın yuvadan
-yumurta, çalıdan böğürtlen toplar; bugün sevilmemiş köpeği sever. Uzak hedefe dayanıklılık yettiği sürece koşar. Alt
+yumurta, çalıdan böğürtlen toplar; böğürtlen yoksa, ödül maması 3'ün altındaysa ve keşfedilmiş bir vahşi köpek varsa
+mutfağa girip fırında ödül maması pişirir; bugün sevilmemiş köpeği sever. Uzak hedefe dayanıklılık yettiği sürece koşar. Alt
 satır o an ne yaptığını yazar ("🤖 Yem kabını dolduruyor"). **Elle müdahale kapatır:** WASD, haritaya/köpeğe dokunma, E.
 Yönetim moduna geçince bekler, avatara dönünce sürer. Uyuyan ya da bitkin köpekle oynamaz; ulaşamadığı hedefi 30 saniye
 yeniden denemez. Otopilot inşaat, işe alım ve sahiplendirme kararı vermez.
@@ -305,7 +306,8 @@ Bilgisayar değiştirirken ya da yedek almak için kullan.
 - [x] 0.17.1 Mutfak içi: fırında ödül maması, su deposu, ikinci fırın
 - [x] 0.17.2 Veteriner odası içi: muayene masasında aşı, ilaç dolabı (tedavi −%30)
 - [x] 0.17.3 Kuluçka içi: tepsilerde yumurtalar, ısı lambası (%15 çabuk çatlama)
-- [ ] M16 Diğer İç Mekânlar (0.17.4): cila
+- [x] 0.17.4 Cila: otopilot mutfakta ödül maması pişirir, dokunma senaryoları 11–12 — M16 tamam
+- [ ] Sonrası (seçilecek): yuva evi içi, kuzey/batı arsa genişletme, M11 Yaşayan Dünya, M13 Sahiplendirme Hikâyeleri
 - [ ] Sonraki paketler (`docs/PLAN.md` §7): M11 Yaşayan Dünya, M13 Sahiplendirme Hikâyeleri
 
 ## Geliştirme

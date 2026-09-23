@@ -487,7 +487,7 @@ kuluçka iç mekânları sonra.
 | 0.16.3 ✅ | Dinlenme odası içi: kanepe (+%25 dinlenme), kahve köşesi, TV (moral), buzdolabı (enerji 100) |
 | 0.16.4 ✅ | Cila: otopilot kapıdan yürüyerek çıkar ve yatakta uyur, dokunma senaryoları 9–10, "İç mekânlar" yardımı |
 
-### M16 Diğer İç Mekânlar (2026-09-23 kullanıcı isteği; sürüyor: 0.17.x)
+### M16 Diğer İç Mekânlar (2026-09-23 kullanıcı isteği; tamamlandı: 0.17.0–0.17.4)
 
 Kapıdaki hızlı işler (kiler sipariş, veteriner tedavi, kuluçka paneli) korunur: E ve binaya dokunmak hızlı iş, kapı karesine
 dokunmak ya da ↑ basılı tutmak içeri. Eşya fiyatları ortak katalogda (`BALANCE.interior.furniture`, `FURNITURE_BY_KIND`).
@@ -498,7 +498,7 @@ dokunmak ya da ↑ basılı tutmak içeri. Eşya fiyatları ortak katalogda (`BA
 | 0.17.1 ✅ | Mutfak içi: fırında ödül maması (2 yem → 1, günde 4/7), su deposu (yalak ×2), ikinci fırın |
 | 0.17.2 ✅ | Veteriner odası içi: sağlık listesi + aşı (80 ₺, 4 hafta, olasılık ×0,5), ilaç dolabı (tedavi −%30) |
 | 0.17.3 ✅ | Kuluçka içi: tepsilerde yumurtalar (Sv2'de iki tepsi), ısı lambası (süre ×0,85) |
-| 0.17.4 | Cila: otopilot mutfakta ödül maması, dokunma senaryoları 11–12, yardım |
+| 0.17.4 ✅ | Cila: otopilot mutfakta ödül maması, dokunma senaryoları 11–12, yardım |
 
 ### M13 Sahiplendirme Hikâyeleri
 - Sahiplenici kimliği: 100+ isim, 6 kişilik tipi, tekrar gelen sahiplenici.

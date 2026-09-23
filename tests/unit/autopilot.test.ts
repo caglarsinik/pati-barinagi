@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { BALANCE } from '../../src/config/balance';
 import { SaveManager } from '../../src/core/SaveManager';
 import { IDLE_INPUT } from '../../src/sim/entities/Player';
-import type { Building } from '../../src/sim/entities/Building';
+import { type Building, canPlaceBuilding } from '../../src/sim/entities/Building';
 import type { Dog } from '../../src/sim/entities/Dog';
 import { Sim } from '../../src/sim/Sim';
 import { PILOT_ID } from '../../src/sim/systems/Autopilot';
@@ -378,6 +378,46 @@ describe('Otopilot 3: yumurta, böğürtlen, uyku, koşu', () => {
     expect(sim.autopilot).toBe(true);
     // 0.16.4: ofise girdi, yatakta uyudu, sabah dışarı çıktı.
     expect(entered).toBe(1);
+    expect(sim.interior).toBeNull();
+  });
+
+  it('ödül maması azken (böğürtlen yok, vahşi köpek keşfedilmiş) mutfağa girip eşiğe kadar pişirir, sonra çıkar', () => {
+    const sim = pilotOn(1335);
+    calmDogs(sim);
+    const w = sim.world;
+    for (let y = 0; y < w.height; y++) {
+      for (let x = 0; x < w.width; x++) {
+        const o = w.objectAt(x, y);
+        if (o === Obj.BerryBush) w.setObject(x, y, Obj.Bush);
+        if (o === Obj.NestEggs) w.setObject(x, y, Obj.Nest);
+      }
+    }
+    const p = w.plotInterior();
+    let kitchen: Building | null = null;
+    for (let y = p.y + 2; y < p.y + p.h - 4 && !kitchen; y++) {
+      for (let x = p.x + 2; x < p.x + p.w - 4 && !kitchen; x++) if (canPlaceBuilding(w, 'kitchen', x, y)) kitchen = sim.placeBuilding('kitchen', x, y);
+    }
+    expect(kitchen).not.toBeNull();
+    kitchen!.buildLeft = 0;
+    const wild = sim.dogs.find((d) => d.wild)!;
+    w.explored[w.idx(wild.tileX, wild.tileY)] = 1;
+    sim.clock.totalMinutes = 10 * 60;
+    sim.treats = 0;
+    sim.foodStock = 100;
+    let entered = 0;
+    sim.events.on('interiorChanged', (it) => {
+      if (it?.kind === 'kitchen') entered++;
+    });
+    const keys = new Set<string>();
+    for (let i = 0; i < 65 * 30; i++) {
+      sim.update(1 / 30, IDLE_INPUT);
+      if (sim.pilot.current) keys.add(sim.pilot.current.key);
+    }
+    expect([...keys]).toContain('bake');
+    expect(entered).toBe(1);
+    expect(sim.treats).toBe(BALANCE.autopilot.bakeBelowTreats);
+    expect(sim.bakesToday).toBe(BALANCE.autopilot.bakeBelowTreats);
+    expect(sim.foodStock).toBe(100 - BALANCE.autopilot.bakeBelowTreats * BALANCE.kitchen.foodPerTreat);
     expect(sim.interior).toBeNull();
   });
 

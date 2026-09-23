@@ -57,6 +57,21 @@
   köpek paneli, araç şeridi, alt menü listesi, ana menü, Ayarlar: çakışma yok, taşma yok. Alt menü açılır listesi köpek
   panelinin üstüne gelebilir (geçici popover, üstte kalır) — kabul edildi. Gerçek cihaz testi kullanıcıda.
 
+## 0.17.4 — M16 cilası: otopilot mutfakta pişirir, dokunma senaryoları 11–12 (M16 son dilimi; Claude, 2026-09-23)
+- Otopilot `bakeJob` (zincirde `berryJob`'dan sonra, `idlePet`'ten önce): ödül maması `BALANCE.autopilot.bakeBelowTreats`
+  (3) altında, `bakeIssue` yok (fırın hakkı, kiler ≥ 2, çanta dolu değil), kara listede değil ve **keşfedilmiş bir vahşi köpek**
+  varsa hazır mutfağın kapısına gidip `enterBuilding`. İçeride `interiorJob` fırına `object` hedefiyle gider (E = `bake`),
+  eşik dolana kadar tekrarlar, sonra kapıdan çıkar. Durum "🤖 Mutfakta ödül maması pişiriyor". Böğürtlen varken önce
+  böğürtlen (bedava) toplanır.
+- `touchDebug.runTouchScenarios` 12 senaryo: 11 "kilerin kapı karesine dokun → içeri, rafa dokun, kapıdan çık", 12 "kilere
+  (binaya) dokun → sipariş paneli, içeri girilmez".
+- Yardım 🤖 satırına "ödül maması pişirme"; README Otopilot bölümü; `docs/PLAN.md` M16 tamam.
+- Testler: `autopilot.test.ts` yeni pişirme testi (çalı/yuva temizlenir, mutfak kurulur, vahşi köpek karesi keşfedilir;
+  65 sn içinde tek giriş, 3 pişirme, yem −6, dışarıda). Not: ara anda `pilot.current` iş arasında boş olabilir → iş
+  anahtarlarını toplayarak doğrula. 346 test. Tarayıcı: `runTouchScenarios` 12/12.
+- **M16 Diğer İç Mekânlar tamam (0.17.0–0.17.4).** Sonrası (kullanıcı seçer): yuva evi içi, kuzey/batı arsa genişletme,
+  M11 Yaşayan Dünya, M13 Sahiplendirme Hikâyeleri.
+
 ## 0.17.3 — Kuluçka içi (M16; Claude, 2026-09-23)
 - `interiorKindFor('incubator') = 'hatchery'` (8×6). Kapıda E / binaya dokunmak bugünkü gibi kuluçka paneli (ipucuna
   " · ↑ içeri"); kapı karesi / ↑ içeri.
