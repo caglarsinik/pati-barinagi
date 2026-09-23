@@ -57,6 +57,36 @@
   köpek paneli, araç şeridi, alt menü listesi, ana menü, Ayarlar: çakışma yok, taşma yok. Alt menü açılır listesi köpek
   panelinin üstüne gelebilir (geçici popover, üstte kalır) — kabul edildi. Gerçek cihaz testi kullanıcıda.
 
+## 0.20.4 — Köylü görevleri (M11; Claude, 2026-09-23)
+- Yeni `src/sim/systems/QuestSystem.ts` (`sim.quests`, kayıtta `quests: { v, week, next, list }`): köy bulununca
+  `clock.week` değişince pano yenilenir (`roll`, ayrı RNG `hash3(seed, week, 0x9e57)`; ana `sim.rng` sırası değişmez, testte
+  denetlenir): kabul edilmemiş ilanlar iner, boşluklar her türden en çok bir ilanla dolar (`BALANCE.quests.maxBoard` 3).
+  Türler: `lost` (kayıp köpek; barınaktan köpek sahiplenmiş köylü varsa onun köpeği, `own`: kayıpken köyde sahibinin yanında
+  çizilmez), `pup` (köpeği olmayan köylü belli renk `coat` ya da huy `temperament` ister; %60 barınaktaki bir köpekten
+  alınır), `treats` (3–6 ödül maması). Kabul panoda (`nearBoard`, 2,5 kare); süre `BALANCE.quests.days` (3/6/4 gün), dolunca
+  cezasız düşer. Teslim panoda (`questDeliver`) ya da ilanı asan köylüyle konuşunca (`quests.talk`, köylü sisteminden önce):
+  ödül para (kayıp/ödül maması `quest` defter türü, köpek isteği `adoption`) ve itibar; `stats.quests`.
+- Kayıp köpeğin yeri: köyden 20–70 kare uzakta, arsanın en büyük hâlinin dışında bir in ya da yuva yanı, köyün yol bandından
+  `findPath` ile varılabilir. Kabul edilince dünyada oturur (`WorldScene.syncQuests`, köylü köpeği dokusu), üstünde pati
+  balonu; E (`lostDog` eylemi) ile bulunur, sonra gerçek zamanlı `follow(dtSec)` ile oyuncunun izinden gelir (iz, oyuncunun
+  yürüdüğü noktalar; duvara girmez), 10 kareden uzağa atlarsa (seyahat, bayılma) yanına ışınlanır, içerideyken bekler.
+  Harita: mini haritada ve harita panelinde turuncu arama çerçevesi (gerçek yerden ±3 kayık), panelde "🐾 ad: n kare · Git".
+- Köpek isteği teslimi: tasmadaki (`walking`) uygun köpek `adoptable(dog, true)` (yeni parametre: gezinti engel değil) →
+  köpek kaldırılır, köylülü `AdoptionRecord` (0.20.2 görünümüyle) → köpek köyde sahibinin yanında; `stats.adopted` artar.
+  `VillagerSystem.adopterFor` panoda köpek isteği olan köylüyü sahiplenici seçmez.
+- Pano: `questBoardTile`/`questBoardAt` (`Village.ts`, köy +10,4; tabelalar gibi katı değil, `drawQuestBoard`); eylem
+  `quests` → yeni `QuestPanel` (panel 'quests'; kabul, teslim, vazgeç, kalan süre, engel satırı). Dokunuş: `questTapTile`.
+  Görevi olan köylünün üstünde soru balonu (`OverlayScene`), teslime hazırsa ipucu "E: ad · görevi teslim et". Sabah raporu:
+  kabul edilen görevler ve kalan süre, Pazartesi yeni ilan satırı. Başarım "Köyün dostu" (3 görev; toplam 30). Kontroller'de
+  "Panoya dokun". `VillagerSystem.facingFor` dışa açıldı.
+- Testler `tests/unit/quests.test.ts` (6): pano (köy bulunmadan yok, üç tür, farklı köylüler, tohumla aynı, kayıp köpek yeri,
+  ana RNG); kabul/süre/Pazartesi yenilemesi/vazgeçme; kayıp köpek (köylünün köpeği, bul, izle, ışınlan, panoda teslim, defter);
+  köpek isteği (uymayan köpek, tasmadaki uygun köpek, köylü sahiplenir); ödül maması (konuşarak teslim, hatırlatma, ipucu);
+  kayıt turu ve eski kayıt. 388 test. Tarayıcı 812×375: panoda E düğmesiyle panel, kayıp köpeği kabul et → yerinde pati
+  balonu → E ile bul → izliyor (1,2 kare) → panoda teslim (+400 ₺, itibar +3); köpek isteği teslimi; harita çerçevesi ve
+  "Git" satırı; `runTouchScenarios` 13/13.
+- Sıradaki: 0.20.5 cila (otopilot köy/tabela/görev işlerine gitmez, dokunma senaryoları 14–15, yardım/belgeler).
+
 ## 0.20.3 — Yol tabelaları ve hızlı seyahat (M11; Claude, 2026-09-23)
 - Yeni `src/sim/world/Signposts.ts` (RNG yok, kaydedilmez): `signposts(world)` üç tabela hesaplar: `shelter` güney çitindeki
   kapının hemen dışında (kapı yoksa ortada; arsa büyüyünce taşınır), `east` doğu yolunda arsanın en büyük hâlinin hemen

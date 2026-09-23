@@ -33,6 +33,7 @@ export const ACHIEVEMENTS: AchievementDef[] = [
   { id: 'lineage-legend', name: 'Efsanevi soy', desc: 'Yuva evinden efsanevi bir yavru doğsun.', check: (s) => s.stats.bredLegendary >= 1 },
   { id: 'village', name: 'Köyü buldun', desc: 'Güney yolunun ucundaki köye ulaş.', check: (s) => s.villageFound },
   { id: 'village-grow', name: 'Köy büyüyor', desc: 'Barınağının ünüyle köyde postane açılsın.', check: (s) => s.villageStage >= 2 },
+  { id: 'village-helper', name: 'Köyün dostu', desc: '3 köylü görevini tamamla.', check: (s) => s.stats.quests >= 3 },
   { id: 'healer', name: 'Şifacı', desc: '10 hastalığı tedaviyle geçir.', check: (s) => s.stats.cured >= 10 },
   { id: 'builder', name: 'Mimar', desc: '10 inşaat yap.', check: (s) => s.stats.built >= 10 },
   { id: 'explorer', name: 'Kâşif', desc: 'Haritanın yarısını keşfet.', check: (s) => s.exploredCount >= s.world.width * s.world.height * 0.5 },

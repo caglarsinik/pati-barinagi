@@ -15,7 +15,7 @@ import { bake, bakeIssue, bakesLeft, kitchenWaterPerHour } from './KitchenSystem
 import { treatmentCost } from './ClinicSystem';
 import { incubatorSlots, incubatorTimeMul } from './IncubatorSystem';
 import { RARITY_NAMES_TR } from '../entities/DogGenome';
-import { VILLAGE_NAMES_TR, villageInteriorKind, wholesaleBagPrice } from '../world/Village';
+import { VILLAGE_NAMES_TR, questBoardAt, villageInteriorKind, wholesaleBagPrice } from '../world/Village';
 import { isMarketDay } from './ShopSystem';
 import { VILLAGER_ROLE_NAMES_TR } from '../entities/Villager';
 import { SIGN_NAMES_TR, signAt } from '../world/Signposts';
@@ -75,6 +75,8 @@ export type ActionKind =
   | 'talk'
   | 'post'
   | 'travel'
+  | 'quests'
+  | 'lostDog'
   | 'none';
 
 export interface ResolvedAction {
@@ -267,12 +269,17 @@ export function resolveAction(sim: Sim): ResolvedAction {
   const sign = signAt(w, fp.x, fp.y);
   if (sign) return { kind: 'travel', hint: t('E: tabela ({name}) · hızlı seyahat', { name: t(SIGN_NAMES_TR[sign.id]) }), tile };
 
+  // Köy görev panosu ve görevdeki kayıp köpek (0.20.4).
+  if (questBoardAt(w, fp.x, fp.y)) return { kind: 'quests', hint: sim.quests.boardHint(), tile };
+  const lost = sim.quests.lostDogAt(fp.x, fp.y);
+  if (lost) return { kind: 'lostDog', hint: t('E: {dog} · kayıp köpek, peşine tak', { dog: lost.name }), tile };
+
   // Köylü (0.20.1): baktığın yerde duran köylüyle konuş.
   const villager = sim.villagers.at(fp.x, fp.y);
   if (villager) {
     return {
       kind: 'talk',
-      hint: t('E: {name} ile konuş ({role})', { name: villager.name, role: t(VILLAGER_ROLE_NAMES_TR[villager.role]) }),
+      hint: sim.quests.talkHint(villager.index) ?? t('E: {name} ile konuş ({role})', { name: villager.name, role: t(VILLAGER_ROLE_NAMES_TR[villager.role]) }),
       villager: villager.index,
       tile,
     };
@@ -412,7 +419,7 @@ export interface ActionOutcome {
   ok: boolean;
   message?: string;
   /** UI'nın açması gereken panel. */
-  open?: 'shed' | 'kennel' | 'incubator' | 'office' | 'nursery' | 'computer' | 'order' | 'help' | 'furniture' | 'autoOrder' | 'clinic' | 'wholesale' | 'toyShop' | 'market' | 'travel';
+  open?: 'shed' | 'kennel' | 'incubator' | 'office' | 'nursery' | 'computer' | 'order' | 'help' | 'furniture' | 'autoOrder' | 'clinic' | 'wholesale' | 'toyShop' | 'market' | 'travel' | 'quests';
   building?: Building;
   dog?: Dog;
 }
@@ -594,11 +601,16 @@ export function performAction(sim: Sim): ActionOutcome {
     case 'market':
       return { ok: true, open: 'market' };
     case 'talk':
-      return r.villager !== undefined ? sim.villagers.talk(r.villager) : { ok: false };
+      // İlanı olan köylü önce görevden söz eder (teslime hazırsa teslim alır).
+      return r.villager !== undefined ? (sim.quests.talk(r.villager) ?? sim.villagers.talk(r.villager)) : { ok: false };
     case 'post':
       return sim.villagers.postNews();
     case 'travel':
       return { ok: true, open: 'travel' };
+    case 'quests':
+      return { ok: true, open: 'quests' };
+    case 'lostDog':
+      return sim.quests.findDog();
     case 'sleep':
       if (!canSleepAt(sim.clock.hour)) return { ok: false, message: t("Henüz erken: {h}:00'den sonra uyunabilir", { h: BALANCE.time.sleepFromHour }) };
       return sim.command({ type: 'sleep' });

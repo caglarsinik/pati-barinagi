@@ -46,7 +46,8 @@ export type Panel =
   | 'morning'
   | 'toyShop'
   | 'market'
-  | 'travel';
+  | 'travel'
+  | 'quests';
 
 export type BuildTool =
   | { kind: 'none' }

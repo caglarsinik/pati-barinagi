@@ -1,6 +1,7 @@
 import { app } from '../app';
-import { WEEKDAYS_TR } from '../core/Clock';
+import { MINUTES_PER_DAY, WEEKDAYS_TR } from '../core/Clock';
 import { t } from '../i18n';
+import { questTimeText } from '../sim/systems/QuestSystem';
 import { SEASON_NAMES_TR, WEATHER_NAMES_TR } from '../sim/systems/WeatherSystem';
 import { formatMoney } from './format';
 import { store } from './store';
@@ -41,6 +42,8 @@ export function MorningPanel() {
   if (!r.adoptionsOpen) today.push({ text: t('🚪 Sahiplendirme kapalı') });
   else if (r.adoptableDogs > 0) today.push({ text: t('🏠 Sahiplenici gelebilir: {n} köpek hazır', { n: r.adoptableDogs }) });
   if (r.goal) today.push({ text: t('🎯 Hedef: {goal}', { goal: t(r.goal.title) }) + (r.goal.reward > 0 ? ' · ' + formatMoney(r.goal.reward) : '') });
+  for (const q of r.quests) today.push({ text: t('📋 {title} · {time}', { title: q.title, time: questTimeText(q.minutesLeft) }), warn: q.minutesLeft < MINUTES_PER_DAY });
+  if (r.questOffers > 0 && r.weekday === 0) today.push({ text: t('📋 Köy panosuna yeni ilanlar asıldı ({n})', { n: r.questOffers }) });
   return (
     <div class="overlay">
       <div class="menu-card panel morning">

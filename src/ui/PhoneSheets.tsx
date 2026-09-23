@@ -75,6 +75,13 @@ export function MapSheet() {
   if (!sim) return null;
   const max = BALANCE.map.maxMarkers;
   const po = sim.playerOutside;
+  // Kayıp köpek görevi (0.20.4): arama alanına git.
+  const area = sim.quests.searchArea();
+  const goArea = (x: number, y: number): void => {
+    const r = sim.command({ type: 'goTo', x, y });
+    if (r.message) showToast(r.message);
+    if (r.ok) store.panel.value = 'none';
+  };
   const pick = (x: number, y: number): void => {
     const near = sim.markers.find((m) => Math.hypot(m.x - x, m.y - y) <= 3);
     if (near) {
@@ -117,7 +124,17 @@ export function MapSheet() {
                 </button>
               </div>
             ))}
+            {area && (
+              <div class="marker-row">
+                <span class="marker-dot" style={{ background: '#ff7b3a' }} />
+                <span class="small-text marker-dist">{t('🐾 {dog}: {d} kare uzakta', { dog: area.name, d: Math.round(Math.hypot(area.x - po.tileX, area.y - po.tileY)) })}</span>
+                <button class="btn small" disabled={!!sim.interior} onClick={() => goArea(area.x, area.y)}>
+                  {t('Git')}
+                </button>
+              </div>
+            )}
             <p class="muted small-text">{t('Sarı nokta dolu yuva, turuncu nokta sokak köpeği ini, beyaz nokta sensin.')}</p>
+            {area && <p class="muted small-text">{t('Turuncu çerçeve: kayıp köpeğin görüldüğü alan.')}</p>}
           </div>
         </div>
       </div>

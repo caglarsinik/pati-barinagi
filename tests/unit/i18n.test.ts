@@ -20,6 +20,7 @@ import { GOALS } from '../../src/sim/systems/Goals';
 import { VILLAGER_ROLE_NAMES_TR } from '../../src/sim/entities/Villager';
 import { DOG_TALK_LINES, LETTERS, TALK_LINES } from '../../src/sim/systems/VillagerSystem';
 import { SIGN_NAMES_TR } from '../../src/sim/world/Signposts';
+import { DIRECTION_NAMES_TR } from '../../src/sim/systems/QuestSystem';
 import { LEDGER_NAMES_TR } from '../../src/sim/systems/EconomySystem';
 import { TOOL_DEFS } from '../../src/sim/systems/Interaction';
 import { SEASON_NAMES_TR, WEATHER_NAMES_TR } from '../../src/sim/systems/WeatherSystem';
@@ -75,6 +76,7 @@ function tableValues(): string[] {
   for (const l of [...TALK_LINES, ...DOG_TALK_LINES, ...LETTERS]) out.push(l);
   push(VILLAGER_ROLE_NAMES_TR);
   push(SIGN_NAMES_TR);
+  for (const d of DIRECTION_NAMES_TR) out.push(d);
   return out.filter((v) => typeof v === 'string' && v.length > 0);
 }
 

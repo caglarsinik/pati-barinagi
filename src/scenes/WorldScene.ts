@@ -28,9 +28,9 @@ import { SEASON_TINT } from '../sim/systems/WeatherSystem';
 import { t } from '../i18n';
 import type { Staff } from '../sim/entities/Staff';
 import { drawEgg } from '../render/EggArt';
-import { type VillageBuilding, villageDoorTile, villageInteractive } from '../sim/world/Village';
+import { type VillageBuilding, questBoardTile, villageDoorTile, villageInteractive } from '../sim/world/Village';
 import { isMarketDay } from '../sim/systems/ShopSystem';
-import { drawSignpost, drawVillageBuilding } from '../render/BuildingArt';
+import { drawQuestBoard, drawSignpost, drawVillageBuilding } from '../render/BuildingArt';
 import { type SignId, signKnown, signposts } from '../sim/world/Signposts';
 
 type KeyName =
@@ -125,6 +125,9 @@ export class WorldScene extends Phaser.Scene {
   /** Yol tabelaları (0.20.3). */
   private signImages = new Map<SignId, Phaser.GameObjects.Image>();
   private signFrame = 0;
+  /** Köy görev panosu ve görevdeki kayıp köpek (0.20.4). */
+  private questBoardImage: Phaser.GameObjects.Image | null = null;
+  private lostDogSprite: Phaser.GameObjects.Sprite | null = null;
   private buildingImages = new Map<number, Phaser.GameObjects.Image>();
   private dogSprites = new Map<number, Phaser.GameObjects.Sprite>();
   /** Doku temizliği için köpek id → genom. */
@@ -383,6 +386,8 @@ export class WorldScene extends Phaser.Scene {
       this.villageDogSprites.clear();
       this.signImages.clear();
       this.signFrame = 0;
+      this.questBoardImage = null;
+      this.lostDogSprite = null;
     });
 
     syncStore(this.sim);
@@ -400,6 +405,7 @@ export class WorldScene extends Phaser.Scene {
     this.syncAdopters();
     this.syncVillagers();
     this.syncSigns();
+    this.syncQuests();
     this.syncStaff();
     this.syncBuildings();
     this.marketVendor?.setVisible(isMarketDay(this.sim));
@@ -511,6 +517,8 @@ export class WorldScene extends Phaser.Scene {
         talk: 'click',
         post: 'click',
         travel: 'click',
+        quests: 'click',
+        lostDog: 'pick',
       };
       const name = sfx[kind];
       if (name) audio.play(name);
@@ -542,6 +550,7 @@ export class WorldScene extends Phaser.Scene {
     else if (r.open === 'toyShop') store.panel.value = 'toyShop';
     else if (r.open === 'market') store.panel.value = 'market';
     else if (r.open === 'travel') store.panel.value = 'travel';
+    else if (r.open === 'quests') store.panel.value = 'quests';
   }
 
   private readInput(): PlayerInput {
@@ -737,9 +746,12 @@ export class WorldScene extends Phaser.Scene {
     const villager = pick?.interact ? null : sim.villagers.at(wx, wy, BALANCE.villagers.talkReach + 0.3);
     // Tabelaya dokunuş (0.20.3): yanına git, hızlı seyahat paneli.
     const sign = pick?.interact || villager ? undefined : signposts(w).find((s) => signKnown(w, s) && Math.hypot(s.x + 0.5 - wx, s.y + 0.5 - wy) <= 0.9);
+    // Görev panosu ve kayıp köpek (0.20.4): yanına git, E.
+    const quest = pick?.interact || villager || sign ? null : this.questTapTile(wx, wy);
     if (pick?.interact) sim.command({ type: 'goInteract', goal: { kind: 'dog', id: pick.dog.id } });
     else if (villager) sim.command({ type: 'goInteract', goal: { kind: 'villager', index: villager.index } });
     else if (sign) sim.command({ type: 'goInteract', goal: { kind: 'object', tile: { x: sign.x, y: sign.y } } });
+    else if (quest) sim.command({ type: 'goInteract', goal: { kind: 'object', tile: quest } });
     else {
       const bid = w.buildingIdAt(tx, ty);
       const o = w.objectAt(tx, ty);
@@ -755,6 +767,14 @@ export class WorldScene extends Phaser.Scene {
       this.touchTipShown = true;
       showToast(t('Dokun: yürü · köpeğe/binaya dokun: yanına git ve işini yap · uzun bas: köpeği seç'), 5000);
     }
+  }
+
+  /** Dokunulan görev panosu ya da bulunmamış kayıp köpek karesi (0.20.4). */
+  private questTapTile(wx: number, wy: number): TilePos | null {
+    const b = questBoardTile(this.sim.world);
+    if (b && Math.hypot(b.x + 0.5 - wx, b.y + 0.5 - wy) <= 1.1) return b;
+    const d = this.sim.quests.lostDogAt(wx, wy, 0.9);
+    return d ? { x: Math.floor(d.x), y: Math.floor(d.y) } : null;
   }
 
   /** Köpek seç; boşluğa tıklayınca seçimi kaldır. */
@@ -917,6 +937,38 @@ export class WorldScene extends Phaser.Scene {
     }
   }
 
+  /** Köy görev panosu ve kabul edilmiş görevdeki kayıp köpek (0.20.4): bulunmadıysa yerinde oturur, bulununca oyuncuyu izler. */
+  private syncQuests(): void {
+    const T = GAME.tile;
+    const b = questBoardTile(this.sim.world);
+    if (b && !this.questBoardImage) {
+      if (!this.textures.exists('questBoard')) this.textures.addCanvas('questBoard', drawQuestBoard().toCanvas());
+      const py = (b.y + 1) * T;
+      this.questBoardImage = this.add.image((b.x + 0.5) * T, py, 'questBoard').setOrigin(0.5, 1).setDepth(100 + py);
+    }
+    const d = this.sim.quests.lostDog();
+    if (!d) {
+      this.lostDogSprite?.setVisible(false);
+      return;
+    }
+    const key = ensureDogTexture(this, d.genome, d.stage);
+    if (!this.lostDogSprite) this.lostDogSprite = this.add.sprite(0, 0, key, 0).setOrigin(0.5, 1);
+    else if (this.lostDogSprite.texture.key !== key) {
+      this.lostDogSprite.anims.stop();
+      this.lostDogSprite.setTexture(key, 0);
+    }
+    const s = this.lostDogSprite;
+    const px = Math.round(d.x * T);
+    const py = Math.round(d.y * T + 6);
+    s.setVisible(true).setPosition(px, py).setDepth(100 + py);
+    const f = this.sim.quests.dogFacing;
+    if (this.sim.quests.dogMoving && !this.sim.paused) s.anims.play(`${key}-walk-${f}`, true);
+    else {
+      s.anims.stop();
+      s.setFrame(f * DOG_FRAMES + DOG_FRAME_SIT);
+    }
+  }
+
   /** Köylüler (0.20.1) ve sahiplendikleri köpekler (0.20.2): evde ya da işteyken gizli; yürürken yürüme animasyonu. */
   private syncVillagers(): void {
     const T = GAME.tile;
@@ -929,7 +981,8 @@ export class WorldScene extends Phaser.Scene {
         s = this.add.sprite(0, 0, key, 0).setOrigin(0.5, 1);
         this.villagerSprites.set(v.index, s);
       }
-      const dog = this.sim.villagers.dogOf(v);
+      // Görevde kaybolan köpek (0.20.4) sahibinin yanında çizilmez.
+      const dog = this.sim.quests.dogAway(v.index) ? null : this.sim.villagers.dogOf(v);
       let ds = this.villageDogSprites.get(v.index);
       if (dog) {
         const dkey = ensureDogTexture(this, dog.genome, dog.stage);

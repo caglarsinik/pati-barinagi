@@ -445,6 +445,20 @@ export const BALANCE = {
     minMinutes: 5,
     reach: 1.6,
   },
+  /**
+   * Köylü görevleri (0.20.4): panoda en çok ilan, kabulden sonra gün sınırı, panoya ve teslime yakınlık (kare), ödüller;
+   * kayıp köpeğin köye uzaklığı, haritadaki arama alanı ve bulununca izleme hızı (kare/sn).
+   */
+  quests: {
+    maxBoard: 3,
+    days: { lost: 3, pup: 6, treats: 4 },
+    boardReach: 2.5,
+    deliverReach: 4,
+    lost: { reward: 400, rep: 3, minDist: 20, maxDist: 70, areaRadius: 5, areaJitter: 3, tries: 6, pathNodes: 20000, snapTiles: 10, maxSpeed: 14 },
+    /** Köpek isteği: çoğu zaman barınaktaki bir köpeğin rengi ya da huyu istenir (bu olasılıkla). */
+    pup: { reward: 300, rep: 2, fromShelter: 0.6 },
+    treats: { min: 3, max: 6, base: 80, per: 40, rep: 1 },
+  },
   /** Belediye hedefleri (0.19.0): ödül çarpanı ve hedef başına itibar. */
   goals: {
     rewardMul: 1,

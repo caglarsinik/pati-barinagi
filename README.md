@@ -314,6 +314,16 @@ sahiplenicilerin bir kısmı köylüdür (sahiplendirme panelinde "köyden" yaza
 köpek köyde sahibinin yanında gezer; park açıldıysa sahibiyle akşamüstü (16–19) parka gider. Köylü konuşurken köpeğinden de
 söz eder; postanede E ile köpek sahiplerinden günün mektubunu okursun.
 
+**Köylü görevleri** (0.20.4): köy meydanında, yolun solunda bir **görev panosu** vardır. Köyü bulunca panoya ilanlar asılır,
+her Pazartesi yenilenir (en çok üç, her türden bir): **kayıp köpek** (köylünün, çoğu zaman barınağından sahiplendiği
+köpeği kaybolur; haritada turuncu çerçeve görüldüğü alanı gösterir, harita panelindeki "Git" oraya yürütür; köpeği bulunca E
+ile peşine takarsın, izinden gelir, hızlı seyahatte de seninle gelir), **köpek isteği** (köylü belli renkte ya da huyda bir
+köpek ister; tasmayı bilen uygun bir köpeği gezdirerek köye getir, köylü onu sahiplenir ve köpek köyde sahibinin yanında
+yaşar) ve **ödül maması** (3–6 tane; böğürtlenden ya da mutfak fırınından). İlanı panoda E ile açılan panelden kabul
+edersin; süresi (1–6 gün) dolmadan ilanı asan köylüyle konuşarak ya da panoda teslim edersin. Ödül para ve itibardır
+(kayıp köpek 400 ₺ + 3, köpek isteği 300 ₺ + 2, ödül maması 200–320 ₺ + 1); süre dolarsa ya da vazgeçersen ceza yoktur.
+Görevi olan köylünün başında soru balonu çıkar; sabah raporu kalan süreleri gösterir. Üç görev "Köyün dostu" başarımını açar.
+
 ## Hava, mevsim ve olaylar
 
 - Her mevsim 2 hafta sürer (ilkbahar → yaz → sonbahar → kış). HUD'ın ortasında mevsim ve hava yazar; hava 6-14 saatte bir değişir.
@@ -330,7 +340,7 @@ söz eder; postanede E ile köpek sahiplerinden günün mektubunu okursun.
 
 ## Başarımlar
 
-H tuşu ya da ofis panelinden 29 başarımın listesi açılır (ilk yumurta, 10 sahiplendirme, 95+ eşleşme, 1,4 denetim çarpanı, 20.000 ₺, efsanevi köpek, bir yıl dayanmak...). Her başarım açıldığında itibar +1 verir; kayıtla korunur.
+H tuşu ya da ofis panelinden 30 başarımın listesi açılır (ilk yumurta, 10 sahiplendirme, 95+ eşleşme, 1,4 denetim çarpanı, 20.000 ₺, efsanevi köpek, bir yıl dayanmak...). Her başarım açıldığında itibar +1 verir; kayıtla korunur.
 
 ## Dil
 
@@ -399,7 +409,8 @@ Bilgisayar değiştirirken ya da yedek almak için kullan.
 - [x] 0.20.1 Köylüler: ev → iş ya da meydan → ev çizelgesi, Pazar meydanda, E ya da dokunarak konuşma
 - [x] 0.20.2 Köy kademesi (postane, park) ve köylü sahipleniciler: sahiplendirilen köpek köyde sahibiyle, postanede mektup
 - [x] 0.20.3 Yol tabelaları (barınak, doğu yolu, köy) ve hızlı seyahat: yol kadar zaman geçer, köpekler de gelir
-- [ ] M11 Yaşayan Dünya kalanı (0.20.x): köylü görevleri, cila
+- [x] 0.20.4 Köylü görevleri: köy panosu, kayıp köpek, köpek isteği (köylü sahiplenir), ödül maması; haftalık ilanlar
+- [ ] M11 Yaşayan Dünya kalanı (0.20.5): cila
 - [ ] Sonrası: M13 Sahiplendirme Hikâyeleri, yuva evi içi, kuzey/batı arsa genişletme
 - [ ] Sonraki paketler (`docs/PLAN.md` §7): M11 Yaşayan Dünya, M13 Sahiplendirme Hikâyeleri
 

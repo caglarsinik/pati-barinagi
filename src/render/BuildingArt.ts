@@ -435,6 +435,29 @@ export function drawVillageBuilding(kind: 'wholesaler' | 'toyShop' | 'house' | '
   return p;
 }
 
+/** Köy görev panosu (0.20.4): iki direkli, çatılı tahta pano; üstünde iğneli ilan kâğıtları. */
+export function drawQuestBoard(): Pixels {
+  const p = new Pixels(28, 28);
+  p.fillRect(4, 12, 2, 16, C.woodWallDark);
+  p.fillRect(22, 12, 2, 16, C.woodWallDark);
+  p.fillRect(1, 2, 26, 3, C.roofDark);
+  p.fillRect(2, 5, 24, 14, C.woodWall);
+  p.fillRect(2, 18, 24, 1, C.woodWallDark);
+  p.fillRect(4, 7, 6, 8, C.white);
+  p.fillRect(12, 8, 5, 6, C.white);
+  p.fillRect(19, 7, 5, 8, C.sign);
+  p.set(7, 7, C.heart);
+  p.set(14, 8, C.heart);
+  p.set(21, 7, C.heart);
+  p.fillRect(5, 10, 4, 1, C.ropeDark);
+  p.fillRect(5, 12, 3, 1, C.ropeDark);
+  p.fillRect(13, 10, 3, 1, C.ropeDark);
+  p.fillRect(20, 10, 3, 1, C.ropeDark);
+  p.fillRect(20, 12, 3, 1, C.ropeDark);
+  p.outline(P.outline);
+  return p;
+}
+
 /** Yol tabelası (0.20.3): direk ve iki ok levha (üstteki sağa, alttaki sola). */
 export function drawSignpost(): Pixels {
   const p = new Pixels(T, 26);

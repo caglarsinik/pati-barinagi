@@ -83,6 +83,10 @@ export interface MorningReport {
   /** Şu an sahiplendirmeye uygun köpek. */
   adoptableDogs: number;
   goal: { title: string; reward: number } | null;
+  /** Kabul edilmiş köylü görevleri ve kalan süreleri (0.20.4). */
+  quests: Array<{ title: string; minutesLeft: number }>;
+  /** Köy panosunda bekleyen ilan. */
+  questOffers: number;
 }
 
 export function buildMorningReport(sim: Sim, kind: MorningKind, passedOut = false): MorningReport {
@@ -128,5 +132,7 @@ export function buildMorningReport(sim: Sim, kind: MorningKind, passedOut = fals
     adoptionsOpen: sim.policies.adoptionsOpen,
     adoptableDogs: dogs.filter((d) => adoptable(d) === null).length,
     goal: g ? { title: g.title, reward: goalReward(g) } : null,
+    quests: sim.quests.list.filter((q) => q.state === 'active').map((q) => ({ title: sim.quests.title(q), minutesLeft: sim.quests.timeLeft(q) })),
+    questOffers: sim.quests.list.filter((q) => q.state === 'offer').length,
   };
 }

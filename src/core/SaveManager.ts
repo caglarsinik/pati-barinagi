@@ -32,6 +32,8 @@ export interface SaveData {
   bicycle?: boolean;
   marketEggWeek?: number;
   villageStage?: number;
+  /** Köylü görevleri (0.20.4). */
+  quests?: unknown;
   foodStock?: number;
   nextId?: number;
   stats?: unknown;

@@ -171,6 +171,21 @@ export function parkSpot(world: TileWorld, i: number): TilePos | null {
   return r ? { x: r.x + PARK.x + (i % 4), y: r.y + PARK.y + 2 + ((i >> 2) & 1) } : null;
 }
 
+/** Köy görev panosu (0.20.4): meydanın kuzeyinde, yol bandının solunda; tabelalar gibi katı değildir. */
+const QUEST_BOARD = { x: 10, y: 4 };
+
+/** Görev panosunun karesi (köy yoksa null). */
+export function questBoardTile(world: TileWorld): TilePos | null {
+  const r = world.village;
+  return r ? { x: r.x + QUEST_BOARD.x, y: r.y + QUEST_BOARD.y } : null;
+}
+
+/** (x, y) noktası görev panosuna yakın mı (E için). */
+export function questBoardAt(world: TileWorld, x: number, y: number, reach = 0.8): boolean {
+  const b = questBoardTile(world);
+  return b !== null && Math.hypot(b.x + 0.5 - x, b.y + 0.5 - y) <= reach;
+}
+
 /** Toptancıda bir çuvalın fiyatı (kilerdeki tam fiyatın indirimli hâli). */
 export function wholesaleBagPrice(): number {
   return Math.round(BALANCE.economy.foodBagPrice * BALANCE.village.wholesaleMul);

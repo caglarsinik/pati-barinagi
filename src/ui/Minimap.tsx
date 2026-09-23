@@ -99,6 +99,12 @@ export function Minimap({
     // Yol tabelaları (0.20.3), keşfedildiyse.
     ctx.fillStyle = '#e8c547';
     for (const s of signposts(sim.world)) if (signKnown(sim.world, s)) ctx.fillRect(s.x - 1, s.y - 1, 3, 3);
+    // Kayıp köpek görevi (0.20.4): görüldüğü alan turuncu çerçeve.
+    const area = sim.quests.searchArea();
+    if (area) {
+      ctx.strokeStyle = '#ff7b3a';
+      ctx.strokeRect(area.x - area.r + 0.5, area.y - area.r + 0.5, 2 * area.r, 2 * area.r);
+    }
     for (const dog of sim.dogs) {
       if (!dog.wild || !dog.following) continue;
       ctx.fillStyle = '#ff9a3c';

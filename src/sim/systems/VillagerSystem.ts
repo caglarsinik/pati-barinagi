@@ -153,7 +153,7 @@ export const LETTERS: readonly string[] = [
   '{dog} sayesinde bütün köy bizi tanıyor.',
 ];
 
-function facingFor(dx: number, dy: number): Facing {
+export function facingFor(dx: number, dy: number): Facing {
   if (Math.abs(dx) >= Math.abs(dy)) return dx < 0 ? 1 : 2;
   return dy < 0 ? 3 : 0;
 }
@@ -210,6 +210,8 @@ export class VillagerSystem {
     const rng = new Rng(hash3(this.sim.seed, adopterId, 0x5ad0));
     if (rng.next() >= chance) return null;
     const busy = new Set(this.sim.adopters.map((a) => a.villager).filter((x): x is number => x !== undefined));
+    // Panoda köpek isteği olan köylü köpeğini görevle alır (0.20.4).
+    for (const q of this.sim.quests.list) if (q.kind === 'pup') busy.add(q.villager);
     const free = this.list.filter((v) => !busy.has(v.index) && !this.dogOf(v));
     return free.length > 0 ? free[rng.int(0, free.length - 1)] : null;
   }

@@ -120,6 +120,21 @@ export class OverlayScene extends Phaser.Scene {
       this.place(key, px, py, HUMAN_H + 2, emote, name, seen, now);
     }
 
+    // Köylü görevleri (0.20.4): kayıp köpeğin üstünde pati (bulununca kalp), kabul edilmiş görevi olan köylünün üstünde soru.
+    const lost = this.sim.quests.lostDog();
+    if (lost) {
+      const px = Math.round(lost.x * T);
+      const py = Math.round(lost.y * T + 6);
+      const scale = SIZE_SCALE[lost.genome.size] * STAGE_SCALE[lost.stage];
+      if (inView(px, py)) this.place('q0', px, py, Math.round(20 * scale) + 4, lost.found ? 'heart' : 'paw', labelsOn ? lost.name : '', seen, now);
+    }
+    for (const v of this.sim.villagers.list) {
+      if (v.inside || !this.sim.quests.activeFor(v.index)) continue;
+      const px = Math.round(v.x * T);
+      const py = Math.round(v.y * T + 6);
+      if (inView(px, py)) this.place(`v${v.index}`, px, py, HUMAN_H + 2, 'question', '', seen, now);
+    }
+
     for (const [key, e] of this.used) {
       if (seen.has(key)) continue;
       e.icon.setVisible(false);

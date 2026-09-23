@@ -75,6 +75,7 @@ import { type GoalDef, GoalSystem } from './systems/Goals';
 import { type DaySnapshot, type MorningReport, buildMorningReport, daySnapshotFrom, diffDay, takeDaySnapshot } from './systems/DayReport';
 import { type MarketItem, type ShopItem, type Supplies, type SupplyKind, bicycleExertion, buyMarket, buyShop, giveSupply } from './systems/ShopSystem';
 import { VillagerSystem } from './systems/VillagerSystem';
+import { QuestSystem } from './systems/QuestSystem';
 import { SIGN_NAMES_TR, type SignId, type Signpost, landingTile, signKnown, signposts, travelMinutes } from './world/Signposts';
 
 export type Mode = 'avatar' | 'manage';
@@ -198,7 +199,10 @@ export type Command =
   | { type: 'buyShop'; item: ShopItem; qty: number }
   | { type: 'buyMarket'; item: MarketItem; qty: number }
   | { type: 'giveSupply'; dogId: number; item: SupplyKind }
-  | { type: 'travel'; to: SignId };
+  | { type: 'travel'; to: SignId }
+  | { type: 'questAccept'; id: number }
+  | { type: 'questDeliver'; id: number }
+  | { type: 'questAbandon'; id: number };
 
 /** Tam ekran haritada konan işaret (0.18.1; kayıtta). color: 0-4 renk sırası. */
 export interface MapMarker {
@@ -273,6 +277,8 @@ export interface SimStats {
   cured: number;
   hired: number;
   slept: number;
+  /** Tamamlanan köylü görevleri (0.20.4). */
+  quests: number;
 }
 
 function emptyStats(): SimStats {
@@ -307,6 +313,7 @@ function emptyStats(): SimStats {
     cured: 0,
     hired: 0,
     slept: 0,
+    quests: 0,
   };
 }
 
@@ -333,6 +340,8 @@ export class Sim {
   readonly goals: GoalSystem;
   /** Köylüler (0.20.1; kaydedilmez, tohumdan ve saatten çıkar). */
   readonly villagers: VillagerSystem;
+  /** Köylü görevleri (0.20.4; kayıtta): köy panosundaki ilanlar ve kabul edilenler. */
+  readonly quests: QuestSystem;
   readonly illness: IllnessSystem;
   readonly nav: PlayerNav;
   readonly pilot: Autopilot;
@@ -431,6 +440,7 @@ export class Sim {
     this.achievements = new AchievementSystem(this);
     this.goals = new GoalSystem(this);
     this.villagers = new VillagerSystem(this);
+    this.quests = new QuestSystem(this);
     this.illness = new IllnessSystem(this);
     this.nav = new PlayerNav(this);
     this.pilot = new Autopilot(this);
@@ -515,6 +525,7 @@ export class Sim {
       } else {
         this.revealPlayer(false);
         this.brain.updateNearPlayer(dtSec);
+        this.quests.follow(dtSec);
         this.tryPushEnter(dtSec, manual ? input : IDLE_INPUT);
       }
     }
@@ -547,6 +558,7 @@ export class Sim {
       this.achievements.check();
       this.goals.check();
       this.updateVillageStage();
+      this.quests.update();
     }
     this.staffSystem.update(dtMin);
     this.villagers.update(dtMin);
@@ -1026,6 +1038,12 @@ export class Sim {
       }
       case 'travel':
         return this.travel(cmd.to);
+      case 'questAccept':
+        return this.quests.accept(cmd.id);
+      case 'questDeliver':
+        return this.quests.deliver(cmd.id);
+      case 'questAbandon':
+        return this.quests.abandon(cmd.id);
       case 'buyShop':
         return buyShop(this, cmd.item, cmd.qty);
       case 'buyMarket':
@@ -1630,6 +1648,7 @@ export class Sim {
       bicycle: this.bicycle,
       marketEggWeek: this.marketEggWeek,
       villageStage: this.villageStage,
+      quests: this.quests.toJSON(),
       loan: this.loan,
       negativeWeeks: this.negativeWeeks,
       gameOver: this.gameOver,
@@ -2004,6 +2023,7 @@ export class Sim {
     // Gün sayaçları (0.19.2): eski kayıtta yüklemedeki değerlerle başlar, dün özeti yok.
     sim.dayStart = daySnapshotFrom(data.dayStart) ?? takeDaySnapshot(sim);
     sim.lastDay = daySnapshotFrom(data.lastDay);
+    sim.quests.load(data.quests);
     sim.alerts.refresh();
     return sim;
   }
