@@ -476,7 +476,7 @@ Kararlar: sınırsız harita yapılmaz (çizim tek parça, kayıt kare indeksli;
 görünen hedef ve dünyanın tepkisi tutar. Köy sonradan büyüyebilir; köylü rutini ve sahiplenilen köpeklerin köyde görünmesi
 M11 kalanına alındı (M13 ile birleşir).
 
-### M11 Yaşayan Dünya (2026-09-23 dilimlendi; 0.18.0–0.18.2, 0.20.0 ve 0.20.1 bitti, kalanı 0.20.x)
+### M11 Yaşayan Dünya (2026-09-23 dilimlendi; 0.18.0–0.18.2 ve 0.20.0–0.20.2 bitti, kalanı 0.20.x)
 
 | Sürüm | Konu |
 |---|---|
@@ -485,7 +485,7 @@ M11 kalanına alındı (M13 ile birleşir).
 | 0.18.2 ✅ | Köy (güney yolun ucu, RNG'siz yerleşim) + yem toptancısı içi (çuval ×0,7, en az 3) + "Köyü buldun" |
 | 0.20.0 ✅ | Oyuncak/ilaç dükkânı (oyuncak paketi, vitamin, bisiklet; bisikletin koşu etkisi de burada) + Pazar tezgâhı ve haftanın yumurtası |
 | 0.20.1 ✅ | Köylü rutini (6 köylü; ev → iş ya da meydan → ev, Pazar meydanda, E ya da dokunarak konuş) |
-| 0.20.2 | Köy kademesi (itibarla yeni binalar) + sahiplenilen köpekler köyde sahibiyle |
+| 0.20.2 ✅ | Köy kademesi (itibar 40 postane, 70 park) + köylü sahipleniciler: köpek köyde sahibiyle, parkta, postanede mektup |
 | 0.20.3 | Yol tabelaları + hızlı seyahat (bisiklet 0.20.0'da geldi) |
 | 0.20.4 | Köylü görevleri (kayıp köpek, belli renkte yavru, yem getir) |
 | 0.20.5 | Cila: otopilot uzak işlere gitmez, dokunma senaryoları, yardım |

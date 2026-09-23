@@ -55,6 +55,14 @@ export interface WorldSceneData {
   sim: Sim;
 }
 
+/** Köylünün köpeği yürürken sahibinin bir adım gerisinde (yöne göre: 0 aşağı, 1 sol, 2 sağ, 3 yukarı). */
+const VILLAGE_DOG_BACK: ReadonlyArray<{ x: number; y: number }> = [
+  { x: 0, y: -0.9 },
+  { x: 0.9, y: 0 },
+  { x: -0.9, y: 0 },
+  { x: 0, y: 0.9 },
+];
+
 const GHOST_OK = 0x8cff8c;
 const GHOST_BAD = 0xff7b7b;
 
@@ -111,6 +119,8 @@ export class WorldScene extends Phaser.Scene {
   private marketVendor: Phaser.GameObjects.Sprite | null = null;
   /** Köylü görselleri (0.20.1). */
   private villagerSprites = new Map<number, Phaser.GameObjects.Sprite>();
+  /** Köylülerin sahiplendiği köpekler (0.20.2), köylü indeksiyle. */
+  private villageDogSprites = new Map<number, Phaser.GameObjects.Sprite>();
   private buildingImages = new Map<number, Phaser.GameObjects.Image>();
   private dogSprites = new Map<number, Phaser.GameObjects.Sprite>();
   /** Doku temizliği için köpek id → genom. */
@@ -204,6 +214,9 @@ export class WorldScene extends Phaser.Scene {
       this.sim.events.on('modeChanged', (m) => this.applyMode(m)),
       this.sim.events.on('interiorChanged', (it) => this.showInterior(it)),
       this.sim.events.on('message', (m) => showToast(m)),
+      this.sim.events.on('villageGrew', (e) => {
+        for (const vb of e.added) this.addVillageImage(vb);
+      }),
       this.sim.events.on('slept', () => this.cameras.main.flash(600, 10, 8, 20)),
       this.sim.events.on('dogHatched', (d) => {
         store.selectedDogId.value = d.id;
@@ -358,6 +371,7 @@ export class WorldScene extends Phaser.Scene {
       this.adopterSprites.clear();
       this.staffSprites.clear();
       this.villagerSprites.clear();
+      this.villageDogSprites.clear();
     });
 
     syncStore(this.sim);
@@ -483,6 +497,7 @@ export class WorldScene extends Phaser.Scene {
         toyShop: 'click',
         market: 'click',
         talk: 'click',
+        post: 'click',
       };
       const name = sfx[kind];
       if (name) audio.play(name);
@@ -869,9 +884,11 @@ export class WorldScene extends Phaser.Scene {
     }
   }
 
-  /** Köylüler (0.20.1): evde ya da işteyken gizli; yürürken yürüme animasyonu. */
+  /** Köylüler (0.20.1) ve sahiplendikleri köpekler (0.20.2): evde ya da işteyken gizli; yürürken yürüme animasyonu. */
   private syncVillagers(): void {
     const T = GAME.tile;
+    const walking = (on: boolean): boolean => on && !this.sim.paused;
+    const timeScale = Math.max(0.6, Math.min(3, this.sim.speed * 0.9));
     for (const v of this.sim.villagers.list) {
       const key = ensureHumanTexture(this, v.look);
       let s = this.villagerSprites.get(v.index);
@@ -879,18 +896,48 @@ export class WorldScene extends Phaser.Scene {
         s = this.add.sprite(0, 0, key, 0).setOrigin(0.5, 1);
         this.villagerSprites.set(v.index, s);
       }
+      const dog = this.sim.villagers.dogOf(v);
+      let ds = this.villageDogSprites.get(v.index);
+      if (dog) {
+        const dkey = ensureDogTexture(this, dog.genome, dog.stage);
+        if (!ds) {
+          ds = this.add.sprite(0, 0, dkey, 0).setOrigin(0.5, 1);
+          this.villageDogSprites.set(v.index, ds);
+        } else if (ds.texture.key !== dkey) {
+          ds.anims.stop();
+          ds.setTexture(dkey, 0);
+        }
+      }
       s.setVisible(!v.inside);
+      ds?.setVisible(!v.inside && dog !== null);
       if (v.inside) continue;
       const px = Math.round(v.x * T);
       const py = Math.round(v.y * T + 6);
       s.setPosition(px, py);
       s.setDepth(100 + py);
-      if (v.moving && !this.sim.paused) {
+      if (walking(v.moving)) {
         s.anims.play(`${key}-walk-${v.facing}`, true);
-        s.anims.timeScale = Math.max(0.6, Math.min(3, this.sim.speed * 0.9));
+        s.anims.timeScale = timeScale;
       } else {
         s.anims.stop();
         s.setFrame(v.facing * 3);
+      }
+      if (!dog || !ds) continue;
+      // Köpek sahibinin yanında: yürürken bir adım gerisinde, dururken yanında oturur.
+      const back = VILLAGE_DOG_BACK[v.facing];
+      const ox = v.moving ? back.x : 0.8;
+      const oy = v.moving ? back.y : 0.1;
+      const dpx = Math.round((v.x + ox) * T);
+      const dpy = Math.round((v.y + oy) * T + 6);
+      ds.setPosition(dpx, dpy);
+      ds.setDepth(100 + dpy);
+      const dkey = ds.texture.key;
+      if (walking(v.moving)) {
+        ds.anims.play(`${dkey}-walk-${v.facing}`, true);
+        ds.anims.timeScale = timeScale;
+      } else {
+        ds.anims.stop();
+        ds.setFrame(v.facing * DOG_FRAMES + DOG_FRAME_SIT);
       }
     }
   }

@@ -59,7 +59,17 @@ import { t } from '../i18n';
 import { kitchenWaterPerHour } from './systems/KitchenSystem';
 import { vaccinate } from './systems/ClinicSystem';
 import { seasonForWeek } from './systems/WeatherSystem';
-import { VILLAGE_ID_BASE, restampVillage, villageDoorTile, villageInteriorKind, wholesaleBagPrice } from './world/Village';
+import {
+  VILLAGE_ID_BASE,
+  VILLAGE_MAX_STAGE,
+  VILLAGE_NAMES_TR,
+  type VillageBuilding,
+  restampVillage,
+  stampVillageStage,
+  villageDoorTile,
+  villageInteriorKind,
+  wholesaleBagPrice,
+} from './world/Village';
 import { applyFoundingPlot } from './world/PlotReserve';
 import { type GoalDef, GoalSystem } from './systems/Goals';
 import { type DaySnapshot, type MorningReport, buildMorningReport, daySnapshotFrom, diffDay, takeDaySnapshot } from './systems/DayReport';
@@ -116,6 +126,8 @@ export interface SimEvents extends Record<string, unknown> {
   goal: GoalDef;
   /** Uyanınca sabah raporu (0.19.2; uyku ve bayılmada, iflasta değil). */
   morning: MorningReport;
+  /** Köy kademesi atladı (0.20.2): yeni yapılar (çizim onları ekler). */
+  villageGrew: { stage: number; added: VillageBuilding[] };
   /** Uyku / bayılma gibi zaman atlamaları (arayüz karartma yapar). */
   slept: { minutes: number; passedOut: boolean };
   /** Oyuncuya kısa bildirim. */
@@ -344,6 +356,8 @@ export class Sim {
   supplies: Supplies = { toy: 0, vitamin: 0 };
   bicycle = false;
   marketEggWeek = 0;
+  /** Köy kademesi (0.20.2; kayıtta): itibarla 1'den 3'e çıkar, düşmez. */
+  villageStage = 1;
   readonly gates: GateSystem;
   flags: SimFlags = { foodDiscountDay: 0, extraAdoptersDay: 0, growlUntil: 0, growlA: '', growlB: '' };
   speed: Speed = 1;
@@ -526,6 +540,7 @@ export class Sim {
       this.checkVictory();
       this.achievements.check();
       this.goals.check();
+      this.updateVillageStage();
     }
     this.staffSystem.update(dtMin);
     this.villagers.update(dtMin);
@@ -555,6 +570,28 @@ export class Sim {
   }
 
   /** Sabah 06:00'ya kadar zamanı hızlıca geçirir; köpekler ve inşaatlar normal işler. */
+  /** Köy kademesi (0.20.2): köy bulunduysa itibar eşiklerini geçince yeni yapılar açılır; kademe düşmez. */
+  updateVillageStage(): void {
+    if (!this.villageFound || !this.world.village) return;
+    let want = 1;
+    BALANCE.village.stageReputation.forEach((rep, i) => {
+      if (this.reputation >= rep) want = i + 1;
+    });
+    want = Math.min(VILLAGE_MAX_STAGE, want);
+    if (want <= this.villageStage) return;
+    this.villageStage = want;
+    const added = stampVillageStage(this.world, want);
+    // Yeni yapı oyuncunun üstüne çıktıysa oyuncu yapının kapı önüne çekilir.
+    if (!this.interior && added.length > 0 && this.player.collides(this.world, this.player.x, this.player.y)) {
+      const hit = added.find((b) => this.player.tileX >= b.x && this.player.tileX < b.x + b.w && this.player.tileY >= b.y && this.player.tileY < b.y + b.h) ?? added[0];
+      const d = villageDoorTile(hit);
+      this.player.x = d.x + 0.5;
+      this.player.y = d.y + 0.9;
+    }
+    this.events.emit('villageGrew', { stage: want, added });
+    if (added.length > 0) this.events.emit('message', t('🏘️ Köy büyüyor: {names} açıldı', { names: added.map((b) => t(VILLAGE_NAMES_TR[b.kind])).join(', ') }));
+  }
+
   /** Gün dönümü (0.19.2): biten günün özeti sabah raporu için saklanır, yeni günün sayaçları başlar. */
   private rollDay(): void {
     const now = takeDaySnapshot(this);
@@ -1522,6 +1559,7 @@ export class Sim {
       supplies: { ...this.supplies },
       bicycle: this.bicycle,
       marketEggWeek: this.marketEggWeek,
+      villageStage: this.villageStage,
       loan: this.loan,
       negativeWeeks: this.negativeWeeks,
       gameOver: this.gameOver,
@@ -1571,6 +1609,7 @@ export class Sim {
         y: a.y,
         look: a.look,
         queueSlot: a.queueSlot,
+        villager: a.villager,
       })),
       ledger: this.ledger.map((e) => ({ ...e })),
       weeks: this.weeks.map((w) => ({ ...w })),
@@ -1613,6 +1652,7 @@ export class Sim {
     sim.supplies = { toy: supply(sup.toy), vitamin: supply(sup.vitamin) };
     sim.bicycle = data.bicycle === true;
     sim.marketEggWeek = Math.floor(numOr(data.marketEggWeek, 0, 0));
+    sim.villageStage = Math.max(1, Math.min(VILLAGE_MAX_STAGE, Math.floor(numOr(data.villageStage, 1, 1))));
     sim.markers = Array.isArray(data.markers)
       ? data.markers
           .filter((raw): raw is MapMarker => {
@@ -1676,6 +1716,8 @@ export class Sim {
     }
     // Köy alanı eski nesne değişikliklerinden sonra yeniden temizlenir (0.18.2).
     restampVillage(world);
+    // Köy kademesi yapıları (0.20.2): kayıttaki kademeye göre yeniden damgalanır.
+    stampVillageStage(world, sim.villageStage);
     const p = world.plot;
     const n = p.w * p.h;
     const objs = Array.isArray(data.plotObjects) && data.plotObjects.length === n ? data.plotObjects : null;

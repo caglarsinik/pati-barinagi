@@ -72,6 +72,7 @@ export type ActionKind =
   | 'toyShop'
   | 'market'
   | 'talk'
+  | 'post'
   | 'none';
 
 export interface ResolvedAction {
@@ -280,6 +281,7 @@ export function resolveAction(sim: Sim): ResolvedAction {
       if (isMarketDay(sim)) return { kind: 'market', hint: t('E: pazar tezgâhı · indirimli oyuncak, vitamin, haftanın yumurtası'), tile };
       return { kind: 'none', hint: t('Pazar tezgâhı · Pazar günleri kurulur'), tile };
     }
+    if (vb.kind === 'postOffice') return { kind: 'post', hint: t('E: postane · köydeki sahiplenicilerden mektup'), tile };
     return { kind: 'none', hint: name, tile };
   }
 
@@ -587,6 +589,8 @@ export function performAction(sim: Sim): ActionOutcome {
       return { ok: true, open: 'market' };
     case 'talk':
       return r.villager !== undefined ? sim.villagers.talk(r.villager) : { ok: false };
+    case 'post':
+      return sim.villagers.postNews();
     case 'sleep':
       if (!canSleepAt(sim.clock.hour)) return { ok: false, message: t("Henüz erken: {h}:00'den sonra uyunabilir", { h: BALANCE.time.sleepFromHour }) };
       return sim.command({ type: 'sleep' });

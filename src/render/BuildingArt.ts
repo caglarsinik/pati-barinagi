@@ -351,7 +351,7 @@ function drawHouse(
 }
 
 /** Köy binaları (0.18.2): oyuncuya ait değil; dükkân tabelaları kodla. Kökeni sol alt. */
-export function drawVillageBuilding(kind: 'wholesaler' | 'toyShop' | 'house' | 'fountain' | 'market', wTiles: number, hTiles: number): Pixels {
+export function drawVillageBuilding(kind: 'wholesaler' | 'toyShop' | 'house' | 'fountain' | 'market' | 'postOffice' | 'bench', wTiles: number, hTiles: number): Pixels {
   const W = wTiles * T;
   const H = hTiles * T + BUILDING_OVERHANG;
   const p = new Pixels(W, H);
@@ -410,6 +410,26 @@ export function drawVillageBuilding(kind: 'wholesaler' | 'toyShop' | 'house' | '
       p.fillRect(37, bottom - 17, 1, 3, C.cross);
       break;
     }
+    case 'postOffice':
+      // Postane (0.20.2): beyaz duvar, kiremit çatı, sarı tabelada zarf; kapı yanında kırmızı posta kutusu.
+      drawHouse(p, 0, y0, W, hTiles * T, C.white, C.wallDark, C.roof, C.roofDark, C.roofLight, true);
+      p.fillRect(cx - 9, y0 + 12, 18, 7, C.sign);
+      p.fillRect(cx - 4, y0 + 13, 8, 5, C.white);
+      for (let i = 0; i < 4; i++) {
+        p.set(cx - 4 + i, y0 + 13 + i, C.ropeDark);
+        p.set(cx + 3 - i, y0 + 13 + i, C.ropeDark);
+      }
+      p.fillRect(W - 10, bottom - 11, 5, 9, C.ball);
+      p.fillRect(W - 10, bottom - 11, 5, 2, C.roofDark);
+      p.fillRect(W - 9, bottom - 2, 3, 2, C.woodWallDark);
+      break;
+    case 'bench':
+      // Köy parkının bankı (0.20.2).
+      p.fillRect(2, bottom - 14, W - 4, 3, C.woodWall);
+      p.fillRect(2, bottom - 9, W - 4, 3, C.woodWall);
+      p.fillRect(2, bottom - 9, W - 4, 1, C.woodWallDark);
+      for (const x of [4, W - 6]) p.fillRect(x, bottom - 14, 2, 14, C.woodWallDark);
+      break;
   }
   p.outline(P.outline);
   return p;

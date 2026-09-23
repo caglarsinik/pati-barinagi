@@ -2,11 +2,11 @@ import { BALANCE } from '../../config/balance';
 import { Rng, hash3 } from '../../core/Rng';
 import { t } from '../../i18n';
 import type { Facing } from '../entities/Player';
-import { Villager, type VillagerPlace, type VillagerRole } from '../entities/Villager';
+import { type VillageDog, Villager, type VillagerPlace, type VillagerRole } from '../entities/Villager';
 import type { Sim } from '../Sim';
 import { findPath } from '../world/Pathfinder';
 import type { Rect, TilePos } from '../world/TileWorld';
-import { type VillageKind, villageDoorTile } from '../world/Village';
+import { type VillageKind, parkSpot, villageDoorTile } from '../world/Village';
 
 interface Slot {
   /** Bu saatten itibaren (0–23). İlk dilimden önce evde. */
@@ -137,6 +137,22 @@ export const TALK_LINES: readonly string[] = [
   'Bir gün barınağından bir köpek sahiplenmek istiyorum.',
 ];
 
+/** Barınaktan köpek sahiplenmiş köylünün satırları (0.20.2). */
+export const DOG_TALK_LINES: readonly string[] = [
+  '{dog} çok mutlu; her sabah beni çeşmeye o götürüyor.',
+  '{dog} geceleri ayak ucumda uyuyor.',
+  '{dog} köyün bütün çocuklarıyla arkadaş oldu.',
+  'Barınağın sayesinde {dog} ile tanıştık, sağ ol!',
+];
+
+/** Postanedeki mektuplar (0.20.2). */
+export const LETTERS: readonly string[] = [
+  '{dog} çok iyi; bugün meydanda koştu. Selamlar!',
+  '{dog} artık oturmayı biliyor, çok gururluyuz.',
+  '{dog} ile her akşam çeşmeye yürüyoruz.',
+  '{dog} sayesinde bütün köy bizi tanıyor.',
+];
+
 function facingFor(dx: number, dy: number): Facing {
   if (Math.abs(dx) >= Math.abs(dy)) return dx < 0 ? 1 : 2;
   return dy < 0 ? 3 : 0;
@@ -145,15 +161,16 @@ function facingFor(dx: number, dy: number): Facing {
 /**
  * Köylüler (0.20.1): köy bulununca tohumdan kurulur (ana RNG'ye dokunmaz, kaydedilmez). Sabah evden iş yerine ya da
  * meydandaki noktalarına gider, akşam eve döner; Pazar meydanda toplanır. Oyuncu köyün yakınındayken yol bularak adım adım
- * yürürler, uzaktayken saate göre yerlerine yerleşirler.
+ * yürürler, uzaktayken saate göre yerlerine yerleşirler. 0.20.2: barınaktan köpek sahiplenen köylü köpeğiyle gezer, köy
+ * parkı açıldıysa akşamüstü parka gider.
  */
 export class VillagerSystem {
   readonly list: Villager[] = [];
 
   constructor(private readonly sim: Sim) {}
 
-  /** Köy bulunduysa köylüleri kurar ve saate göre yerleştirir. */
-  private ensure(): boolean {
+  /** Köy bulunduysa köylüleri kurar ve saate göre yerleştirir. Döndürür: köylüler hazır mı. */
+  ensure(): boolean {
     if (this.list.length > 0) return true;
     const sim = this.sim;
     const w = sim.world;
@@ -174,6 +191,29 @@ export class VillagerSystem {
     return true;
   }
 
+  /** Köylünün barınaktan sahiplendiği köpek: en son sahiplendirme kaydı (görünüm bilgisiyle). */
+  dogOf(v: Villager): VillageDog | null {
+    const recs = this.sim.adoptions;
+    for (let i = recs.length - 1; i >= 0; i--) {
+      const r = recs[i];
+      if (r.villager === v.index && r.genome) return { name: r.dogName, genome: r.genome, stage: r.stage ?? 'adult' };
+    }
+    return null;
+  }
+
+  /**
+   * Gelen sahiplenici köyden bir köylü mü (0.20.2): köy bulunduysa, olasılıkla, köpeği olmayan ve şu an sırada olmayan bir
+   * köylü. Karar sahiplenici kimliğinden türeyen ayrı RNG ile verilir (ana sıra değişmez).
+   */
+  adopterFor(adopterId: number, chance: number = BALANCE.village.villagerAdopterChance): Villager | null {
+    if (!this.ensure()) return null;
+    const rng = new Rng(hash3(this.sim.seed, adopterId, 0x5ad0));
+    if (rng.next() >= chance) return null;
+    const busy = new Set(this.sim.adopters.map((a) => a.villager).filter((x): x is number => x !== undefined));
+    const free = this.list.filter((v) => !busy.has(v.index) && !this.dogOf(v));
+    return free.length > 0 ? free[rng.int(0, free.length - 1)] : null;
+  }
+
   /** Çizelgeye göre şu an olması gereken yer. */
   scheduled(v: Villager): VillagerPlace {
     const c = this.sim.clock;
@@ -182,6 +222,8 @@ export class VillagerSystem {
     let place: VillagerPlace = 'home';
     for (const s of slots) if (c.hour >= s.from) place = s.place;
     if ((place === 'work' && v.work === null) || (place === 'spot2' && !def.spot2)) place = 'spot';
+    // Köpeği olan köylü, park açıldıysa (3. kademe) işte değilken 16–19 arası parkta.
+    if (place !== 'work' && c.hour >= 16 && c.hour < 19 && this.sim.villageStage >= 3 && this.dogOf(v)) place = 'park';
     return place;
   }
 
@@ -196,6 +238,7 @@ export class VillagerSystem {
       const vb = idx === null ? undefined : w.villageBuildings[idx];
       return vb ? villageDoorTile(vb) : null;
     }
+    if (place === 'park') return parkSpot(w, v.index);
     const rel = place === 'spot' ? def.spot : place === 'spot2' ? def.spot2 : def.plaza;
     return rel ? { x: r.x + rel[0], y: r.y + rel[1] } : null;
   }
@@ -303,14 +346,28 @@ export class VillagerSystem {
     return best;
   }
 
-  /** E ile konuş: köylü oyuncuya döner, sıradaki satırı söyler. */
+  /** E ile konuş: köylü oyuncuya döner, sıradaki satırı söyler; köpeği varsa sözün yarısı köpeği üstüne. */
   talk(index: number): { ok: boolean; message?: string } {
     const v = this.list[index];
     if (!v || v.inside) return { ok: false };
     const p = this.sim.player;
     v.facing = facingFor(p.x - v.x, p.y - v.y);
     const base = hash3(this.sim.seed, v.index, this.sim.clock.day) >>> 0;
-    const line = TALK_LINES[(base + v.talks++) % TALK_LINES.length];
-    return { ok: true, message: t('{name}: “{line}”', { name: v.name, line: t(line) }) };
+    const n = v.talks++;
+    const dog = this.dogOf(v);
+    const line = dog && n % 2 === 0 ? t(DOG_TALK_LINES[(base + n / 2) % DOG_TALK_LINES.length], { dog: dog.name }) : t(TALK_LINES[(base + n) % TALK_LINES.length]);
+    return { ok: true, message: t('{name}: “{line}”', { name: v.name, line }) };
+  }
+
+  /** Postane (0.20.2): köpek sahiplenen köylülerden günün mektubu. */
+  postNews(): { ok: boolean; message: string } {
+    this.ensure();
+    const owners = this.list.filter((v) => this.dogOf(v));
+    if (owners.length === 0) return { ok: true, message: t('📮 Postane: köyden henüz sahiplenen yok. Köylüler barınağına geldikçe mektup yazarlar.') };
+    const day = this.sim.clock.day;
+    const v = owners[(hash3(this.sim.seed, day, 0x9057) >>> 0) % owners.length];
+    const dog = this.dogOf(v)!;
+    const letter = LETTERS[(hash3(this.sim.seed, day, 0x1e77) >>> 0) % LETTERS.length];
+    return { ok: true, message: t('📮 {owner} yazmış: “{letter}”', { owner: v.name, letter: t(letter, { dog: dog.name }) }) };
   }
 }

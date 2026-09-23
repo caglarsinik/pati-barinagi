@@ -207,7 +207,8 @@ export function AdoptionDesk() {
             {waiting.map((a) => (
               <button key={a.id} class={'adopter-card' + (selected?.id === a.id ? ' active' : '')} onClick={() => setSelected(a.id)}>
                 <div class="adopter-name">
-                  🧑 {a.name} · <b>{formatMoney(a.fee)}</b>
+                  🧑 {a.name}
+                  {a.villager !== undefined && <span class="muted small-text"> ({t('köyden')})</span>} · <b>{formatMoney(a.fee)}</b>
                 </div>
                 <div class="small-text">{requestText(a.request)}</div>
                 <div class="muted small-text">{t('Sabrı: {min} dk', { min: Math.max(0, Math.round(a.patienceLeft)) })}</div>

@@ -1,6 +1,8 @@
 import { BALANCE } from '../../config/balance';
 import { PERSON_NAMES } from '../../content/names';
 import { type Adopter, adoptable, matchScore, randomRequest, requestFee } from '../entities/Adopter';
+import type { GrowthStage } from '../entities/Dog';
+import type { DogGenome } from '../entities/DogGenome';
 import { buildingDoorTile } from '../entities/Building';
 import { Dog, clamp100 } from '../entities/Dog';
 import type { Facing } from '../entities/Player';
@@ -16,6 +18,10 @@ export interface AdoptionRecord {
   adopterName: string;
   fee: number;
   score: number;
+  /** Köylü sahiplendiyse (0.20.2): köylü indeksi ve köyde çizilecek köpeğin görünümü. */
+  villager?: number;
+  genome?: DogGenome;
+  stage?: GrowthStage;
 }
 
 export interface PendingReturn {
@@ -94,6 +100,13 @@ export class AdoptionSystem {
       look: rng.int(0, 0xffff),
       queueSlot: this.freeQueueSlot(),
     };
+    // Köylü sahiplenici (0.20.2; karar ayrı RNG ile, ana sıra değişmez): adı ve görünümü köylününki olur.
+    const villager = sim.villagers.adopterFor(a.id);
+    if (villager) {
+      a.villager = villager.index;
+      a.name = villager.name;
+      a.look = villager.look;
+    }
     const target = this.queueTile(office, a.queueSlot);
     a.path = findPath(sim.world, gate, target, { maxNodes: 6000, adjacentOk: true, throughGates: true }) ?? [];
     sim.adopters.push(a);
@@ -189,17 +202,24 @@ export class AdoptionSystem {
     let rep = score >= 70 ? B.repGood + Math.round((score - 70) / 10) : score >= 50 ? B.repOk : -B.repBad;
     sim.reputation = clamp100(sim.reputation + rep);
     sim.addIncome('adoption', a.fee, `${dog.name} → ${a.name}`);
-    sim.adoptions.push({ day: sim.clock.day, dogName: dog.name, adopterName: a.name, fee: a.fee, score });
+    const record: AdoptionRecord = { day: sim.clock.day, dogName: dog.name, adopterName: a.name, fee: a.fee, score };
+    sim.adoptions.push(record);
     sim.stats.adopted++;
     sim.events.emit('emote', { kind: 'adopter', id: a.id, emote: 'heart', seconds: 3 });
     const saved = dog.toJSON();
     sim.removeDog(dog.id);
     if (score < 50 && sim.rng.chance(B.returnChanceBadMatch)) {
       sim.pendingReturns.push({ day: sim.clock.day + B.returnAfterDays, dog: saved, adopterName: a.name });
+    } else if (a.villager !== undefined) {
+      // Köylü sahiplendi (geri dönmeyecek): köpek köyde sahibiyle görünür.
+      record.villager = a.villager;
+      record.genome = { ...dog.genome };
+      record.stage = dog.stage;
     }
     this.leave(a);
     const repText = rep >= 0 ? t('itibar +{n}', { n: rep }) : t('itibar {n}', { n: rep });
-    return { ok: true, message: t('{dog}, {person} ile yeni evine gitti (+{fee} ₺, {rep})', { dog: dog.name, person: a.name, fee: a.fee, rep: repText }) };
+    const message = t('{dog}, {person} ile yeni evine gitti (+{fee} ₺, {rep})', { dog: dog.name, person: a.name, fee: a.fee, rep: repText });
+    return { ok: true, message: record.villager !== undefined ? message + ' · ' + t('onu köyde görebilirsin') : message };
   }
 
   /** Sahiplendirme kapatıldı: bekleyen ve yoldaki sahiplenicileri itibar kaybı olmadan uğurlar. */

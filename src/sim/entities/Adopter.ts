@@ -49,6 +49,8 @@ export interface Adopter {
   look: number;
   /** Bekleme sırası (ofis önü konumu). */
   queueSlot: number;
+  /** Köyden gelen sahiplenici (0.20.2): köylü indeksi. */
+  villager?: number;
 }
 
 export interface AdopterSave {
@@ -62,6 +64,7 @@ export interface AdopterSave {
   y: number;
   look: number;
   queueSlot: number;
+  villager?: number;
 }
 
 const SIZES: SizeClass[] = ['S', 'M', 'L'];
@@ -183,5 +186,6 @@ export function adopterFromJSON(data: unknown): Adopter | null {
     path: [],
     look: typeof d.look === 'number' ? d.look : 0,
     queueSlot: typeof d.queueSlot === 'number' ? d.queueSlot : 0,
+    ...(typeof d.villager === 'number' ? { villager: d.villager } : {}),
   };
 }

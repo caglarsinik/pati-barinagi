@@ -404,6 +404,10 @@ export const BALANCE = {
   village: {
     wholesaleMul: 0.7,
     minBags: 3,
+    /** Köy kademeleri (0.20.2): bu itibarlarda 2. (postane) ve 3. kademe (park) açılır; kademe düşmez. */
+    stageReputation: [0, 40, 70],
+    /** Köy bulunduysa gelen sahiplenicinin köpeği olmayan bir köylü olma olasılığı (ayrı RNG). */
+    villagerAdopterChance: 0.4,
   },
   /** Köydeki oyuncak ve ilaç dükkânı, pazar günü (0.20.0). */
   shop: {

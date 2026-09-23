@@ -57,6 +57,31 @@
   köpek paneli, araç şeridi, alt menü listesi, ana menü, Ayarlar: çakışma yok, taşma yok. Alt menü açılır listesi köpek
   panelinin üstüne gelebilir (geçici popover, üstte kalır) — kabul edildi. Gerçek cihaz testi kullanıcıda.
 
+## 0.20.2 — Köy kademesi ve köylü sahipleniciler (M11; Claude, 2026-09-23)
+- `Sim.villageStage` 1–3 (kayıtta, düşmez). `Sim.updateVillageStage()` sim dakikasında (hedeflerden sonra): köy bulunduysa
+  `BALANCE.village.stageReputation` [0, 40, 70] eşiklerine göre kademe; atlayınca `stampVillageStage(world, kademe)`, olay
+  `villageGrew` (sahne yeni yapıların görselini ekler), mesaj "🏘️ Köy büyüyor: … açıldı", yapı oyuncunun üstüne çıktıysa
+  oyuncu kapısına çekilir. Başarım `village-grow` "Köy büyüyor" (toplam 29).
+- `Village.ts`: `STAGE_LAYOUT` LAYOUT'tan SONRA eklenir (eski indeksler aynı): 2. kademe `postOffice` 4×3 @19,11; 3. kademe
+  `bench` 2×1 @15,13 (adı "Köy parkı") ve `PARK` 6×4 @13,12 çiçekli zemin (doğrudan dizi yazımı + `recomputeSolid` + `dirty`;
+  nesne değişikliği kaydına girmez). `fromJSON` `restampVillage`'dan sonra kayıttaki kademeyi yeniden damgalar. `parkSpot(i)`.
+  Çizimler `drawVillageBuilding('postOffice' | 'bench')`.
+- Köylü sahiplenici: `AdoptionSystem.spawnAdopter` sonunda `sim.villagers.adopterFor(a.id)` (karar sahiplenici kimliğinden
+  türeyen ayrı RNG ile, ana sıra değişmez; olasılık `villagerAdopterChance` 0,4; köpeği olmayan ve sırada olmayan köylü):
+  `a.villager`, ad ve görünüm köylününki olur (kayıtta). `adopt`: iade olmayacaksa kayda `villager`, `genome`, `stage` yazılır;
+  mesaj "· onu köyde görebilirsin". Sahiplendirme panelinde "(köyden)".
+- `VillagerSystem`: `dogOf(v)` (en son köylü kaydı), `ensure()` artık açık, çizelgede köpeği olan köylü 3. kademede işte
+  değilken 16–19 `park` yerinde; konuşmanın yarısı köpeği üstüne (`DOG_TALK_LINES`); `postNews()` postanede günün mektubu
+  (`LETTERS`). Etkileşim `post` (postanede E, dokunuşla da).
+- Çizim: `WorldScene.syncVillagers` köylünün köpeğini de çizer (`ensureDogTexture`; yürürken bir adım gerisinde, dururken
+  yanında oturur); `villageDogSprites` sahne kapanışında temizlenir.
+- Testler `tests/unit/village-stage.test.ts` (3): eşikler, yapı sırası ve katılık, park zemini, kademe düşmez, başarım,
+  çizimler; kayıt ve eski kayıt, oyuncunun kapıya çekilmesi; köylü sahiplenici (kimlik seçimi, kayıt turu), sahiplendirme
+  kaydı, `dogOf`, köpekli köylü bir daha seçilmez, konuşma, postane mektubu, park saati. 378 test. Tarayıcı 812×375: itibar
+  95 ile postane, park ve bank; köylü sahiplenici "Ayşe Teyze" Nohut'u sahiplendi, 16:30'da parka yürüdü, köpek yanında
+  oturuyor; postane mektubu ve köpekli konuşma; `runTouchScenarios` 13/13.
+- Sıradaki: 0.20.3 yol tabelaları ve hızlı seyahat.
+
 ## 0.20.1 — Köylüler (M11; Claude, 2026-09-23)
 - Yeni `src/sim/entities/Villager.ts` (`VillagerRole`, `VillagerPlace` = home/work/spot/spot2/plaza, `VILLAGER_ROLE_NAMES_TR`)
   ve `src/sim/systems/VillagerSystem.ts` (`Sim.villagers`, `stepSim` içinde `update(dtMin)`). Köy bulununca (`villageFound`)

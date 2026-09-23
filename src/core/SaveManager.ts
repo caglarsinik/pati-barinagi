@@ -31,6 +31,7 @@ export interface SaveData {
   supplies?: unknown;
   bicycle?: boolean;
   marketEggWeek?: number;
+  villageStage?: number;
   foodStock?: number;
   nextId?: number;
   stats?: unknown;

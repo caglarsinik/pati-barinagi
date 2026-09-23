@@ -300,6 +300,12 @@ yerdedir.
 Sabah evlerinden çıkıp işe ya da meydandaki yerlerine giderler, akşam eve dönerler; gece herkes evdedir, Pazar günü meydanda
 toplanırlar. Yakındayken yol bularak yürürler. Bir köylüye bakıp E'ye bas ya da ona dokun: ipucu ya da köy dedikodusu anlatır.
 
+**Köy büyür, sahiplendirdiğin köpekler köyde yaşar** (0.20.2): köyü bulduktan sonra itibarın 40'a ulaşınca köyde **postane**,
+70'e ulaşınca çiçekli bir **köy parkı** ve bankı açılır ("Köy büyüyor" başarımı); köy küçülmez. Köyü bulduktan sonra gelen
+sahiplenicilerin bir kısmı köylüdür (sahiplendirme panelinde "köyden" yazar). Köylü iyi bir eşleşmeyle köpek sahiplenirse
+köpek köyde sahibinin yanında gezer; park açıldıysa sahibiyle akşamüstü (16–19) parka gider. Köylü konuşurken köpeğinden de
+söz eder; postanede E ile köpek sahiplerinden günün mektubunu okursun.
+
 ## Hava, mevsim ve olaylar
 
 - Her mevsim 2 hafta sürer (ilkbahar → yaz → sonbahar → kış). HUD'ın ortasında mevsim ve hava yazar; hava 6-14 saatte bir değişir.
@@ -316,7 +322,7 @@ toplanırlar. Yakındayken yol bularak yürürler. Bir köylüye bakıp E'ye bas
 
 ## Başarımlar
 
-H tuşu ya da ofis panelinden 28 başarımın listesi açılır (ilk yumurta, 10 sahiplendirme, 95+ eşleşme, 1,4 denetim çarpanı, 20.000 ₺, efsanevi köpek, bir yıl dayanmak...). Her başarım açıldığında itibar +1 verir; kayıtla korunur.
+H tuşu ya da ofis panelinden 29 başarımın listesi açılır (ilk yumurta, 10 sahiplendirme, 95+ eşleşme, 1,4 denetim çarpanı, 20.000 ₺, efsanevi köpek, bir yıl dayanmak...). Her başarım açıldığında itibar +1 verir; kayıtla korunur.
 
 ## Dil
 
@@ -383,7 +389,8 @@ Bilgisayar değiştirirken ya da yedek almak için kullan.
 - [x] 0.19.3 Cila: dokunma senaryoları kendi test oyununu kurar (13/13, kuruluş senaryosu), Kontroller'de İlk adımlar — M17 tamam
 - [x] 0.20.0 Köy: oyuncak ve ilaç dükkânı (oyuncak paketi, vitamin, bisiklet), Pazar tezgâhı ve haftanın yumurtası
 - [x] 0.20.1 Köylüler: ev → iş ya da meydan → ev çizelgesi, Pazar meydanda, E ya da dokunarak konuşma
-- [ ] M11 Yaşayan Dünya kalanı (0.20.x): köy kademesi, hızlı seyahat, görevler
+- [x] 0.20.2 Köy kademesi (postane, park) ve köylü sahipleniciler: sahiplendirilen köpek köyde sahibiyle, postanede mektup
+- [ ] M11 Yaşayan Dünya kalanı (0.20.x): hızlı seyahat, görevler
 - [ ] Sonrası: M13 Sahiplendirme Hikâyeleri, yuva evi içi, kuzey/batı arsa genişletme
 - [ ] Sonraki paketler (`docs/PLAN.md` §7): M11 Yaşayan Dünya, M13 Sahiplendirme Hikâyeleri
 
