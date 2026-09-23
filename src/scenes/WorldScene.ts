@@ -998,9 +998,13 @@ export class WorldScene extends Phaser.Scene {
     const [sr, sg, sb] = SEASON_TINT[this.sim.weatherSys.season];
     const w = this.sim.weatherSys.weather;
     const cloud = w === 'storm' ? 0.72 : w === 'rain' ? 0.84 : w === 'cloudy' || w === 'snow' ? 0.92 : 1;
-    const r = Math.min(1, tr * sr * cloud);
-    const g = Math.min(1, tg * sg * cloud);
-    const b = Math.min(1, tb * sb * (w === 'storm' || w === 'rain' ? 1 : cloud));
+    // Kış gecesi arsa dışında görüş daralır (0.18.0).
+    const po = this.sim.playerOutside;
+    const winterOut = this.sim.weatherSys.season === 'winter' && this.sim.clock.isNight() && !this.sim.world.inPlot(po.tileX, po.tileY);
+    const k = winterOut ? BALANCE.weather.winterNightOutsideMul : 1;
+    const r = Math.min(1, tr * sr * cloud) * k;
+    const g = Math.min(1, tg * sg * cloud) * k;
+    const b = Math.min(1, tb * sb * (w === 'storm' || w === 'rain' ? 1 : cloud)) * k;
     const color = Phaser.Display.Color.GetColor(Math.round(r * 255), Math.round(g * 255), Math.round(b * 255));
     const v = this.cameras.main.worldView;
     const T = GAME.tile;

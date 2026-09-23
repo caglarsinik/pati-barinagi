@@ -4,7 +4,7 @@ import { DOG_NAMES } from '../content/names';
 import { GAME } from '../config/game';
 import { Clock, MINUTES_PER_DAY } from '../core/Clock';
 import { EventBus } from '../core/EventBus';
-import { Rng, hash2 } from '../core/Rng';
+import { Rng, hash2, hash3 } from '../core/Rng';
 import type { SaveData } from '../core/SaveManager';
 import { type Building, type BuildingSave, buildingDef, buildingDoorTile, canPlaceBuilding, isReady, kennelRestTile, stampBuilding, unstampBuilding, normalizeRot, type Rotation } from './entities/Building';
 import { type Adopter, adopterFromJSON } from './entities/Adopter';
@@ -58,6 +58,7 @@ import { Biome, Ground, Obj, Zone } from './world/tiles';
 import { t } from '../i18n';
 import { kitchenWaterPerHour } from './systems/KitchenSystem';
 import { vaccinate } from './systems/ClinicSystem';
+import { seasonForWeek } from './systems/WeatherSystem';
 
 export type Mode = 'avatar' | 'manage';
 
@@ -431,7 +432,8 @@ export class Sim {
       if (manual && this.nav.active) this.nav.cancel();
       this.pilot.tick(dtSec);
       const inp = !manual && this.nav.active ? this.nav.inputFor(dtSec, input.run || this.pilot.run()) : input;
-      this.player.update(dtSec, inp, this.playerWorld);
+      const outside = !this.interior && !this.world.inPlot(this.player.tileX, this.player.tileY);
+      this.player.update(dtSec, inp, this.playerWorld, this.weatherSys.playerExertion(outside));
       if (this.interior) {
         // Kapı karesine basınca dışarı (dokun-yürü kapıya varınca da).
         const d = this.interior.door;
@@ -541,6 +543,8 @@ export class Sim {
 
   /** Hafta tiki: köpekler bir hafta yaşlanır, denetim ve yardım işlenir, haftalık rapor çıkar. */
   private onWeek(newWeek: number): void {
+    // Mevsim dönümü (0.18.0): boş inlere sokak köpekleri döner.
+    if (newWeek > 1 && (newWeek - 1) % BALANCE.seasons.weeksPerSeason === 0) this.refillDens(newWeek);
     for (const dog of this.dogs) {
       const before = dog.stage;
       dog.ageWeeks++;
@@ -1039,6 +1043,29 @@ export class Sim {
     this.registerDog(dog);
     this.events.emit('dogAdded', dog);
     return dog;
+  }
+
+  /** Mevsim dönümünde boş inlere yeni sokak köpekleri; ayrı RNG (ad dahil), ana sıra değişmez. Kışın daha az döner. */
+  private refillDens(week: number): void {
+    const S = BALANCE.strays;
+    const seasonIdx = Math.floor((week - 1) / BALANCE.seasons.weeksPerSeason);
+    const chance = seasonForWeek(week) === 'winter' ? S.refillChanceWinter : S.refillChance;
+    let wild = this.dogs.filter((d) => d.wild).length;
+    let added = 0;
+    this.world.dens.forEach((den, i) => {
+      if (wild >= S.maxWild) return;
+      if (this.dogs.some((d) => d.wild && d.den !== null && d.den.x === den.x && d.den.y === den.y)) return;
+      const rng = new Rng(hash3(this.seed, i + 1, seasonIdx));
+      if (!rng.chance(chance)) return;
+      const rarity = rng.weighted(['common', 'uncommon', 'rare'] as const, [40, 45, 15]);
+      const used = new Set(this.dogs.map((d) => d.name));
+      const free = DOG_NAMES.filter((nm) => !used.has(nm));
+      const name = free.length > 0 ? rng.pick(free) : `${rng.pick(DOG_NAMES)} ${this.dogs.length + 1}`;
+      this.addWildDog(randomGenome(rng, rarity), rng.int(24, 90), den, name);
+      wild++;
+      added++;
+    });
+    if (added > 0) this.events.emit('message', t('🐾 Sokak köpekleri inlerine döndü ({n})', { n: added }));
   }
 
   private spawnStrays(): void {

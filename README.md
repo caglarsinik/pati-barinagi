@@ -242,6 +242,10 @@ Lisans gerektirenleri README'de anmayı unutma.
 - Her mevsim 2 hafta sürer (ilkbahar → yaz → sonbahar → kış). HUD'ın ortasında mevsim ve hava yazar; hava 6-14 saatte bir değişir.
 - Yaz: köpekler daha çabuk kirlenir, oyun bahçesi daha keyifli. Kış: daha çok acıkırlar, enerji hızlı düşer, **kulübesiz köpek gece üşür ve sağlık kaybeder**. İlkbahar: yuvalar daha hızlı dolar. Sonbahar: böğürtlen çalıları fazladan ödül maması verir.
 - Yağmur/fırtına köpekleri kirletir ve sahiplenici sayısını düşürür; kar enerjiyi tüketir. Yağmur ve kar ekranda görünür, mevsim renk tonunu değiştirir.
+- **Dışarıda hava (0.18.0):** arsa dışındayken fırtınada yürümek bile dayanıklılığı eritir (saniyede 3) ve koşu 1,5 kat
+  yorar; karda koşu 1,25 kat yorar. Kış gecesi arsa dışı çok daha karanlıktır.
+- **Sokak köpekleri geri döner (0.18.0):** her mevsim başında boş inler %60 olasılıkla (kışın %30) yeniden dolar; haritada
+  en çok 8 sokak köpeği olur. "Sokak köpekleri inlerine döndü" bildirimi çıkar.
 - Rastgele olaylar (ofis panelindeki "Son olaylar" listesinde tutulur): gazete haberi (itibar +5, ertesi gün fazladan ziyaretçi), sürpriz denetim (temiz barınağa ödül, bakımsıza 200 ₺ ceza), hayırsever bağışı, yem toptancısı indirimi (o gün çuvallar yarı fiyat), gezici veteriner (ücretsiz muayene).
 - Hastalıklar (pire, soğuk algınlığı, mide bozukluğu) bakımsızlıkla başlar ve bulaşır; ayrıntı "Köpek bakımı" bölümünde.
 - Sadakati 25'in altındaki köpek gece kaçabilir ("Bekle" bilen köpek kaçmaz, cesur köpek daha kolay kaçar): arsa dışında bir yere saklanır (mini haritada turuncu). Böğürtlen ödülüyle geri getir; 3 gün içinde bulunmazsa gider ve itibar düşer.
@@ -307,7 +311,9 @@ Bilgisayar değiştirirken ya da yedek almak için kullan.
 - [x] 0.17.2 Veteriner odası içi: muayene masasında aşı, ilaç dolabı (tedavi −%30)
 - [x] 0.17.3 Kuluçka içi: tepsilerde yumurtalar, ısı lambası (%15 çabuk çatlama)
 - [x] 0.17.4 Cila: otopilot mutfakta ödül maması pişirir, dokunma senaryoları 11–12 — M16 tamam
-- [ ] Sonrası (seçilecek): yuva evi içi, kuzey/batı arsa genişletme, M11 Yaşayan Dünya, M13 Sahiplendirme Hikâyeleri
+- [x] 0.18.0 İnler mevsimlik dolar, dışarıda hava (fırtına dayanıklılık, kış gecesi karanlık)
+- [ ] M11 Yaşayan Dünya (0.18.x): harita/işaretler, köy ve dükkânlar, hızlı seyahat, görevler, terk edilmiş ev, taş/odun
+- [ ] Sonrası: M13 Sahiplendirme Hikâyeleri, yuva evi içi, kuzey/batı arsa genişletme
 - [ ] Sonraki paketler (`docs/PLAN.md` §7): M11 Yaşayan Dünya, M13 Sahiplendirme Hikâyeleri
 
 ## Geliştirme

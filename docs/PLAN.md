@@ -463,7 +463,20 @@ iflas/kredi ve bina döndürme M10'da yapıldı.
   binada yumurta belirir (E ile çantaya, kuluçkaya) → köpek başına 4 hafta bekleme; lisans sınırı sayar.
 - Köpek panelinde "Soy ağacı" satırı (anne/baba adı); başarımlar "İlk soy", "Efsanevi soy".
 
-### M11 Yaşayan Dünya
+### M11 Yaşayan Dünya (2026-09-23 dilimlendi; sürüyor: 0.18.x)
+
+| Sürüm | Konu |
+|---|---|
+| 0.18.0 ✅ | İnler mevsimlik dolar (ayrı RNG, en çok 8 vahşi) + dışarıda hava (fırtına/kar dayanıklılık, kış gecesi karanlık) |
+| 0.18.1 | Tam ekran harita (M / 🗺️), işaret koyma, işarete git |
+| 0.18.2 | Köy (güney yolun ucu) + yem toptancısı içi (ucuz çuval) |
+| 0.18.3 | Oyuncak/ilaç dükkânı (oyuncak paketi, vitamin, bisiklet) + pazar günü |
+| 0.18.4 | Yol tabelaları + hızlı seyahat; bisikletle koşu ×1,5 |
+| 0.18.5 | Köylü görevleri (kayıp köpek, belli renkte yavru, yem getir) |
+| 0.18.6 | Terk edilmiş ev (iç mekân, bir kerelik bulgu) + taş/odun toplama → inşa indirimi |
+| 0.18.7 | Cila: otopilot uzak işlere gitmez, dokunma senaryoları 13–14, yardım |
+
+Özgün notlar:
 - Sokak köpeği inleri mevsimlik yeniden dolar; terk edilmiş ev POI'si.
 - Köy: harita kenarında kasaba — yem toptancısı (ucuz çuval), oyuncak/ilaç dükkânı, pazar günü.
 - Görevler: köylülerden istekler ("kayıp köpeğimi bul", "şu renkte yavru") → para/itibar.

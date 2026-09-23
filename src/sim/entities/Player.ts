@@ -5,6 +5,14 @@ import { Ground } from '../world/tiles';
 /** 0 aşağı, 1 sol, 2 sağ, 3 yukarı. */
 export type Facing = 0 | 1 | 2 | 3;
 
+/** Hava zorluğu (0.18.0): koşu tüketim çarpanı ve yürürken saniyelik dayanıklılık kaybı. */
+export interface PlayerExertion {
+  runDrainMul: number;
+  walkDrain: number;
+}
+
+export const NO_EXERTION: PlayerExertion = { runDrainMul: 1, walkDrain: 0 };
+
 export interface PlayerInput {
   /** -1, 0, 1 */
   dx: number;
@@ -67,7 +75,7 @@ export class Player {
     this.moving = false;
   }
 
-  update(dtSec: number, input: PlayerInput, world: TileWorld): void {
+  update(dtSec: number, input: PlayerInput, world: TileWorld, exertion: PlayerExertion = NO_EXERTION): void {
     const p = BALANCE.player;
     let dx = input.dx;
     let dy = input.dy;
@@ -103,7 +111,8 @@ export class Player {
       this.animTime = 0;
     }
 
-    if (this.running) this.stamina = Math.max(0, this.stamina - p.staminaDrainPerSecond * dtSec);
+    if (this.running) this.stamina = Math.max(0, this.stamina - p.staminaDrainPerSecond * exertion.runDrainMul * dtSec);
+    else if (this.moving && exertion.walkDrain > 0) this.stamina = Math.max(0, this.stamina - exertion.walkDrain * dtSec);
     else this.stamina = Math.min(p.staminaMax, this.stamina + p.staminaRegenPerSecond * dtSec);
   }
 

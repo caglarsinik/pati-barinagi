@@ -743,6 +743,7 @@ export const EN: Record<string, string> = {
   Çalışıyor: 'Working',
   'Molaya gidiyor': 'Going on break',
   'Tuvalette': 'In the toilet',
+  '🐾 Sokak köpekleri inlerine döndü ({n})': '🐾 Stray dogs returned to their dens ({n})',
   'Tuvalet': 'Toilet',
   "Tuvalet ihtiyacı vardiyada artar; {go} olunca en yakın Personel WC'ye gider. WC yoksa {pen} üstünde moral ve verim düşer.": 'The toilet need grows during a shift; at {go} they walk to the nearest staff WC. Without a WC, above {pen} morale and efficiency drop.',
   'Personel tuvaleti yok: yönetim modunda Personel WC kur': 'No staff toilet: build a Staff WC in manage mode',

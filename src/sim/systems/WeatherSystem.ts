@@ -1,5 +1,6 @@
 import { BALANCE } from '../../config/balance';
 import type { Sim } from '../Sim';
+import { NO_EXERTION, type PlayerExertion } from '../entities/Player';
 
 export type Season = 'spring' | 'summer' | 'autumn' | 'winter';
 export type Weather = 'clear' | 'cloudy' | 'rain' | 'storm' | 'snow';
@@ -71,6 +72,15 @@ export class WeatherSystem {
 
   get season(): Season {
     return seasonForWeek(this.sim.clock.week);
+  }
+
+  /** Oyuncunun arsa dışındaki hava zorluğu (0.18.0): fırtınada yürümek de yorar, koşu daha çok; karda koşu yorar. */
+  playerExertion(outside: boolean): PlayerExertion {
+    const W = BALANCE.weather;
+    if (!outside) return NO_EXERTION;
+    if (this.weather === 'storm') return { runDrainMul: W.stormRunMul, walkDrain: W.stormWalkDrain };
+    if (this.weather === 'snow') return { runDrainMul: W.snowRunMul, walkDrain: 0 };
+    return NO_EXERTION;
   }
 
   update(): void {

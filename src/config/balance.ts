@@ -397,6 +397,12 @@ export const BALANCE = {
   seasons: {
     weeksPerSeason: 2,
   },
+  /** Sokak köpekleri (0.18.0): mevsim dönümünde boş inler bu olasılıkla dolar (ayrı RNG); haritada en çok maxWild vahşi köpek. */
+  strays: {
+    refillChance: 0.6,
+    refillChanceWinter: 0.3,
+    maxWild: 8,
+  },
   weather: {
     summerHygieneMul: 1.25,
     summerThirstMul: 1.5,
@@ -412,6 +418,12 @@ export const BALANCE = {
     rainAdopterMul: 0.6,
     stormAdopterMul: 0.3,
     snowAdopterMul: 0.7,
+    /** Arsa dışında (0.18.0): fırtınada yürürken dayanıklılık erir (sn başına), koşu tüketimi katlanır. */
+    stormWalkDrain: 3,
+    stormRunMul: 1.5,
+    snowRunMul: 1.25,
+    /** Kış gecesi arsa dışında gece örtüsü bu çarpanla koyulaşır. */
+    winterNightOutsideMul: 0.6,
   },
   events: {
     newspaperChance: 0.03,

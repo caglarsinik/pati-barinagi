@@ -57,6 +57,23 @@
   köpek paneli, araç şeridi, alt menü listesi, ana menü, Ayarlar: çakışma yok, taşma yok. Alt menü açılır listesi köpek
   panelinin üstüne gelebilir (geçici popover, üstte kalır) — kabul edildi. Gerçek cihaz testi kullanıcıda.
 
+## 0.18.0 — İnler mevsimlik dolar + dışarıda hava (M11 ilk dilimi; Claude, 2026-09-23)
+- `Sim.refillDens(week)`: `onWeek` mevsim dönümünde (`(week-1) % weeksPerSeason === 0`, week > 1) çağrılır. Her boş in
+  (üstünde `d.wild && d.den` eşleşen köpek yok) `new Rng(hash3(seed, denIndex + 1, seasonIndex))` ile `BALANCE.strays.
+  refillChance` (0,6; kışın `refillChanceWinter` 0,3) olasılıkla yeni vahşi köpek alır; nadirlik `spawnStrays` ile aynı
+  dağılım, **ad da ayrı RNG'den** (`pickName` ana RNG'yi kullanıyordu); haritada en çok `maxWild` (8) vahşi köpek. Mesaj
+  "🐾 Sokak köpekleri inlerine döndü (n)". Ana `sim.rng` sırası değişmez (test).
+- `Player.update(dt, input, world, exertion = NO_EXERTION)`; `PlayerExertion { runDrainMul, walkDrain }`.
+  `WeatherSystem.playerExertion(outside)`: arsa dışında fırtınada yürürken saniyede `stormWalkDrain` (3) kayıp ve koşu ×1,5,
+  karda koşu ×1,25; yağmur/açık hava ve arsa içi etkisiz. `Sim.update` iç mekânda ya da arsa içindeyken `outside = false`.
+- `WorldScene.updateNight`: kış gecesi (`clock.isNight()`) oyuncunun dış konumu arsa dışındaysa gece rengi ×
+  `winterNightOutsideMul` (0,6).
+- Testler `tests/unit/strays-weather.test.ts` (4): dolum/dönüm dışı/dolu in/sınır ve mesaj, ayrı RNG ve aynı tohumda aynı
+  köpek, dayanıklılık çarpanları, Sim.update güney yolunda fırtına. 350 test.
+- Tarayıcı: kış 23:00 gece rengi arsa içinde 0x46539f, güney yolunda 0x2a325f; in dolum bildirimi göründü;
+  `runTouchScenarios` 12/12.
+- Sıradaki: 0.18.1 tam ekran harita ve işaretler.
+
 ## 0.17.4 — M16 cilası: otopilot mutfakta pişirir, dokunma senaryoları 11–12 (M16 son dilimi; Claude, 2026-09-23)
 - Otopilot `bakeJob` (zincirde `berryJob`'dan sonra, `idlePet`'ten önce): ödül maması `BALANCE.autopilot.bakeBelowTreats`
   (3) altında, `bakeIssue` yok (fırın hakkı, kiler ≥ 2, çanta dolu değil), kara listede değil ve **keşfedilmiş bir vahşi köpek**
