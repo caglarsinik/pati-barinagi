@@ -856,6 +856,8 @@ export class Sim {
         b.level = 2;
         // Kuluçka hızlandı: içerideki yumurtaların kalan süresi aynı oranda kısalır.
         if (b.type === 'incubator') for (const egg of b.eggs) egg.hatchLeft = Math.ceil((egg.hatchLeft * incubatorHatchDays(b)) / oldDays);
+        // İçerideysen oda yeni seviyeye göre yeniden kurulur (kuluçka Sv2: ikinci tepsi).
+        this.refreshInterior(b.id);
         return { ok: true, message: t('{name} yükseltildi', { name: t(def.name) }) };
       }
       case 'buyBackpack': {
@@ -957,7 +959,7 @@ export class Sim {
     if (!b || !isReady(b)) return { ok: false };
     const kind = interiorKindFor(b.type);
     if (!kind) return { ok: false, message: t('Bu binaya girilemez') };
-    const map = buildInterior(kind, b.furniture);
+    const map = buildInterior(kind, b.furniture, b.level);
     const door = buildingDoorTile(b);
     this.nav.cancel();
     this.interior = { ...map, buildingId: b.id, back: { x: door.x + 0.5, y: door.y + 0.9 } };
@@ -990,7 +992,7 @@ export class Sim {
     const it = this.interior;
     const b = this.buildingById(buildingId);
     if (!it || it.buildingId !== buildingId || !b) return;
-    this.interior = { ...buildInterior(it.kind, b.furniture), buildingId, back: it.back };
+    this.interior = { ...buildInterior(it.kind, b.furniture, b.level), buildingId, back: it.back };
     this.events.emit('interiorChanged', this.interior);
   }
 

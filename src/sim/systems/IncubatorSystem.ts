@@ -19,6 +19,11 @@ export function incubatorHatchDays(b: Building): number {
   return (b.level >= 2 ? buildingDef(b).upgrade?.hatchDays : undefined) ?? BALANCE.eggs.hatchDays;
 }
 
+/** Isı lambası (0.17.3): bu kuluçkada kalan sürenin gerçek karşılığı (yumurta sayacı 1/çarpan hızında azalır). */
+export function incubatorTimeMul(b: Building): number {
+  return b.furniture.includes('heatLamp') ? BALANCE.hatchery.lampTimeMul : 1;
+}
+
 /** Çantadaki yumurtayı kuluçkaya koyar. */
 export function placeEgg(sim: Sim, building: Building, eggId: number): IncubatorResult {
   if (building.type !== 'incubator') return { ok: false, message: t('Bu bir kuluçka değil') };
@@ -50,8 +55,9 @@ export function tickIncubators(sim: Sim, dtMin: number): void {
   for (const b of sim.buildings) {
     if (b.type !== 'incubator' || !isReady(b) || b.eggs.length === 0) continue;
     const hatched: Egg[] = [];
+    const step = dtMin / incubatorTimeMul(b);
     for (const egg of b.eggs) {
-      egg.hatchLeft = Math.max(0, egg.hatchLeft - dtMin);
+      egg.hatchLeft = Math.max(0, egg.hatchLeft - step);
       if (egg.hatchLeft === 0) hatched.push(egg);
     }
     for (const egg of hatched) {

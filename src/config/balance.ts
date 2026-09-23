@@ -149,7 +149,12 @@ export const BALANCE = {
       waterTank: { cost: 350, max: 1 },
       oven2: { cost: 450, max: 1 },
       medCabinet: { cost: 600, max: 1 },
+      heatLamp: { cost: 500, max: 1 },
     },
+  },
+  /** Kuluçka içi (0.17.3): ısı lambası kalan ve yeni çatlama sürelerini bu oranla kısaltır. */
+  hatchery: {
+    lampTimeMul: 0.85,
   },
   /** Veteriner odası içi (0.17.2): aşı ve ilaç dolabı. */
   clinic: {

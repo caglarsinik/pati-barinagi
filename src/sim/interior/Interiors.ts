@@ -4,14 +4,14 @@ import { TileWorld, type TilePos } from '../world/TileWorld';
 import { Ground } from '../world/tiles';
 
 /** Girilebilen binaların iç mekân türü (M15; diğer binalar sonra eklenir). */
-export type InteriorKind = 'office' | 'restRoom' | 'pantry' | 'kitchen' | 'clinic';
+export type InteriorKind = 'office' | 'restRoom' | 'pantry' | 'kitchen' | 'clinic' | 'hatchery';
 
 /** İç mekân eşyası: kare dikdörtgeni katıdır, önünde E ile kullanılır. */
-export type InteriorItemType = 'desk' | 'board' | 'window' | 'bookshelf' | 'coffee' | 'phone' | 'bed' | 'plant' | 'restBoard' | 'sofa' | 'tv' | 'fridge' | 'sacks' | 'ledger' | 'orderBoard' | 'counter' | 'oven' | 'waterTank' | 'spiceRack' | 'foodShelf' | 'examTable' | 'medCabinet' | 'reception' | 'waitChairs' | 'xray';
+export type InteriorItemType = 'desk' | 'board' | 'window' | 'bookshelf' | 'coffee' | 'phone' | 'bed' | 'plant' | 'restBoard' | 'sofa' | 'tv' | 'fridge' | 'sacks' | 'ledger' | 'orderBoard' | 'counter' | 'oven' | 'waterTank' | 'spiceRack' | 'foodShelf' | 'examTable' | 'medCabinet' | 'reception' | 'waitChairs' | 'xray' | 'tray' | 'controlPanel' | 'heatLamp' | 'supplies';
 
 /** İç mekâna satın alınan eşyalar (0.16.3 dinlenme odası). Fiyat ve üst sınır BALANCE.interior.furniture. */
-export type FurnitureType = 'sofa' | 'coffee' | 'tv' | 'fridge' | 'waterTank' | 'oven2' | 'medCabinet';
-export const FURNITURE_TYPES: readonly FurnitureType[] = ['sofa', 'coffee', 'tv', 'fridge', 'waterTank', 'oven2', 'medCabinet'];
+export type FurnitureType = 'sofa' | 'coffee' | 'tv' | 'fridge' | 'waterTank' | 'oven2' | 'medCabinet' | 'heatLamp';
+export const FURNITURE_TYPES: readonly FurnitureType[] = ['sofa', 'coffee', 'tv', 'fridge', 'waterTank', 'oven2', 'medCabinet', 'heatLamp'];
 export const FURNITURE_NAMES_TR: Record<FurnitureType, string> = {
   sofa: 'Kanepe',
   coffee: 'Kahve köşesi',
@@ -20,6 +20,7 @@ export const FURNITURE_NAMES_TR: Record<FurnitureType, string> = {
   waterTank: 'Su deposu',
   oven2: 'İkinci fırın',
   medCabinet: 'İlaç dolabı',
+  heatLamp: 'Isı lambası',
 };
 export const FURNITURE_DESC_TR: Record<FurnitureType, string> = {
   sofa: 'İki kişi oturur; oturanın mola dinlenmesi +%25.',
@@ -29,6 +30,7 @@ export const FURNITURE_DESC_TR: Record<FurnitureType, string> = {
   waterTank: 'Yalaklar saatte iki kat hızlı dolar.',
   oven2: 'Günde 3 pişirme hakkı daha.',
   medCabinet: 'Tedavi ücreti %30 düşer.',
+  heatLamp: 'Yumurtalar %15 daha çabuk çatlar (içerideki yumurtalar da).',
 };
 
 /** Oda türü başına satın alınabilen eşyalar (0.17.0 ortak katalog; mutfak, veteriner, kuluçka sonraki sürümlerde). */
@@ -38,6 +40,7 @@ export const FURNITURE_BY_KIND: Record<InteriorKind, readonly FurnitureType[]> =
   pantry: [],
   kitchen: ['waterTank', 'oven2'],
   clinic: ['medCabinet'],
+  hatchery: ['heatLamp'],
 };
 
 /** Kayıttan gelen eşya listesini temizler: odanın kataloğundaki türler, her türden en çok üst sınır kadar. */
@@ -71,6 +74,8 @@ export interface InteriorItem {
   /** Satın alınan eşya: yalnız binada o türden `slot`tan fazla varsa odada bulunur. */
   buy?: FurnitureType;
   slot?: number;
+  /** Bina bu seviyeye ulaşınca odada bulunur (0.17.3: kuluçka Sv2 ikinci tepsi). */
+  minLevel?: number;
 }
 
 interface InteriorTemplate {
@@ -158,6 +163,18 @@ const TEMPLATES: Record<InteriorKind, InteriorTemplate> = {
       { type: 'waitChairs', x: 7, y: 6, w: 2, h: 1 },
     ],
   },
+  // 0.17.3 kuluçka: tepsiler (slot = tepsi sırası, her biri 3 yumurta; ikincisi Sv2), kontrol paneli (kuluçka paneli),
+  // ısı lambası yuvası, malzeme rafı (eşya al).
+  hatchery: {
+    rows: ['########', '#======#', '#......#', '#......#', '#......#', '###D####'],
+    items: [
+      { type: 'tray', x: 1, y: 2, w: 2, h: 1, slot: 0 },
+      { type: 'controlPanel', x: 3, y: 2, w: 1, h: 1 },
+      { type: 'tray', x: 4, y: 2, w: 2, h: 1, slot: 1, minLevel: 2 },
+      { type: 'heatLamp', x: 6, y: 2, w: 1, h: 1, buy: 'heatLamp' },
+      { type: 'supplies', x: 6, y: 4, w: 1, h: 1 },
+    ],
+  },
 };
 
 /** Kurulmuş iç oda: ayrı küçük dünya (duvarlar katı), kapı karesi ve giriş noktası. */
@@ -181,10 +198,10 @@ const GROUND_OF: Record<string, Ground> = {
 
 /** Binanın iç mekânı varsa türü. */
 export function interiorKindFor(type: BuildingType): InteriorKind | null {
-  return type === 'office' ? 'office' : type === 'staffRoom' ? 'restRoom' : type === 'shed' ? 'pantry' : type === 'kitchen' ? 'kitchen' : type === 'vetClinic' ? 'clinic' : null;
+  return type === 'office' ? 'office' : type === 'staffRoom' ? 'restRoom' : type === 'shed' ? 'pantry' : type === 'kitchen' ? 'kitchen' : type === 'vetClinic' ? 'clinic' : type === 'incubator' ? 'hatchery' : null;
 }
 
-export function buildInterior(kind: InteriorKind, owned: readonly string[] = []): InteriorMap {
+export function buildInterior(kind: InteriorKind, owned: readonly string[] = [], level = 1): InteriorMap {
   const tpl = TEMPLATES[kind];
   const h = tpl.rows.length;
   const w = tpl.rows[0].length;
@@ -197,7 +214,9 @@ export function buildInterior(kind: InteriorKind, owned: readonly string[] = [])
       if (ch === 'D') door = { x, y };
     }
   }
-  const items = tpl.items.filter((it) => !it.buy || owned.filter((o) => o === it.buy).length > (it.slot ?? 0)).map((it) => ({ ...it }));
+  const items = tpl.items
+    .filter((it) => (!it.buy || owned.filter((o) => o === it.buy).length > (it.slot ?? 0)) && level >= (it.minLevel ?? 1))
+    .map((it) => ({ ...it }));
   for (const it of items) {
     for (let y = it.y; y < it.y + it.h; y++) for (let x = it.x; x < it.x + it.w; x++) world.buildingSolid[world.idx(x, y)] = 1;
   }

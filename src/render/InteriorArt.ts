@@ -27,6 +27,14 @@ export function drawInteriorItem(type: InteriorItemType, variant = 3): Pixels {
       return drawBed();
     case 'plant':
       return drawPlant();
+    case 'tray':
+      return drawTray();
+    case 'controlPanel':
+      return drawControlPanel();
+    case 'heatLamp':
+      return drawHeatLamp();
+    case 'supplies':
+      return drawSupplies();
     case 'examTable':
       return drawExamTable();
     case 'medCabinet':
@@ -544,6 +552,66 @@ function drawXray(): Pixels {
   p.fillRect(23, 5, 3, 3, GLASS_LIGHT);
   p.fillRect(12, 3, 1, 2, GLASS);
   p.fillRect(18, 8, 1, 2, GLASS);
+  p.outline(P.outline);
+  return p;
+}
+
+const STRAW = hex(0xe3c16f);
+const STRAW_DARK = hex(0xb8953f);
+
+/** Kuluçka tepsisi: ayaklı sehpa üstünde samanlı tepsi, üç yuva çukuru (yumurtalar sahnede ayrı çizilir). */
+function drawTray(): Pixels {
+  const p = new Pixels(TILE * 2, 20);
+  p.fillRect(3, 11, 2, 9, P.trunk);
+  p.fillRect(27, 11, 2, 9, P.trunk);
+  p.fillRect(1, 9, 30, 3, P.trunkLight);
+  p.fillRect(1, 4, 30, 5, STRAW);
+  p.fillRect(1, 8, 30, 1, STRAW_DARK);
+  for (const cx of [6, 16, 26]) p.ellipse(cx, 6, 4, 1.8, STRAW_DARK);
+  p.outline(P.outline);
+  return p;
+}
+
+/** Kuluçka makinesi: gövde, yeşil sıcaklık göstergesi, kadran ve havalandırma. Duvara taşar. */
+function drawControlPanel(): Pixels {
+  const p = new Pixels(TILE, 28);
+  p.fillRect(1, 2, 14, 26, STEEL);
+  p.fillRect(13, 2, 2, 26, STEEL_DARK);
+  p.fillRect(3, 5, 9, 5, SCREEN);
+  p.fillRect(4, 6, 2, 3, P.grassLight);
+  p.fillRect(7, 6, 2, 3, P.grassLight);
+  p.set(10, 8, P.grassLight);
+  p.ellipse(7.5, 15, 2.5, 2.5, STEEL_DARK);
+  p.set(8, 14, P.flowerRed);
+  for (let y = 20; y < 26; y += 2) p.fillRect(3, y, 9, 1, STEEL_DARK);
+  p.outline(P.outline);
+  return p;
+}
+
+/** Isı lambası: ayaklı gövde, eğik başlık, turuncu-kırmızı ampul ışığı. Duvara taşar. */
+function drawHeatLamp(): Pixels {
+  const p = new Pixels(TILE, 30);
+  p.fillRect(7, 8, 2, 20, STEEL_DARK);
+  p.fillRect(4, 27, 8, 3, STEEL_DARK);
+  p.fillRect(2, 2, 10, 5, SCREEN);
+  p.fillRect(3, 7, 8, 2, hex(0xe4514f));
+  p.fillRect(4, 9, 6, 1, GLOW);
+  p.set(6, 10, P.flowerYellow);
+  p.outline(P.outline);
+  return p;
+}
+
+/** Malzeme rafı: saman balyası ve yumurta kolileri. */
+function drawSupplies(): Pixels {
+  const p = new Pixels(TILE, 26);
+  p.fillRect(1, 2, 14, 24, P.trunk);
+  p.fillRect(2, 10, 12, 1, P.trunkLight);
+  p.fillRect(2, 18, 12, 1, P.trunkLight);
+  p.fillRect(3, 4, 10, 6, STRAW);
+  p.fillRect(3, 6, 10, 1, STRAW_DARK);
+  p.fillRect(3, 13, 10, 5, hex(0xcdb977));
+  for (const x of [4, 7, 10]) p.ellipse(x + 0.5, 14, 1.2, 1, PAPER);
+  p.fillRect(3, 20, 10, 5, hex(0xcdb977));
   p.outline(P.outline);
   return p;
 }

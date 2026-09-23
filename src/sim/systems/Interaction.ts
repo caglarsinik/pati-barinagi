@@ -13,6 +13,8 @@ import { interiorItemAt } from '../interior/Interiors';
 import { WEATHER_NAMES_TR } from './WeatherSystem';
 import { bake, bakeIssue, bakesLeft, kitchenWaterPerHour } from './KitchenSystem';
 import { treatmentCost } from './ClinicSystem';
+import { incubatorSlots, incubatorTimeMul } from './IncubatorSystem';
+import { RARITY_NAMES_TR } from '../entities/DogGenome';
 
 export type Tool = 'pet' | 'play' | 'train' | 'feed' | 'clean' | 'call';
 
@@ -137,6 +139,28 @@ function resolveInterior(sim: Sim, tile: TilePos): ResolvedAction {
       return { kind: 'none', hint: t('TV: molada moral saatte +1'), tile };
     case 'fridge':
       return { kind: 'none', hint: t('Buzdolabı: personel moladan enerjisi tam dolunca döner'), tile };
+    case 'tray': {
+      const b = sim.buildingById(it.buildingId);
+      const first = (item.slot ?? 0) * 3;
+      const eggs = b ? b.eggs.slice(first, first + 3) : [];
+      if (!b || eggs.length === 0) return { kind: 'none', hint: t('Boş tepsi · yumurtayı kontrol panelinden koy'), tile };
+      const mul = incubatorTimeMul(b);
+      const list = eggs.map((e) => t('{rarity} {days} g', { rarity: t(RARITY_NAMES_TR[e.genome.rarity]), days: ((e.hatchLeft * mul) / (24 * 60)).toFixed(1) })).join(' · ');
+      return { kind: 'none', hint: t('Tepsi: {list}', { list }), tile };
+    }
+    case 'controlPanel': {
+      const b = sim.buildingById(it.buildingId);
+      return {
+        kind: 'incubator',
+        hint: t('E: kontrol paneli · yumurta koy/al ({n}/{max})', { n: b?.eggs.length ?? 0, max: b ? incubatorSlots(b) : 0 }),
+        building: b,
+        tile,
+      };
+    }
+    case 'heatLamp':
+      return { kind: 'none', hint: t('Isı lambası: yumurtalar %15 daha çabuk çatlar'), tile };
+    case 'supplies':
+      return { kind: 'restShop', hint: t('E: malzeme rafı · eşya al (ısı lambası)'), building: sim.buildingById(it.buildingId), tile };
     case 'examTable':
       return { kind: 'clinic', hint: t('E: muayene masası · sağlık listesi ve aşı'), tile };
     case 'medCabinet':
@@ -178,6 +202,7 @@ function resolveInterior(sim: Sim, tile: TilePos): ResolvedAction {
         tile,
       };
     default:
+      if (it.kind === 'hatchery') return { kind: 'none', hint: t('Kuluçka · kontrol paneline bakıp E: yumurta koy/al · raf: eşya al · çıkmak için kapıya yürü'), tile };
       if (it.kind === 'clinic') return { kind: 'none', hint: t('Veteriner odası · muayene masasına bakıp E: aşı · resepsiyon: eşya al · çıkmak için kapıya yürü'), tile };
       if (it.kind === 'kitchen') return { kind: 'none', hint: t('Mutfak · fırına bakıp E: ödül maması · tezgâh: eşya al · çıkmak için kapıya yürü'), tile };
       if (it.kind === 'pantry') return { kind: 'none', hint: t('Kiler · deftere bakıp E: sipariş · çıkmak için kapıya yürü'), tile };
@@ -252,7 +277,7 @@ export function resolveAction(sim: Sim): ResolvedAction {
       const names = building.occupants.map((id) => sim.dogById(id)?.name ?? '?').join(', ');
       return { kind: 'kennel', hint: t('E: {name}{who}', { name: t(def.name), who: names ? ` (${names})` : t(' (boş)') }), building };
     }
-    if (building.type === 'incubator') return { kind: 'incubator', hint: t('E: kuluçka'), building };
+    if (building.type === 'incubator') return { kind: 'incubator', hint: t('E: kuluçka') + t(' · ↑ içeri'), building };
     if (building.type === 'kitchen') return { kind: 'enter', hint: t('E: mutfağa gir'), building };
     if (building.type === 'staffRoom') return { kind: 'enter', hint: t('E: dinlenme odasına gir'), building };
     if (building.type === 'nursery') return { kind: 'nursery', hint: building.eggs.length > 0 ? t('E: yuva evi (yumurta hazır)') : t('E: yuva evi'), building };

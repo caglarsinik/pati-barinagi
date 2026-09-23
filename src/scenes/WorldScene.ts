@@ -27,6 +27,7 @@ import { Pixels, hex } from '../render/Pixels';
 import { SEASON_TINT } from '../sim/systems/WeatherSystem';
 import { t } from '../i18n';
 import type { Staff } from '../sim/entities/Staff';
+import { drawEgg } from '../render/EggArt';
 
 type KeyName =
   | 'W' | 'A' | 'S' | 'D' | 'UP' | 'DOWN' | 'LEFT' | 'RIGHT' | 'SHIFT' | 'E' | 'I' | 'B' | 'X' | 'Z' | 'O' | 'N' | 'P' | 'F' | 'TAB' | 'SPACE' | 'ESC'
@@ -98,6 +99,9 @@ export class WorldScene extends Phaser.Scene {
   private weatherZone = new Phaser.Geom.Rectangle(0, 0, 800, 4);
   /** İç oda çizimi (M15): dış haritanın sağ dışında ayrı küçük tilemap ve eşya görselleri. */
   private interiorView: { map: Phaser.Tilemaps.Tilemap; items: Phaser.GameObjects.Image[] } | null = null;
+  /** Kuluçka içindeki yumurta görselleri ve kurulduğu yumurta kümesi (0.17.3). */
+  private interiorEggs: Phaser.GameObjects.Image[] = [];
+  private interiorEggSig = '';
   private buildingImages = new Map<number, Phaser.GameObjects.Image>();
   private dogSprites = new Map<number, Phaser.GameObjects.Sprite>();
   /** Doku temizliği için köpek id → genom. */
@@ -1132,6 +1136,9 @@ export class WorldScene extends Phaser.Scene {
   private showInterior(it: ActiveInterior | null): void {
     const T = GAME.tile;
     const cam = this.cameras.main;
+    for (const e of this.interiorEggs) e.destroy();
+    this.interiorEggs = [];
+    this.interiorEggSig = '';
     if (this.interiorView) {
       for (const img of this.interiorView.items) img.destroy();
       this.interiorView.map.destroy();
@@ -1155,6 +1162,7 @@ export class WorldScene extends Phaser.Scene {
         return this.add.image(ox + item.x * T, bottom, key).setOrigin(0, 1).setDepth(100 + bottom - 1);
       });
       this.interiorView = { map, items };
+      this.syncInteriorEggs();
     } else {
       cam.setBounds(0, 0, this.sim.world.width * T, this.sim.world.height * T);
     }
@@ -1188,6 +1196,34 @@ export class WorldScene extends Phaser.Scene {
       if (item.type !== 'sacks' || !v.items[i]) return;
       const key = this.interiorTexture(item);
       if (v.items[i].texture.key !== key) v.items[i].setTexture(key);
+    });
+    this.syncInteriorEggs();
+  }
+
+  /** Kuluçka içi: tepsilerdeki yumurtalar; yumurta kümesi ya da oda değişince yeniden kurulur. */
+  private syncInteriorEggs(): void {
+    const it = this.sim.interior;
+    const b = it && it.kind === 'hatchery' ? this.sim.buildingById(it.buildingId) : undefined;
+    const sig = it && b ? `${b.eggs.map((e) => e.id).join(',')}|${it.items.length}` : '';
+    if (sig === this.interiorEggSig) return;
+    this.interiorEggSig = sig;
+    for (const e of this.interiorEggs) e.destroy();
+    this.interiorEggs = [];
+    if (!it || !b) return;
+    const T = GAME.tile;
+    const ox = this.interiorOffsetX();
+    const trays = it.items.filter((i) => i.type === 'tray');
+    b.eggs.forEach((egg, i) => {
+      const tray = trays.find((tr) => (tr.slot ?? 0) === Math.floor(i / 3));
+      if (!tray) return;
+      const key = `int-egg-${genomeKey(egg.genome)}`;
+      if (!this.textures.exists(key)) this.textures.addCanvas(key, drawEgg(egg.genome).toCanvas());
+      const img = this.add
+        .image(ox + tray.x * T + 6 + (i % 3) * 10, tray.y * T + 5, key)
+        .setOrigin(0.5, 1)
+        .setScale(0.6)
+        .setDepth(100 + (tray.y + 1) * T);
+      this.interiorEggs.push(img);
     });
   }
 

@@ -57,6 +57,25 @@
   köpek paneli, araç şeridi, alt menü listesi, ana menü, Ayarlar: çakışma yok, taşma yok. Alt menü açılır listesi köpek
   panelinin üstüne gelebilir (geçici popover, üstte kalır) — kabul edildi. Gerçek cihaz testi kullanıcıda.
 
+## 0.17.3 — Kuluçka içi (M16; Claude, 2026-09-23)
+- `interiorKindFor('incubator') = 'hatchery'` (8×6). Kapıda E / binaya dokunmak bugünkü gibi kuluçka paneli (ipucuna
+  " · ↑ içeri"); kapı karesi / ↑ içeri.
+- Şablon öğesine `minLevel` eklendi; `buildInterior(kind, owned, level)` (Sim `enterBuilding`/`refreshInterior` bina
+  seviyesini verir). Eşyalar: tepsi (`tray` 2×1, `slot` = tepsi sırası, 3 yumurta; ikincisi `minLevel: 2`), kontrol paneli
+  (`controlPanel` → kind `incubator` = mevcut kuluçka paneli), ısı lambası (`heatLamp`, satın alınır 500 ₺), malzeme rafı
+  (`supplies` → eşya paneli). `upgradeBuilding` sonrası `refreshInterior` (içerideyken Sv2 tepsisi hemen belirir).
+- `IncubatorSystem.incubatorTimeMul(b)` (lambayla `BALANCE.hatchery.lampTimeMul` 0,85): `tickIncubators` sayacı
+  `dtMin / mul` hızında düşürür → içerideki ve yeni konan yumurtalar %15 çabuk çatlar; `hatchLeft` birimi değişmedi (çantaya
+  alınan yumurta lambasız kuluçkada normal hızda devam eder). Kuluçka panelindeki "n gün kaldı" çarpanla gösterilir.
+- Tepsi ipucu: "Tepsi: Nadir 1,4 g · Sıradan 2,0 g"; boşsa "Boş tepsi · yumurtayı kontrol panelinden koy".
+- `WorldScene.syncInteriorEggs`: kuluçka odasında yumurtalar tepsi çukurlarında `drawEgg` dokusuyla (`int-egg-<genom>`,
+  ölçek 0,6); yumurta kümesi/oda değişince 10 Hz senkronda yeniden kurulur, çıkışta temizlenir.
+- Testler `tests/unit/hatchery.test.ts` (3): Sv1/Sv2 tepsi sayısı, tam oda erişim/çizim; lamba hızı (100 dk → 85 dk'lık
+  tik aynı ilerleme), kapıda E paneli; tepsi ipucu, kontrol paneli, yükseltme odayı yeniler. 345 test.
+- Tarayıcı (812×375): Sv2 kuluçkaya 4 yumurta, kapı karesi → içeri, 4 yumurta görseli, raftan ısı lambası; çıkışta
+  görseller temizlendi; `runTouchScenarios` 10/10.
+- Sıradaki: 0.17.4 cila (otopilot mutfakta ödül maması, dokunma senaryoları 11–12, yardım/README) — M16 son dilimi.
+
 ## 0.17.2 — Veteriner odası içi (M16; Claude, 2026-09-23)
 - `interiorKindFor('vetClinic') = 'clinic'` (10×8). Kapıda E / binaya dokunmak **bugünkü gibi** yakındaki hasta köpeği
   tedavi eder (ipuçlarına " · ↑ içeri"); kapı karesi / ↑ içeri sokar.

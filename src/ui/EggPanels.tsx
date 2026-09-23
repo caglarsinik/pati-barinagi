@@ -4,7 +4,7 @@ import { buildingDef, isReady } from '../sim/entities/Building';
 import { type Egg, eggLook } from '../sim/entities/Egg';
 import { EggIcon } from './EggIcon';
 import { formatMoney } from './format';
-import { incubatorHatchDays, incubatorSlots } from '../sim/systems/IncubatorSystem';
+import { incubatorHatchDays, incubatorSlots, incubatorTimeMul } from '../sim/systems/IncubatorSystem';
 import { showToast, store } from './store';
 
 function EggDetails({ egg }: { egg: Egg }) {
@@ -136,7 +136,7 @@ export function IncubatorPanel() {
                 </div>
               );
             }
-            const daysLeft = egg.hatchLeft / dayMin;
+            const daysLeft = (egg.hatchLeft * incubatorTimeMul(b)) / dayMin;
             return (
               <div key={egg.id} class="inc-slot">
                 <EggIcon genome={egg.genome} scale={3} />

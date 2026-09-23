@@ -183,7 +183,7 @@ export const BUILDING_DEFS: Record<BuildingType, BuildingDef> = {
     cost: 900,
     category: 'buyume',
     solidRows: 'all',
-    desc: 'Yumurtalar 3 günde çıkar. 3 yuva.',
+    desc: 'Yumurtalar 3 günde çıkar. 3 yuva. İçeride tepsilerde görünür; ısı lambası çatlamayı hızlandırır.',
     buildMinutes: 120,
     buildable: true,
     eggSlots: 3,
