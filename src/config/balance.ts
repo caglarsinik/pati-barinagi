@@ -503,6 +503,17 @@ export const BALANCE = {
     campaignVillagerMax: 30,
     campaignRepMul: 2,
     campaignDailyMax: 800,
+    /**
+     * Can dostları (0.21.4): karşılıklı dostluk eşiği, ikili puan artısı, ücret çarpanı, ek itibar, birlikte en düşük puan;
+     * can dostu tek başına gidince kalanın sadakat ve oyun keyfi kaybı.
+     */
+    bondMin: 70,
+    pairBonus: 10,
+    pairFeeMul: 1.7,
+    pairRep: 2,
+    pairMinScore: 50,
+    separationLoyalty: 15,
+    separationPlay: 20,
   },
   /** Belediye hedefleri (0.19.0): ödül çarpanı ve hedef başına itibar. */
   goals: {

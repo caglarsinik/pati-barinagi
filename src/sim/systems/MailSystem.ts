@@ -74,7 +74,15 @@ export const VILLAGE_LETTERS: readonly string[] = [
   'Köyde artık herkes {dog} diye sesleniyor. Bir gün barınağa uğrayıp teşekkür edeceğim.',
 ];
 
-const ALL_LINES = new Set<string>([...Object.values(GREAT_LETTERS).flat(), ...OK_LETTERS, ...HARD_LETTERS, ...VILLAGE_LETTERS]);
+/** İkili sahiplendirme (0.21.4): iki can dostundan söz eden mektuplar; {dog2} öbür köpek. */
+export const PAIR_LETTERS: readonly string[] = [
+  '{dog} ve {dog2} bahçede birlikte koşuyor; ikisini ayırmadığınız için teşekkürler!',
+  '{dog} ve {dog2} aynı sepette uyuyor. Birini sevsek öbürü hemen kıskanıyor!',
+  'İki kat neşe, iki kat tüy! {dog} ve {dog2} evimizi şenlendirdi.',
+  '{dog} ve {dog2} yeni evlerine birlikte alışıyor; birbirlerinden hiç ayrılmıyorlar.',
+];
+
+const ALL_LINES = new Set<string>([...Object.values(GREAT_LETTERS).flat(), ...OK_LETTERS, ...HARD_LETTERS, ...VILLAGE_LETTERS, ...PAIR_LETTERS]);
 const STAGES = Object.keys(STAGE_NAMES_TR) as GrowthStage[];
 
 /** Sahiplendirilen köpeğin ailesinden gelen mektup (0.21.1). Satır Türkçe anahtar olarak saklanır, gösterirken çevrilir. */
@@ -85,12 +93,16 @@ export interface Letter {
   /** Sahiplendirme kaydının anahtarı. */
   key: number;
   dogName: string;
+  /** İkili sahiplendirmede öbür köpek (0.21.4). */
+  dog2?: string;
   from: string;
   type?: AdopterType;
   line: string;
   scene: PhotoScene;
   genome?: DogGenome;
   stage?: GrowthStage;
+  genome2?: DogGenome;
+  stage2?: GrowthStage;
   donation: number;
   rep: number;
   read: boolean;
@@ -138,7 +150,8 @@ export class MailSystem {
       out.push(letter);
       if (letter.donation > 0) sim.addIncome('donation', letter.donation, t('Mektupla bağış: {name}', { name: letter.from }));
       if (letter.rep > 0) sim.reputation = clamp100(sim.reputation + letter.rep);
-      let msg = t('📬 Mektup geldi: {from}, {dog} için yazmış', { from: letter.from, dog: letter.dogName });
+      const dogs = letter.dog2 ? t('{a} ve {b}', { a: letter.dogName, b: letter.dog2 }) : letter.dogName;
+      let msg = t('📬 Mektup geldi: {from}, {dog} için yazmış', { from: letter.from, dog: dogs });
       if (letter.donation > 0) msg += ' · ' + t('+{n} ₺ bağış', { n: letter.donation });
       if (letter.rep > 0) msg += ' · ' + t('itibar +{n}', { n: letter.rep });
       sim.events.emit('letter', letter);
@@ -154,7 +167,8 @@ export class MailSystem {
     const type: AdopterType = r.type ?? 'family';
     const village = r.villager !== undefined;
     const band = r.score >= 70 ? 'great' : r.score >= 50 ? 'ok' : 'hard';
-    const lines = band === 'hard' ? HARD_LETTERS : village ? VILLAGE_LETTERS : band === 'great' ? GREAT_LETTERS[type] : OK_LETTERS;
+    const mate = r.pair !== undefined ? this.sim.adoptions.find((x) => x !== r && x.key === r.key && x.dogName === r.pair) : undefined;
+    const lines = band === 'hard' ? HARD_LETTERS : r.pair !== undefined ? PAIR_LETTERS : village ? VILLAGE_LETTERS : band === 'great' ? GREAT_LETTERS[type] : OK_LETTERS;
     const line = rng.pick(lines);
     let donation = 0;
     let rep = 0;
@@ -168,11 +182,13 @@ export class MailSystem {
       day,
       key: r.key ?? 0,
       dogName: r.dogName,
+      ...(r.pair !== undefined ? { dog2: r.pair } : {}),
       from: r.adopterName,
       ...(r.type ? { type: r.type } : {}),
       line,
       scene: village ? 'village' : TYPE_SCENE[type],
       ...(r.genome ? { genome: { ...r.genome }, stage: r.stage ?? 'adult' } : {}),
+      ...(mate?.genome ? { genome2: { ...mate.genome }, stage2: mate.stage ?? 'adult' } : {}),
       donation,
       rep,
       read: false,
@@ -200,11 +216,14 @@ export class MailSystem {
 
   /** Mektubun metni (dile göre). */
   text(letter: Letter): string {
-    return t(letter.line, { dog: letter.dogName });
+    return t(letter.line, { dog: letter.dogName, dog2: letter.dog2 ?? '' });
   }
 
   toJSON(): { next: number; list: Letter[] } {
-    return { next: this.nextId, list: this.list.map((x) => ({ ...x, ...(x.genome ? { genome: { ...x.genome } } : {}) })) };
+    return {
+      next: this.nextId,
+      list: this.list.map((x) => ({ ...x, ...(x.genome ? { genome: { ...x.genome } } : {}), ...(x.genome2 ? { genome2: { ...x.genome2 } } : {}) })),
+    };
   }
 
   /** Doğrulayarak yükler; eski kayıtta posta boş. */
@@ -225,11 +244,13 @@ export class MailSystem {
         day: num(x.day),
         key: typeof x.key === 'number' && Number.isFinite(x.key) ? x.key : 0,
         dogName: x.dogName.slice(0, 16),
+        ...(typeof x.dog2 === 'string' ? { dog2: x.dog2.slice(0, 16) } : {}),
         from: x.from.slice(0, 40),
         ...(isAdopterType(x.type) ? { type: x.type } : {}),
         line: x.line,
         scene: PHOTO_SCENES.includes(x.scene as PhotoScene) ? (x.scene as PhotoScene) : 'garden',
         ...(isValidGenome(x.genome) ? { genome: { ...x.genome }, stage: STAGES.includes(x.stage as GrowthStage) ? (x.stage as GrowthStage) : 'adult' } : {}),
+        ...(isValidGenome(x.genome2) ? { genome2: { ...x.genome2 }, stage2: STAGES.includes(x.stage2 as GrowthStage) ? (x.stage2 as GrowthStage) : 'adult' } : {}),
         donation: num(x.donation),
         rep: num(x.rep),
         read: x.read === true,

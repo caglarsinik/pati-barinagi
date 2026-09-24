@@ -57,6 +57,26 @@
   köpek paneli, araç şeridi, alt menü listesi, ana menü, Ayarlar: çakışma yok, taşma yok. Alt menü açılır listesi köpek
   panelinin üstüne gelebilir (geçici popover, üstte kalır) — kabul edildi. Gerçek cihaz testi kullanıcıda.
 
+## 0.21.4 — Can dostları: ikili sahiplendirme (M13; Claude, 2026-09-24)
+- Yeni `src/sim/systems/Pairs.ts`: `bondedPartner(sim, dog)` (karşılıklı dostluk = iki yönün küçüğü ≥ `BALANCE.stories.bondMin`
+  70 olan en güçlü barınak köpeği), `pairScore` (iki puanın ortalaması + `pairBonus` 10, en çok 100), `pairIssue` (can dostu mu,
+  tip `pairs` (Öğrenci hayır), ikisi de sahiplendirilebilir ve sert şarta uyuyor, birlikte puan ≥ `pairMinScore` 50; bu
+  yüzden ikiliye geri dönüş yok), `separate` (kalan can dostunun sadakati −15, oyun keyfi −20, 'alert' balonu, "💔 … özlüyor").
+- `AdoptionSystem.adoptPair` (komut `adoptPair { adopterId, dogId, partnerId }`): ücret ×`pairFeeMul` 1,7 (10'a), itibar eşleşme
+  itibarı + `pairRep` 2 (+ tekrar gelen ailede 1), iki kayıt aynı `key`/`family` ile, `pair` birbirinin adı, kayıt ücreti yarı
+  yarıya; `stats.adopted` +2; yalnız ilk kayda `mail.schedule` (tek mektup). `adopt` ve köpek isteği görevi can dostu tek
+  başına gidince `separate`.
+- Mektup: `PAIR_LETTERS` (4, `{dog}` ve `{dog2}`), `Letter.dog2/genome2/stage2` (öbür kayıttan: aynı anahtar ve ad), bildirim
+  "A ve B için yazmış". `ScenePhoto` `genome2` ile iki portre yan yana (`.photo.two`), başlık "A & B"; Posta listesinde
+  "A 💞 B". Albüm girdisinde `pair`, rozet "💞 X ile" (iki girdi aynı mektubu gösterir).
+- Arayüz: masada satırda "💞 Can dostu: X · birlikte puan N" (engel varsa gerekçe) ve "💞 İkisini ver"; köpek panelinde
+  "💞 X ile can dostu" (en yakın dost satırının yerine), listede 💞. Başarım "Can dostları" (planda 0.21.5'teydi; toplam 33).
+- Testler `tests/unit/pairs.test.ts` (4): bağ tespiti (karşılıklı, en güçlü), ikili sahiplendirme (ücret, itibar, iki kayıt,
+  tek mektup ve iki portre, albüm), Öğrenci reddi, ayrılık cezası, birlikte puan <50 (yaşlı iki köpek), kayıt turu. 410 test.
+  Tarayıcı 812×375: masada iki satırda can dostu ve "İkisini ver", ikili mektup "İki kat neşe, iki kat tüy! Kömür ve Boncuk…"
+  fotoğrafta iki köpek, köpek panelinde "💞 Boncuk ile can dostu", listede 💞; dokunma senaryoları 15/15.
+- Sıradaki: 0.21.5 cila (dokunma senaryosu 16, Kontroller'de "Sahiplendirme", "Mektup kutusu" başarımı, belgeler).
+
 ## 0.21.3 — Sahiplendirme günü ve bağış kampanyası (M13; Claude, 2026-09-23)
 - Yeni `src/sim/systems/CampaignSystem.ts` (`sim.campaigns`, durum `SimFlags`'te: `adoptionDay`, `adoptionDayWeek`, `campaignLeft`,
   `campaignWeek`; eski kayıtta 0): `announceAdoptionDay` (300 ₺, defter yeni türü `event` "Etkinlik"; sahiplendirme açıkken,

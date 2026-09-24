@@ -5,6 +5,7 @@ import { t } from '../i18n';
 import { adoptable } from '../sim/entities/Adopter';
 import { type Dog, STAGE_NAMES_TR } from '../sim/entities/Dog';
 import { DogPortrait } from './DogPortrait';
+import { bondedPartner } from '../sim/systems/Pairs';
 import { store } from './store';
 
 type SortKey = 'name' | 'stage' | 'mood' | 'hunger' | 'thirst' | 'hygiene' | 'health' | 'loyalty' | 'training' | 'kennel';
@@ -157,7 +158,7 @@ export function DogList() {
                 <td>
                   <b>{d.name}</b>
                   {d.sick ? ' 🤒' : ''}
-                  {d.bestFriend() ? ' 🐾' : ''}
+                  {bondedPartner(sim, d) ? ' 💞' : d.bestFriend() ? ' 🐾' : ''}
                   {d.walking ? ' 🦮' : ''}
                   {d.keep ? ' 🔒' : ''}
                 </td>

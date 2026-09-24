@@ -15,6 +15,7 @@ import { Obj } from '../world/tiles';
 import type { AdoptionRecord } from './AdoptionSystem';
 import { facingFor } from './VillagerSystem';
 import { VILLAGER_ADOPTER_TYPE } from '../entities/AdopterType';
+import { bondedPartner, separate } from './Pairs';
 
 /** Köylü görevleri (0.20.4): kayıp köpek, köpek isteği, ödül maması. */
 export type QuestKind = 'lost' | 'pup' | 'treats';
@@ -266,7 +267,9 @@ export class QuestSystem {
         record.look = owner.look;
       }
       dog.walking = false;
+      const partner = bondedPartner(sim, dog);
       sim.removeDog(dog.id);
+      separate(sim, partner);
       sim.adoptions.push(record);
       sim.mail.schedule(record);
       sim.stats.adopted++;

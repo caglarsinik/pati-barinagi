@@ -41,7 +41,12 @@ export function AlbumPanel() {
             const r = e.record;
             const T = r.type ? ADOPTER_TYPES[r.type] : null;
             const text = e.letter ? sim.mail.text(e.letter) : '';
-            const badges = [e.village ? '🏘️ ' + t('köyde') : '', e.returning ? '🔁 ' + t('tekrar gelen aile') : '', e.returned ? '↩️ ' + t('geri döndü') : ''].filter(Boolean);
+            const badges = [
+              e.pair ? '💞 ' + t('{name} ile', { name: e.pair }) : '',
+              e.village ? '🏘️ ' + t('köyde') : '',
+              e.returning ? '🔁 ' + t('tekrar gelen aile') : '',
+              e.returned ? '↩️ ' + t('geri döndü') : '',
+            ].filter(Boolean);
             return (
               <div key={e.index} class="album-card">
                 <ScenePhoto scene={e.scene} genome={r.genome} stage={r.stage} caption={r.dogName} small />

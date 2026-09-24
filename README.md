@@ -237,6 +237,11 @@ toplamaya arsadan en çok 40 kare uzağa gider, köyün çevresine hiç gitmez. 
   yuvasına kavuştuysa itibar +2. **Bağış kampanyası** (150 ₺): 3 gün boyunca her gün 11:00'de mutlu mezun aileleri (eşleşme ≥70,
   geri getirmemiş; aile başına bir kez) 20–60 ₺ × cömertlik, köy bulunduysa köylüler 10–30 ₺ bağışlar, üstüne itibar × 2 ₺;
   günde en çok 800 ₺. Defterde yeni tür "Etkinlik"; sabah raporu ikisini de hatırlatır.
+- **Can dostları** (0.21.4): karşılıklı dostluğu 70 ve üstü olan iki köpek can dostudur (köpek panelinde "💞 X ile can
+  dostu", listede 💞). Masada bu köpeklerin satırında "💞 Can dostu: X · birlikte puan N" ve **"💞 İkisini ver"** çıkar: puan
+  iki puanın ortalaması +10, ücret ×1,7, itibar +2 ek; Öğrenci iki köpek almaz, birlikte puan en az 50 olmalı. İkisi aynı
+  yuvaya gider, aile tek mektupla ikisinden söz eder (fotoğrafta ikisi yan yana), albümde 💞. Can dostu tek başına verilirse
+  kalanın sadakati −15, oyun keyfi −20 düşer ("💔 X can dostunu özlüyor"). Başarım "Can dostları".
 
 ## Personel ve görevlendirme
 
@@ -366,7 +371,7 @@ Görevi olan köylünün başında soru balonu çıkar; sabah raporu kalan süre
 
 ## Başarımlar
 
-H tuşu ya da ofis panelinden 32 başarımın listesi açılır (ilk yumurta, 10 sahiplendirme, 95+ eşleşme, 1,4 denetim çarpanı, 20.000 ₺, efsanevi köpek, bir yıl dayanmak...). Her başarım açıldığında itibar +1 verir; kayıtla korunur.
+H tuşu ya da ofis panelinden 33 başarımın listesi açılır (ilk yumurta, 10 sahiplendirme, 95+ eşleşme, 1,4 denetim çarpanı, 20.000 ₺, efsanevi köpek, bir yıl dayanmak...). Her başarım açıldığında itibar +1 verir; kayıtla korunur.
 
 ## Dil
 
@@ -441,7 +446,8 @@ Bilgisayar değiştirirken ya da yedek almak için kullan.
 - [x] 0.21.1 Mektup ve fotoğraf: aile 3–7 gün sonra yazar, köpek yeni evinde fotoğrafta, harika eşleşmede bağış ve itibar; 📬 Posta
 - [x] 0.21.2 Mezunlar albümü (fotoğraf, yıldız, rozet, son mektup) ve tekrar gelen aileler (eski köpeğiyle gelir)
 - [x] 0.21.3 Sahiplendirme günü (300 ₺, ertesi gün ×3 sahiplenici, balonlar) ve bağış kampanyası (150 ₺, 3 gün mezun aileleri bağışlar)
-- [ ] M13 Sahiplendirme Hikâyeleri (dilimlendi, `docs/PLAN.md` §7): 0.21.0 ✅ kimlik → 0.21.1 ✅ mektup ve fotoğraf → 0.21.2 ✅ mezunlar albümü + tekrar gelen aileler → 0.21.3 ✅ sahiplendirme günü + bağış kampanyası → 0.21.4 can dostları → 0.21.5 cila
+- [x] 0.21.4 Can dostları: karşılıklı dostluk ≥70 olan iki köpek birlikte verilir (ücret ×1,7, tek mektup), ayrılırsa kalan üzülür
+- [ ] M13 Sahiplendirme Hikâyeleri (dilimlendi, `docs/PLAN.md` §7): 0.21.0 ✅ kimlik → 0.21.1 ✅ mektup ve fotoğraf → 0.21.2 ✅ mezunlar albümü + tekrar gelen aileler → 0.21.3 ✅ sahiplendirme günü + bağış kampanyası → 0.21.4 ✅ can dostları → 0.21.5 cila
 - [ ] Sonrası: yuva evi içi, kuzey/batı arsa genişletme; isteğe bağlı terk edilmiş ev + taş/odun
 
 ## Geliştirme

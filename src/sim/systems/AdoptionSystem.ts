@@ -3,6 +3,7 @@ import { PERSON_NAMES } from '../../content/names';
 import { type Adopter, adoptable, matchScore, randomRequest, requestFee } from '../entities/Adopter';
 import { ADOPTER_TYPES, type AdopterType, VILLAGER_ADOPTER_TYPE, adopterIdentity, typedFee, withTypeLikes } from '../entities/AdopterType';
 import { familyLast, pickReturningFamily } from './Stories';
+import { bondedPartner, pairIssue, pairScore, separate } from './Pairs';
 import type { GrowthStage } from '../entities/Dog';
 import type { DogGenome } from '../entities/DogGenome';
 import { buildingDoorTile } from '../entities/Building';
@@ -37,6 +38,8 @@ export interface AdoptionRecord {
   lettered?: boolean;
   /** Aile (0.21.2): ailenin ilk sahiplendirme anahtarı; tekrar gelen ailede eski kayıtla aynı. */
   family?: number;
+  /** İkili sahiplendirme (0.21.4): birlikte giden can dostunun adı (iki kayıt aynı anahtarı taşır). */
+  pair?: string;
 }
 
 export interface PendingReturn {
@@ -273,7 +276,10 @@ export class AdoptionSystem {
     sim.stats.adopted++;
     sim.events.emit('emote', { kind: 'adopter', id: a.id, emote: 'heart', seconds: 3 });
     const saved = dog.toJSON();
+    // Can dostu tek başına gidiyorsa (0.21.4) kalan üzülür.
+    const partner = bondedPartner(sim, dog);
     sim.removeDog(dog.id);
+    separate(sim, partner);
     if (score < 50 && sim.rng.chance(B.returnChanceBadMatch)) {
       sim.pendingReturns.push({ day: sim.clock.day + B.returnAfterDays, dog: saved, adopterName: a.name, key: a.id });
     } else {
@@ -287,6 +293,59 @@ export class AdoptionSystem {
     let message = t('{dog}, {person} ile yeni evine gitti (+{fee} ₺, {rep})', { dog: dog.name, person: a.name, fee: a.fee, rep: repText });
     if (old) message += ' · ' + t('🔁 {dog}, {old} ile tanışacak', { dog: dog.name, old: old.dogName });
     return { ok: true, message: record.villager !== undefined ? message + ' · ' + t('onu köyde görebilirsin') : message };
+  }
+
+  /**
+   * İkili sahiplendirme (0.21.4): can dostu iki köpek aynı aileye. Puan iki puanın ortalaması + artı, ücret ×1,7, ek itibar;
+   * iki kayıt aynı anahtarla (birbirinin adını taşır), tek mektup ikisinden söz eder. Birlikte puan en az 50 (geri dönüş yok).
+   */
+  adoptPair(adopterId: number, dogId: number, partnerId: number): { ok: boolean; message?: string } {
+    const sim = this.sim;
+    const a = sim.adopters.find((x) => x.id === adopterId);
+    const dog = sim.dogById(dogId);
+    const partner = sim.dogById(partnerId);
+    if (!a || !dog || !partner || a.state !== 'waiting') return { ok: false, message: t('Sahiplenici artık burada değil') };
+    if (!sim.policies.adoptionsOpen) return { ok: false, message: t('Sahiplendirme kapalı') };
+    const why = pairIssue(sim, a, dog, partner);
+    if (why) return { ok: false, message: why };
+    const B = BALANCE.adoption;
+    const S = BALANCE.stories;
+    const score = pairScore(a, dog, partner);
+    const fee = Math.round((a.fee * S.pairFeeMul) / 10) * 10;
+    const old = a.family !== undefined ? familyLast(sim, a.family) : null;
+    const rep = (score >= 70 ? B.repGood + Math.round((score - 70) / 10) : B.repOk) + S.pairRep + (old ? S.returnRep : 0);
+    sim.reputation = clamp100(sim.reputation + rep);
+    sim.addIncome('adoption', fee, `${dog.name} + ${partner.name} → ${a.name}`);
+    const base = {
+      day: sim.clock.day,
+      adopterName: a.name,
+      fee: Math.round(fee / 2),
+      score,
+      key: a.id,
+      type: a.type,
+      look: a.look,
+      family: a.family ?? a.id,
+      ...(a.villager !== undefined ? { villager: a.villager } : {}),
+    };
+    const recA: AdoptionRecord = { ...base, dogName: dog.name, genome: { ...dog.genome }, stage: dog.stage, pair: partner.name };
+    const recB: AdoptionRecord = { ...base, dogName: partner.name, genome: { ...partner.genome }, stage: partner.stage, pair: dog.name };
+    sim.adoptions.push(recA, recB);
+    sim.stats.adopted += 2;
+    sim.events.emit('emote', { kind: 'adopter', id: a.id, emote: 'heart', seconds: 3 });
+    sim.removeDog(dog.id);
+    sim.removeDog(partner.id);
+    // Tek mektup: ilk kayıt yazılır, ikisinden söz eder.
+    sim.mail.schedule(recA);
+    this.leave(a);
+    let message = t('💞 {dog} ve {dog2}, {person} ile birlikte yeni evine gitti (+{fee} ₺, {rep})', {
+      dog: dog.name,
+      dog2: partner.name,
+      person: a.name,
+      fee,
+      rep: t('itibar +{n}', { n: rep }),
+    });
+    if (old) message += ' · ' + t('🔁 {dog}, {old} ile tanışacak', { dog: dog.name, old: old.dogName });
+    return { ok: true, message };
   }
 
   /** Sahiplendirme kapatıldı: bekleyen ve yoldaki sahiplenicileri itibar kaybı olmadan uğurlar. */

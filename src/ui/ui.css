@@ -1497,6 +1497,10 @@ select,
   bottom: 2px;
 }
 
+.photo.two .photo-scene .portrait + .portrait {
+  margin-left: -18px;
+}
+
 .photo.small .photo-paw {
   font-size: 1.6rem;
   margin-bottom: 8px;

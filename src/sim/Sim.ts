@@ -210,7 +210,8 @@ export type Command =
   | { type: 'questAbandon'; id: number }
   | { type: 'readMail'; id?: number }
   | { type: 'announceAdoptionDay' }
-  | { type: 'startCampaign' };
+  | { type: 'startCampaign' }
+  | { type: 'adoptPair'; adopterId: number; dogId: number; partnerId: number };
 
 /** Tam ekran haritada konan işaret (0.18.1; kayıtta). color: 0-4 renk sırası. */
 export interface MapMarker {
@@ -936,6 +937,8 @@ export class Sim {
       }
       case 'adopt':
         return this.adoption.adopt(cmd.adopterId, cmd.dogId);
+      case 'adoptPair':
+        return this.adoption.adoptPair(cmd.adopterId, cmd.dogId, cmd.partnerId);
       case 'declineAdopter':
         return { ok: this.adoption.decline(cmd.adopterId) };
       case 'hire':

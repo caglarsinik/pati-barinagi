@@ -22,12 +22,31 @@ const SCENE_PROPS: Record<PhotoScene, string> = {
 };
 
 /** Polaroid fotoğraf: köpek yeni evinde (mektupta büyük, albümde küçük; görünümü yoksa pati silüeti). */
-export function ScenePhoto({ scene, genome, stage, caption, small = false }: { scene: PhotoScene; genome?: DogGenome; stage?: GrowthStage; caption: string; small?: boolean }) {
+export function ScenePhoto({
+  scene,
+  genome,
+  stage,
+  genome2,
+  stage2,
+  caption,
+  small = false,
+}: {
+  scene: PhotoScene;
+  genome?: DogGenome;
+  stage?: GrowthStage;
+  /** İkili sahiplendirmede öbür köpek (0.21.4): iki köpek yan yana. */
+  genome2?: DogGenome;
+  stage2?: GrowthStage;
+  caption: string;
+  small?: boolean;
+}) {
+  const scale = small ? (genome2 ? 1.6 : 2) : genome2 ? 2.4 : 3;
   return (
-    <div class={'photo scene-' + scene + (small ? ' small' : '')}>
+    <div class={'photo scene-' + scene + (small ? ' small' : '') + (genome2 ? ' two' : '')}>
       <div class="photo-scene">
         <span class="photo-props">{SCENE_PROPS[scene]}</span>
-        {genome ? <DogPortrait genome={genome} stage={stage ?? 'adult'} scale={small ? 2 : 3} /> : <span class="photo-paw">🐾</span>}
+        {genome ? <DogPortrait genome={genome} stage={stage ?? 'adult'} scale={scale} /> : <span class="photo-paw">🐾</span>}
+        {genome2 && <DogPortrait genome={genome2} stage={stage2 ?? 'adult'} scale={scale} />}
       </div>
       <span class="photo-caption">{caption}</span>
     </div>
@@ -35,7 +54,16 @@ export function ScenePhoto({ scene, genome, stage, caption, small = false }: { s
 }
 
 export function LetterPhoto({ letter }: { letter: Letter }) {
-  return <ScenePhoto scene={letter.scene} genome={letter.genome} stage={letter.stage} caption={letter.dogName} />;
+  return (
+    <ScenePhoto
+      scene={letter.scene}
+      genome={letter.genome}
+      stage={letter.stage}
+      genome2={letter.genome2}
+      stage2={letter.stage2}
+      caption={letter.dog2 ? letter.dogName + ' & ' + letter.dog2 : letter.dogName}
+    />
+  );
 }
 
 /** Posta (0.21.1): sahiplendirilen köpeklerin ailelerinden gelen fotoğraflı mektuplar; açılan mektup okundu sayılır. */
@@ -86,6 +114,7 @@ export function MailPanel() {
                 <button key={l.id} class={'adopter-card' + (l.id === open.id ? ' active' : '') + (l.read ? '' : ' unread')} onClick={() => setOpen(l.id)}>
                   <div class="adopter-name">
                     {l.read ? '✉️' : '📩'} <b>{l.dogName}</b>
+                    {l.dog2 ? ' 💞 ' + l.dog2 : ''}
                     {l.donation > 0 && <span class="small-text"> · +{formatMoney(l.donation)}</span>}
                   </div>
                   <div class="muted small-text">

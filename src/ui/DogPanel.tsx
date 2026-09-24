@@ -1,3 +1,4 @@
+import { bondedPartner } from '../sim/systems/Pairs';
 import { useState } from 'preact/hooks';
 import { app } from '../app';
 import { t } from '../i18n';
@@ -70,6 +71,7 @@ export function DogPanel() {
   const kennels = sim.buildings.filter((b) => (b.type === 'kennelSmall' || b.type === 'kennelLarge') && sim.kennelHasRoom(b, dog));
   const bf = dog.bestFriend();
   const friend = bf ? sim.dogById(bf.id) : undefined;
+  const partner = bondedPartner(sim, dog);
   const why = adoptable(dog);
   const lin = lineageOf(sim, dog);
   const close = (): void => {
@@ -116,7 +118,15 @@ export function DogPanel() {
             {t(STATE_TR[dog.state] ?? dog.state)}
             {dog.illness ? ` · ${t('HASTA')}: ${t(ILLNESS_NAMES_TR[dog.illness.kind])}` : dog.sick ? ` · ${t('HASTA')}` : ''}
           </div>
-          <div class="muted">{friend && bf ? t('En yakın dostu: {name} (+{score})', { name: friend.name, score: Math.round(bf.score) }) : t('Henüz dostu yok')}</div>
+          <div class="muted">
+            {partner ? (
+              <b>{t('💞 {name} ile can dostu', { name: partner.name })}</b>
+            ) : friend && bf ? (
+              t('En yakın dostu: {name} (+{score})', { name: friend.name, score: Math.round(bf.score) })
+            ) : (
+              t('Henüz dostu yok')
+            )}
+          </div>
           <div class="muted">
             {dog.parentNames ? t('Soy: {a} × {b}', { a: dog.parentNames[0], b: dog.parentNames[1] }) : dog.origin === 'stray' ? t('Sokaktan geldi') : t('Yuvadan bulunan yumurta')}
           </div>

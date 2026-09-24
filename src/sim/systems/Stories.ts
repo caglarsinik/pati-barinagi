@@ -67,6 +67,8 @@ export interface AlbumEntry {
   /** Tekrar gelen ailenin sahiplendirmesi. */
   returning: boolean;
   returned: boolean;
+  /** İkili sahiplendirmede birlikte giden can dostu (0.21.4). */
+  pair: string | null;
   letter: Letter | null;
 }
 
@@ -90,6 +92,7 @@ export function albumEntries(sim: Sim, filter: AlbumFilter = 'all'): AlbumEntry[
       village,
       returning: r.family !== undefined && r.key !== undefined && r.family !== r.key,
       returned: r.returned === true,
+      pair: r.pair ?? null,
       letter,
     });
   }

@@ -6,6 +6,7 @@ import { t } from '../i18n';
 import { adoptable, hardMismatch, likeHits, matchScore, requestText } from '../sim/entities/Adopter';
 import { ADOPTER_TYPES } from '../sim/entities/AdopterType';
 import { familyLast } from '../sim/systems/Stories';
+import { bondedPartner, pairIssue, pairScore } from '../sim/systems/Pairs';
 import { STAGE_NAMES_TR } from '../sim/entities/Dog';
 import { DIFFICULTY_NAMES_TR } from '../sim/Sim';
 import { LEDGER_NAMES_TR, type LedgerCategory, licenseUpgradeCost, projectCash } from '../sim/systems/EconomySystem';
@@ -253,7 +254,11 @@ export function AdoptionDesk() {
               </div>
               {rows.length === 0 && <p class="muted small-text">{t('Barınakta köpek yok.')}</p>}
               {kept > 0 && <p class="muted small-text">{t('{n} köpek tutuluyor (listede yok)', { n: kept })}</p>}
-              {rows.map(({ dog, score, why }) => (
+              {rows.map(({ dog, score, why }) => {
+                // Can dostu (0.21.4): ikisini birlikte verme seçeneği.
+                const partner = bondedPartner(sim, dog);
+                const pairWhy = partner ? pairIssue(sim, selected, dog, partner) : null;
+                return (
                 <div key={dog.id} class={'match-row' + (why || score === 0 ? ' disabled' : '')}>
                   <DogPortrait genome={dog.genome} stage={dog.stage} scale={1.5} />
                   <div class="match-info">
@@ -265,6 +270,12 @@ export function AdoptionDesk() {
                       {why ? <span class="bad">{why}</span> : score >= 70 ? t('Harika eşleşme') : score >= 50 ? t('İdare eder') : t('Zayıf eşleşme (geri gelebilir)')}
                       {!why && likeHits(dog, selected.request) > 0 ? ' · 💛 ' + t('sevdiği gibi') : ''}
                     </div>
+                    {partner && (
+                      <div class="small-text">
+                        💞 {t('Can dostu: {name}', { name: partner.name })}
+                        {pairWhy ? <span class="muted"> · {pairWhy}</span> : ' · ' + t('birlikte puan {n}', { n: pairScore(selected, dog, partner) })}
+                      </div>
+                    )}
                   </div>
                   <div class={'score' + (score >= 70 ? ' good' : score >= 50 ? ' mid' : ' low')}>{score}</div>
                   <button
@@ -278,8 +289,22 @@ export function AdoptionDesk() {
                   >
                     {t('Sahiplendir')}
                   </button>
+                  {partner && (
+                    <button
+                      class="btn small"
+                      disabled={pairWhy !== null}
+                      onClick={() => {
+                        const r = sim.command({ type: 'adoptPair', adopterId: selected.id, dogId: dog.id, partnerId: partner.id });
+                        run(r);
+                        if (r.ok) audio.play('adopt');
+                      }}
+                    >
+                      {t('💞 İkisini ver')}
+                    </button>
+                  )}
                 </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </div>
