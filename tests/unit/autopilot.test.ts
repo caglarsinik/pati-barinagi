@@ -532,3 +532,22 @@ describe('Otopilot 4: köy, tabela ve görevler (0.20.5)', () => {
     expect(w.objectAt(bush.x, bush.y)).toBe(Obj.BerryBush);
   });
 });
+
+describe('Otopilot 5: sahiplendirme hikâyeleri (0.21.5)', () => {
+  it('bekleyen sahiplenici ve gelen mektup varken otopilot sahiplendirmez, etkinlik ilan etmez, kampanya başlatmaz', () => {
+    const sim = pilotOn(1351);
+    calmDogs(sim);
+    sim.clock.totalMinutes = 10 * 60 + 58;
+    const a = sim.adoption.spawnAdopter()!;
+    a.state = 'waiting';
+    a.request = {};
+    sim.adoptions.push({ day: 1, dogName: 'Eski', adopterName: 'Ayşe Kaya', fee: 100, score: 90, key: 9001, family: 9001, type: 'family', letterDay: 1 });
+    const adopted = sim.stats.adopted;
+    runSeconds(sim, 30);
+    expect(sim.mail.list.length).toBe(1);
+    expect(sim.stats.adopted).toBe(adopted);
+    expect(sim.flags.adoptionDay).toBe(0);
+    expect(sim.flags.campaignLeft).toBe(0);
+    expect(sim.autopilot).toBe(true);
+  });
+});

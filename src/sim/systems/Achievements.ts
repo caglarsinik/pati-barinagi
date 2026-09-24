@@ -42,6 +42,7 @@ export const ACHIEVEMENTS: AchievementDef[] = [
   },
   { id: 'graduates-25', name: 'Mezunlar', desc: '25 köpeği yeni yuvasına gönder.', check: (s) => s.stats.adopted >= 25 },
   { id: 'bonded-pair', name: 'Can dostları', desc: 'İki can dostunu aynı yuvaya birlikte gönder.', check: (s) => s.adoptions.some((r) => r.pair !== undefined) },
+  { id: 'mailbox', name: 'Mektup kutusu', desc: 'Sahiplendirdiğin köpeklerin ailelerinden 10 mektup al.', check: (s) => s.adoptions.filter((r) => r.lettered).length >= 10 },
   { id: 'healer', name: 'Şifacı', desc: '10 hastalığı tedaviyle geçir.', check: (s) => s.stats.cured >= 10 },
   { id: 'builder', name: 'Mimar', desc: '10 inşaat yap.', check: (s) => s.stats.built >= 10 },
   { id: 'explorer', name: 'Kâşif', desc: 'Haritanın yarısını keşfet.', check: (s) => s.exploredCount >= s.world.width * s.world.height * 0.5 },

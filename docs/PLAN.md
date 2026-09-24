@@ -528,7 +528,7 @@ dokunmak ya da ↑ basılı tutmak içeri. Eşya fiyatları ortak katalogda (`BA
 | 0.17.3 ✅ | Kuluçka içi: tepsilerde yumurtalar (Sv2'de iki tepsi), ısı lambası (süre ×0,85) |
 | 0.17.4 ✅ | Cila: otopilot mutfakta ödül maması, dokunma senaryoları 11–12, yardım |
 
-### M13 Sahiplendirme Hikâyeleri (2026-09-23 dilimlendi: 0.21.0–0.21.5)
+### M13 Sahiplendirme Hikâyeleri (2026-09-23 dilimlendi; tamamlandı: 0.21.0–0.21.5)
 
 Köylü sahipleniciler, köyde görünen köpekler ve postane mektupları M11'de geldi (0.20.2, 0.20.4); M13 bunların üstüne kurulur.
 Kişilik boy/yaş sert şartlarını değiştirmez; kimlik, mektup, bağış ve tekrar gelme ayrı RNG'den (ana sıra değişmez).
@@ -540,7 +540,7 @@ Kişilik boy/yaş sert şartlarını değiştirmez; kimlik, mektup, bağış ve 
 | 0.21.2 ✅ | Mezunlar albümü (fotoğraf, yıldız, rozetler, son mektup; Tümü / Mektuplu / Köyde) + tekrar gelen aileler (≥70, geri getirmemiş, en az 7 gün, en çok 3; eski köpeğiyle gelir; ücret ×1,25, sabır ×1,5, itibar +1) |
 | 0.21.3 ✅ | Sahiplendirme günü (300 ₺, haftada bir, ertesi gün ×3 sahiplenici ve tavan 6, sabır ×1,5, balonlar; ≥3 sahiplendirmede itibar +2) + bağış kampanyası (150 ₺, haftada bir, 3 gün 11:00'de mutlu mezun aileleri ve köylüler, itibar tabanı, tavan 800) |
 | 0.21.4 ✅ | Can dostları: karşılıklı dostluk ≥ 70 olan iki köpek birlikte verilir (puan ortalama +10, en az 50; ücret ×1,7, itibar +2; Öğrenci almaz; tek mektup, fotoğrafta ikisi); ayrı verilirse kalanın sadakati −15, oyun keyfi −20 |
-| 0.21.5 | Cila: dokunma senaryosu 16, Kontroller'de "Sahiplendirme", başarımlar, belgeler |
+| 0.21.5 ✅ | Cila: dokunma senaryosu 16 (masa → sahiplendir → mektup, panel açılmaz, otopilot karışmaz → Posta → albüm), Kontroller'de "Sahiplendirme", "Mektup kutusu" başarımı ("Can dostları" 0.21.4'te), README "Sahiplendirme hikâyeleri" bölümü |
 
 Özgün notlar:
 - Sahiplenici kimliği: 100+ isim, 6 kişilik tipi, tekrar gelen sahiplenici.

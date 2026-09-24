@@ -213,6 +213,12 @@ toplamaya arsadan en çok 40 kare uzağa gider, köyün çevresine hiç gitmez. 
 - **Sahiplendirmeyi kapatmak:** ofisteki ya da masadaki "Sahiplendirmeye açık" anahtarı kapalıyken sahiplenici gelmez,
   bekleyenler itibar kaybı olmadan uğurlanır (üst şeritte 🚫 çipi, alt menüde rozet). **Bu köpeği tut:** köpek panelindeki
   kutu o köpeği sahiplendirme listesinden çıkarır (listede 🔒, "Tutulan" filtresi).
+
+## Sahiplendirme hikâyeleri
+
+Sahiplendirme bir veda değil, hikâyenin başlangıcıdır (M13, 0.21.0–0.21.5). Kontroller'deki "Sahiplendirme" bölümü özetini
+verir; dokunma senaryosu 16 bütün zinciri dener (ofiste masa → sahiplendir → mektup gelir → Posta → albüm).
+
 - **Sahiplenici kimliği** (0.21.0): her sahiplenicinin adı soyadı ve altı kişilik tipinden biri vardır: 👨‍👩‍👧 Aile, 👵 Emekli,
   🏃 Sporcu, 🎒 Öğrenci, 🚜 Çiftçi, 🎨 Sanatçı. Kartın "Sever:" satırı tipin sevdiklerini yazar (yavru ya da genç, sakin,
   enerjik, küçük ya da büyük boy, nadir köpek…): uyan her özellik eşleşmeye +6 katar ("💛 sevdiği gibi"), uymaması puan
@@ -242,6 +248,8 @@ toplamaya arsadan en çok 40 kare uzağa gider, köyün çevresine hiç gitmez. 
   iki puanın ortalaması +10, ücret ×1,7, itibar +2 ek; Öğrenci iki köpek almaz, birlikte puan en az 50 olmalı. İkisi aynı
   yuvaya gider, aile tek mektupla ikisinden söz eder (fotoğrafta ikisi yan yana), albümde 💞. Can dostu tek başına verilirse
   kalanın sadakati −15, oyun keyfi −20 düşer ("💔 X can dostunu özlüyor"). Başarım "Can dostları".
+- **Mektup kutusu** (0.21.5): sahiplendirdiğin köpeklerin ailelerinden 10 mektup alınca açılan başarım. Otopilot sahiplendirmez,
+  etkinlik ilan etmez ve kampanya başlatmaz; mektup bildirimleri panel açmaz.
 
 ## Personel ve görevlendirme
 
@@ -371,7 +379,7 @@ Görevi olan köylünün başında soru balonu çıkar; sabah raporu kalan süre
 
 ## Başarımlar
 
-H tuşu ya da ofis panelinden 33 başarımın listesi açılır (ilk yumurta, 10 sahiplendirme, 95+ eşleşme, 1,4 denetim çarpanı, 20.000 ₺, efsanevi köpek, bir yıl dayanmak...). Her başarım açıldığında itibar +1 verir; kayıtla korunur.
+H tuşu ya da ofis panelinden 34 başarımın listesi açılır (ilk yumurta, 10 sahiplendirme, 95+ eşleşme, 1,4 denetim çarpanı, 20.000 ₺, efsanevi köpek, bir yıl dayanmak...). Her başarım açıldığında itibar +1 verir; kayıtla korunur.
 
 ## Dil
 
@@ -447,7 +455,7 @@ Bilgisayar değiştirirken ya da yedek almak için kullan.
 - [x] 0.21.2 Mezunlar albümü (fotoğraf, yıldız, rozet, son mektup) ve tekrar gelen aileler (eski köpeğiyle gelir)
 - [x] 0.21.3 Sahiplendirme günü (300 ₺, ertesi gün ×3 sahiplenici, balonlar) ve bağış kampanyası (150 ₺, 3 gün mezun aileleri bağışlar)
 - [x] 0.21.4 Can dostları: karşılıklı dostluk ≥70 olan iki köpek birlikte verilir (ücret ×1,7, tek mektup), ayrılırsa kalan üzülür
-- [ ] M13 Sahiplendirme Hikâyeleri (dilimlendi, `docs/PLAN.md` §7): 0.21.0 ✅ kimlik → 0.21.1 ✅ mektup ve fotoğraf → 0.21.2 ✅ mezunlar albümü + tekrar gelen aileler → 0.21.3 ✅ sahiplendirme günü + bağış kampanyası → 0.21.4 ✅ can dostları → 0.21.5 cila
+- [x] 0.21.5 Cila: dokunma senaryosu 16 (sahiplendirme hikâyesi), Kontroller'de "Sahiplendirme", "Mektup kutusu" başarımı — M13 Sahiplendirme Hikâyeleri tamam
 - [ ] Sonrası: yuva evi içi, kuzey/batı arsa genişletme; isteğe bağlı terk edilmiş ev + taş/odun
 
 ## Geliştirme
@@ -459,11 +467,12 @@ npm run build     # dist/index.html
 ```
 
 Dokunma testleri: oyunu `?touch=1&debug=1` ile açıp bir oyun başlatınca konsolda `__pati.debug.runTouchScenarios()`
-15 senaryoyu koşar ve `{ summary, results }` döndürür: 1–12 sabit tohumlu hazır barınakta (eğit → yürü, E düğmesi,
+16 senaryoyu koşar ve `{ summary, results }` döndürür: 1–12 sabit tohumlu hazır barınakta (eğit → yürü, E düğmesi,
 pinch + iptal, takılı parmak, yönetim modu, uzun basış, köpeğin dibinde dokunuş, otopilot, ofis ve kiler iç mekânları),
 13 kuruluş oyununda (hedef "Göster" → dokunarak kulübe, kap, yalak, kuluçka → üç belediye hedefi), 14–15 taze hazır oyunda
 köyde (tabelaya dokun → hızlı seyahat paneli → köye git; görev panosu → kayıp köpeği bul → panoda teslim, otopilot panoyu
-açmadan eve yürür). Senaryolar açık oyunun
+açmadan eve yürür), 16 taze hazır oyunda sahiplendirme hikâyesi (ofiste masaya dokun → bilgisayar → sahiplendir → mektup
+gelir, panel açılmaz, otopilot karışmaz → Posta → albüm). Senaryolar açık oyunun
 yerine kendi test oyununu kurar; test oyunu kaydedilmez, yeni oyun ya da devam et ile normal oyuna dönülür. `__pati.debug.snapshot()` o anki
 dokunma/yürüyüş durumunu verir. `?debug=1` olmadan kanca bağlanmaz. Gerçek cihaz kontrol listesi: `docs/CLAUDE_HANDOFF.md`.
 

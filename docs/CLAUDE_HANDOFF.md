@@ -57,6 +57,21 @@
   köpek paneli, araç şeridi, alt menü listesi, ana menü, Ayarlar: çakışma yok, taşma yok. Alt menü açılır listesi köpek
   panelinin üstüne gelebilir (geçici popover, üstte kalır) — kabul edildi. Gerçek cihaz testi kullanıcıda.
 
+## 0.21.5 — Cila: sahiplendirme hikâyesi senaryosu, yardım (M13 son dilimi; Claude, 2026-09-24)
+- Dokunma senaryosu 16 (`src/debug/touchDebug.ts`, taze hazır oyun, tohum 1942): ofis kapısından içeri, masaya dokun →
+  bilgisayar paneli; sahiplendir (masa komutu); otopilot açıkken mektup gününe atla, 11:00'de mektup gelir (`letter` olayı),
+  panel kendiliğinden açılmaz, otopilot sahiplendirmez/ilan etmez/kampanya başlatmaz; Posta'da okundu; albümün ilk kartı aynı
+  kayıt ve mektup. 16/16. Not: senaryo gövdesinde `store.panel.value = 'none'` atamasından sonra TS değeri daraltır; karşılaştırma
+  `(store.panel.value as string)` ile.
+- Kontroller'de yeni "Sahiplendirme" bölümü (`ADOPT_ROWS`: kişilik, mektup, mezunlar, tekrar gelen aile, sahiplendirme günü,
+  bağış kampanyası, can dostları). Başarım "Mektup kutusu" (`lettered` kayıt ≥ 10; toplam 34).
+- `tests/unit/autopilot.test.ts` "Otopilot 5": bekleyen sahiplenici ve gelen mektup varken otopilot sahiplendirmez, etkinlik ve
+  kampanya başlatmaz. 411 test.
+- README: M13 maddeleri "Ekonomi ve sahiplendirme"den yeni "Sahiplendirme hikâyeleri" bölümüne taşındı; dokunma testleri
+  paragrafı 16 senaryo; durum listesinde M13 tamam. PLAN M13 tablosu tamam.
+- **M13 Sahiplendirme Hikâyeleri tamam** (0.21.0–0.21.5). Sıradaki: kullanıcı seçer (isteğe bağlı terk edilmiş ev + taş/odun,
+  yuva evi içi, kuzey/batı arsa genişletme, açık küçük işler).
+
 ## 0.21.4 — Can dostları: ikili sahiplendirme (M13; Claude, 2026-09-24)
 - Yeni `src/sim/systems/Pairs.ts`: `bondedPartner(sim, dog)` (karşılıklı dostluk = iki yönün küçüğü ≥ `BALANCE.stories.bondMin`
   70 olan en güçlü barınak köpeği), `pairScore` (iki puanın ortalaması + `pairBonus` 10, en çok 100), `pairIssue` (can dostu mu,

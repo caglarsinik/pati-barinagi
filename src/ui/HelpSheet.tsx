@@ -40,6 +40,17 @@ const WORLD_ROWS: Array<[string, string]> = [
   ['🤖 Otopilot', 'Yalnız barınak işlerini yapar: köy, tabela, köylü ve görev işlerine dokunmaz, barınaktan uzaktaki yuva ve çalılara gitmez.'],
 ];
 
+/** [konu, açıklama] Sahiplendirme hikâyeleri (0.21.5). */
+const ADOPT_ROWS: Array<[string, string]> = [
+  ['👵 Kişilik', 'Sahiplenicinin tipi (Aile, Emekli, Sporcu, Öğrenci, Çiftçi, Sanatçı) ücreti ve sabrı değiştirir; "Sever:" özelliklerine uyan köpek +6 puan alır.'],
+  ['📬 Mektup', "Sahiplendirmeden 3–7 gün sonra 11:00'de aile yazar: fotoğraf, harika eşleşmede bağış ve itibar. ☰ Menü → Posta."],
+  ['📖 Mezunlar', 'Sahiplendirdiğin bütün köpekler fotoğrafları, yıldızları ve rozetleriyle. ☰ Menü → Mezunlar.'],
+  ['🔁 Tekrar gelen aile', 'Mutlu aile en az 7 gün sonra eski köpeğiyle yeniden gelebilir; ücret ve sabır artar.'],
+  ['🎈 Sahiplendirme günü', 'Ofis bilgisayarından ya da masadan (300 ₺, haftada bir): ertesi gün sahipleniciler üç kat, kapıda balonlar.'],
+  ['📣 Bağış kampanyası', "Ofis bilgisayarından (150 ₺, haftada bir): 3 gün boyunca 11:00'de mutlu mezun aileleri ve köylüler bağışlar."],
+  ['💞 Can dostları', 'Karşılıklı dostluğu 70+ iki köpek masada "İkisini ver" ile birlikte gider; ayrılırsa kalan üzülür.'],
+];
+
 /** [hareket, ne yapar] */
 const TOUCH_ROWS: Array<[string, string]> = [
   ['Dokun', 'Avatar oraya yürür (yol bulur)'],
@@ -122,6 +133,19 @@ export function HelpSheet() {
           <table class="help-table">
             <tbody>
               {WORLD_ROWS.map(([k, v]) => (
+                <tr key={k}>
+                  <td>{t(k)}</td>
+                  <td>{t(v)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        <h4>{t('Sahiplendirme')}</h4>
+        <div class="table-scroll">
+          <table class="help-table">
+            <tbody>
+              {ADOPT_ROWS.map(([k, v]) => (
                 <tr key={k}>
                   <td>{t(k)}</td>
                   <td>{t(v)}</td>

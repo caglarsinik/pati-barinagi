@@ -19,6 +19,7 @@ import { resolveAction } from '../sim/systems/Interaction';
 import { interiorItemAt } from '../sim/interior/Interiors';
 import { signposts } from '../sim/world/Signposts';
 import { questBoardTile } from '../sim/world/Village';
+import { albumEntries } from '../sim/systems/Stories';
 
 export interface ScenarioResult {
   name: string;
@@ -40,7 +41,7 @@ export interface DebugApp {
   showBuild(target: BuildingType | 'plot'): void;
 }
 
-/** Senaryoların sabit tohumları (0.19.3): 1–12 hazır barınakta, 13 kuruluşta; 14–15 taze hazır oyunda köy (0.20.5). */
+/** Senaryoların sabit tohumları (0.19.3): 1–12 hazır barınakta, 13 kuruluşta; 14–15 taze hazır oyunda köy (0.20.5), 16 sahiplendirme hikâyesi (0.21.5). */
 const SCENARIO_SEED_READY = 1942;
 const SCENARIO_SEED_GUIDED = 1913;
 
@@ -538,6 +539,71 @@ export function createTouchDebug(app: DebugApp) {
         return [
           panel && accepted && found && paid && noPanel && homeward,
           `panel=${panel} kabul=${accepted} bulundu=${found} teslim=${paid} otopilot: pano=${noPanel ? 'kapalı' : 'açıldı'} eve=${homeward}`,
+        ];
+      });
+
+      // 16 (0.21.5): sahiplendirme hikâyesi, taze hazır oyunda.
+      scenario('16 ofiste masaya dokun → bilgisayar → sahiplendir → mektup gelir (panel açılmaz, otopilot karışmaz) → Posta → albüm', () => {
+        const sg = freshGame('ready', SCENARIO_SEED_READY);
+        api.cancelTouches();
+        store.panel.value = 'none';
+        const srun = (frames: number, until?: () => boolean): void => {
+          for (let i = 0; i < frames && !(until && until()); i++) sg.update(1 / 30);
+        };
+        const office = sg.buildings.find((b) => b.type === 'office' && isReady(b));
+        if (!office) return [false, 'ofis yok'];
+        const door = buildingDoorTile(office);
+        sg.player.x = door.x + 0.5;
+        sg.player.y = door.y + 0.9;
+        api.tapTile(office.x + 1.5, office.y + 1.5);
+        srun(300, () => sg.interior !== null);
+        const it = sg.interior;
+        const desk = it?.items.find((i) => i.type === 'desk');
+        if (!it || !desk) return [false, `içeri=${!!it} masa=${!!desk}`];
+        api.tapTile(desk.x + 0.5, desk.y + 0.5);
+        srun(300, () => store.panel.value === 'computer');
+        // store.panel yukarıda 'none' atandı; TS daraltmasın diye genişletilir.
+        const computer = (store.panel.value as string) === 'computer';
+        // Bilgisayardaki "Sahiplendirme" ve masadaki "Sahiplendir" düğmelerinin yolu.
+        store.panel.value = 'adoption';
+        sg.clock.totalMinutes = 10 * 60;
+        const dog = sg.shelterDogs()[0];
+        dog.needs.health = 100;
+        dog.needs.hygiene = 100;
+        dog.needs.loyalty = 100;
+        const a = sg.adoption.spawnAdopter();
+        if (!a) return [false, 'sahiplenici gelmedi'];
+        a.state = 'waiting';
+        a.request = {};
+        const adopted = sg.command({ type: 'adopt', adopterId: a.id, dogId: dog.id }).ok;
+        store.panel.value = 'none';
+        sg.exitInterior();
+        const rec = sg.adoptions[sg.adoptions.length - 1];
+        if (!adopted || rec?.letterDay === undefined) return [false, `sahiplendi=${adopted}`];
+        // Günler geçer, otopilot açık: mektup 11:00'de gelir; panel açılmaz, otopilot sahiplendirmez ya da ilan etmez.
+        sg.setAutopilot(true);
+        const adopted0 = sg.stats.adopted;
+        let lettered = false;
+        const off = sg.events.on('letter', () => (lettered = true));
+        sg.clock.totalMinutes = (rec.letterDay - 1) * 24 * 60 + 10 * 60 + 58;
+        sg.stepSim(3);
+        srun(90);
+        off();
+        const noPanel = store.panel.value === 'none';
+        const pilotOk = sg.stats.adopted === adopted0 && sg.flags.adoptionDay === 0 && sg.flags.campaignLeft === 0;
+        sg.setAutopilot(false);
+        sg.nav.cancel();
+        // ☰ Menü → Posta: mektup okunur; albümde kart aynı mektupla.
+        store.panel.value = 'mail';
+        const L = sg.mail.list[sg.mail.list.length - 1];
+        const read = !!L && sg.command({ type: 'readMail', id: L.id }).ok && sg.mail.unread() === 0;
+        store.panel.value = 'album';
+        const card = albumEntries(sg)[0];
+        const inAlbum = !!L && card?.record === rec && card.letter?.id === L.id;
+        store.panel.value = 'none';
+        return [
+          computer && adopted && lettered && noPanel && pilotOk && read && inAlbum,
+          `bilgisayar=${computer} sahiplendi=${adopted} mektup=${lettered} panel=${noPanel ? 'kapalı' : 'açıldı'} otopilot=${pilotOk ? 'karışmadı' : 'karıştı'} okundu=${read} albüm=${inAlbum}`,
         ];
       });
 
