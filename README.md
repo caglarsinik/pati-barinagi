@@ -118,7 +118,8 @@ kendiliğinden açılır; Ayarlar → Dokunmatik kontroller ile Otomatik / Açı
 
 - **Dokun:** avatar oraya yürür (yol bulur). **Köpeğe / binaya / yuvaya dokun:** yanına gidip işini yapar (sev, kabı doldur,
   yumurta al, temizle). **Uzun bas:** köpeği seçer. Klavye girişi ya da yönetim modu yolu iptal eder.
-- **E düğmesi** (sağ alt) baktığın işi yazar ve yapar; **Koş** anahtarı koşarak yürütür.
+- **E düğmesi** (sağ alt) baktığın işi iki satıra kadar yazar ve yapar (köpek işinde üstte fiil, altta köpeğin adı: "Sev ·
+  Kestane"; iş yoksa "Yakında iş yok"); **Koş** anahtarı koşarak yürütür. İpucu satırı dokunmatikte klavye kısayolu yazmaz.
 - **🤖 (üst şerit):** otopilotu açar; karakter barınağın işlerini kendisi yapar, haritaya dokununca kapanır (bkz. "Otopilot").
 - **İki parmak:** yakınlaştırır, yönetim modunda kaydırır. **Sürükle (yönetim):** kamerayı kaydırır; araç seçiliyken çit/yol/bölge çizer;
   aracı bırakmak için ipucu satırındaki İptal, kare olmayan binayı döndürmek için Döndür.
@@ -129,6 +130,11 @@ kendiliğinden açılır; Ayarlar → Dokunmatik kontroller ile Otomatik / Açı
   🛠 Yönet / 🧍 Avatar. Parçalar tek bir "rıhtım" satırında durduğu için hiçbir ekran boyutunda üst üste binmez
   (568×320'den itibaren); üst şerit ve rıhtım yükseklikleri ölçülür, köpek paneli aralarına sığar. Ana menü kısa
   ekranda iki sütun olur.
+- **Tablette** de üst şerit kısa kontrollerle (⏸, döngülü hız, 🤖, 🛠 Yönet) gelir; sağdaki kontroller hiçbir genişlikte
+  kesilmez, sığmazsa soldaki durum çipleri daralıp kayar. Kısa ekranda ☰ Menü listesi iki sütun açılır ve üst şeridin
+  altında kalır; inşa çubuğunun sekmeleri telefonda tek satırda kayar (Yık ve Kapat sağda sabit). Dünyada köpek, personel
+  ve sahiplenici adları birbirinin ve uyarı balonlarının üstüne binmez: yer kalmayan ad o an gizlenir (seçili köpeğinki hep
+  görünür).
 - Yüksek çözünürlüklü ekranlarda piksel sanatı tam ölçekte (cihaz piksel oranı 2'ye kadar) çizilir.
 
 ## Otopilot
@@ -456,6 +462,7 @@ Bilgisayar değiştirirken ya da yedek almak için kullan.
 - [x] 0.21.3 Sahiplendirme günü (300 ₺, ertesi gün ×3 sahiplenici, balonlar) ve bağış kampanyası (150 ₺, 3 gün mezun aileleri bağışlar)
 - [x] 0.21.4 Can dostları: karşılıklı dostluk ≥70 olan iki köpek birlikte verilir (ücret ×1,7, tek mektup), ayrılırsa kalan üzülür
 - [x] 0.21.5 Cila: dokunma senaryosu 16 (sahiplendirme hikâyesi), Kontroller'de "Sahiplendirme", "Mektup kutusu" başarımı — M13 Sahiplendirme Hikâyeleri tamam
+- [x] 0.21.6 Arayüz denetimi: telefon (568×320–915×412), tablet (768×1024–1180×820) ve masaüstünde 59 ekranda taşan, kesilen, üst üste binen yazılar düzeltildi; dünya adları çakışmaz; `__pati.debug.auditScreens()`
 - [ ] Sonrası: yuva evi içi, kuzey/batı arsa genişletme; isteğe bağlı terk edilmiş ev + taş/odun
 
 ## Geliştirme
@@ -474,7 +481,11 @@ köyde (tabelaya dokun → hızlı seyahat paneli → köye git; görev panosu �
 açmadan eve yürür), 16 taze hazır oyunda sahiplendirme hikâyesi (ofiste masaya dokun → bilgisayar → sahiplendir → mektup
 gelir, panel açılmaz, otopilot karışmaz → Posta → albüm). Senaryolar açık oyunun
 yerine kendi test oyununu kurar; test oyunu kaydedilmez, yeni oyun ya da devam et ile normal oyuna dönülür. `__pati.debug.snapshot()` o anki
-dokunma/yürüyüş durumunu verir. `?debug=1` olmadan kanca bağlanmaz. Gerçek cihaz kontrol listesi: `docs/CLAUDE_HANDOFF.md`.
+dokunma/yürüyüş durumunu verir. Arayüz denetimi (0.21.6): `await __pati.debug.auditScreens()` zengin bir test oyununda
+59 ekranı (HUD hâlleri, inşa sekmeleri, açılır menüler, bütün paneller ve sekmeleri, raporlar, ana menü) sırayla açar ve
+kutusundan taşan, kesilen, üç noktayla kısalan, ekran dışında kalan, yatay kayan ya da üst üste binen yazı/kutuları
+listeler; `__pati.debug.summarizeAudit(sonuç.screens)` aynı sorunu tek satırda toplar, `__pati.debug.layoutAudit()` yalnız
+o anki ekranı denetler. Telefon/tablet boyutu pencereden gelir. `?debug=1` olmadan kanca bağlanmaz. Gerçek cihaz kontrol listesi: `docs/CLAUDE_HANDOFF.md`.
 
 Kod yapısı:
 

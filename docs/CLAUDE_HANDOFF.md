@@ -57,6 +57,37 @@
   köpek paneli, araç şeridi, alt menü listesi, ana menü, Ayarlar: çakışma yok, taşma yok. Alt menü açılır listesi köpek
   panelinin üstüne gelebilir (geçici popover, üstte kalır) — kabul edildi. Gerçek cihaz testi kullanıcıda.
 
+## 0.21.6 — Arayüz denetimi: telefon ve tablette taşan/çakışan yazılar (Claude, 2026-09-26)
+- Kullanıcı isteği: "tüm fonksiyonları özellikle telefon ve tablet için … yazılar taşıyor mu, çakışma var mı; varsa düzelt".
+- Yeni `src/debug/layoutAudit.ts` (yalnız `?debug=1`, `__pati.debug`): `layoutAudit()` o anki DOM'da kutusundan taşan
+  (spill), kırpılan (clip), üç noktayla kısalan (ellipsis), ekran dışı (offscreen), dikey kutuda yatay kayan (hscroll) ve
+  aynı katmanda üst üste binen yazı/kutu (text-text, text-box, box-box) sorunlarını bulur; katmanlar (.overlay, .toasts,
+  .nav-menu…) ve bilerek bindirilen süsler (rozet, mini harita düğmesi, fotoğraf içi) sayılmaz. `richGame()` dolu test
+  oyunu (10 köpek, 16 harflik adlar, binalar, personel, yumurtalar, mektuplar, görevler), `auditScreens(only?, keep?)` 59
+  ekranı açıp denetler (sekmelere de basar), `summarizeAudit` özet. Boyut pencereden: 568×320, 667×375, 740×360, 812×375,
+  915×412, 768×1024, 800×1280, 820×1180, 1024×768 (dokunmatik ve fare), 1180×820, 1280×720; TR ve EN.
+- Düzeltmeler:
+  - E düğmesi: dokunmatikte genel ipucu klavye yazıyordu ("…E: etkileşim · I: köpek listesi…") ve düğme bunu iş sanıp etkin
+    kalıyordu → dokunmatikte klavyesiz ipuçları (`hintFor`, `buildToolHint(tool, touch)`), `actionLabel` (store.ts) ipucundan
+    işi alır, parantez içini atar; etiket iki satır; köpek işinde fiil + köpeğin adı (`DOG_VERBS`).
+  - Üst şerit: grid `minmax(0,1fr) auto minmax(min-content,1fr)` → sağ kontroller kesilmez, sol çipler daralıp kayar;
+    tablet ve dokunmatikte kısa kontroller (⏸, döngülü hız, 🤖, 🛠 Yönet; ≤719 px'te yalnız simge); dar masaüstünde mevsim
+    adı gizli (`.tb-season`, simge kalır).
+  - ☰ Menü: kısa ekranda iki sütun, en fazla üst şeride kadar (`useLayoutEffect` max-height) ve kendi içinde kayar; ilk ve
+    son grubun listesi kenara hizalı; dokunmatikte kısayol rozetleri gizli.
+  - Alt menü: düğmelerin kesin genişliği (66/50/46/40 px) ve `min-width: min(44px, 100%)` → yuvalar eşit daralır, düğme
+    yuvadan taşmaz; dar düğmede etiket küçülür (`@container (max-width: 57px)`). İpucu satırı iki satıra kadar kırılır.
+  - İnşa çubuğu: sekmeler `.build-tab-list` içinde (masaüstünde `display: contents`), telefonda tek satır kayar; Yık/Kapat
+    sağda, dokunmatikte kısayolsuz.
+  - Sahiplendirme masası (≤899 px): `.adopt-layout` `align-items: stretch` (kart şeridi paneli yana taşırmıyor; Posta da).
+  - `.row > select { min-width: 0 }`, köpek panelinde kulübe satırı, ofis düğmeleri ve köpek listesi süzgeçleri `row wrap`.
+  - Görevlendirme öncelikleri: tablo yalnız fareli ≥1280 px'te; dokunmatikte ve dar ekranda kişi başına kart.
+  - Mini harita ✕ düğmesi ekrandan taşmıyor (`right: -6px`). EN: 'Yönetim' → 'Manage', kuruluş seçeneği kısaltıldı.
+  - Dünya adları (`OverlayScene`): öncelik sırasıyla yerleşir (seçili köpek > balonlu > oyuncuya yakın); ad önceki bir ad ya
+    da balonla çakışırsa o kare gizlenir, balon kalır.
+- `tests/unit/layoutAudit.test.ts` (3): `actionLabel`, dokunmatik inşa ipuçları, özet. 414 test; dokunma senaryoları 16/16;
+  bütün boyutlarda Türkçe denetim 0 sorun (EN'de tablet dikeyde "Achievements" etiketi 3–9 px üç nokta).
+
 ## 0.21.5 — Cila: sahiplendirme hikâyesi senaryosu, yardım (M13 son dilimi; Claude, 2026-09-24)
 - Dokunma senaryosu 16 (`src/debug/touchDebug.ts`, taze hazır oyun, tohum 1942): ofis kapısından içeri, masaya dokun →
   bilgisayar paneli; sahiplendir (masa komutu); otopilot açıkken mektup gününe atla, 11:00'de mektup gelir (`letter` olayı),

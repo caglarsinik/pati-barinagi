@@ -20,6 +20,7 @@ import { interiorItemAt } from '../sim/interior/Interiors';
 import { signposts } from '../sim/world/Signposts';
 import { questBoardTile } from '../sim/world/Village';
 import { albumEntries } from '../sim/systems/Stories';
+import { type AuditApp, auditScreens, layoutAudit, summarizeAudit } from './layoutAudit';
 
 export interface ScenarioResult {
   name: string;
@@ -77,7 +78,7 @@ export function freeTileNear(sim: Sim, dist: number): TilePos | null {
   return null;
 }
 
-export function createTouchDebug(app: DebugApp) {
+export function createTouchDebug(app: DebugApp & AuditApp) {
   const need = (): { sim: Sim; scene: WorldScene } => {
     const sim = app.sim;
     const scene = app.game?.scene.getScene('World') as WorldScene | undefined;
@@ -115,6 +116,10 @@ export function createTouchDebug(app: DebugApp) {
   };
 
   const api = {
+    /** Arayüz yerleşim denetimi (0.21.6): o anki ekran ya da bütün paneller; özet aynı sorunu tek satırda toplar. */
+    layoutAudit,
+    auditScreens: (only?: string, keep?: boolean) => auditScreens(app, only, keep),
+    summarizeAudit,
     /** Kısa dokunuş (dünya karesi, ondalıklı). */
     tapTile(wx: number, wy: number, id = 1): void {
       const { scene } = need();

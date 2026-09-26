@@ -75,7 +75,6 @@ html.is-touch .prio {
 }
 
 html.is-touch .nav-item {
-  flex-basis: 66px;
   height: 58px;
 }
 
@@ -104,6 +103,11 @@ html.is-touch input[type='checkbox'] {
 
 html.is-touch .nav-menu-item {
   padding: 10px 12px;
+}
+
+/* Dokunmatikte klavye kısayolu rozetleri gösterilmez. */
+html.is-touch .nmi-key {
+  display: none;
 }
 
 html.is-touch .build-item {
@@ -141,13 +145,35 @@ html.is-touch .build-item {
   line-height: 1;
 }
 
+/* E düğmesinin iş etiketi iki satıra kadar (0.21.6: tek satırda "Kestane'i s…" kesiliyordu). */
 .action-label {
   font-size: 0.6rem;
   font-weight: 700;
+  line-height: 1.15;
   max-width: 64px;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  text-align: center;
+}
+
+.action-label.one {
+  -webkit-line-clamp: 1;
+  line-clamp: 1;
+}
+
+.action-name {
+  font-size: 0.55rem;
+  font-weight: 600;
+  max-width: 60px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  opacity: 0.85;
 }
 
 /* --- Telefon sayfaları ve dikey uyarısı --- */
@@ -254,10 +280,19 @@ html.is-touch .build-item {
   }
 }
 
+/* Dar masaüstünde mevsim ve hava adı gizli (simge kalır; ayrıntı üst şeridin başlığında). */
+@media (max-width: 1279px) {
+  .tb-season {
+    display: none;
+  }
+}
+
 /* Sahiplendirme masası: dar ekranda sütunlar alt alta, sahiplenici kartları yatay kaydırılır */
 @media (max-width: 899px) {
   .adopt-layout {
     flex-direction: column;
+    /* Sütunlar kutu genişliğinde: kart şeridi kendi içinde kayar, paneli yana taşırmaz. */
+    align-items: stretch;
   }
 
   .adopter-list {
@@ -309,14 +344,13 @@ html.is-touch .build-item {
 
   /* Alt menü öğeleri daralabilir; E düğmesi küçülür. */
   .nav-item {
-    width: auto;
-    flex: 0 1 46px;
-    min-width: 36px;
+    width: 46px;
+    min-width: min(36px, 100%);
     height: 42px;
   }
 
   html.is-touch .nav-item {
-    flex-basis: 50px;
+    width: 50px;
     height: 46px;
   }
 
@@ -331,7 +365,7 @@ html.is-touch .build-item {
   }
 
   .action-label {
-    max-width: 54px;
+    max-width: 56px;
   }
 
   .run-toggle {
@@ -353,6 +387,40 @@ html.is-touch .build-item {
 
   .build-item {
     flex: none;
+  }
+
+  /* İnşa sekmeleri tek satırda kayar (çubuk üç satır olup ekranın yarısını kaplıyordu); Yık/Kapat sağda kalır. */
+  .build-tabs {
+    flex-wrap: nowrap;
+  }
+
+  .build-tabs .spacer {
+    display: none;
+  }
+
+  .build-tab-list {
+    display: flex;
+    gap: 4px;
+    flex: 1 1 auto;
+    min-width: 0;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+
+  .build-tab-list::-webkit-scrollbar {
+    display: none;
+  }
+
+  .build-tab-list > .btn,
+  .build-tabs > .btn {
+    flex: none;
+  }
+
+  /* Kısa ekranda uzun menü listesi iki sütun. */
+  .nav-menu {
+    display: grid;
+    grid-template-columns: repeat(2, max-content);
   }
 
   .nav-label {
@@ -411,7 +479,8 @@ html.is-touch .build-item {
 /* --- Çok dar telefon (<= 719): ikincil çipler gizli, üst şerit kaydırılır --- */
 @media (max-width: 719px) {
   .topbar .chip-food,
-  .topbar .chip-rep {
+  .topbar .chip-rep,
+  .topbar .tb-label {
     display: none;
   }
 }
@@ -426,7 +495,7 @@ html.is-touch .build-item {
 
   .nav-item,
   html.is-touch .nav-item {
-    flex-basis: 40px;
+    width: 40px;
     height: 38px;
   }
 

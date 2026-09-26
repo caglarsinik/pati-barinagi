@@ -232,7 +232,8 @@ export function DeploymentPanel() {
     setShift(s, h);
     last.current = { staff: s.id, hour: h };
   };
-  const compact = store.layout.value !== 'desktop';
+  // Öncelik tablosu (7 görev × 6 düğme) ancak ~1280 px'e sığar; dar ekranda ve dokunmatikte kişi başına kart.
+  const compact = store.layout.value !== 'desktop' || store.touch.value || window.innerWidth < 1280;
   return (
     <div class="overlay">
       <div class="menu-card panel wide deployment">

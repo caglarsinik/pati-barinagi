@@ -216,31 +216,48 @@ export function rotateBuildTool(): boolean {
   return true;
 }
 
-export function buildToolHint(tool: BuildTool): string {
+/** İnşa aracının ipucu; dokunmatikte klavye/fare kısayolları yazılmaz (Döndür ve İptal ipucu satırında düğme). */
+export function buildToolHint(tool: BuildTool, touch = store.touch.value): string {
   switch (tool.kind) {
     case 'building': {
       const d = BUILDING_DEFS[tool.type];
+      if (touch) return t('{name} ({cost} ₺) · dokun: yerleştir', { name: t(d.name), cost: d.cost });
       if (canRotate(tool.type)) return t('{name} ({cost} ₺) · tıkla: yerleştir · R: döndür · sağ tık/Esc: iptal', { name: t(d.name), cost: d.cost });
       return t('{name} ({cost} ₺) · tıkla: yerleştir · sağ tık/Esc: iptal', { name: t(d.name), cost: d.cost });
     }
     case 'tile': {
       const d = TILE_TOOL_DEFS[tool.tool];
+      if (touch) return t('{name} ({cost} ₺/kare) · sürükle: çizgi çek', { name: t(d.name), cost: d.cost });
       return t('{name} ({cost} ₺/kare) · sürükle: çizgi çek · Esc: iptal', { name: t(d.name), cost: d.cost });
     }
     case 'demolish':
-      return t('Yık · tıkla: kaldır (yarısı iade) · Esc: iptal');
-    case 'zone':
-      return t('{zone} · sürükle: dikdörtgen boya · Esc: iptal', { zone: tool.zone === Zone.None ? t('Bölge sil') : t(ZONE_NAMES_TR[tool.zone]) });
+      return touch ? t('Yık · dokun: kaldır (yarısı iade)') : t('Yık · tıkla: kaldır (yarısı iade) · Esc: iptal');
+    case 'zone': {
+      const zone = tool.zone === Zone.None ? t('Bölge sil') : t(ZONE_NAMES_TR[tool.zone]);
+      return touch ? t('{zone} · sürükle: dikdörtgen boya', { zone }) : t('{zone} · sürükle: dikdörtgen boya · Esc: iptal', { zone });
+    }
     default:
       return '';
   }
 }
 
+/**
+ * E düğmesinin etiketi (dokunmatik): ipucundaki "E: …" işi, parantez içi ayrıntı (porsiyon, yüzde, fiyat) atılır; iş yoksa
+ * null (düğme "Yakında iş yok"). Otopilot açıkken ipucu "🤖 … · E: …" olur.
+ */
+export function actionLabel(hint: string): string | null {
+  const m = /(?:^|· )E: (.+)$/.exec(hint);
+  if (!m) return null;
+  return m[1].replace(/\s*\([^)]*\)/g, '').trim() || m[1];
+}
+
 function hintFor(sim: Sim): string {
-  if (sim.paused && store.build.value.kind === 'none') return t('Duraklatıldı · Space: devam');
+  const touch = store.touch.value;
+  if (sim.paused && store.build.value.kind === 'none') return touch ? t('Duraklatıldı · ▶ ile devam') : t('Duraklatıldı · Space: devam');
   if (sim.mode === 'manage') {
-    const bt = buildToolHint(store.build.value);
+    const bt = buildToolHint(store.build.value, touch);
     if (bt) return bt;
+    if (touch) return t('Yönetim modu · sürükle: kaydır · iki parmak: yakınlaştır');
     return t('Yönetim modu · B: inşa · sağ tık ya da WASD: kaydır · Tekerlek: yakınlaştır · Tab: avatara dön');
   }
   if (sim.player.exhausted) return t('Nefesin kesildi, biraz yürü');
@@ -248,5 +265,7 @@ function hintFor(sim: Sim): string {
   // Otopilot açıkken durum metni; önünde yapılacak iş varsa E etiketi de kalsın (TouchControls 'E:' arar).
   if (sim.autopilot) return action.hint.startsWith('E:') ? `${sim.autopilotText} · ${action.hint}` : sim.autopilotText;
   if (action.hint) return action.hint;
+  // Dokunmatikte genel ipucunda "E:" yok: E düğmesi bunu iş sanıp etkin kalmasın (0.21.6).
+  if (touch) return t('Dokun: yürü · köpeğe/binaya dokun: iş yap · uzun bas: seç');
   return t('WASD: yürü · Shift: koş · 1-5: araç · E: etkileşim · I: köpek listesi · Tab: yönetim');
 }

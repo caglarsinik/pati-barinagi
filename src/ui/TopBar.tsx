@@ -9,6 +9,7 @@ const RUN_SPEEDS = BALANCE.time.speeds.filter((s) => s !== 0) as Speed[];
 /**
  * Üst durum şeridi: sol durum çipleri (dar ekranda parmakla kaydırılır), ortada saat, sağda hız ve mod.
  * Telefonda: saat kısa, hız ⏸/▶ + döngülü tek düğme, mod düğmesi ikonlu; 🥣/⭐ çipleri çok dar ekranda CSS ile gizlenir.
+ * Tablette ve dokunmatikte de kısa kontroller (0.21.6): sağ grup kesilmez; sığmazsa sol çipler daralıp kayar.
  */
 export function TopBar() {
   store.lang.value;
@@ -16,6 +17,7 @@ export function TopBar() {
   const mode = store.mode.value;
   const autopilot = store.autopilot.value;
   const phone = store.layout.value === 'phone';
+  const compact = store.layout.value !== 'desktop' || store.touch.value;
   const running: Speed = speed === 0 ? RUN_SPEEDS[0] : speed;
   const nextSpeed = RUN_SPEEDS[(RUN_SPEEDS.indexOf(running) + 1) % RUN_SPEEDS.length];
   const phoneChips = phone ? (
@@ -33,7 +35,7 @@ export function TopBar() {
       </button>
     </>
   ) : null;
-  const speedControls = phone ? (
+  const speedControls = compact ? (
     <div class="speed-row">
       <button class={'btn small' + (speed === 0 ? ' active' : '')} title={t('Duraklat / devam')} onClick={() => app.setSpeed(speed === 0 ? running : 0)}>
         {speed === 0 ? '▶' : '❚❚'}
@@ -110,10 +112,10 @@ export function TopBar() {
         ) : (
           <>
             <b>{store.dayText.value}</b> · {store.timeText.value} · {store.weekText.value}
-            {store.isNight.value ? ' 🌙' : ''}
-            <span class="muted">
+            {store.isNight.value ? ' 🌙' : ''} {store.weatherIcon.value}
+            <span class="muted tb-season">
               {' '}
-              · {store.season.value} {store.weatherIcon.value} {store.weather.value}
+              · {store.season.value} {store.weather.value}
             </span>
           </>
         )}
@@ -122,10 +124,19 @@ export function TopBar() {
         {phoneChips}
         {speedControls}
         <button class={'btn small' + (autopilot ? ' active' : '')} title={t('Otopilot (T): barınağın işlerini kendiliğinden yapar')} onClick={() => app.sim?.command({ type: 'setAutopilot', on: !autopilot })}>
-          🤖{phone ? '' : ` ${t('Otopilot')}`}
+          🤖{compact ? '' : ` ${t('Otopilot')}`}
         </button>
         <button class={'btn small' + (mode === 'manage' ? ' active' : '')} title={t('Avatar ve yönetim modu arasında geçiş (Tab)')} onClick={() => app.toggleMode()}>
-          {phone ? (mode === 'avatar' ? `🛠 ${t('Yönet')}` : `🧍 ${t('Avatar')}`) : mode === 'avatar' ? t('Yönetim (Tab)') : t('Avatar (Tab)')}
+          {compact ? (
+            <>
+              {mode === 'avatar' ? '🛠' : '🧍'}
+              <span class="tb-label"> {mode === 'avatar' ? t('Yönet') : t('Avatar')}</span>
+            </>
+          ) : mode === 'avatar' ? (
+            t('Yönetim (Tab)')
+          ) : (
+            t('Avatar (Tab)')
+          )}
         </button>
       </div>
     </div>

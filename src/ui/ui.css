@@ -543,6 +543,11 @@ body {
   margin: 4px 0;
 }
 
+/* Satırdaki seçim kutusu uzun seçenekte daralır (köpek panelinde kulübe + Göster taşıyordu). */
+.row > select {
+  min-width: 0;
+}
+
 select,
 .name-input {
   font: inherit;
@@ -629,6 +634,11 @@ select,
 
 .build-tabs .spacer {
   flex: 1;
+}
+
+/* Sekme listesi geniş ekranda satırın parçası; telefonda tek satır kayar (responsive.css). */
+.build-tab-list {
+  display: contents;
 }
 
 .btn.danger {

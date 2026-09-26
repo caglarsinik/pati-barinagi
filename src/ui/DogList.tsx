@@ -114,7 +114,7 @@ export function DogList() {
             ✕
           </button>
         </div>
-        <div class="row">
+        <div class="row wrap">
           <span class="muted small-text">{t('Filtre')}:</span>
           {FILTERS.map(([f, label]) => (
             <button key={f} class={'btn small' + (filters.includes(f) ? ' active' : '')} onClick={() => toggleFilter(f)}>

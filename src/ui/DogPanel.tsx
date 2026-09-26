@@ -214,7 +214,7 @@ export function DogPanel() {
       )}
 
       <h4>{t('Kulübe')}</h4>
-      <div class="row">
+      <div class="row wrap">
         <select
           value={dog.kennelId ?? ''}
           onChange={(e) => {

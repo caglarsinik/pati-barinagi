@@ -133,7 +133,7 @@ export function OfficePanel() {
           <span>{t('Sahiplendirmeye açık')}</span>
           <span class="muted small-text">{t('Kapalıyken sahiplenici gelmez; bekleyenler itibar kaybı olmadan uğurlanır.')}</span>
         </label>
-        <div class="row">
+        <div class="row wrap">
           <button class="btn" onClick={() => (store.panel.value = 'adoption')}>
             {!sim.policies.adoptionsOpen ? t('Sahiplendirme masası (kapalı)') : waiting > 0 ? t('Sahiplendirme masası ({n} bekliyor)', { n: waiting }) : t('Sahiplendirme masası')}
           </button>

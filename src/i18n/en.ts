@@ -338,7 +338,7 @@ export const EN: Record<string, string> = {
   Büyüme: 'Growth',
   'Oyun ve eğitim': 'Play and training',
   Personel: 'Staff',
-  Yönetim: 'Management',
+  Yönetim: 'Manage',
   Dekor: 'Decor',
   Bölgeler: 'Zones',
   Arsa: 'Land',
@@ -1198,7 +1198,7 @@ export const EN: Record<string, string> = {
   '🎯 Hedef tamam: {goal} (+{money} ₺)': '🎯 Goal done: {goal} (+{money} ₺)',
   'Belediye bu arsayı sana emanet etti. İlk hedef: {goal}': 'The municipality entrusted this plot to you. First goal: {goal}',
   'Başlangıç türü': 'Start type',
-  'Kuruluş: küçük arsa, adım adım (önerilir)': 'Founding: small plot, step by step (recommended)',
+  'Kuruluş: küçük arsa, adım adım (önerilir)': 'Founding: small plot, guided (recommended)',
   'Hazır barınak: büyük arsa, binalar kurulu': 'Ready shelter: large plot, buildings in place',
   // 0.19.1: hedef zinciri
   'Yuvadan yumurta al': 'Take an egg from a nest',
@@ -1591,4 +1591,19 @@ export const EN: Record<string, string> = {
   'Karşılıklı dostluğu 70+ iki köpek masada "İkisini ver" ile birlikte gider; ayrılırsa kalan üzülür.': 'Two dogs with mutual friendship 70+ can leave together via "Rehome both" at the desk; split them and the one left behind is sad.',
   'Mektup kutusu': 'Mailbox',
   'Sahiplendirdiğin köpeklerin ailelerinden 10 mektup al.': 'Receive 10 letters from the families of dogs you rehomed.',
+
+  // 0.21.6: dokunmatik ipuçları
+  'Duraklatıldı · ▶ ile devam': 'Paused · ▶ to resume',
+  'Yönetim modu · sürükle: kaydır · iki parmak: yakınlaştır': 'Manage mode · drag: pan · two fingers: zoom',
+  'Dokun: yürü · köpeğe/binaya dokun: iş yap · uzun bas: seç': 'Tap: walk · tap a dog/building: act · long press: select',
+  '{name} ({cost} ₺) · dokun: yerleştir': '{name} ({cost} ₺) · tap: place',
+  '{name} ({cost} ₺/kare) · sürükle: çizgi çek': '{name} ({cost} ₺/tile) · drag: draw a line',
+  'Yık · dokun: kaldır (yarısı iade)': 'Demolish · tap: remove (half refunded)',
+  '{zone} · sürükle: dikdörtgen boya': '{zone} · drag: paint a rectangle',
+  'Yık': 'Demolish',
+  'Kapat': 'Close',
+  'Fırçala': 'Brush',
+  'Yıka': 'Wash',
+  'Tedavi et': 'Treat',
+  'Ödül ver': 'Give treat',
 };

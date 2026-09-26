@@ -548,6 +548,16 @@ Kişilik boy/yaş sert şartlarını değiştirmez; kimlik, mektup, bağış ve 
 - "Mezunlar" albümü paneli; sahiplendirme günü etkinliği (300 ₺, o gün 3× sahiplenici); bağış kampanyası (haftada 1).
 - İkili (bonded pair) sahiplendirme — M8'deki dostluk puanına dayanır.
 
+### Arayüz denetimi (2026-09-26 kullanıcı isteği; 0.21.6 ✅)
+Telefon ve tablette yazılar taşıyor mu, yazı ve arka planları çakışıyor mu: debug denetimi (`src/debug/layoutAudit.ts`)
+59 ekranı 12 boyutta (TR/EN) taradı. Bulunan ve düzeltilen: E düğmesi genel klavye ipucunu iş sanıyordu; ☰ Menü kısa
+telefonda ekranın üstünden taşıyordu; üst şerit dar telefonda 🥚/🔔, tablette ⏸/1x düğmelerini kesiyordu; inşa çubuğu
+küçük telefonda üç satır olup hedef kartının üstüne biniyordu; sahiplendirme masası 899 px altında paneli yana taşırıyordu;
+köpek panelinde kulübe + Göster satırı taşıyordu; ofis düğme satırı taşıyordu; görevlendirme öncelik tablosu 1024'te
+530 px taşıyordu; tablet dikeyde alt menü düğmeleri eşitsiz daralıp taşıyor, ipucu satırı kesiliyordu; dünyada adlar
+ve balonlar üst üste biniyordu. Sonuç: bütün boyutlarda Türkçe 0 sorun (İngilizcede yalnız tablet dikeyde "Achievements"
+etiketi birkaç piksel üç noktayla kısalıyor).
+
 ## 6. Varsayımlar ve açık noktalar
 
 - Tek oyunculu, çevrimdışı; klavye + fare ve dokunmatik (M9).

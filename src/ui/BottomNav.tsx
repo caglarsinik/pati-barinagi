@@ -1,4 +1,4 @@
-import { useEffect } from 'preact/hooks';
+import { useEffect, useLayoutEffect, useRef } from 'preact/hooks';
 import { app } from '../app';
 import { t } from '../i18n';
 import { MENU_GROUPS, type MenuAction, type MenuGroup, groupOfPanel } from './menu';
@@ -39,6 +39,16 @@ export function BottomNav() {
   const open = store.navMenu.value;
   const panel = store.panel.value;
   const activeGroup = groupOfPanel(panel);
+  const menuRef = useRef<HTMLDivElement>(null);
+
+  // Açılır liste üst şeridin altında biter (kısa yatay telefonda 9 öğe sığmazdı); sığmayan kısım listede kayar.
+  useLayoutEffect(() => {
+    const m = menuRef.current;
+    const slot = m?.parentElement;
+    if (!m || !slot) return;
+    const top = document.querySelector('.topbar')?.getBoundingClientRect().bottom ?? 0;
+    m.style.maxHeight = `${Math.max(96, Math.floor(slot.getBoundingClientRect().top - top - 16))}px`;
+  }, [open]);
 
   // Dışarı tıklayınca açık listeyi kapat (tuval tıklamaları dahil).
   useEffect(() => {
@@ -71,7 +81,7 @@ export function BottomNav() {
       {MENU_GROUPS.map((g) => (
         <div key={g.id} class="nav-slot">
           {open === g.id && g.items.length > 1 && (
-            <div class="nav-menu panel">
+            <div class="nav-menu panel" ref={menuRef}>
               {g.items.map((i) => (
                 <button
                   key={i.id}

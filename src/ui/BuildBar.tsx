@@ -35,6 +35,7 @@ export function BuildBar() {
   const sim = app.sim;
   if (!sim) return null;
   const tool = store.build.value;
+  const touch = store.touch.value;
   const money = store.money.value;
   const expandCost = sim ? plotExpansionCost(sim) : PLOT_EXPANSION_COST;
   const pick = (x: BuildTool): void => app.setBuildTool(sameTool(tool, x) ? { kind: 'none' } : x);
@@ -48,17 +49,19 @@ export function BuildBar() {
   return (
     <div class="build-bar panel">
       <div class="build-tabs">
-        {tabs.map(([id, name]) => (
-          <button key={id} class={'btn small' + (tab === id ? ' active' : '')} onClick={() => setTab(id)}>
-            {name}
-          </button>
-        ))}
+        <div class="build-tab-list">
+          {tabs.map(([id, name]) => (
+            <button key={id} class={'btn small' + (tab === id ? ' active' : '')} onClick={() => setTab(id)}>
+              {name}
+            </button>
+          ))}
+        </div>
         <span class="spacer" />
         <button class={'btn small danger' + (tool.kind === 'demolish' ? ' active' : '')} onClick={() => pick({ kind: 'demolish' })}>
-          {t('Yık (X)')}
+          {touch ? t('Yık') : t('Yık (X)')}
         </button>
         <button class="btn small" onClick={() => app.toggleBuildBar()}>
-          {t('Kapat (B)')}
+          {touch ? t('Kapat') : t('Kapat (B)')}
         </button>
       </div>
       <div class="build-items">
