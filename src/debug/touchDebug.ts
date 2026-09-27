@@ -22,6 +22,8 @@ import { signposts } from '../sim/world/Signposts';
 import { questBoardTile } from '../sim/world/Village';
 import { ruinDoorTile } from '../sim/world/Ruin';
 import { albumEntries } from '../sim/systems/Stories';
+import { isDefaultLook, lookKey } from '../sim/entities/PlayerLook';
+import { SaveManager } from '../core/SaveManager';
 import { type AuditApp, auditScreens, layoutAudit, summarizeAudit } from './layoutAudit';
 
 export interface ScenarioResult {
@@ -49,7 +51,8 @@ export interface DebugApp {
 /**
  * Senaryoların sabit tohumları (0.19.3): 1–12 hazır barınakta, 13 kuruluşta; 14–15 taze hazır oyunda köy (0.20.5), 16 sahiplendirme
  * hikâyesi (0.21.5); 17–18 taze hazır oyunda Taşı ve kulübe içi, 19 taze kuruluşta açılış tanıtımı (0.22.6); 20 taze hazır oyunda
- * orman: odun, taş, terk edilmiş ev, malzemeyle kulübe, otopilot (0.23.4).
+ * orman: odun, taş, terk edilmiş ev, malzemeyle kulübe, otopilot (0.23.4); 21 taze hazır oyunda Ayarlar → Karakter ve Karakterin
+ * ekranı (0.24.3).
  */
 const SCENARIO_SEED_READY = 1942;
 const SCENARIO_SEED_GUIDED = 1913;
@@ -960,6 +963,97 @@ export function createTouchDebug(app: DebugApp & AuditApp) {
           `kesti=${chopped} kırdı=${mined} içeri=${inside} sandık=${looted} çıktı=${out} malzemeyle=${withMats ? `${paid?.money} ₺ + 🪵6 🪨2` : JSON.stringify(paid)} otopilot: kesmedi=${noChop} girmedi=${noEnter}`,
         ];
       });
+
+      // 21 (0.24.3): M20 — Ayarlar → Karakter penceresi gerçek düğmelerle (görünüm ve ad; sprite dokusu ve yürüyüş animasyonu
+      // değişir); Karakterin ekranı sahte taslakla (Rastgele, döndür, Geri; Başla'ya basılmaz: gerçek yuvaya yazar). Tercih değişmez.
+      try {
+        const g = freshGame('ready', SCENARIO_SEED_READY);
+        const settle = (ms: number): Promise<void> => new Promise((r) => setTimeout(r, ms));
+        const tick = async (): Promise<void> => {
+          let now = performance.now();
+          for (let i = 0; i < 6; i++) {
+            now += 16;
+            app.game?.step(now, 16);
+          }
+          syncStore(g);
+          await settle(80);
+        };
+        const click = (sel: string): boolean => {
+          const el = document.querySelector<HTMLElement>(sel);
+          el?.click();
+          return !!el;
+        };
+        const keyOf = (): string => (isDefaultLook(g.player.look) ? 'player' : `player-${lookKey(g.player.look)}`);
+        api.cancelTouches();
+        store.panel.value = 'none';
+        const scene = app.game?.scene.getScene('World') as WorldScene;
+        const tex0 = scene.playerSpriteInfo().texture;
+        const prefKey = `${SaveManager.key(0)}.look`;
+        const pref0 = localStorage.getItem(prefKey);
+        // a) Ayarlar → Karakteri düzenle → saç ve ten ileri, ad → Uygula.
+        store.settingsOpen.value = true;
+        await tick();
+        const edit = click('[data-char="edit"]');
+        await tick();
+        const modal = !!document.querySelector('.overlay .menu-card.character');
+        click('[data-char="hairStyle"] .next');
+        click('[data-char="skin"] .next');
+        click('[data-char="skin"] .next');
+        const inp = document.querySelector<HTMLInputElement>('.overlay [data-char="name"]');
+        if (inp) {
+          inp.value = 'Test';
+          inp.dispatchEvent(new Event('input', { bubbles: true }));
+        }
+        await tick();
+        click('[data-char="apply"]');
+        await tick();
+        const closed = !document.querySelector('.overlay .menu-card.character');
+        const applied = g.player.look.hairStyle === 1 && g.player.look.skin === 2 && g.player.name === 'Test';
+        const info = scene.playerSpriteInfo();
+        const key = keyOf();
+        const texOk = info.texture === key && key !== tex0 && scene.textures.exists(key) && info.frame === g.player.facing * 3;
+        store.settingsOpen.value = false;
+        // Yürüyüş: dokun-git ile birkaç kare; animasyon yeni dokunun anahtarıyla.
+        let animOk = false;
+        const spot = freeTileNear(g, 4);
+        if (spot) {
+          api.tapTile(spot.x + 0.5, spot.y + 0.5);
+          let now = performance.now();
+          for (let i = 0; i < 40 && !animOk; i++) {
+            now += 16;
+            app.game?.step(now, 16);
+            animOk = (scene.playerSpriteInfo().anim ?? '').startsWith(`${key}-walk-`);
+          }
+          api.cancelTouches();
+          g.nav.cancel();
+        }
+        // b) Karakterin ekranı: sahte taslak, Rastgele görünümü değiştirir, döndür, Geri taslağı korur.
+        store.newGameDraft.value = { seed: '', difficulty: 'normal', starter: 'ready', dayMinutes: 10, slot: 0 };
+        store.screen.value = 'character';
+        await tick();
+        const preview = document.querySelector<HTMLElement>('.menu-card.character .char-preview');
+        const lookA = preview?.dataset.look ?? '';
+        click('[data-char="random"]');
+        await tick();
+        const lookB = document.querySelector<HTMLElement>('.char-preview')?.dataset.look ?? '';
+        click('[data-char="turn-r"]');
+        await tick();
+        const canvas = !!document.querySelector('.char-preview canvas');
+        click('[data-char="back"]');
+        await tick();
+        const backOk = store.screen.peek() === 'menu' && store.newGameDraft.peek() !== null;
+        store.screen.value = 'game';
+        store.newGameDraft.value = null;
+        await tick();
+        const prefKept = localStorage.getItem(prefKey) === pref0;
+        results.push({
+          name: '21 karakter: Ayarlar → Karakteri düzenle → saç, ten, ad → Uygula → sprite dokusu ve yürüyüş animasyonu; Karakterin ekranı Rastgele/döndür/Geri (Başla yok), tercih değişmez',
+          ok: edit && modal && closed && applied && texOk && animOk && !!preview && lookA.length === 11 && lookB !== lookA && canvas && backOk && prefKept,
+          detail: `pencere=${modal} kapandı=${closed} uygulandı=${applied} doku=${info.texture}${texOk ? '' : ' (beklenen ' + key + ')'} yürüyüş=${animOk} ekran=${!!preview} rastgele=${lookA}→${lookB} geri=${backOk} tercih=${prefKept ? 'aynı' : 'değişti'}`,
+        });
+      } catch (e) {
+        results.push({ name: '21 karakter', ok: false, detail: String(e) });
+      }
 
       return { summary: summarize(results), results };
     },

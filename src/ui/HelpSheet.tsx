@@ -33,6 +33,8 @@ const START_ROWS: Array<[string, string]> = [
   // M19 (0.22.6): açılış tanıtımı ve sol alttaki ihtiyaç şeridi.
   ['Tanıtım', 'Yeni oyunda belediyeden Nermin Hanım ilk adımları gösterir: sarı halkalı düğmeye bas, iş yapılınca adım geçer. Ayarlar → Rehber\'den kapatılır ya da yeniden başlatılır.'],
   ['İhtiyaç şeridi', 'Sol altta: aç, susuz, hasta, kirli ya da kulübesiz köpekleri sayar; dokununca uyarı listesi açılır.'],
+  // M20 (0.24.3): karakter.
+  ['🧑 Karakter', 'Yeni oyunda "Karakterin" ekranında görünümünü ve adını seçersin; açık oyunda Ayarlar → Karakter → Karakteri düzenle. Adın Nermin Hanım\'ın karşılamasında, sabah kartında, mektuplarda ve zafer ekranında geçer; sahiplendirme fotoğraflarında köpeğin yanında sen de olursun.'],
 ];
 
 /** [konu, açıklama] Köy ve dünya (0.20.5). */

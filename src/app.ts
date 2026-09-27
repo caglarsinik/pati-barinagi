@@ -293,7 +293,8 @@ class AppController {
     if (!this.sim) return false;
     const r = this.sim.command({ type: 'setPlayer', look, name });
     if (!r.ok) return false;
-    this.rememberPlayer({ look: this.sim.player.look, name: this.sim.player.name });
+    // Test oyununda (dokunma senaryosu 21) cihaz tercihi değişmez.
+    if (!this.debugGame) this.rememberPlayer({ look: this.sim.player.look, name: this.sim.player.name });
     this.save(true);
     syncStore(this.sim);
     showToast(t('Karakter güncellendi'));

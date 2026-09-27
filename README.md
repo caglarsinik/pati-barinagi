@@ -52,13 +52,7 @@ oyuna dönünce "Hoş geldin" kartı karşılar. Kontroller sayfasının başın
 
 ### Yeni oyun: kuruluş ya da hazır barınak
 
-Ana menüde "Yeni oyun"a basınca önce **Karakterin** ekranı açılır (0.24.1): dönen canlı önizleme, ◀ ▶ ile beden (kadın/erkek), ten,
-saç rengi ve biçimi, tişört rengi ve biçimi, pantolon rengi ve biçimi, ayakkabı, şapka ve aksesuar seçilir, ad yazılır (en çok 14
-karakter; boşsa "Bakıcı"), Rastgele ile karıştırılır, Başla ile oyun kurulur; son seçim bir sonraki yeni oyunda hatırlanır. Kayıt
-kartında karakterin yüzü ve adı görünür. Açık oyunda **Ayarlar → Karakter → Karakteri düzenle** ile görünüm ve ad değişir
-(0.24.2; anında uygulanır, kaydedilir). Adın Nermin Hanım'ın karşılamasında, sabah kartında, mektupların selamında ve zafer
-ekranında geçer; her sahiplendirme fotoğrafında köpeğin yanında o anki görünümünle sen de durursun (eski fotoğraflar
-değişmez).
+Ana menüde "Yeni oyun"a basınca önce **Karakterin** ekranı açılır (bkz. Karakter), sonra oyun kurulur.
 
 Ana menüde **Başlangıç türü** seçilir (0.19.0):
 
@@ -106,6 +100,18 @@ değiştiğini ve sahiplendirme, çatlayan yavru, katılan sokak köpeği, tedav
 gösterir. **Bugün** bölümü 24 saat içinde çatlayacak yumurtaları, yuva evinde bekleyen yumurtayı, hasta köpekleri, yemin
 kaç gün yeteceğini, bugün çalışacak personeli, sahiplendirmeye hazır köpekleri ve sıradaki belediye hedefini listeler.
 Kayıttan devam edince aynı kart **Hoş geldin** başlığıyla açılır. Ayarlar → "Sabah raporunu göster" ile kapatılır.
+
+## Karakter
+
+Oyuncu kendi karakterini kurar (M20, 0.24.0–0.24.3). "Yeni oyun"a basınca **Karakterin** ekranı açılır: dönen canlı önizleme,
+◀ ▶ ile beden (kadın/erkek), ten (4), saç rengi (6) ve biçimi (kısa, uzun, at kuyruğu, topuz, kısa kesim), tişört rengi (8) ve
+biçimi (düz, çizgili, kapüşonlu), pantolon rengi (4) ve biçimi (uzun, şort, etek), ayakkabı (5), şapka (4) ve aksesuar (gözlük,
+atkı) seçilir; ad yazılır (en çok 14 karakter; boşsa "Bakıcı"); Rastgele karıştırır, Başla oyunu kurar. Son seçim bir sonraki
+yeni oyunda hatırlanır; kayıt kartında karakterin yüzü ve adı görünür. Açık oyunda **Ayarlar → Karakter → Karakteri düzenle**
+ile görünüm ve ad değişir (anında uygulanır, kaydedilir). Adın Nermin Hanım'ın karşılamasında, sabah kartında, mektupların
+selamında ("Sevgili …,") ve zafer ekranında geçer; her sahiplendirme fotoğrafında köpeğin yanında o anki görünümünle sen de
+durursun (eski fotoğraflar değişmez). Varsayılan görünüm eski oyuncu sprite'ının aynısıdır; köylüler, personel ve sahipleniciler
+değişmez. Eski kayıtlar varsayılan görünüm ve boş adla açılır.
 
 ## Kontroller
 
@@ -623,7 +629,9 @@ Bilgisayar değiştirirken ya da yedek almak için kullan.
 - [x] 0.24.0 Karakter 1: görünüm modeli (`PlayerLook`: beden, ten, saç biçimi ve rengi, tişört rengi ve biçimi, pantolon rengi ve biçimi, ayakkabı, şapka, aksesuar) ve ad kayıtta; `drawHuman` çeşitleri (varsayılan görünüm eski sprite ile piksel piksel aynı, köylü/personel/sahiplenici değişmez); oyuncunun dokusu görünümden, `setPlayer` komutuyla anında değişir; arayüz 0.24.1'de
 - [x] 0.24.1 Karakter 2: "Yeni oyun" → "Karakterin" ekranı (dönen canlı önizleme, ◀ ▶, 11 seçici, ad, Rastgele, Geri, Başla); son seçim hatırlanır; kayıt kartında ad ve yüz; 12 boyutta TR/EN denetim temiz
 - [x] 0.24.2 Karakter 3: Ayarlar → Karakter (açık oyunda görünüm ve ad, anında uygulanır); ad Nermin'in karşılamasında, sabah kartında, mektup selamında ("Sevgili …,") ve zafer ekranında; sahiplendirme fotoğrafında o anki görünümüyle oyuncu (eski fotoğraflar değişmez); tam denetim 12 boyutta TR/EN temiz
-- [ ] Sıradaki (2026-09-27 yol haritası, `docs/PLAN.md` §7): M20 Karakter (0.24.3 cila) → M21 Yuva evi içi (0.25.0–0.25.2) → M22 Kuzey/batı arsa (0.26.0–0.26.1) → M23 Arsa yeri (0.27.0–0.27.1)
+- [x] 0.24.3 Karakter 4 (cila): dokunma senaryosu 21 (Ayarlar → Karakteri düzenle → Uygula → sprite; Karakterin ekranı), Kontroller'de "🧑 Karakter" satırı, README "Karakter" bölümü — M20 tamam
+- [x] M20 Karakter (0.24.0–0.24.3): görünüm modeli ve çizim → Karakterin ekranı → Ayarlar, ad, fotoğraf → cila
+- [ ] Sıradaki (2026-09-27 yol haritası, `docs/PLAN.md` §7): M21 Yuva evi içi (0.25.0–0.25.2) → M22 Kuzey/batı arsa (0.26.0–0.26.1) → M23 Arsa yeri (0.27.0–0.27.1)
 - [ ] Sonrası: yuva evi içi, kuzey/batı arsa genişletme
 
 ## Geliştirme
@@ -635,7 +643,7 @@ npm run build     # dist/index.html
 ```
 
 Dokunma testleri: oyunu `?touch=1&debug=1` ile açıp bir oyun başlatınca konsolda `await __pati.debug.runTouchScenarios()`
-20 senaryoyu koşar ve `{ summary, results }` döndürür (sözdür; 19 arayüzün çizilmesini bekler): 1–12 sabit tohumlu hazır barınakta (eğit → yürü, E düğmesi,
+21 senaryoyu koşar ve `{ summary, results }` döndürür (sözdür; 19 ve 21 arayüzün çizilmesini bekler): 1–12 sabit tohumlu hazır barınakta (eğit → yürü, E düğmesi,
 pinch + iptal, takılı parmak, yönetim modu, uzun basış, köpeğin dibinde dokunuş, otopilot, ofis ve kiler iç mekânları),
 13 kuruluş oyununda (hedef "Göster" → dokunarak kulübe, kap, yalak, kuluçka → üç belediye hedefi), 14–15 taze hazır oyunda
 köyde (tabelaya dokun → hızlı seyahat paneli → köye git; görev panosu → kayıp köpeği bul → panoda teslim, otopilot panoyu
@@ -645,7 +653,9 @@ sürükle-bırak; büyük kulübe Döndür ile), 18 kulübe içi (kulübeye doku
 içeride yatağında çizili → kapıdan çık), 19 taze kuruluşta açılış tanıtımı gerçek arayüz düğmeleriyle (Başla, yürü, sev, Yönet,
 İnşa, kulübe, hedefler → bitti; test oyununda cihaz tercihi değişmez), 20 taze hazır oyunda orman (ağacın tepesine dokun →
 keser, kayaya dokun → kırar, terk edilmiş eve dokun → içeri → sandık → kapıdan çık, malzemeyle küçük kulübe, otopilot ağacın
-dibinde kesmez ve evin kapısında girmez). Senaryolar açık oyunun
+dibinde kesmez ve evin kapısında girmez), 21 taze hazır oyunda karakter (Ayarlar → Karakteri düzenle → saç, ten, ad → Uygula →
+sprite dokusu ve yürüyüş animasyonu değişir; Karakterin ekranında Rastgele, döndür, Geri; Başla'ya basılmaz; cihaz tercihi
+değişmez). Senaryolar açık oyunun
 yerine kendi test oyununu kurar; test oyunu kaydedilmez, yeni oyun ya da devam et ile normal oyuna dönülür. `__pati.debug.snapshot()` o anki
 dokunma/yürüyüş durumunu verir. Arayüz denetimi (0.21.6): `await __pati.debug.auditScreens()` zengin bir test oyununda
 77 ekranı (HUD hâlleri, inşa sekmeleri, açılır menüler, bütün paneller ve sekmeleri, kulübe içi, açılış tanıtımının 15 adımı,

@@ -1893,4 +1893,7 @@ export const EN: Record<string, string> = {
   "Sevgili {name},": "Dear {name},",
   "👋 Hoş geldin, {name}!": "👋 Welcome back, {name}!",
   "☀️ Günaydın, {name}!": "☀️ Good morning, {name}!",
+  // 0.24.3 karakter cilası: Kontroller
+  "🧑 Karakter": "🧑 Character",
+  "Yeni oyunda \"Karakterin\" ekranında görünümünü ve adını seçersin; açık oyunda Ayarlar → Karakter → Karakteri düzenle. Adın Nermin Hanım'ın karşılamasında, sabah kartında, mektuplarda ve zafer ekranında geçer; sahiplendirme fotoğraflarında köpeğin yanında sen de olursun.": "In a new game the \"Your character\" screen sets your look and name; in an open game use Settings → Character → Edit character. Your name appears in Nermin's greeting, the morning card, letters and the victory screen; you stand next to the dog in adoption photos.",
 };

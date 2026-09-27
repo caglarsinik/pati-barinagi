@@ -57,6 +57,17 @@
   köpek paneli, araç şeridi, alt menü listesi, ana menü, Ayarlar: çakışma yok, taşma yok. Alt menü açılır listesi köpek
   panelinin üstüne gelebilir (geçici popover, üstte kalır) — kabul edildi. Gerçek cihaz testi kullanıcıda.
 
+## 0.24.3 — Karakter 4: cila (Claude, 2026-09-27) — M20 tamam
+- Dokunma senaryosu 21 (`touchDebug.ts`, taze hazır oyun, async): `store.settingsOpen` → `[data-char=edit]` → pencere →
+  `[data-char=hairStyle] .next`, `[data-char=skin] .next` ×2, ad alanına 'Test' (`input` olayı) → `[data-char=apply]` → pencere
+  kapandı, `player.look.hairStyle 1 / skin 2 / name 'Test'`, `playerSpriteInfo().texture === player-<lookKey>` (doku var, kare =
+  yön×3), dokun-git ile birkaç kare → animasyon `<key>-walk-*`; sonra sahte `newGameDraft` + `screen='character'` → Rastgele
+  `data-look` değişir → döndür → Geri (`screen='menu'`, taslak korunur) → ekran 'game', taslak null. Başla'ya basılmaz. Cihaz
+  tercihi değişmez: `app.setPlayer` `debugGame`'de `rememberPlayer` çağırmaz. README "21 senaryo".
+- Kontroller → İlk adımlar: "🧑 Karakter" satırı (EN elle). README: "Karakter" bölümü (İlk 10 dakika'daki paragraf taşındı), Durum.
+- 496 test; senaryolar 21/21; denetim `panel:help*`, `modal:*`, `screen:*` 12 boyutta TR/EN 0 sorun.
+- M20 bitti (0.24.0–0.24.3). Sıradaki M21 Yuva evi içi (0.25.0), plan dosyasında.
+
 ## 0.24.2 — Karakter 3: Ayarlar → Karakter, ad, fotoğrafta oyuncu (Claude, 2026-09-27)
 - `store.characterOpen`, `store.playerName` (`syncStore`). `ui/CharacterModal.tsx`: `.overlay > .menu-card.panel.character`
   (`.wide` değil; telefonda `.overlay .menu-card` zaten tam ekran, kısa ekran kuralına `.overlay .menu-card.character` eklendi),
