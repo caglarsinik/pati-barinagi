@@ -52,7 +52,7 @@ export interface DebugApp {
  * Senaryoların sabit tohumları (0.19.3): 1–12 hazır barınakta, 13 kuruluşta; 14–15 taze hazır oyunda köy (0.20.5), 16 sahiplendirme
  * hikâyesi (0.21.5); 17–18 taze hazır oyunda Taşı ve kulübe içi, 19 taze kuruluşta açılış tanıtımı (0.22.6); 20 taze hazır oyunda
  * orman: odun, taş, terk edilmiş ev, malzemeyle kulübe, otopilot (0.23.4); 21 taze hazır oyunda Ayarlar → Karakter ve Karakterin
- * ekranı (0.24.3).
+ * ekranı (0.24.3); 22 taze hazır oyunda yuva evi içi (0.25.2).
  */
 const SCENARIO_SEED_READY = 1942;
 const SCENARIO_SEED_GUIDED = 1913;
@@ -1054,6 +1054,85 @@ export function createTouchDebug(app: DebugApp & AuditApp) {
       } catch (e) {
         results.push({ name: '21 karakter', ok: false, detail: String(e) });
       }
+
+      // 22 (0.25.2): M21 — yuva evi içi (taze hazır oyun): binaya dokun → panel → İçeri gir → panoya dokun → çift → yumurta sepette →
+      // sepete dokun → çantada → kapıdan çık. Yumurta beklemek yerine sayaç sona yaklaştırılır (akış test edilir).
+      scenario('22 yuva evine dokun → panel → İçeri gir → panoya dokun → çift → yumurta sepette → dokun → çantada → kapıdan çık', () => {
+        const g = freshGame('ready', SCENARIO_SEED_READY);
+        const grun = (frames: number, until?: () => boolean): void => {
+          for (let i = 0; i < frames && !(until && until()); i++) g.update(1 / 30);
+        };
+        api.cancelTouches();
+        store.panel.value = 'none';
+        let n = g.buildings.find((b) => b.type === 'nursery');
+        if (!n) {
+          const spot = spotFor(g, 'nursery');
+          if (!spot) return [false, 'yuva evine yer yok'];
+          n = g.placeBuilding('nursery', spot.x, spot.y) ?? undefined;
+        }
+        if (!n) return [false, 'yuva evi kurulamadı'];
+        n.buildLeft = 0;
+        while (g.shelterDogs().length < 2) {
+          const d0 = g.dogs[0];
+          g.addDog({ ...d0.genome }, 'egg', 30, d0.x + 1, d0.y + 1);
+        }
+        const [a, c] = g.shelterDogs().slice(0, 2);
+        const far = freeTileNear(g, 8);
+        [a, c].forEach((d, i) => {
+          d.ageWeeks = 30;
+          d.needs.health = 100;
+          d.breedReadyAt = 0;
+          if (far) {
+            d.x = far.x + 0.5 + i;
+            d.y = far.y + 0.7;
+          }
+          d.path = [];
+          d.state = 'sit';
+          d.stateTimer = 9999;
+        });
+        a.friends[c.id] = 90;
+        c.friends[a.id] = 90;
+        const door = buildingDoorTile(n);
+        g.player.x = door.x + 0.5;
+        g.player.y = door.y + 0.9;
+        api.tapTile(n.x + 0.5, n.y + 0.5);
+        grun(300, () => store.panel.value === 'nursery');
+        const panel = (store.panel.value as string) === 'nursery';
+        // Paneldeki "🚪 İçeri gir" düğmesinin yolu.
+        const entered = g.command({ type: 'goInteract', goal: { kind: 'enter', id: n.id } }).ok;
+        store.panel.value = 'none';
+        grun(300, () => g.interior !== null);
+        const it = g.interior;
+        if (!it || it.kind !== 'nursery') return [false, `panel=${panel} içeri=${it?.kind ?? 'yok'}`];
+        const board = it.items.find((i) => i.type === 'nestBoard');
+        const basket = it.items.find((i) => i.type === 'eggBasket');
+        if (!board || !basket) return [false, 'pano ya da sepet yok'];
+        api.tapTile(board.x + 0.5, board.y + 0.5);
+        grun(300, () => store.panel.value === 'nursery');
+        const boardPanel = (store.panel.value as string) === 'nursery';
+        // Paneldeki çift seçiminin yolu; sayaç sona yaklaştırılır, iki adımda yumurta gelir.
+        const paired = g.command({ type: 'setNurseryPair', buildingId: n.id, dogIds: [a.id, c.id] }).ok;
+        store.panel.value = 'none';
+        n.breedLeft = 3;
+        g.stepSim(5);
+        g.stepSim(5);
+        const egg = n.eggs.length === 1;
+        let now = performance.now();
+        for (let i = 0; i < 6; i++) {
+          now += 100;
+          app.game?.step(now, 100);
+        }
+        while (g.backpack.length >= g.backpackSlots()) g.backpack.pop();
+        const bag0 = g.backpack.length;
+        api.tapTile(basket.x + 0.5, basket.y + 0.5);
+        grun(400, () => n!.eggs.length === 0);
+        const took = n.eggs.length === 0 && g.backpack.length === bag0 + 1 && g.backpack[g.backpack.length - 1]?.parentNames?.[0] === a.name;
+        api.tapTile(it.door.x + 0.5, it.door.y + 0.5);
+        grun(300, () => g.interior === null);
+        const out = g.interior === null && g.player.tileX === door.x && g.player.tileY === door.y;
+        reset(g);
+        return [panel && entered && boardPanel && paired && egg && took && out, `panel=${panel} içeri=nursery pano=${boardPanel} çift=${paired} yumurta=${egg} alındı=${took} çıktı=${out}`];
+      });
 
       return { summary: summarize(results), results };
     },

@@ -432,6 +432,14 @@ kaydedersen oyun seni kapının önünde kaydeder.
 panelini açar; panelde **🚪 İçeri gir** ve **🛋️ Eşyalar** düğmeleri var. Klavyede kapının önünde ya da eşiğin orta karesinde ↑ basılı
 tut; dokunmatikte eşiğin orta karesine dokun (büyük kulübede orada köpek yatıyorsa dokunuş köpeğe gider, paneli kullan).
 
+**Yuva evi içi** (M21, 0.25.0–0.25.2): 8×6 karelik oda. Yuva evinde E (ya da binaya dokunmak) çift panelini açar; panelde **🚪 İçeri gir**
+ve **🛋️ Eşyalar** var; kapı karesine dokunarak ya da kapıda ↑ basılı tutarak da girilir. İçeride duvardaki **pano** çift panelini açar,
+çiftin iki köpeği **yuva yataklarında** yatar (görsel; dışarıdaki yerleri değişmez), hazır yumurta sağ alttaki **sepette** görünür ve
+E ile çantaya alınır (çanta doluysa uyarır; yumurta yokken kalan gün yazar). Dışarıda yumurta hazırken yuva evinin çatısında yumurtalı
+bir bayrak çıkar. Eşyalar (panodan ya da panelden): **yumuşak yuva** 150 ₺ (yumurta sayacı %15 hızlı, yataklar minderli), **ısıtıcı**
+200 ₺ (yumurtadan sonra çiftin dinlenmesi 4 hafta yerine 3), **pencere** 200 ₺ ve **fotoğraf duvarı** 120 ₺ (dekor +1; duvarın önünde E
+yuva evlerinden doğan yavru sayısını söyler). Dört eşya "Sıcak yuva" başarımını verir.
+
 **Eşyaların etkileri** (0.22.4; ılımlı, `BALANCE.kennelComfort`):
 
 | Eşya | Etki | Ne zaman |
@@ -633,7 +641,9 @@ Bilgisayar değiştirirken ya da yedek almak için kullan.
 - [x] M20 Karakter (0.24.0–0.24.3): görünüm modeli ve çizim → Karakterin ekranı → Ayarlar, ad, fotoğraf → cila
 - [x] 0.25.0 Yuva evi içi 1: yuva evine girilir (↑, kapıya dokunuş, panelde "İçeri gir"); içeride pano çift panelini açar, iki yuva yatağında çift yatar, hazır yumurta sepette görünür ve E ile çantaya alınır
 - [x] 0.25.1 Yuva evi içi 2: eşyalar (yumuşak yuva: yumurta %15 çabuk; ısıtıcı: dinlenme %25 kısa; pencere ve fotoğraf duvarı: dekor +1), yumurta hazırken çatıda bayrak, panelde eşya satırı, "Sıcak yuva" başarımı (41)
-- [ ] Sıradaki (2026-09-27 yol haritası, `docs/PLAN.md` §7): M21 Yuva evi içi (0.25.2 cila) → M22 Yuva evi içi (0.25.0–0.25.2) → M22 Kuzey/batı arsa (0.26.0–0.26.1) → M23 Arsa yeri (0.27.0–0.27.1)
+- [x] 0.25.2 Yuva evi içi 3 (cila): dokunma senaryosu 22, Kontroller'de "Yuva evi içi" satırı ve giriş listelerinde yuva evi, README bölümü — M21 tamam
+- [x] M21 Yuva evi içi (0.25.0–0.25.2): oda + çift + yumurta sepeti → eşyalar ve etkiler → cila
+- [ ] Sıradaki (2026-09-27 yol haritası, `docs/PLAN.md` §7): M22 Kuzey/batı arsa (0.26.0 sim → 0.26.1 arayüz + cila) → M23 Arsa yeri (0.27.0–0.27.1) Yuva evi içi (0.25.0–0.25.2) → M22 Kuzey/batı arsa (0.26.0–0.26.1) → M23 Arsa yeri (0.27.0–0.27.1)
 - [ ] Sonrası: yuva evi içi, kuzey/batı arsa genişletme
 
 ## Geliştirme
@@ -645,7 +655,7 @@ npm run build     # dist/index.html
 ```
 
 Dokunma testleri: oyunu `?touch=1&debug=1` ile açıp bir oyun başlatınca konsolda `await __pati.debug.runTouchScenarios()`
-21 senaryoyu koşar ve `{ summary, results }` döndürür (sözdür; 19 ve 21 arayüzün çizilmesini bekler): 1–12 sabit tohumlu hazır barınakta (eğit → yürü, E düğmesi,
+22 senaryoyu koşar ve `{ summary, results }` döndürür (sözdür; 19 ve 21 arayüzün çizilmesini bekler): 1–12 sabit tohumlu hazır barınakta (eğit → yürü, E düğmesi,
 pinch + iptal, takılı parmak, yönetim modu, uzun basış, köpeğin dibinde dokunuş, otopilot, ofis ve kiler iç mekânları),
 13 kuruluş oyununda (hedef "Göster" → dokunarak kulübe, kap, yalak, kuluçka → üç belediye hedefi), 14–15 taze hazır oyunda
 köyde (tabelaya dokun → hızlı seyahat paneli → köye git; görev panosu → kayıp köpeği bul → panoda teslim, otopilot panoyu
@@ -657,7 +667,8 @@ içeride yatağında çizili → kapıdan çık), 19 taze kuruluşta açılış 
 keser, kayaya dokun → kırar, terk edilmiş eve dokun → içeri → sandık → kapıdan çık, malzemeyle küçük kulübe, otopilot ağacın
 dibinde kesmez ve evin kapısında girmez), 21 taze hazır oyunda karakter (Ayarlar → Karakteri düzenle → saç, ten, ad → Uygula →
 sprite dokusu ve yürüyüş animasyonu değişir; Karakterin ekranında Rastgele, döndür, Geri; Başla'ya basılmaz; cihaz tercihi
-değişmez). Senaryolar açık oyunun
+değişmez), 22 taze hazır oyunda yuva evi (binaya dokun → panel → İçeri gir → panoya dokun → çift → yumurta sepette → sepete dokun →
+çantada → kapıdan çık). Senaryolar açık oyunun
 yerine kendi test oyununu kurar; test oyunu kaydedilmez, yeni oyun ya da devam et ile normal oyuna dönülür. `__pati.debug.snapshot()` o anki
 dokunma/yürüyüş durumunu verir. Arayüz denetimi (0.21.6): `await __pati.debug.auditScreens()` zengin bir test oyununda
 77 ekranı (HUD hâlleri, inşa sekmeleri, açılır menüler, bütün paneller ve sekmeleri, kulübe içi, açılış tanıtımının 15 adımı,

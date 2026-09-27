@@ -602,7 +602,7 @@ oyunda Ayarlar → Karakter'den değiştirilir; fotoğrafa o anki görünüm iş
 | 0.24.2 ✅ | Ayarlar → Karakter (portre + ad + "Karakteri düzenle" → `CharacterModal`, ortak `CharacterEditor`, Uygula → `app.setPlayer`: komut, tercih, kayıt, toast; `store.characterOpen`, denetim `modal:character`) + ad kullanımı (`store.playerName`; Nermin "Merhaba {name}, …", sabah kartı "Hoş geldin/Günaydın, {name}!" ad boşsa eski başlık, mektup "Sevgili {name}," selamı, zafer "Tebrikler {name}!") + fotoğrafta oyuncu (`AdoptionRecord.playerLook` sahiplendirme anında kopya: tekli, ikili, köylü görevi; yüklemede klemp; `ScenePhoto player` mektup ve albümde, eski kayıtta yok) |
 | 0.24.3 ✅ | Cila: dokunma senaryosu 21 (Ayarlar → Karakteri düzenle → saç/ten/ad → Uygula → sprite dokusu + yürüyüş animasyonu; Karakterin ekranı sahte taslakla Rastgele/döndür/Geri, Başla yok; test oyununda tercih değişmez — `app.setPlayer` `debugGame`'de hatırlamaz), Kontroller "🧑 Karakter" satırı, README "Karakter" bölümü, denetim 12 boyutta TR/EN 83 ekran temiz → **M20 tamam** |
 
-### M21 Yuva evi içi (2026-09-27 dilimlendi; 0.25.x)
+### M21 Yuva evi içi (2026-09-27 dilimlendi; 0.25.x) — TAMAM
 Yuva evine girilir (kulübe içi deseni): pano çift panelini açar, çift içerideki iki yuva yatağında yatar (kozmetik; dışarıdaki
 dolaşmaları sürer), yumurta sepetinden yumurta alınır; eşyalar üremeyi ılımlı hızlandırır (`BALANCE.breeding.furniture`).
 
@@ -610,7 +610,7 @@ dolaşmaları sürer), yumurta sepetinden yumurta alınır; eşyalar üremeyi ı
 |---|---|
 | 0.25.0 ✅ | `nursery` iç mekânı (`Interiors.ts` şablon 8×6: `nestBoard` (1,1), pencere (5,1), `nestBed` ×2 (1,3)/(5,3) slot 0/1, `eggBasket` (6,4); `interiorKindFor('nursery')`; `nurseryRestSpotInside`): `resolveInterior` pano → `nurseryBoard` (NurseryPanel açılır), yatak ipucu çiftin adı / "boş", sepet → `nurseryEgg` (`takeNurseryEgg`, meşgul 0,4 sn; çanta doluysa "yer aç"; yumurta yokken gün sayar ya da "çift seç"); WorldScene `nurserySpotInside` (oyuncu içerideyken çift yataklarda yatar, kozmetik) ve sepette yumurta sprite'ı (`syncInteriorEggs`); ↑ / kapı karesi dokunuşu / NurseryPanel "🚪 İçeri gir"; dış ipucu "· ↑ içeri"; `InteriorArt` üç yeni eşya; denetim `interior:nursery`; test `nursery-interior.test.ts` |
 | 0.25.1 ✅ | Eşyalar (`NURSERY_FURNITURE`, `BALANCE.breeding.furniture`, `BALANCE.interior.furniture`): yumuşak yuva 150 ₺ (`nurseryTimeMul` ×0,85: sayaç hızlanır, yataklar minderli varyant), ısıtıcı 200 ₺ (`nurseryCooldownMinutes` ×0,75), pencere 200 ₺ ve fotoğraf duvarı 120 ₺ (`decorScore` +1'er; duvar ipucu doğan yavru sayısı ve çift); duvar sırasında minder rafı / ısıtıcı / pencere / fotoğraf duvarı eşyaları; yumurta hazırken bina dokusu varyant 1 (çatıda yumurtalı bayrak); NurseryPanel eşya satırı + "🛋️ Eşyalar"; başarım `warm-nest` "Sıcak yuva" (41); test `nursery-furniture.test.ts` |
-| 0.25.2 | Cila: dokunma senaryosu 22 (yuva evi kur → içeri → pano → çift → 5 gün → sepet → çanta), Kontroller, denetim, belgeler |
+| 0.25.2 ✅ | Cila: dokunma senaryosu 22 (taze hazır oyunda yuva evi kur → binaya dokun → panel → İçeri gir → panoya dokun → panel → çift → sayaç sona yaklaştırılır → yumurta sepette → sepete dokun → çantada anne adıyla → kapıdan çık), Kontroller'de "💞 Yuva evi içi" satırı ve ↑/kapı karesi listelerinde yuva evi, README "Yuva evi içi" bölümü, `panel:help` 12 boyutta TR/EN temiz → **M21 tamam** |
 
 ### M22 Kuzey/batı arsa (2026-09-27 dilimlendi; 0.26.x)
 Arsa dört yöne büyür (bugün yalnız doğu/güney). Engel denetimi (su, dağ, köy, orman evi açıklığı, gizli yuva) dört yöne uygulanır;

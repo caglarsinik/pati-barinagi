@@ -57,6 +57,17 @@
   köpek paneli, araç şeridi, alt menü listesi, ana menü, Ayarlar: çakışma yok, taşma yok. Alt menü açılır listesi köpek
   panelinin üstüne gelebilir (geçici popover, üstte kalır) — kabul edildi. Gerçek cihaz testi kullanıcıda.
 
+## 0.25.2 — Yuva evi içi 3: cila (Claude, 2026-09-27) — M21 tamam
+- Dokunma senaryosu 22 (`touchDebug.ts`, taze hazır oyun): yuva evi yoksa `spotFor` ile kurulur (`buildLeft = 0`), iki köpek yetişkin
+  (30 hafta), sağlıklı, dost (`friends` 90), uzakta oturur; binaya dokun → 'nursery' paneli; "İçeri gir" yolu (`goInteract enter`);
+  panoya dokun → panel; `setNurseryPair`; `breedLeft = 3` + iki `stepSim(5)` → yumurta; sahne 6 kare (sepette sprite); çanta
+  taşıyorsa boşaltılır; sepete dokun → `interiorTap` → yürü + E → çantada (`parentNames[0]` anne); kapıya dokun → dışarı. README
+  "22 senaryo".
+- Kontroller: WORLD_ROWS "💞 Yuva evi içi" (pano, yataklar, sepet, eşyalar, bayrak); ↑ ve kapı karesi satırlarının bina
+  listelerine "yuva evi" (EN anahtarları güncellendi). README "Yuva evi içi" paragrafı (İç mekânlar, kulübe içinden sonra), Durum.
+- 504 test; senaryolar 22/22; `panel:help` 12 boyutta TR/EN 0 sorun. M21 bitti (0.25.0–0.25.2). Sıradaki M22 Kuzey/batı arsa
+  (0.26.0), plan dosyasında.
+
 ## 0.25.1 — Yuva evi içi 2: eşyalar ve etkileri (Claude, 2026-09-27)
 - `FurnitureType` += nestCushion / nestHeater / nestWindow / photoWall (`NURSERY_FURNITURE`, `FURNITURE_BY_KIND.nursery`; adlar ve
   açıklamalar TR + EN elle); `BALANCE.interior.furniture` 150/200/200/120 ₺ (max 1); `BALANCE.breeding.furniture`

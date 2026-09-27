@@ -6,7 +6,7 @@ const ROWS: Array<[string, string, string]> = [
   ['WASD / ok tuşları', 'Yürü', 'Kamerayı kaydır'],
   ['Shift', 'Koş (dayanıklılık harcar)', '–'],
   ['E', 'Baktığın şeye göre iş yap: köpeği sev/oyna/eğit/fırçala, kabı ve yalağı doldur, pisliği temizle, kileri aç, ofise gir (içeride eşyalar)', '–'],
-  ['↑ (kapıda basılı tut)', 'Binaya gir (ofis, dinlenme odası, kiler, mutfak, veteriner, kuluçka, kulübe); E kapıdaki hızlı işi yapar', '–'],
+  ['↑ (kapıda basılı tut)', 'Binaya gir (ofis, dinlenme odası, kiler, mutfak, veteriner, kuluçka, kulübe, yuva evi); E kapıdaki hızlı işi yapar', '–'],
   ['1-6', 'Araç seç: Sev, Oyna, Eğit, Yem, Temizle, Çağır', '–'],
   ['Sol tık', 'Köpeği seç (panel açılır)', 'Köpeği seç · seçili aracı yerleştir · çit/yol/bölge sürükle'],
   ['Sağ tık sürükle', '–', 'Kamerayı kaydır (aracı bırakır)'],
@@ -39,6 +39,8 @@ const START_ROWS: Array<[string, string]> = [
 
 /** [konu, açıklama] Köy ve dünya (0.20.5). */
 const WORLD_ROWS: Array<[string, string]> = [
+  // M21 (0.25.2): yuva evi içi.
+  ['💞 Yuva evi içi', 'Panoda E: çift seç; çift yuva yataklarında yatar; hazır yumurta sepette, E ile çantaya. Eşyalar: yumuşak yuva (yumurta %15 çabuk), ısıtıcı (dinlenme %25 kısa), pencere ve fotoğraf duvarı (dekor +1). Yumurta hazırken çatıda bayrak.'],
   ['🏘️ Köy', 'Güney yolunun ucunda: yem toptancısı (ucuz çuval), oyuncak ve ilaç dükkânı, Pazar tezgâhı; itibar arttıkça postane ve park açılır.'],
   ['👥 Köylüler', 'Sabah işe, akşam eve giderler; E ile konuş. Köylünün sahiplendiği köpek köyde sahibiyle yaşar.'],
   ['🚏 Tabelalar', 'Barınak kapısının dışında, doğu yolunda ve köy girişinde; görünce keşfedilir, tabelada E ile hızlı seyahat (yol kadar zaman geçer, köpekler de gelir).'],
@@ -69,7 +71,7 @@ const ADOPT_ROWS: Array<[string, string]> = [
 const TOUCH_ROWS: Array<[string, string]> = [
   ['Dokun', 'Avatar oraya yürür (yol bulur)'],
   ['Köpeğe / binaya / yuvaya dokun', 'Yanına gidip işini yapar: sev, kabı doldur, yumurta al, temizle'],
-  ['Binanın kapı karesine dokun', 'İçeri girer (ofis, dinlenme odası, kiler, mutfak, veteriner, kuluçka, kulübe); binanın başka yerine dokunmak hızlı işi yapar'],
+  ['Binanın kapı karesine dokun', 'İçeri girer (ofis, dinlenme odası, kiler, mutfak, veteriner, kuluçka, kulübe, yuva evi); binanın başka yerine dokunmak hızlı işi yapar'],
   ['İçeride eşyaya / kapıya dokun', 'Eşyayı kullanır · paspaslı kapıdan dışarı çıkar'],
   ['Mini haritaya ya da 🗺️ çipine dokun', 'Tam ekran harita: haritaya dokun → işaret; "Git" ile oraya yürü'],
   ['Haritada iki parmak / + −', 'Yakınlaştır (1×/2×/4×) · sürükle: kaydır · ⌖: bana dön'],

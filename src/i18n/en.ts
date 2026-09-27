@@ -400,7 +400,7 @@ export const EN: Record<string, string> = {
   '🤖 Yatakta uyuyor': '🤖 Sleeping in bed',
   '🤖 Dışarı çıkıyor': '🤖 Heading outside',
   'Binanın kapı karesine dokun': "Tap a building's door tile",
-  'İçeri girer (ofis, dinlenme odası, kiler, mutfak, veteriner, kuluçka, kulübe); binanın başka yerine dokunmak hızlı işi yapar': 'Go inside (office, rest room, shed, kitchen, vet, incubator, kennel); tapping elsewhere on the building does its quick action',
+  'İçeri girer (ofis, dinlenme odası, kiler, mutfak, veteriner, kuluçka, kulübe, yuva evi); binanın başka yerine dokunmak hızlı işi yapar': 'Go inside (office, rest room, shed, kitchen, vet, incubator, kennel, nest house); tapping elsewhere on the building does its quick action',
   'Isı lambası': 'Heat lamp',
   'Yumurtalar %15 daha çabuk çatlar (içerideki yumurtalar da).': 'Eggs hatch 15% faster (including the ones already inside).',
   'Boş tepsi · yumurtayı kontrol panelinden koy': 'Empty tray · place eggs from the control panel',
@@ -445,7 +445,7 @@ export const EN: Record<string, string> = {
   'İçeride eşyaya / kapıya dokun': 'Inside: tap an item / the door',
   'Eşyayı kullanır · paspaslı kapıdan dışarı çıkar': 'Uses the item · the door mat takes you outside',
   '↑ (kapıda basılı tut)': '↑ (hold at a door)',
-  'Binaya gir (ofis, dinlenme odası, kiler, mutfak, veteriner, kuluçka, kulübe); E kapıdaki hızlı işi yapar': 'Enter the building (office, rest room, shed, kitchen, vet, incubator, kennel); E does the quick action at the door',
+  'Binaya gir (ofis, dinlenme odası, kiler, mutfak, veteriner, kuluçka, kulübe, yuva evi); E kapıdaki hızlı işi yapar': 'Enter the building (office, rest room, shed, kitchen, vet, incubator, kennel, nest house); E does the quick action at the door',
   ' · ↑ içeri': ' · ↑ enter',
   'Çuval rafı · kilerde {n} porsiyon (~{b} çuval)': 'Sack shelf · {n} portions in the shed (~{b} sacks)',
   'E: sipariş defteri · yem sipariş et': 'E: order book · order food',
@@ -1921,4 +1921,7 @@ export const EN: Record<string, string> = {
   "Eşya yok: yumuşak yuva, ısıtıcı, pencere, fotoğraf duvarı": "No furniture yet: soft nest, heater, window, photo wall",
   "Sıcak yuva": "Warm nest",
   "Bir yuva evini dört eşyayla donat.": "Furnish a nest house with all four items.",
+  // 0.25.2 yuva evi cilası: Kontroller
+  "💞 Yuva evi içi": "💞 Inside the nest house",
+  "Panoda E: çift seç; çift yuva yataklarında yatar; hazır yumurta sepette, E ile çantaya. Eşyalar: yumuşak yuva (yumurta %15 çabuk), ısıtıcı (dinlenme %25 kısa), pencere ve fotoğraf duvarı (dekor +1). Yumurta hazırken çatıda bayrak.": "E at the board: pick the pair; the pair rests on the nest beds; a ready egg sits in the basket, E puts it in the bag. Furniture: soft nest (egg 15% sooner), heater (rest 25% shorter), window and photo wall (decor +1). A flag on the roof when an egg is ready.",
 };
