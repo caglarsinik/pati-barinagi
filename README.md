@@ -52,6 +52,11 @@ oyuna dönünce "Hoş geldin" kartı karşılar. Kontroller sayfasının başın
 
 ### Yeni oyun: kuruluş ya da hazır barınak
 
+Ana menüde "Yeni oyun"a basınca önce **Karakterin** ekranı açılır (0.24.1): dönen canlı önizleme, ◀ ▶ ile beden (kadın/erkek), ten,
+saç rengi ve biçimi, tişört rengi ve biçimi, pantolon rengi ve biçimi, ayakkabı, şapka ve aksesuar seçilir, ad yazılır (en çok 14
+karakter; boşsa "Bakıcı"), Rastgele ile karıştırılır, Başla ile oyun kurulur; son seçim bir sonraki yeni oyunda hatırlanır. Kayıt
+kartında karakterin yüzü ve adı görünür.
+
 Ana menüde **Başlangıç türü** seçilir (0.19.0):
 
 - **Kuruluş (önerilir, varsayılan):** belediye sana 24×20 karelik küçük, çitli bir arsayı ve ofisi emanet eder; ilk köpeğin
@@ -613,7 +618,8 @@ Bilgisayar değiştirirken ya da yedek almak için kullan.
 - [x] M18 Terk Edilmiş Ev ve Malzemeler (0.23.0–0.23.4): odun ve taş → malzemeyle öde → uzak ormanda ev → onarım (orman evi) → cila
 - [x] 0.23.5 Bakım: kapı güncellemesi karede bir kez; kare pencerede "çevir" uyarısı oyunu da durdurur; personel deneyimi görev başına 10 → 2 (Sv5 ~5 hafta, eskiden ~1 hafta); yeni oyunda ve Ayarlar → Bu oyun'da "Gün uzunluğu" 10 / 15 / 20 dk
 - [x] 0.24.0 Karakter 1: görünüm modeli (`PlayerLook`: beden, ten, saç biçimi ve rengi, tişört rengi ve biçimi, pantolon rengi ve biçimi, ayakkabı, şapka, aksesuar) ve ad kayıtta; `drawHuman` çeşitleri (varsayılan görünüm eski sprite ile piksel piksel aynı, köylü/personel/sahiplenici değişmez); oyuncunun dokusu görünümden, `setPlayer` komutuyla anında değişir; arayüz 0.24.1'de
-- [ ] Sıradaki (2026-09-27 yol haritası, `docs/PLAN.md` §7): M20 Karakter (0.24.1 karakter ekranı → 0.24.2 Ayarlar'dan değiştirme + ad + fotoğrafta oyuncu → 0.24.3 cila) → M21 Yuva evi içi (0.25.0–0.25.2) → M22 Kuzey/batı arsa (0.26.0–0.26.1) → M23 Arsa yeri (0.27.0–0.27.1)
+- [x] 0.24.1 Karakter 2: "Yeni oyun" → "Karakterin" ekranı (dönen canlı önizleme, ◀ ▶, 11 seçici, ad, Rastgele, Geri, Başla); son seçim hatırlanır; kayıt kartında ad ve yüz; 12 boyutta TR/EN denetim temiz
+- [ ] Sıradaki (2026-09-27 yol haritası, `docs/PLAN.md` §7): M20 Karakter (0.24.2 Ayarlar'dan değiştirme + ad + fotoğrafta oyuncu → 0.24.3 cila) → M21 Yuva evi içi (0.25.0–0.25.2) → M22 Kuzey/batı arsa (0.26.0–0.26.1) → M23 Arsa yeri (0.27.0–0.27.1)
 - [ ] Sonrası: yuva evi içi, kuzey/batı arsa genişletme
 
 ## Geliştirme

@@ -57,6 +57,24 @@
   köpek paneli, araç şeridi, alt menü listesi, ana menü, Ayarlar: çakışma yok, taşma yok. Alt menü açılır listesi köpek
   panelinin üstüne gelebilir (geçici popover, üstte kalır) — kabul edildi. Gerçek cihaz testi kullanıcıda.
 
+## 0.24.1 — Karakter 2: Karakterin ekranı (Claude, 2026-09-27)
+- `store.ts`: `Screen` += 'character'; `NewGameDraft {seed, difficulty, starter, dayMinutes, slot}` ve `store.newGameDraft`
+  (MainMenu "Yeni oyun" → taslak + ekran; Karakterin → Başla → `app.newGame(..., profile)`; `app.start()` taslağı siler; Geri
+  taslağı korur, MainMenu `useState`'leri taslaktan başlar). `App.tsx` 'character' → `CharacterScreen` (HUD yok).
+- `ui/HumanPortrait.tsx` (DogPortrait deseni; `sig` imzasıyla yeniden çizer; `headOnly` 16 satır; yön 2 ayna).
+  `ui/CharacterEditor.tsx`: tam iki çocuk `.char-left` (başlık, `.char-preview[data-look]` canvas ölçek 5, 250 ms'de bir
+  yürüyüş karesi, ~1,25 sn'de bir yön 0→1→3→2, ◀ ▶ `data-char=turn-l/turn-r` 5 sn elle, ad alanı `data-char=name`
+  (`inputFocused`, Enter → gönder), `actions`) ve `.char-right` (`.char-opts` 2 sütun; 11 `.char-opt[data-char=<alan>]`:
+  etiket + `.stepper` ◀ değer (renk noktası `.swatch`) ▶; `stepLook` döner). `ui/CharacterScreen.tsx`: `.menu-card.panel.character`
+  (grid auto + 1fr), Rastgele (`randomLook`, arayüz RNG'si), Geri, Başla (`booted` ve taslak yoksa kapalı).
+  `PlayerLook.ts` += `stepLook`, `hexCss`. MainMenu yuva kartı: `HumanPortrait headOnly` + "Yuva n · ad".
+- CSS: `ui.css` karakter bloğu; `responsive.css` kısa ekran (`max-height: 500px`): sütunlar 0.75fr/1.5fr, canvas 48×72,
+  başlık 1rem, girdi 5px, `.char-actions` sarılır (Başla ikinci satıra), dokunmatikte `.stepper`/`.char-turn` düğmeleri 30/26 px
+  (36 yerine; yoksa 11 seçici 320 px'e sığmıyordu). Denetim adımı `screen:character` (sahte taslak; Başla'ya basılmaz).
+- 494 test. Denetim `screen:menu` + `screen:character` 12 boyutta TR/EN 0 sorun. Elle: menü → Yeni oyun → Karakterin → Başla
+  → oyuncu seçilen görünümle; menüye dönünce yuva kartında yüz ve ad.
+- Sıradaki 0.24.2: Ayarlar → Karakter (modal), ad kullanımı, fotoğrafta oyuncu.
+
 ## 0.24.0 — Karakter 1: görünüm modeli, çizim, doku (Claude, 2026-09-27)
 - `src/sim/entities/PlayerLook.ts` (saf): `PlayerLook` 11 alan (body, skin, hair, hairStyle, shirt, shirtStyle, pants, pantsStyle,
   shoes, hat, accessory; hepsi indeks), `LOOK_KEYS/LOOK_COUNTS/DEFAULT_LOOK` (hepsi 0), renk tabloları (SKIN_TONES, MOUTH_COLORS,

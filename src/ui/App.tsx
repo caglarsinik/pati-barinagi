@@ -10,6 +10,7 @@ import { VictoryPanel } from './VictoryPanel';
 import { HelpSheet } from './HelpSheet';
 import { HUD } from './HUD';
 import { MainMenu } from './MainMenu';
+import { CharacterScreen } from './CharacterScreen';
 import { KennelPanel, ShedPanel } from './Panels';
 import { AlertsSheet, BackpackSheet, MapSheet } from './PhoneSheets';
 import { t } from '../i18n';
@@ -40,6 +41,8 @@ export function App() {
     <>
       {screen === 'menu' ? (
         <MainMenu />
+      ) : screen === 'character' ? (
+        <CharacterScreen />
       ) : (
         <>
           <HUD />

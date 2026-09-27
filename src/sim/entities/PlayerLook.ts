@@ -124,6 +124,17 @@ export function lookOptionColor(key: LookKey, value: number): number | null {
   }
 }
 
+/** Seçiciyi bir adım ileri/geri alır; uçlarda döner (0.24.1). */
+export function stepLook(look: PlayerLook, key: LookKey, dir: 1 | -1): PlayerLook {
+  const n = LOOK_COUNTS[key];
+  return { ...look, [key]: (((look[key] + dir) % n) + n) % n };
+}
+
+/** 0xRRGGBB → CSS rengi. */
+export function hexCss(n: number): string {
+  return '#' + n.toString(16).padStart(6, '0');
+}
+
 /** Kayıttan ya da dış girdiden görünüm: tam sayı ve aralık içi olmayan her alan varsayılana döner. */
 export function lookFromJSON(raw: unknown): PlayerLook {
   const look: PlayerLook = { ...DEFAULT_LOOK };

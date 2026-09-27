@@ -8,6 +8,7 @@ import {
   LOOK_COUNTS,
   LOOK_KEYS,
   displayPlayerName,
+  hexCss,
   isDefaultLook,
   lookFromJSON,
   lookKey,
@@ -16,6 +17,7 @@ import {
   randomLook,
   sameLook,
   sanitizePlayerName,
+  stepLook,
 } from '../../src/sim/entities/PlayerLook';
 import { Sim } from '../../src/sim/Sim';
 
@@ -107,6 +109,16 @@ describe('Oyuncu görünümü modeli (0.24.0)', () => {
     setLang('en');
     expect(displayPlayerName('')).toBe('Caretaker');
     setLang(lang);
+  });
+
+  it('stepLook uçlarda döner, öbür alanlara dokunmaz; hexCss altı basamak (0.24.1)', () => {
+    const l = stepLook(DEFAULT_LOOK, 'hat', -1);
+    expect(l.hat).toBe(LOOK_COUNTS.hat - 1);
+    expect(stepLook(l, 'hat', 1).hat).toBe(0);
+    expect(stepLook(DEFAULT_LOOK, 'body', 1)).toEqual({ ...DEFAULT_LOOK, body: 1 });
+    expect(stepLook(DEFAULT_LOOK, 'body', 1).skin).toBe(0);
+    expect(hexCss(0x3f82dc)).toBe('#3f82dc');
+    expect(hexCss(0x000102)).toBe('#000102');
   });
 
   it('seçenek adı ve rengi', () => {

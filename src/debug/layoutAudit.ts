@@ -593,6 +593,18 @@ export async function auditScreens(app: AuditApp, only?: string, keep = false): 
       exit: () => (store.victory.value = null),
     },
     { name: 'screen:menu', enter: () => (store.screen.value = 'menu'), exit: () => (store.screen.value = 'game') },
+    // Karakterin ekranı (0.24.1): sahte taslakla; Başla'ya basılmaz.
+    {
+      name: 'screen:character',
+      enter: () => {
+        store.newGameDraft.value = { seed: '', difficulty: 'normal', starter: 'guided', dayMinutes: 10, slot: 0 };
+        store.screen.value = 'character';
+      },
+      exit: () => {
+        store.screen.value = 'game';
+        store.newGameDraft.value = null;
+      },
+    },
     // Açılış tanıtımı (0.22.5): her adımın balonu ve halkası, gerçek akıştaki arayüz hâliyle (adımlar kendiliğinden geçmez).
     ...(['guided', 'ready'] as const).flatMap((kind) =>
       stepsFor(kind).map((s, i) => ({

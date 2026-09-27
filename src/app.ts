@@ -438,6 +438,7 @@ class AppController {
     store.buildBar.value = false;
     store.build.value = { kind: 'none' };
     store.screen.value = 'game';
+    store.newGameDraft.value = null;
     this.applyDevice();
     store.gameOver.value = sim.gameOver;
     // Kazanılmış bir kayıt yüklenince zafer ekranı yeniden açılmaz.

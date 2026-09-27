@@ -256,6 +256,10 @@ html.is-touch .build-item {
     max-width: 96vw;
   }
 
+  .menu-card.character {
+    min-width: 0;
+  }
+
   .menu-card.wide {
     min-width: 0;
     width: min(96vw, 900px);
@@ -557,6 +561,69 @@ html.is-touch .build-item {
 
   .menu-screen .menu-card .version {
     text-align: left;
+  }
+
+  /* Karakter ekranı (0.24.1): önizleme küçülür, seçiciler sıkışır; kart yine iki sütun. */
+  .menu-screen .menu-card.character {
+    grid-template-columns: minmax(0, 0.75fr) minmax(0, 1.5fr);
+    gap: 4px 12px;
+    padding: 8px 14px;
+    max-width: min(96vw, 760px);
+  }
+
+  .char-left,
+  .char-right {
+    gap: 4px;
+  }
+
+  .char-preview {
+    padding: 3px;
+  }
+
+  .char-preview canvas {
+    width: 48px !important;
+    height: 72px !important;
+  }
+
+  .char-left h2 {
+    font-size: 1rem;
+  }
+
+  .char-left .field input {
+    padding: 5px 8px;
+  }
+
+  .char-actions,
+  .char-turn {
+    margin: 0;
+  }
+
+  html.is-touch .char-turn .btn.small {
+    min-height: 26px;
+  }
+
+  /* Dokunmatikte seçici düğmeleri 36 px yerine 30 px: 11 seçici kısa ekrana sığsın. */
+  html.is-touch .stepper .btn.small,
+  html.is-touch .char-turn .btn.small {
+    min-height: 30px;
+    padding: 2px 8px;
+  }
+
+  .char-opts {
+    gap: 1px 8px;
+  }
+
+  .char-label {
+    font-size: 0.7rem;
+  }
+
+  .char-value {
+    font-size: 0.78rem;
+    min-width: 56px;
+  }
+
+  .stepper .btn.small {
+    padding: 1px 6px;
   }
 }
 

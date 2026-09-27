@@ -7,6 +7,9 @@ import { getLang, t } from '../i18n';
 import { DIFFICULTIES, DIFFICULTY_NAMES_TR, type Difficulty, type StarterKind } from '../sim/Sim';
 import { formatMoney } from './format';
 import { InstallControls } from './InstallControls';
+import { HumanPortrait } from './HumanPortrait';
+import { styleFromLook } from '../render/HumanPainter';
+import { lookKey } from '../sim/entities/PlayerLook';
 import { store } from './store';
 
 function savedAtText(ms: number): string {
@@ -25,7 +28,8 @@ function SlotCard({ index, summary, selected, onSelect }: { index: number; summa
   return (
     <div class={'slot-card' + (selected ? ' active' : '') + (summary ? '' : ' empty')} onClick={onSelect}>
       <div class="slot-head">
-        <b>{t('Yuva {n}', { n: index + 1 })}</b>
+        {summary && <HumanPortrait style={styleFromLook(summary.look)} sig={lookKey(summary.look)} headOnly scale={2} class="slot-portrait" />}
+        <b>{t('Yuva {n}', { n: index + 1 }) + (summary?.name ? ` · ${summary.name}` : '')}</b>
         {summary ? (
           <span class="small-text">
             {t('{day}. gün · {money}', { day: summary.day, money: formatMoney(summary.money) })}
@@ -93,10 +97,12 @@ function SlotCard({ index, summary, selected, onSelect }: { index: number; summa
 
 export function MainMenu() {
   store.lang.value;
-  const [seed, setSeed] = useState('');
-  const [difficulty, setDifficulty] = useState<Difficulty>(() => app.lastDifficulty());
-  const [starter, setStarter] = useState<StarterKind>(() => app.lastStarter());
-  const [dayMinutes, setDayMinutes] = useState<DayMinutes>(() => app.lastDayMinutes());
+  // Karakterin ekranından Geri dönüldüyse seçimler taslaktan gelir (0.24.1).
+  const draft = store.newGameDraft.peek();
+  const [seed, setSeed] = useState(draft?.seed ?? '');
+  const [difficulty, setDifficulty] = useState<Difficulty>(() => draft?.difficulty ?? app.lastDifficulty());
+  const [starter, setStarter] = useState<StarterKind>(() => draft?.starter ?? app.lastStarter());
+  const [dayMinutes, setDayMinutes] = useState<DayMinutes>(() => draft?.dayMinutes ?? app.lastDayMinutes());
   const [confirmOverwrite, setConfirmOverwrite] = useState(false);
   const D = BALANCE.difficulty[difficulty];
   const booted = store.booted.value;
@@ -110,7 +116,9 @@ export function MainMenu() {
       return;
     }
     setConfirmOverwrite(false);
-    app.newGame(seed, difficulty, selected, starter, dayMinutes);
+    // Karakterin adımı (0.24.1): oyun orada Başla ile kurulur.
+    store.newGameDraft.value = { seed, difficulty, starter, dayMinutes, slot: selected };
+    store.screen.value = 'character';
   };
   const select = (i: number): void => {
     store.saveSlot.value = i;

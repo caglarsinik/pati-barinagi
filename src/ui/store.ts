@@ -1,7 +1,8 @@
 import { buildingSize, canRotate, type Rotation } from '../sim/entities/Building';
 import { signal } from '@preact/signals';
 import { BUILDING_DEFS, type BuildingType, TILE_TOOL_DEFS, type TileTool } from '../content/buildings';
-import { type Mode, type Sim, type GameOverInfo, type VictoryInfo } from '../sim/Sim';
+import { type Difficulty, type Mode, type Sim, type GameOverInfo, type StarterKind, type VictoryInfo } from '../sim/Sim';
+import type { DayMinutes } from '../config/balance';
 import { ZONE_NAMES_TR, Zone } from '../sim/world/tiles';
 import type { Alert } from '../sim/systems/AlertSystem';
 import type { WeekSummary } from '../sim/systems/EconomySystem';
@@ -13,7 +14,15 @@ import { WEEKDAYS_TR } from '../core/Clock';
 import { type Tool, resolveAction } from '../sim/systems/Interaction';
 import { matsLabel, quoteBuilding, tileMatLabel, tileMatReady } from '../sim/systems/BuildSystem';
 
-export type Screen = 'menu' | 'game';
+export type Screen = 'menu' | 'character' | 'game';
+/** Ana menüde seçilip Karakterin adımında bekleyen yeni oyun ayarları (0.24.1). */
+export interface NewGameDraft {
+  seed: string;
+  difficulty: Difficulty;
+  starter: StarterKind;
+  dayMinutes: DayMinutes;
+  slot: number;
+}
 /** Cihaz sınıfı: pencere boyutundan (app.ts) belirlenir. */
 import type { Layout } from './layout';
 import type { SaveSummary } from '../core/SaveManager';
@@ -80,6 +89,8 @@ export const store = {
   /** Seçili kayıt yuvası (0-2) ve yuva özetleri (ana menü). */
   saveSlot: signal(0),
   slots: signal<Array<SaveSummary | null>>([null, null, null]),
+  /** "Yeni oyun" → Karakterin ekranı arası taslak (0.24.1); Başla ya da oyun başlayınca null. */
+  newGameDraft: signal<NewGameDraft | null>(null),
   pauseMenu: signal(false),
   /** Bir metin kutusu odaktayken oyun tuşları devre dışı kalır. */
   inputFocused: signal(false),

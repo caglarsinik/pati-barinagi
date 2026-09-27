@@ -1878,4 +1878,11 @@ export const EN: Record<string, string> = {
   "Ayakkabı": "Shoes",
   "Şapka": "Hat",
   "Aksesuar": "Accessory",
+  // 0.24.1 karakter ekranı
+  "Karakterin": "Your character",
+  "Adın": "Your name",
+  "Rastgele": "Random",
+  "Geri": "Back",
+  "Sola döndür": "Turn left",
+  "Sağa döndür": "Turn right",
 };
