@@ -57,6 +57,26 @@
   köpek paneli, araç şeridi, alt menü listesi, ana menü, Ayarlar: çakışma yok, taşma yok. Alt menü açılır listesi köpek
   panelinin üstüne gelebilir (geçici popover, üstte kalır) — kabul edildi. Gerçek cihaz testi kullanıcıda.
 
+## 0.25.0 — Yuva evi içi 1: oda, çift, yumurta sepeti (Claude, 2026-09-27)
+- `Interiors.ts`: `InteriorKind` += 'nursery' (`interiorKindFor('nursery')`), `InteriorItemType` += nestBoard/nestBed/eggBasket,
+  şablon 8×6 (rows '#......#' üç döşeme satırı; pano (1,1,w2), pencere (5,1), yatak slot 0 (1,3,w2) ve slot 1 (5,3,w2), sepet
+  (6,4); kapı (3,5) → doğuş (3.5,4.7); sepetin önü (5,4)'ten sağa), `FURNITURE_BY_KIND.nursery = []` (0.25.1 doldurur),
+  `nurseryRestSpotInside(map, slot)`. `InteriorArt`: `drawNestBoard` (kalpli pano), `drawNestBed` (pembe minder), `drawEggBasket`
+  (kulplu hasır sepet, 16×15; yumurta ayrı sprite).
+- `Interaction.ts`: `ActionKind` += nurseryBoard/nurseryEgg; `resolveInterior` nestBoard → `nurseryBoard` ("çifti seç/değiştir"),
+  nestBed → ipucu çiftin köpeği ya da "boş", eggBasket → yumurta varsa `nurseryEgg` "E: yumurtayı al (🥚 anne × baba)" (çanta
+  doluysa "yer aç"), yoksa "Sepet boş · yumurtaya n gün" / "panodan çift seç"; varsayılan oda ipucu. `performAction`:
+  nurseryBoard → `open:'nursery'`, nurseryEgg → `takeNurseryEgg` + meşgul 0,4 sn. Dış ipucu "E: yuva evi · ↑ içeri" (E dışarıdan
+  paneli açmaya devam eder; otopilot `doorJob` bozulmaz). Giriş: `tryPushEnter`/`enterBuilding`/`isDoorTile` `interiorKindFor`
+  üzerinden kendiliğinden çalıştı (kapı karesi binanın alt orta karesinin altı; tapte alt orta kare).
+- `WorldScene`: `nurserySpotInside(dog)` — oyuncu yuva evindeyken `b.pair`'daki köpekler yataklarda yatış karesiyle çizilir
+  (`syncDogs` `kennelSpotInside ?? nurserySpotInside`; kozmetik, dışarıdaki yerleri değişmez); `syncInteriorEggs` yuva evinde
+  `b.eggs[0]`'ı sepetin üstüne (ölçek 0,7) koyar. NurseryPanel: "🚪 İçeri gir" (`goInteract enter`) + açıklama.
+- Denetim adımı `interior:nursery` (zengin oyunda yuva evi + çift var). Test `nursery-interior.test.ts` (4): şablon/katılık/önler/
+  yatış yerleri, giriş-çıkış + dış ipucu, pano/yatak/sepet ipuçları ve yumurta alma (çanta dolu red), çizimler. DERS: `Dog.stage`
+  yaştan türetilen getter → testte `ageWeeks` ver; hazır başlangıçta barınakta tek köpek var → `addDog` ile ikinci köpek.
+- 500 test. Denetim `interior:nursery` + `panel:nursery` 12 boyutta TR/EN 0 sorun. Sıradaki 0.25.1: yuva evi eşyaları ve etkileri.
+
 ## 0.24.3 — Karakter 4: cila (Claude, 2026-09-27) — M20 tamam
 - Dokunma senaryosu 21 (`touchDebug.ts`, taze hazır oyun, async): `store.settingsOpen` → `[data-char=edit]` → pencere →
   `[data-char=hairStyle] .next`, `[data-char=skin] .next` ×2, ad alanına 'Test' (`input` olayı) → `[data-char=apply]` → pencere

@@ -1896,4 +1896,15 @@ export const EN: Record<string, string> = {
   // 0.24.3 karakter cilası: Kontroller
   "🧑 Karakter": "🧑 Character",
   "Yeni oyunda \"Karakterin\" ekranında görünümünü ve adını seçersin; açık oyunda Ayarlar → Karakter → Karakteri düzenle. Adın Nermin Hanım'ın karşılamasında, sabah kartında, mektuplarda ve zafer ekranında geçer; sahiplendirme fotoğraflarında köpeğin yanında sen de olursun.": "In a new game the \"Your character\" screen sets your look and name; in an open game use Settings → Character → Edit character. Your name appears in Nermin's greeting, the morning card, letters and the victory screen; you stand next to the dog in adoption photos.",
+  // 0.25.0 yuva evi içi
+  "E: pano · çifti değiştir": "E: board · change the pair",
+  "E: pano · çifti seç": "E: board · pick the pair",
+  "Yuva yatağı · boş: panodan çift seç": "Nest bed · empty: pick a pair at the board",
+  "Yuva yatağı · {name}": "Nest bed · {name}",
+  "Sepette yumurta var: çantada yer aç ({n}/{max})": "There is an egg in the basket: free a bag slot ({n}/{max})",
+  "E: yumurtayı al (🥚 {a} × {b})": "E: take the egg (🥚 {a} × {b})",
+  "Sepet boş · panodan çift seç": "Basket empty · pick a pair at the board",
+  "Sepet boş · yumurtaya {days} gün": "Basket empty · {days} days to the egg",
+  "Yuva evi · panodan çift seç · sepetten yumurtayı al · çıkmak için kapıya yürü": "Nest house · board: pick the pair · basket: take the egg · walk to the door to leave",
+  "İçeride: pano çift seçer, sepetten yumurta alınır; çift yuva yataklarında yatar.": "Inside: the board picks the pair, the egg is taken from the basket; the pair rests on the nest beds.",
 };

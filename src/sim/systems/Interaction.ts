@@ -1,4 +1,5 @@
 import { BALANCE } from '../../config/balance';
+import { takeNurseryEgg } from './BreedingSystem';
 import { type Building, buildingDef, isReady, buildingFootprint } from '../entities/Building';
 import { type Dog, SKILL_KEYS, SKILL_NAMES_TR, type SkillKey, clamp100 } from '../entities/Dog';
 import { FACING_DELTA } from '../entities/Player';
@@ -92,6 +93,9 @@ export type ActionKind =
   /** Orman evi (0.23.3): onarım paneli, ocakta ısınma. */
   | 'ruinRepair'
   | 'cabinWarm'
+  /** Yuva evi içi (0.25.0): pano çift panelini açar, sepetten yumurta alınır. */
+  | 'nurseryBoard'
+  | 'nurseryEgg'
   | 'none';
 
 /**
@@ -267,6 +271,30 @@ function resolveInterior(sim: Sim, tile: TilePos): ResolvedAction {
       return { kind: 'none', hint: t('Su kabı: kulübesinde uyuyan köpek susamaz'), tile };
     case 'dogToy':
       return { kind: 'none', hint: t('Oyuncak sepeti: keyif %25 daha yavaş düşer'), tile };
+    case 'nestBoard': {
+      // Yuva evi (0.25.0): pano çift panelini açar.
+      const b = sim.buildingById(it.buildingId);
+      const n = b ? b.pair.filter((id) => sim.dogById(id)).length : 0;
+      return { kind: 'nurseryBoard', hint: n === 2 ? t('E: pano · çifti değiştir') : t('E: pano · çifti seç'), building: b, tile };
+    }
+    case 'nestBed': {
+      const b = sim.buildingById(it.buildingId);
+      const id = b?.pair[item.slot ?? 0];
+      const dog = id !== undefined ? sim.dogById(id) : undefined;
+      if (!dog) return { kind: 'none', hint: t('Yuva yatağı · boş: panodan çift seç'), tile };
+      return { kind: 'none', hint: t('Yuva yatağı · {name}', { name: dog.name }), tile };
+    }
+    case 'eggBasket': {
+      const b = sim.buildingById(it.buildingId);
+      const egg = b?.eggs[0];
+      if (b && egg) {
+        if (sim.backpack.length >= sim.backpackSlots()) return { kind: 'none', hint: t('Sepette yumurta var: çantada yer aç ({n}/{max})', { n: sim.backpack.length, max: sim.backpackSlots() }), tile };
+        return { kind: 'nurseryEgg', hint: t('E: yumurtayı al (🥚 {a} × {b})', { a: egg.parentNames?.[0] ?? '?', b: egg.parentNames?.[1] ?? '?' }), building: b, tile };
+      }
+      const pairOk = b ? b.pair.filter((id) => sim.dogById(id)).length === 2 : false;
+      if (!b || !pairOk) return { kind: 'none', hint: t('Sepet boş · panodan çift seç'), tile };
+      return { kind: 'none', hint: t('Sepet boş · yumurtaya {days} gün', { days: (b.breedLeft / (24 * 60)).toFixed(1) }), tile };
+    }
     case 'chest': {
       // Terk edilmiş ev (0.23.2): sandık bir kez para ve yumurta verir; çanta doluysa yumurta sandıkta bekler.
       const c = sim.ruin.chest;
@@ -293,6 +321,7 @@ function resolveInterior(sim: Sim, tile: TilePos): ResolvedAction {
     case 'cobweb':
       return { kind: 'none', hint: t('Örümcek ağları'), tile };
     default:
+      if (it.kind === 'nursery') return { kind: 'none', hint: t('Yuva evi · panodan çift seç · sepetten yumurtayı al · çıkmak için kapıya yürü'), tile };
       if (it.kind === 'ruin') return { kind: 'none', hint: t('Terk edilmiş ev · ocağa bakıp E: onarım · çıkmak için kapıya yürü'), tile };
       if (it.kind === 'cabin') return { kind: 'none', hint: t('Orman evi · yatakta uyu, ocakta ısın · çıkmak için kapıya yürü'), tile };
       if (it.kind === 'kennel' || it.kind === 'kennelLarge') return { kind: 'none', hint: t('Kulübe içi · panoya bakıp E: eşya al · çıkmak için kapıya yürü'), tile };
@@ -419,7 +448,7 @@ export function resolveAction(sim: Sim): ResolvedAction {
     if (building.type === 'incubator') return { kind: 'incubator', hint: t('E: kuluçka') + t(' · ↑ içeri'), building };
     if (building.type === 'kitchen') return { kind: 'enter', hint: t('E: mutfağa gir'), building };
     if (building.type === 'staffRoom') return { kind: 'enter', hint: t('E: dinlenme odasına gir'), building };
-    if (building.type === 'nursery') return { kind: 'nursery', hint: building.eggs.length > 0 ? t('E: yuva evi (yumurta hazır)') : t('E: yuva evi'), building };
+    if (building.type === 'nursery') return { kind: 'nursery', hint: (building.eggs.length > 0 ? t('E: yuva evi (yumurta hazır)') : t('E: yuva evi')) + t(' · ↑ içeri'), building };
   }
 
   // Çağır aracı: yakındaki "Gel" bilen köpekler.
@@ -736,6 +765,14 @@ export function performAction(sim: Sim): ActionOutcome {
       return { ok: true, open: 'incubator', building: r.building };
     case 'nursery':
       return { ok: true, open: 'nursery', building: r.building };
+    case 'nurseryBoard':
+      return { ok: true, open: 'nursery', building: r.building };
+    case 'nurseryEgg': {
+      if (!r.building) return { ok: false };
+      const got = takeNurseryEgg(sim, r.building);
+      if (got.ok) p.setBusy(0.4, 'pickEgg');
+      return got;
+    }
     default:
       return { ok: false };
   }

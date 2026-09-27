@@ -24,7 +24,7 @@ import { resolveAction } from '../sim/systems/Interaction';
 import { harvestAt } from '../sim/systems/Materials';
 import { drawLightDisc } from '../render/LightArt';
 import { drawInteriorItem, interiorItemTextureKey } from '../render/InteriorArt';
-import { type ActiveInterior, type InteriorItem, interiorItemAt, interiorKindFor, isKennelInterior, kennelRestSpotInside, sacksOnShelf } from '../sim/interior/Interiors';
+import { type ActiveInterior, type InteriorItem, interiorItemAt, interiorKindFor, isKennelInterior, kennelRestSpotInside, sacksOnShelf, nurseryRestSpotInside } from '../sim/interior/Interiors';
 import { DPR } from '../render/dpr';
 import { Pixels, hex } from '../render/Pixels';
 import { SEASON_TINT } from '../sim/systems/WeatherSystem';
@@ -1068,7 +1068,7 @@ export class WorldScene extends Phaser.Scene {
         s.setTexture(key, 0);
       }
       // Oyuncu kulübenin içindeyken orada uyuyan sakin içeride, yatağında ya da halıda yatar (0.22.3).
-      const inside = this.kennelSpotInside(dog);
+      const inside = this.kennelSpotInside(dog) ?? this.nurserySpotInside(dog);
       if (inside) {
         s.anims.stop();
         s.setPosition(inside.x, inside.y);
@@ -1701,7 +1701,7 @@ export class WorldScene extends Phaser.Scene {
   /** Kuluçka içi: tepsilerdeki yumurtalar; yumurta kümesi ya da oda değişince yeniden kurulur. */
   private syncInteriorEggs(): void {
     const it = this.sim.interior;
-    const b = it && it.kind === 'hatchery' ? this.sim.buildingById(it.buildingId) : undefined;
+    const b = it && (it.kind === 'hatchery' || it.kind === 'nursery') ? this.sim.buildingById(it.buildingId) : undefined;
     const sig = it && b ? `${b.eggs.map((e) => e.id).join(',')}|${it.items.length}` : '';
     if (sig === this.interiorEggSig) return;
     this.interiorEggSig = sig;
@@ -1710,6 +1710,22 @@ export class WorldScene extends Phaser.Scene {
     if (!it || !b) return;
     const T = GAME.tile;
     const ox = this.interiorOffsetX();
+    if (it.kind === 'nursery') {
+      // Yuva evi (0.25.0): hazır yumurta sepette.
+      const basket = it.items.find((i) => i.type === 'eggBasket');
+      const egg = b.eggs[0];
+      if (!basket || !egg) return;
+      const key = `int-egg-${genomeKey(egg.genome)}`;
+      if (!this.textures.exists(key)) this.textures.addCanvas(key, drawEgg(egg.genome).toCanvas());
+      this.interiorEggs.push(
+        this.add
+          .image(ox + basket.x * T + 8, (basket.y + 1) * T - 6, key)
+          .setOrigin(0.5, 1)
+          .setScale(0.7)
+          .setDepth(100 + (basket.y + 1) * T),
+      );
+      return;
+    }
     const trays = it.items.filter((i) => i.type === 'tray');
     b.eggs.forEach((egg, i) => {
       const tray = trays.find((tr) => (tr.slot ?? 0) === Math.floor(i / 3));
@@ -1805,6 +1821,20 @@ export class WorldScene extends Phaser.Scene {
     const T = GAME.tile;
     const bottom = spot.y * T;
     return { x: this.interiorOffsetX() + Math.round(spot.x * T), y: bottom - (spot.bed ? 2 : 1), depth: 100 + bottom + 0.5, facing: slot % 2 === 0 ? 2 : 1 };
+  }
+
+  /** Oyuncu yuva evinin içindeyken çiftin köpekleri yuva yataklarında yatar (0.25.0; kozmetik: dışarıdaki yerleri değişmez). */
+  private nurserySpotInside(dog: Dog): { x: number; y: number; depth: number; facing: number } | null {
+    const it = this.sim.interior;
+    if (!it || it.kind !== 'nursery') return null;
+    const b = this.sim.buildingById(it.buildingId);
+    const slot = b ? b.pair.indexOf(dog.id) : -1;
+    if (slot < 0) return null;
+    const spot = nurseryRestSpotInside(it, slot);
+    if (!spot) return null;
+    const T = GAME.tile;
+    const bottom = spot.y * T;
+    return { x: this.interiorOffsetX() + Math.round(spot.x * T), y: bottom - 2, depth: 100 + bottom + 0.5, facing: slot % 2 === 0 ? 2 : 1 };
   }
 
   /** İçeride dokunuş: eşyaya → yanına git ve E; boş kare → yürü (kapı karesi dışarı çıkarır). */

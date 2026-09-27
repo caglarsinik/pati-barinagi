@@ -608,7 +608,7 @@ dolaşmaları sürer), yumurta sepetinden yumurta alınır; eşyalar üremeyi ı
 
 | Sürüm | Konu |
 |---|---|
-| 0.25.0 | `nursery` iç mekânı (8×6: pano, iki yuva yatağı, yumurta sepeti, pencereler): pano → NurseryPanel, yatak ipucu köpek adı, sepet → `takeNurseryEgg` (çanta doluysa red); çift içeride yatar; ↑ / kapı dokunuşu / panelde "İçeri gir"; dış ipucu "E: yuva evi · ↑ içeri" |
+| 0.25.0 ✅ | `nursery` iç mekânı (`Interiors.ts` şablon 8×6: `nestBoard` (1,1), pencere (5,1), `nestBed` ×2 (1,3)/(5,3) slot 0/1, `eggBasket` (6,4); `interiorKindFor('nursery')`; `nurseryRestSpotInside`): `resolveInterior` pano → `nurseryBoard` (NurseryPanel açılır), yatak ipucu çiftin adı / "boş", sepet → `nurseryEgg` (`takeNurseryEgg`, meşgul 0,4 sn; çanta doluysa "yer aç"; yumurta yokken gün sayar ya da "çift seç"); WorldScene `nurserySpotInside` (oyuncu içerideyken çift yataklarda yatar, kozmetik) ve sepette yumurta sprite'ı (`syncInteriorEggs`); ↑ / kapı karesi dokunuşu / NurseryPanel "🚪 İçeri gir"; dış ipucu "· ↑ içeri"; `InteriorArt` üç yeni eşya; denetim `interior:nursery`; test `nursery-interior.test.ts` |
 | 0.25.1 | Eşyalar: yumuşak yuva (süre ×0,85), ısıtıcı (bekleme ×0,75), pencere (dekor +1), fotoğraf duvarı (dekor +1, soy satırı); yumurta hazırken dış görünümde işaret; panelde eşya satırı; başarım "Sıcak yuva" (41) |
 | 0.25.2 | Cila: dokunma senaryosu 22 (yuva evi kur → içeri → pano → çift → 5 gün → sepet → çanta), Kontroller, denetim, belgeler |
 

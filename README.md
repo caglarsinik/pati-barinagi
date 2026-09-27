@@ -631,7 +631,8 @@ Bilgisayar değiştirirken ya da yedek almak için kullan.
 - [x] 0.24.2 Karakter 3: Ayarlar → Karakter (açık oyunda görünüm ve ad, anında uygulanır); ad Nermin'in karşılamasında, sabah kartında, mektup selamında ("Sevgili …,") ve zafer ekranında; sahiplendirme fotoğrafında o anki görünümüyle oyuncu (eski fotoğraflar değişmez); tam denetim 12 boyutta TR/EN temiz
 - [x] 0.24.3 Karakter 4 (cila): dokunma senaryosu 21 (Ayarlar → Karakteri düzenle → Uygula → sprite; Karakterin ekranı), Kontroller'de "🧑 Karakter" satırı, README "Karakter" bölümü — M20 tamam
 - [x] M20 Karakter (0.24.0–0.24.3): görünüm modeli ve çizim → Karakterin ekranı → Ayarlar, ad, fotoğraf → cila
-- [ ] Sıradaki (2026-09-27 yol haritası, `docs/PLAN.md` §7): M21 Yuva evi içi (0.25.0–0.25.2) → M22 Kuzey/batı arsa (0.26.0–0.26.1) → M23 Arsa yeri (0.27.0–0.27.1)
+- [x] 0.25.0 Yuva evi içi 1: yuva evine girilir (↑, kapıya dokunuş, panelde "İçeri gir"); içeride pano çift panelini açar, iki yuva yatağında çift yatar, hazır yumurta sepette görünür ve E ile çantaya alınır
+- [ ] Sıradaki (2026-09-27 yol haritası, `docs/PLAN.md` §7): M21 Yuva evi içi (0.25.1 eşyalar → 0.25.2 cila) → M22 Yuva evi içi (0.25.0–0.25.2) → M22 Kuzey/batı arsa (0.26.0–0.26.1) → M23 Arsa yeri (0.27.0–0.27.1)
 - [ ] Sonrası: yuva evi içi, kuzey/batı arsa genişletme
 
 ## Geliştirme

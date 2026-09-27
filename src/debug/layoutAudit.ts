@@ -545,6 +545,16 @@ export async function auditScreens(app: AuditApp, only?: string, keep = false): 
       },
       exit: () => sim.exitInterior(),
     },
+    // Yuva evi içi (0.25.0): zengin oyunda yuva evi ve çift var.
+    {
+      name: 'interior:nursery',
+      enter: () => {
+        sim.setMode('avatar');
+        const n = bid('nursery');
+        if (n !== null) sim.enterBuilding(n);
+      },
+      exit: () => sim.exitInterior(),
+    },
     panel('autoOrder'),
     panel('clinic'),
     panel('wholesale'),

@@ -45,6 +45,12 @@ export function NurseryPanel() {
     </select>
   );
   const total = breedMinutes();
+  // Yuva evi içi (0.25.0): kapıya yürüyüp girer; içeride pano bu paneli açar, sepetten yumurta alınır.
+  const enter = (): void => {
+    const r = sim.command({ type: 'goInteract', goal: { kind: 'enter', id: b.id } });
+    if (r.ok) store.panel.value = 'none';
+    else if (r.message) showToast(r.message);
+  };
   return (
     <div class="overlay">
       <div class="menu-card panel wide nursery">
@@ -55,6 +61,12 @@ export function NurseryPanel() {
           </button>
         </div>
         {!ready && <p class="muted">{t('Yuva evi henüz inşa ediliyor.')}</p>}
+        <div class="row wrap">
+          <button class="btn small" disabled={!ready || sim.mode !== 'avatar'} onClick={enter}>
+            {t('🚪 İçeri gir')}
+          </button>
+          <span class="muted small-text">{t('İçeride: pano çift seçer, sepetten yumurta alınır; çift yuva yataklarında yatar.')}</span>
+        </div>
         <p class="muted small-text">
           {t('İki yetişkin köpek {days} günde bir yumurta verir. Sağlıkları en az {h}, birbirlerine dostlukları en az {f} olmalı; sonra {w} hafta dinlenirler. Yavru özelliklerini ikisinden alır.', {
             days: B.days,

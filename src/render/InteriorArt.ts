@@ -101,6 +101,12 @@ export function drawInteriorItem(type: InteriorItemType, variant = 3): Pixels {
       return drawBrokenBed();
     case 'cobweb':
       return drawCobweb();
+    case 'nestBoard':
+      return drawNestBoard();
+    case 'nestBed':
+      return drawNestBed();
+    case 'eggBasket':
+      return drawEggBasket();
   }
 }
 
@@ -119,6 +125,65 @@ const METAL = hex(0x9ea3ad);
 const METAL_DARK = hex(0x6d717b);
 
 /** Ofis masası: ahşap tabla, çekmeceler, üstünde bilgisayar ve kâğıtlar (2 kare genişlik). */
+/** Yuva evi panosu (0.25.0): mantar pano, iki köpek kâğıdı, ortada kalp. */
+function drawNestBoard(): Pixels {
+  const p = new Pixels(TILE * 2, TILE);
+  p.fillRect(1, 1, 30, 11, P.trunk);
+  p.fillRect(2, 2, 28, 9, CORK);
+  p.fillRect(4, 3, 7, 6, PAPER);
+  p.fillRect(21, 3, 7, 6, PAPER);
+  p.fillRect(5, 4, 5, 1, hex(0xbabcc1));
+  p.fillRect(5, 6, 4, 1, hex(0xbabcc1));
+  p.fillRect(22, 4, 5, 1, hex(0xbabcc1));
+  p.fillRect(22, 6, 4, 1, hex(0xbabcc1));
+  const h = P.flowerRed;
+  p.fillRect(13, 4, 2, 1, h);
+  p.fillRect(16, 4, 2, 1, h);
+  p.fillRect(12, 5, 7, 1, h);
+  p.fillRect(13, 6, 5, 1, h);
+  p.fillRect(14, 7, 3, 1, h);
+  p.set(15, 8, h);
+  p.outline(P.outline);
+  return p;
+}
+
+/** Yuva yatağı (0.25.0): pembe kenarlı minder, ortada kalp (2 kare). */
+function drawNestBed(): Pixels {
+  const p = new Pixels(TILE * 2, TILE);
+  const rim = hex(0xd97aa0);
+  const rimDark = hex(0xa8567a);
+  const rimLight = hex(0xf0a3c2);
+  const cushion = hex(0xfbe7ee);
+  const cushionDark = hex(0xefcbd8);
+  p.ellipse(16, 9, 14.5, 6, rimDark);
+  p.ellipse(16, 8, 14.5, 6, rim);
+  p.ellipse(16, 7, 13, 4.5, rimLight);
+  p.ellipse(16, 8.5, 11, 3.8, cushionDark);
+  p.ellipse(16, 8, 10, 3, cushion);
+  p.fillRect(8, 12, 16, 1, rimDark);
+  p.set(15, 7, P.flowerRed);
+  p.set(17, 7, P.flowerRed);
+  p.fillRect(15, 8, 3, 1, P.flowerRed);
+  p.set(16, 9, P.flowerRed);
+  p.outline(P.outline);
+  return p;
+}
+
+/** Yumurta sepeti (0.25.0): kulplu hasır sepet, içinde saman; yumurta ayrı sprite olarak üstüne çizilir. */
+function drawEggBasket(): Pixels {
+  const p = new Pixels(TILE, 15);
+  p.fillRect(5, 1, 6, 1, WICKER);
+  p.fillRect(4, 2, 1, 3, WICKER);
+  p.fillRect(11, 2, 1, 3, WICKER);
+  p.fillRect(2, 5, 12, 9, WICKER);
+  p.fillRect(2, 5, 12, 1, WICKER_LIGHT);
+  p.fillRect(2, 13, 12, 1, WICKER_DARK);
+  p.fillRect(3, 6, 10, 2, P.flowerYellow);
+  p.fillRect(4, 7, 8, 1, hex(0xd9b34a));
+  p.outline(P.outline);
+  return p;
+}
+
 function drawDesk(): Pixels {
   const w = TILE * 2;
   const p = new Pixels(w, 28);
