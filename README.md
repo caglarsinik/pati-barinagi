@@ -99,6 +99,7 @@ Kayıttan devam edince aynı kart **Hoş geldin** başlığıyla açılır. Ayar
 | B | İnşa çubuğu (yönetim moduna geçer) | İnşa çubuğu |
 | X / Z | – | Yık aracı / Bölge boyama |
 | R | – | Seçili binayı döndür (kare olmayan binalar; dokunmatikte Döndür çipi) |
+| V | – | Taşı: binayı tıkla ya da sürükle, yeni yerine bırak (içindekiler korunur) |
 | Tab | Yönetim moduna geç | Avatara dön |
 | Space | Duraklat / devam | Duraklat / devam |
 | + / - | Hız artır / azalt | Hız artır / azalt |
@@ -180,6 +181,12 @@ toplamaya arsadan en çok 40 kare uzağa gider, köyün çevresine hiç gitmez. 
 - Yönetim modunda B ile inşa çubuğu açılır: kategori → bina. Hayalet yeşilse yerleşir, kırmızıysa sığmıyor ya da para yetmiyor. R ile kare olmayan binalar (büyük kulübe, mutfak, personel odası, tünel, bank) 90° döner; ön yüz ve kapı hep güneyde kalır.
 - Çit ve yol sürükleyerek düz çizgi halinde çekilir; kapı çitin üstüne konur. **Kapı kapalıyken geçilmez:** sen, personel, sahiplenici ve tasmalı köpek yaklaşınca kendiliğinden açılır, geçince kapanır; serbest köpekler kapıdan çıkamaz (gece kaçış yine çitten atlamadır). Bölgeler (tuvalet, oyun bahçesi, eğitim, karantina, personel) dikdörtgen sürükleyerek boyanır.
 - Büyük binalar inşaat süresi boyunca yarı saydamdır ve kullanılamaz. Yıkım bedelin yarısını iade eder.
+- **Taşı** (0.22.2; inşa çubuğunda Yık'ın yanında, klavyede V): binaya dokun, sonra yeni yerine dokun — ya da binayı
+  parmakla/fareyle sürükleyip bırak. Bina tuttuğun yerinden taşınır; hayalet yeşilse sığar, kırmızıysa sığmaz, eski yeri ince
+  beyaz çerçeveyle görünür. Taşırken R ya da Döndür çipiyle döner. **Ücretsizdir ve içindekiler korunur:** kulübedeki köpekler
+  (uyuyorsa kalkıp yeni yerine yürür), kuluçkadaki yumurtalar ve kalan süreleri, eşyalar, seviye, kaptaki yem ve yalaktaki su.
+  O binaya giden personel işini bırakıp yeni yere gider. Ofis taşınmaz; taşırken başka binaya dokunmak onu seçer, sekmeye
+  dokunmak taşımayı bitirir.
 - Arsa sekmesinden doğuya/güneye 16 kare genişletilir (2.500 ₺; kuruluş oyununda ilk genişletme 1.500 ₺); alan temizlenir, çit ve yol kapıları yeniden kurulur.
 - Tımar istasyonu yakındaki köpeği yıkar, veteriner odası tedavi eder, mutfak kapların kapasitesini ikiye katlar, yalakları kendiliğinden doldurur ve personelin yem/su işini %40 hızlandırır; oyuncaklar köpeklerin kendi kendine oynamasını sağlar. Otomatik yem makinesi (2.500 ₺) her saat 8 kare içindeki kaplara kilerden 2 porsiyon koyar; o kapların yem görevi daha az acil olur.
 - Ofis lisansla büyür: lisans 2'de bayrak ve yan pencere, lisans 3'te çatı penceresi ve yıldızlı tabela; Sv3 ofiste en fazla 16 personel çalışır (öncesinde 12).
@@ -476,7 +483,8 @@ Bilgisayar değiştirirken ya da yedek almak için kullan.
 - [x] 0.21.6 Arayüz denetimi: telefon (568×320–915×412), tablet (768×1024–1180×820) ve masaüstünde 59 ekranda taşan, kesilen, üst üste binen yazılar düzeltildi; dünya adları çakışmaz; `__pati.debug.auditScreens()`
 - [x] 0.22.0 Arka planda müzik durur (kaldığı yerden sürer) ve sol altta ihtiyaç şeridi ("3 köpek aç · 2 susuz")
 - [x] 0.22.1 Mini harita yakınlaştırma: 1×/2×/4×, sürükle, iki parmak, tekerlek, ⌖ ile bana dön; yakınken binalar görünür
-- [ ] M19 Konfor ve Yaşam Kalitesi (dilimlendi, `docs/PLAN.md`): 0.22.0 ✅ müzik + ihtiyaç şeridi → 0.22.1 ✅ mini harita yakınlaştırma → 0.22.2 binayı taşı → 0.22.3 kulübe içi → 0.22.4 kulübe eşya etkileri → 0.22.5 açılış hikâyesi (tanıtım) → 0.22.6 cila
+- [x] 0.22.2 Taşı aracı: kurulu bina içindekilerle yerinde taşınır (dokun-dokun ya da sürükle-bırak, R/Döndür), ücretsiz; ofis taşınmaz
+- [ ] M19 Konfor ve Yaşam Kalitesi (dilimlendi, `docs/PLAN.md`): 0.22.0 ✅ müzik + ihtiyaç şeridi → 0.22.1 ✅ mini harita yakınlaştırma → 0.22.2 ✅ binayı taşı → 0.22.3 kulübe içi → 0.22.4 kulübe eşya etkileri → 0.22.5 açılış hikâyesi (tanıtım) → 0.22.6 cila
 - [ ] M18 Terk Edilmiş Ev ve Malzemeler (0.23.0–0.23.4): odun ve taş, malzemeyle öde, uzak ormanda ev, onarım
 - [ ] Sonrası: yuva evi içi, kuzey/batı arsa genişletme
 

@@ -473,6 +473,16 @@ export async function auditScreens(app: AuditApp, only?: string, keep = false): 
       },
     },
     {
+      // Taşı (0.22.2): tutulan büyük kulübe; öğe satırı gizli, ipucu satırında Döndür/İptal.
+      name: 'build:move',
+      enter: () => {
+        sim.setMode('manage');
+        store.buildBar.value = true;
+        const k = sim.buildings.find((b) => b.type === 'kennelLarge') ?? sim.buildings.find((b) => b.type === 'kennelSmall');
+        store.build.value = k ? { kind: 'move', id: k.id, type: k.type, rot: k.rot, dx: 0, dy: 0 } : { kind: 'move', id: null };
+      },
+    },
+    {
       name: 'panel:dog',
       enter: () => {
         sim.setMode('avatar');

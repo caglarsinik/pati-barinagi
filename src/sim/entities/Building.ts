@@ -106,16 +106,20 @@ export function isTileSolidForBuilding(def: BuildingDef, row: number, rot: Rotat
   return row < sr;
 }
 
-/** Bina yerleştirilebilir mi: tüm kareler arsa içinde (çit satırları hariç), boş ve nesnesiz. */
-export function canPlaceBuilding(world: TileWorld, type: BuildingType, x: number, y: number, rot: Rotation = 0): boolean {
+/**
+ * Bina yerleştirilebilir mi: tüm kareler arsa içinde (çit satırları hariç), boş ve nesnesiz. `ignoreId` (0.22.2 taşıma):
+ * o binanın kendi kareleri boş sayılır (bina kendi yerine bir kare kayabilir).
+ */
+export function canPlaceBuilding(world: TileWorld, type: BuildingType, x: number, y: number, rot: Rotation = 0, ignoreId = -1): boolean {
   const s = buildingSize(BUILDING_DEFS[type], rot);
   for (let yy = y; yy < y + s.h; yy++) {
     for (let xx = x; xx < x + s.w; xx++) {
       if (!world.inPlotInterior(xx, yy)) return false;
       const i = world.idx(xx, yy);
       if (world.object[i] !== 0) return false;
-      if (world.buildingIndex[i] !== -1) return false;
-      if (world.solid[i] === 1) return false;
+      const own = ignoreId !== -1 && world.buildingIndex[i] === ignoreId;
+      if (!own && world.buildingIndex[i] !== -1) return false;
+      if (!own && world.solid[i] === 1) return false;
     }
   }
   return true;

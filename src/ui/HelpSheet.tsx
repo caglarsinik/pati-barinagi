@@ -15,6 +15,7 @@ const ROWS: Array<[string, string, string]> = [
   ['B', 'İnşa çubuğu (yönetim moduna geçer)', 'İnşa çubuğu'],
   ['X / Z', '–', 'Yık aracı / Bölge boyama'],
   ['R', '–', 'Seçili binayı döndür (kare olmayan binalar)'],
+  ['V', '–', 'Taşı: binayı tıkla ya da sürükle, yeni yerine bırak (içindekiler korunur)'],
   ['I / O / N / P / F / H', 'Köpekler / Sahiplendirme / Finans / Personel / Görevlendirme / Başarımlar', 'Aynı'],
   ['L', 'İsim etiketlerini aç/kapa', 'Aynı'],
   ['M', 'Tam ekran harita: dokunarak işaret koy, işarete git', 'Aynı'],

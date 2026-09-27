@@ -9,7 +9,7 @@ import { BUILDING_DEFS } from '../content/buildings';
 import { DOG_FRAMES, DOG_FRAME_EAT, DOG_FRAME_IDLE, DOG_FRAME_LIE, DOG_FRAME_SIT } from '../render/DogPainter';
 import { TEX, buildingTextureKey, ensureDogTexture, ensureHumanTexture, releaseDogTextures } from '../render/TextureRegistry';
 import { type DogGenome, genomeKey } from '../sim/entities/DogGenome';
-import { type Building, buildingDef, buildingDoorTile, canPlaceBuilding, isReady, buildingSize, solidRowsFor } from '../sim/entities/Building';
+import { type Building, type Rotation, buildingDef, buildingDoorTile, buildingFootprint, canPlaceBuilding, isReady, buildingSize, solidRowsFor } from '../sim/entities/Building';
 import type { Dog } from '../sim/entities/Dog';
 import type { PlayerInput } from '../sim/entities/Player';
 import type { Mode, Sim } from '../sim/Sim';
@@ -37,12 +37,12 @@ import { familyLast } from '../sim/systems/Stories';
 
 type KeyName =
   | 'W' | 'A' | 'S' | 'D' | 'UP' | 'DOWN' | 'LEFT' | 'RIGHT' | 'SHIFT' | 'E' | 'I' | 'B' | 'X' | 'Z' | 'O' | 'N' | 'P' | 'F' | 'TAB' | 'SPACE' | 'ESC'
-  | 'PLUS' | 'MINUS' | 'NUMPAD_ADD' | 'NUMPAD_SUBTRACT' | 'ONE' | 'TWO' | 'THREE' | 'FOUR' | 'FIVE' | 'SIX' | 'H' | 'L' | 'R' | 'T' | 'M';
+  | 'PLUS' | 'MINUS' | 'NUMPAD_ADD' | 'NUMPAD_SUBTRACT' | 'ONE' | 'TWO' | 'THREE' | 'FOUR' | 'FIVE' | 'SIX' | 'H' | 'L' | 'R' | 'T' | 'M' | 'V';
 type Keys = Record<KeyName, Phaser.Input.Keyboard.Key>;
 
 const KEY_LIST: KeyName[] = [
   'W', 'A', 'S', 'D', 'UP', 'DOWN', 'LEFT', 'RIGHT', 'SHIFT', 'E', 'I', 'B', 'X', 'Z', 'O', 'N', 'P', 'F', 'TAB', 'SPACE', 'ESC',
-  'PLUS', 'MINUS', 'NUMPAD_ADD', 'NUMPAD_SUBTRACT', 'ONE', 'TWO', 'THREE', 'FOUR', 'FIVE', 'SIX', 'H', 'L', 'R', 'T', 'M',
+  'PLUS', 'MINUS', 'NUMPAD_ADD', 'NUMPAD_SUBTRACT', 'ONE', 'TWO', 'THREE', 'FOUR', 'FIVE', 'SIX', 'H', 'L', 'R', 'T', 'M', 'V',
 ];
 
 const TOOL_KEYS: Array<[KeyName, Tool]> = [
@@ -210,6 +210,11 @@ export class WorldScene extends Phaser.Scene {
       this.sim.events.on('buildingRemoved', (id) => {
         this.buildingImages.get(id)?.destroy();
         this.buildingImages.delete(id);
+        this.refreshLamps();
+      }),
+      this.sim.events.on('buildingMoved', (b) => {
+        const img = this.buildingImages.get(b.id);
+        if (img) this.placeBuildingImage(img, b);
         this.refreshLamps();
       }),
       this.sim.events.on('buildingReady', (b) => {
@@ -477,7 +482,8 @@ export class WorldScene extends Phaser.Scene {
     if (this.sim.mode === 'manage') {
       if (JustDown(k.X)) store.build.value = store.build.value.kind === 'demolish' ? { kind: 'none' } : { kind: 'demolish' };
       if (JustDown(k.Z)) store.build.value = store.build.value.kind === 'zone' ? { kind: 'none' } : { kind: 'zone', zone: Zone.Toilet };
-      if (JustDown(k.R) && store.build.value.kind === 'building') {
+      if (JustDown(k.V)) store.build.value = store.build.value.kind === 'move' ? { kind: 'none' } : { kind: 'move', id: null };
+      if (JustDown(k.R) && (store.build.value.kind === 'building' || store.build.value.kind === 'move')) {
         if (rotateBuildTool()) audio.play('click');
       }
     }
@@ -663,6 +669,10 @@ export class WorldScene extends Phaser.Scene {
           return;
         }
         if (e.button === 0 && this.sim.mode === 'manage' && (tool.kind === 'tile' || tool.kind === 'zone')) this.dragStartTile = { ...this.hoverTile };
+        // Taşı (0.22.2): binanın üstünden başlayan sürükleme binayı tutar (bırakınca taşınır).
+        else if (e.button === 0 && this.sim.mode === 'manage' && tool.kind === 'move' && tool.id === null && this.sim.world.buildingIdAt(this.hoverTile.x, this.hoverTile.y) !== -1) {
+          this.dragStartTile = { ...this.hoverTile };
+        }
         return;
       case 'drag': {
         const painting = this.dragStartTile !== null && e.button === 0;
@@ -732,10 +742,54 @@ export class WorldScene extends Phaser.Scene {
         done(this.sim.command({ type: 'paintZone', zone: tool.zone, x0: s.x, y0: s.y, x1: end.x, y1: end.y }));
         break;
       }
+      case 'move':
+        this.applyMoveTool(tool, start, end, done);
+        break;
       default:
         break;
     }
     if (r.message) showToast(r.message);
+  }
+
+  /**
+   * Taşı (0.22.2): seçme evresinde binaya dokunmak onu tutar (tutulan kare parmağa göre korunur), binayı sürükleyip
+   * bırakmak tek harekette taşır; taşıma evresinde dokunulan yere bırakır (başka binaya dokunmak onu seçer). Başarılı
+   * taşımadan sonra araç seçme evresine döner.
+   */
+  private applyMoveTool(tool: Extract<typeof store.build.value, { kind: 'move' }>, start: TilePos | null, end: TilePos, done: (res: { ok: boolean; message?: string }) => void): void {
+    const w = this.sim.world;
+    const hold = (b: Building, at: TilePos): void => {
+      store.build.value = { kind: 'move', id: b.id, type: b.type, rot: b.rot, dx: at.x - b.x, dy: at.y - b.y };
+      audio.play('click');
+    };
+    if (tool.id === null) {
+      const from = start ?? end;
+      const b = this.sim.buildingById(w.buildingIdAt(from.x, from.y));
+      if (!b) {
+        done({ ok: false, message: t('Taşınacak binaya dokun') });
+        return;
+      }
+      if (!buildingDef(b).buildable) {
+        done({ ok: false, message: t('{name} taşınamaz', { name: t(buildingDef(b).name) }) });
+        return;
+      }
+      if (start && (start.x !== end.x || start.y !== end.y)) {
+        const res = this.sim.command({ type: 'moveBuilding', id: b.id, x: end.x - (from.x - b.x), y: end.y - (from.y - b.y), rot: b.rot });
+        done(res);
+        return;
+      }
+      hold(b, from);
+      return;
+    }
+    const other = w.buildingIdAt(end.x, end.y);
+    const ob = other !== -1 && other !== tool.id ? this.sim.buildingById(other) : undefined;
+    if (ob && buildingDef(ob).buildable) {
+      hold(ob, end);
+      return;
+    }
+    const res = this.sim.command({ type: 'moveBuilding', id: tool.id, x: end.x - (tool.dx ?? 0), y: end.y - (tool.dy ?? 0), rot: tool.rot });
+    done(res);
+    if (res.ok) store.build.value = { kind: 'move', id: null };
   }
 
   /** Tıklama: fare köpek seçer; dokunma avatar modunda dokun-git (uzun basış seçim). */
@@ -855,6 +909,10 @@ export class WorldScene extends Phaser.Scene {
       this.ghostGfx.lineStyle(1, ok ? GHOST_OK : GHOST_BAD, 0.9).strokeRect(t.x * T + 0.5, t.y * T + 0.5, size.w * T - 1, size.h * T - 1);
       return;
     }
+    if (tool.kind === 'move') {
+      this.syncMoveGhost(tool, t);
+      return;
+    }
     this.ghostImage.setVisible(false);
     if (tool.kind === 'demolish') {
       this.ghostGfx.fillStyle(0xff5050, 0.35).fillRect(t.x * T, t.y * T, T, T).lineStyle(1, 0xff5050, 1).strokeRect(t.x * T + 0.5, t.y * T + 0.5, T - 1, T - 1);
@@ -873,6 +931,53 @@ export class WorldScene extends Phaser.Scene {
       const h = Math.abs(t.y - start.y) + 1;
       this.ghostGfx.fillStyle(color, 0.3).fillRect(x0 * T, y0 * T, w * T, h * T).lineStyle(1, color, 1).strokeRect(x0 * T + 0.5, y0 * T + 0.5, w * T - 1, h * T - 1);
     }
+  }
+
+  /**
+   * Taşı önizlemesi (0.22.2): seçmede imlecin altındaki binanın çevresi (sarı; taşınamazsa kırmızı); tutulan bina hayalet
+   * olarak yeni yerinde (sığarsa yeşil, sığmazsa kırmızı, yerinden oynamadıysa beyaz), eski yeri ince beyaz çerçeve.
+   */
+  private syncMoveGhost(tool: Extract<typeof store.build.value, { kind: 'move' }>, t: TilePos): void {
+    const T = GAME.tile;
+    const w = this.sim.world;
+    let id = tool.id;
+    let rot: Rotation = tool.rot ?? 0;
+    let dx = tool.dx ?? 0;
+    let dy = tool.dy ?? 0;
+    const drag = this.dragStartTile;
+    if (id === null && drag) {
+      const held = this.sim.buildingById(w.buildingIdAt(drag.x, drag.y));
+      if (held && buildingDef(held).buildable) {
+        id = held.id;
+        rot = held.rot;
+        dx = drag.x - held.x;
+        dy = drag.y - held.y;
+      }
+    }
+    const b = id !== null ? this.sim.buildingById(id) : undefined;
+    if (!b) {
+      this.ghostImage.setVisible(false);
+      const hb = this.sim.buildingById(w.buildingIdAt(t.x, t.y));
+      if (hb) {
+        const f = buildingFootprint(hb);
+        this.ghostGfx.lineStyle(2, buildingDef(hb).buildable ? 0xf6d55c : GHOST_BAD, 1).strokeRect(f.x * T + 1, f.y * T + 1, f.w * T - 2, f.h * T - 2);
+      }
+      return;
+    }
+    const size = buildingSize(buildingDef(b), rot);
+    const nx = t.x - dx;
+    const ny = t.y - dy;
+    const same = nx === b.x && ny === b.y && rot === b.rot;
+    const ok = !same && canPlaceBuilding(w, b.type, nx, ny, rot, b.id);
+    const color = same ? 0xffffff : ok ? GHOST_OK : GHOST_BAD;
+    const of = buildingFootprint(b);
+    this.ghostGfx.lineStyle(1, 0xffffff, 0.6).strokeRect(of.x * T + 0.5, of.y * T + 0.5, of.w * T - 1, of.h * T - 1);
+    this.ghostImage
+      .setTexture(buildingTextureKey(b.type, this.buildingVariant(b), rot))
+      .setPosition(nx * T, (ny + size.h) * T)
+      .setTint(color)
+      .setVisible(true);
+    this.ghostGfx.lineStyle(1, color, 0.9).strokeRect(nx * T + 0.5, ny * T + 0.5, size.w * T - 1, size.h * T - 1);
   }
 
   // ---------------------------------------------------------------------------
@@ -1180,15 +1285,21 @@ export class WorldScene extends Phaser.Scene {
   }
 
   private addBuildingImage(b: Building): void {
+    const img = this.add.image(0, 0, buildingTextureKey(b.type, this.buildingVariant(b), b.rot)).setOrigin(0, 1);
+    this.placeBuildingImage(img, b);
+    if (!isReady(b)) img.setAlpha(0.45);
+    this.buildingImages.set(b.id, img);
+  }
+
+  /** Bina görüntüsünün yeri, dokusu (döndürme) ve derinliği: eklenince ve taşınınca (0.22.2). */
+  private placeBuildingImage(img: Phaser.GameObjects.Image, b: Building): void {
     const T = GAME.tile;
     const def = buildingDef(b);
     const size = buildingSize(def, b.rot);
-    const img = this.add.image(b.x * T, (b.y + size.h) * T, buildingTextureKey(b.type, this.buildingVariant(b), b.rot)).setOrigin(0, 1);
+    img.setTexture(buildingTextureKey(b.type, this.buildingVariant(b), b.rot)).setPosition(b.x * T, (b.y + size.h) * T);
     const sr = solidRowsFor(def, b.rot);
     const solidRows = sr === 'all' ? size.h : Math.max(sr, 0.5);
     img.setDepth(100 + (b.y + solidRows) * T);
-    if (!isReady(b)) img.setAlpha(0.45);
-    this.buildingImages.set(b.id, img);
   }
 
   private buildingVariant(b: Building): number {

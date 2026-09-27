@@ -353,6 +353,22 @@ export class StaffSystem {
     s.insideId = s.state === 'resting' ? (this.restRoomOf(s)?.id ?? null) : null;
   }
 
+  /**
+   * Bina taşındı (0.22.2): görevi o binada olan, dinlenme odasına giden ya da odada dinlenen, WC'ye yürüyen personel işini
+   * bırakır ve yeniden karar verir (yeni kapıya yürür).
+   */
+  onBuildingMoved(b: Building): void {
+    for (const s of this.sim.staff) {
+      const task = s.taskId !== null ? this.sim.tasks.byId(s.taskId) : undefined;
+      const onTask = !!task && task.targetId === b.id;
+      const rest = b.type === 'staffRoom' && (s.state === 'toRest' || s.state === 'resting');
+      const wc = b.type === 'staffToilet' && s.state === 'toToilet';
+      if (!onTask && !rest && !wc) continue;
+      this.dropTask(s);
+      s.insideId = null;
+    }
+  }
+
   /** Molada olduğu dinlenme odası: hazır odanın kapısına 3 kareden yakın. */
   restRoomOf(s: Staff): Building | undefined {
     for (const room of this.sim.buildings) {

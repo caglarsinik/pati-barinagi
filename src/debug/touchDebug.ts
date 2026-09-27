@@ -133,6 +133,13 @@ export function createTouchDebug(app: DebugApp & AuditApp) {
       scene.gestureTick();
       scene.pointerInput('up', ptr(id, wx, wy, false));
     },
+    /** Tek parmakla sürükle-bırak (0.22.2; yönetim modunda inşa araçları, Taşı): basar, dört adımda taşır, bırakır. */
+    dragTile(fx: number, fy: number, tx: number, ty: number, id = 1): void {
+      const { scene } = need();
+      scene.pointerInput('down', ptr(id, fx, fy, true));
+      for (let i = 1; i <= 4; i++) scene.pointerInput('move', ptr(id, fx + ((tx - fx) * i) / 4, fy + ((ty - fy) * i) / 4, true));
+      scene.pointerInput('up', ptr(id, tx, ty, false));
+    },
     /** İki parmak basar (bırakmaz). */
     startPinch(): void {
       const { sim, scene } = need();

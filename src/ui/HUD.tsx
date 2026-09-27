@@ -57,6 +57,7 @@ export function HUD() {
   const hint = store.hint.value;
   // Telefonda avatar modunda ipucu E düğmesinin üstünde zaten yazıyor; yalnız araç seçiliyken (yönetim) satır gösterilir.
   const showHint = hint !== '' && !(phone && mode === 'avatar' && build.kind === 'none');
+  const rotatable = (build.kind === 'building' && canRotate(build.type)) || (build.kind === 'move' && build.id !== null && !!build.type && canRotate(build.type));
   const dockRef = useRef<HTMLDivElement>(null);
   useMeasuredBands(dockRef);
   return (
@@ -80,7 +81,7 @@ export function HUD() {
           {showHint && (
             <div class="hud-bottom panel hint">
               {hint}
-              {touch && build.kind === 'building' && canRotate(build.type) && (
+              {touch && rotatable && (
                 <button class="chip-btn hint-cancel" onClick={() => rotateBuildTool()}>
                   {t('Döndür')}
                 </button>

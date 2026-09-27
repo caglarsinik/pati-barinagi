@@ -214,6 +214,10 @@ export const BALANCE = {
     /** Puan başına günlük beklenen sahiplenici artışı. */
     adoptersPerPoint: 1 / 40,
   },
+  /** İnşa (0.22.2): binayı taşıma bedeli, bina fiyatının oranı (0 = ücretsiz; yık+kur zaten yarısını kaybettirir). */
+  build: {
+    moveCostRate: 0,
+  },
   shelter: {
     startFoodPortions: 30,
     startBowlFood: 2,

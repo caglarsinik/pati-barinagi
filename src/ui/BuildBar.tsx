@@ -30,6 +30,8 @@ export function BuildBar() {
   const tab = store.buildTab.value as Tab;
   const setTab = (x: Tab): void => {
     store.buildTab.value = x;
+    // Taşırken sekmeye dokunmak taşımayı bırakır, sekmenin öğeleri görünür (0.22.2).
+    if (store.build.value.kind === 'move') store.build.value = { kind: 'none' };
   };
   if (!store.buildBar.value || store.mode.value !== 'manage') return null;
   const sim = app.sim;
@@ -57,6 +59,9 @@ export function BuildBar() {
           ))}
         </div>
         <span class="spacer" />
+        <button class={'btn small' + (tool.kind === 'move' ? ' active' : '')} onClick={() => pick({ kind: 'move', id: null })}>
+          {touch ? t('Taşı') : t('Taşı (V)')}
+        </button>
         <button class={'btn small danger' + (tool.kind === 'demolish' ? ' active' : '')} onClick={() => pick({ kind: 'demolish' })}>
           {touch ? t('Yık') : t('Yık (X)')}
         </button>
@@ -64,71 +69,74 @@ export function BuildBar() {
           {touch ? t('Kapat') : t('Kapat (B)')}
         </button>
       </div>
-      <div class="build-items">
-        {tab === 'altyapi' &&
-          Object.values(TILE_TOOL_DEFS).map((d) => (
-            <button
-              key={d.id}
-              class={'build-item' + (tool.kind === 'tile' && tool.tool === d.id ? ' active' : '')}
-              title={t(d.desc)}
-              onClick={() => pick({ kind: 'tile', tool: d.id })}
-            >
-              <span class="bi-name">{t(d.name)}</span>
-              <span class="bi-cost">{t('{cost} ₺/kare', { cost: d.cost })}</span>
-            </button>
-          ))}
-        {tab !== 'arsa' &&
-          tab !== 'bolge' &&
-          Object.values(BUILDING_DEFS)
-            .filter((d) => d.buildable && d.category === tab)
-            .map((d) => (
+      {/* Taşırken öğe satırı gizli: telefonda çubuk kısalır, dünya görünür (0.22.2). */}
+      {tool.kind !== 'move' && (
+        <div class="build-items">
+          {tab === 'altyapi' &&
+            Object.values(TILE_TOOL_DEFS).map((d) => (
               <button
-                key={d.type}
-                class={'build-item' + (tool.kind === 'building' && tool.type === d.type ? ' active' : '') + (money < d.cost ? ' poor' : '')}
-                title={`${t(d.desc)}${d.buildMinutes ? ` · ${d.buildMinutes} dk` : ''}`}
-                onClick={() => pick({ kind: 'building', type: d.type })}
+                key={d.id}
+                class={'build-item' + (tool.kind === 'tile' && tool.tool === d.id ? ' active' : '')}
+                title={t(d.desc)}
+                onClick={() => pick({ kind: 'tile', tool: d.id })}
               >
                 <span class="bi-name">{t(d.name)}</span>
-                <span class="bi-cost">
-                  {tool.kind === 'building' && tool.type === d.type && tool.rot === 1 ? `${d.h}×${d.w}` : `${d.w}×${d.h}`} · {formatMoney(d.cost)}
-                </span>
+                <span class="bi-cost">{t('{cost} ₺/kare', { cost: d.cost })}</span>
               </button>
             ))}
-        {tab === 'bolge' && (
-          <>
-            {ZONES.map((z) => (
-              <button key={z} class={'build-item' + (tool.kind === 'zone' && tool.zone === z ? ' active' : '')} onClick={() => pick({ kind: 'zone', zone: z })}>
-                <span class="bi-name">{t(ZONE_NAMES_TR[z])}</span>
-                <span class="bi-cost">{t('ücretsiz')}</span>
+          {tab !== 'arsa' &&
+            tab !== 'bolge' &&
+            Object.values(BUILDING_DEFS)
+              .filter((d) => d.buildable && d.category === tab)
+              .map((d) => (
+                <button
+                  key={d.type}
+                  class={'build-item' + (tool.kind === 'building' && tool.type === d.type ? ' active' : '') + (money < d.cost ? ' poor' : '')}
+                  title={`${t(d.desc)}${d.buildMinutes ? ` · ${d.buildMinutes} dk` : ''}`}
+                  onClick={() => pick({ kind: 'building', type: d.type })}
+                >
+                  <span class="bi-name">{t(d.name)}</span>
+                  <span class="bi-cost">
+                    {tool.kind === 'building' && tool.type === d.type && tool.rot === 1 ? `${d.h}×${d.w}` : `${d.w}×${d.h}`} · {formatMoney(d.cost)}
+                  </span>
+                </button>
+              ))}
+          {tab === 'bolge' && (
+            <>
+              {ZONES.map((z) => (
+                <button key={z} class={'build-item' + (tool.kind === 'zone' && tool.zone === z ? ' active' : '')} onClick={() => pick({ kind: 'zone', zone: z })}>
+                  <span class="bi-name">{t(ZONE_NAMES_TR[z])}</span>
+                  <span class="bi-cost">{t('ücretsiz')}</span>
+                </button>
+              ))}
+              <button class={'build-item' + (tool.kind === 'zone' && tool.zone === Zone.None ? ' active' : '')} onClick={() => pick({ kind: 'zone', zone: Zone.None })}>
+                <span class="bi-name">{t('Bölge sil')}</span>
+                <span class="bi-cost">{t('silgi')}</span>
               </button>
-            ))}
-            <button class={'build-item' + (tool.kind === 'zone' && tool.zone === Zone.None ? ' active' : '')} onClick={() => pick({ kind: 'zone', zone: Zone.None })}>
-              <span class="bi-name">{t('Bölge sil')}</span>
-              <span class="bi-cost">{t('silgi')}</span>
-            </button>
-          </>
-        )}
-        {tab === 'arsa' && (
-          <>
-            <div class="muted small-text">
-              {t('Arsa {w}×{h} kare. Genişletme {cost}; alan temizlenir, çit taşınır.', { w: sim.world.plot.w, h: sim.world.plot.h, cost: formatMoney(expandCost) })}
-            </div>
-            {(['east', 'south'] as const).map((dir) => (
-              <button
-                key={dir}
-                class={'build-item' + (money < expandCost ? ' poor' : '')}
-                onClick={() => {
-                  const r = sim.command({ type: 'expandPlot', dir });
-                  if (r.message) showToast(r.message);
-                }}
-              >
-                <span class="bi-name">{dir === 'east' ? t('Doğuya genişlet') : t('Güneye genişlet')}</span>
-                <span class="bi-cost">{t('+16 kare · {cost}', { cost: formatMoney(expandCost) })}</span>
-              </button>
-            ))}
-          </>
-        )}
-      </div>
+            </>
+          )}
+          {tab === 'arsa' && (
+            <>
+              <div class="muted small-text">
+                {t('Arsa {w}×{h} kare. Genişletme {cost}; alan temizlenir, çit taşınır.', { w: sim.world.plot.w, h: sim.world.plot.h, cost: formatMoney(expandCost) })}
+              </div>
+              {(['east', 'south'] as const).map((dir) => (
+                <button
+                  key={dir}
+                  class={'build-item' + (money < expandCost ? ' poor' : '')}
+                  onClick={() => {
+                    const r = sim.command({ type: 'expandPlot', dir });
+                    if (r.message) showToast(r.message);
+                  }}
+                >
+                  <span class="bi-name">{dir === 'east' ? t('Doğuya genişlet') : t('Güneye genişlet')}</span>
+                  <span class="bi-cost">{t('+16 kare · {cost}', { cost: formatMoney(expandCost) })}</span>
+                </button>
+              ))}
+            </>
+          )}
+        </div>
+      )}
     </div>
   );
 }

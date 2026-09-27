@@ -22,6 +22,7 @@ import {
   tickConstruction,
   tryDemolish,
   tryExpandPlot,
+  tryMoveBuilding,
   tryPlaceBuilding,
   tryPlaceTiles,
 } from './systems/BuildSystem';
@@ -119,6 +120,8 @@ export interface SimEvents extends Record<string, unknown> {
   dogTamed: Dog;
   buildingAdded: Building;
   buildingRemoved: number;
+  /** Bina yerinde taşındı (0.22.2; kimlik aynı). */
+  buildingMoved: Building;
   buildingReady: Building;
   adopterArrived: Adopter;
   weekReport: WeekSummary;
@@ -165,6 +168,7 @@ export type Command =
   | { type: 'placeBuilding'; building: BuildingType; x: number; y: number; rot?: Rotation }
   | { type: 'placeTiles'; tool: TileTool; tiles: TilePos[] }
   | { type: 'demolish'; x: number; y: number }
+  | { type: 'moveBuilding'; id: number; x: number; y: number; rot?: Rotation }
   | { type: 'paintZone'; zone: Zone; x0: number; y0: number; x1: number; y1: number }
   | { type: 'expandPlot'; dir: ExpandDir }
   | { type: 'placeEgg'; buildingId: number; eggId: number }
@@ -265,6 +269,8 @@ export interface SimStats {
   vaccinated: number;
   messes: number;
   built: number;
+  /** Taşınan bina sayısı (0.22.2). */
+  moved: number;
   eggsFound: number;
   hatched: number;
   /** Yuva evinde verilen soylu yumurta sayısı. */
@@ -308,6 +314,7 @@ function emptyStats(): SimStats {
     vaccinated: 0,
     messes: 0,
     built: 0,
+    moved: 0,
     eggsFound: 0,
     hatched: 0,
     bred: 0,
@@ -912,6 +919,10 @@ export class Sim {
       case 'demolish': {
         const r = tryDemolish(this, cmd.x, cmd.y);
         return { ok: r.ok, message: r.message };
+      }
+      case 'moveBuilding': {
+        const r = tryMoveBuilding(this, cmd.id, cmd.x, cmd.y, cmd.rot);
+        return { ok: r.ok, message: r.message, building: r.building };
       }
       case 'paintZone': {
         const r = paintZone(this, cmd.zone, cmd.x0, cmd.y0, cmd.x1, cmd.y1);
@@ -1565,6 +1576,28 @@ export class Sim {
     this.buildingMap.delete(id);
     this.events.emit('buildingRemoved', id);
     return true;
+  }
+
+  /**
+   * Binayı yerinde taşır (0.22.2; kontroller `tryMoveBuilding`'de): kimlik, sakinler, yumurtalar, eşyalar, seviye, yem/su ve
+   * yapım süresi olduğu gibi kalır. Bayat hedefler temizlenir: bu binaya yürüyen ya da kulübesinde uyuyan köpek yeniden karar
+   * verir (uyuyan yeni yerine yürüyüp yatar), bu binaya giden ya da odasında/WC'sinde olan personel işini bırakır, binanın
+   * görevleri tahtadan düşer (tahta yeni yerde yeniden üretir).
+   */
+  moveBuilding(b: Building, x: number, y: number, rot: Rotation): void {
+    unstampBuilding(this.world, b);
+    for (const dog of this.dogs) {
+      const resting = dog.kennelId === b.id && (dog.state === 'sleep' || dog.state === 'toKennel');
+      if (dog.targetBuildingId === b.id || resting) this.brain.wake(dog);
+    }
+    this.staffSystem.onBuildingMoved(b);
+    for (const task of this.tasks.tasks.filter((tk) => tk.targetId === b.id)) this.tasks.remove(task);
+    b.x = x;
+    b.y = y;
+    b.rot = rot;
+    stampBuilding(this.world, b);
+    this.stats.moved++;
+    this.events.emit('buildingMoved', b);
   }
 
   /** Yeni oyunda hazır gelen küçük barınak. */

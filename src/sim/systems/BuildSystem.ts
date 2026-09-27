@@ -46,6 +46,28 @@ function occupiedByCreature(sim: Sim, x: number, y: number, w: number, h: number
   return false;
 }
 
+/**
+ * Binayı taşır (0.22.2): içindekilerle yerinde (kimlik, sakinler, yumurtalar, eşyalar, seviye korunur); döndürülebilir. Ofis
+ * taşınmaz (sahiplenici kuyruğu ve bayılma noktası kapısına bağlı). Bedel `BALANCE.build.moveCostRate` (varsayılan ücretsiz).
+ */
+export function tryMoveBuilding(sim: Sim, id: number, x: number, y: number, rotIn?: Rotation): BuildResult {
+  const b = sim.buildingById(id);
+  if (!b) return { ok: false, message: t('Burada bina yok') };
+  const def = buildingDef(b);
+  if (!def.buildable) return { ok: false, message: t('{name} taşınamaz', { name: t(def.name) }) };
+  if (sim.interior?.buildingId === b.id) return { ok: false, message: t('İçerideyken taşınamaz') };
+  const rot = normalizeRot(b.type, rotIn ?? b.rot);
+  if (x === b.x && y === b.y && rot === b.rot) return { ok: false, message: t('Zaten burada') };
+  if (!canPlaceBuilding(sim.world, b.type, x, y, rot, b.id)) return { ok: false, message: t('Buraya sığmıyor') };
+  const size = buildingSize(def, rot);
+  if (occupiedByCreature(sim, x, y, size.w, size.h)) return { ok: false, message: t('Üstünde biri var') };
+  const cost = Math.round(def.cost * BALANCE.build.moveCostRate);
+  if (cost > 0 && sim.money < cost) return { ok: false, message: t('Yeterli para yok ({cost} ₺)', { cost }) };
+  sim.moveBuilding(b, x, y, rot);
+  if (cost > 0) sim.addExpense('building', cost, t('Taşıma: {name}', { name: t(def.name) }));
+  return { ok: true, building: b, cost, message: t('{name} taşındı', { name: t(def.name) }) };
+}
+
 /** Çit/kapı/yol: kare listesine uygular; geçersiz kareler atlanır, sadece yerleşenler ödenir. */
 export function tryPlaceTiles(sim: Sim, tool: TileTool, tiles: TilePos[]): BuildResult {
   const def = TILE_TOOL_DEFS[tool];

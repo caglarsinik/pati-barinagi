@@ -702,6 +702,12 @@ export class DogBrain {
     if (state !== 'toBowl' && state !== 'toTrough' && state !== 'toToilet' && state !== 'toKennel' && state !== 'toQuarantine' && state !== 'toToy' && state !== 'toFriend' && state !== 'wander') dog.path = [];
   }
 
+  /** Hedef binası taşındı (0.22.2): yol ve hedef bırakılır, köpek hemen yeniden karar verir (uyuyorsa kalkar). */
+  wake(dog: Dog): void {
+    dog.path = [];
+    this.setIdle(dog, 0);
+  }
+
   private setIdle(dog: Dog, minutes: number): void {
     dog.targetBuildingId = null;
     this.setState(dog, 'idle', minutes);

@@ -57,6 +57,34 @@
   köpek paneli, araç şeridi, alt menü listesi, ana menü, Ayarlar: çakışma yok, taşma yok. Alt menü açılır listesi köpek
   panelinin üstüne gelebilir (geçici popover, üstte kalır) — kabul edildi. Gerçek cihaz testi kullanıcıda.
 
+## 0.22.2 — Taşı aracı: kurulu binayı içindekilerle taşı (M19; Claude, 2026-09-27)
+- Sim: `canPlaceBuilding(world, type, x, y, rot, ignoreId = -1)` — taşınan binanın kendi kareleri (bina ve katılık denetimi)
+  boş sayılır. Yeni `BuildSystem.tryMoveBuilding(sim, id, x, y, rot?)` (döndürme verilmezse eskisi): bina yok → "Burada bina
+  yok", `!buildable` → "Ofis taşınamaz", oyuncu o binanın içindeyse → "İçerideyken taşınamaz", aynı yer → "Zaten burada",
+  sığmıyor → "Buraya sığmıyor", `occupiedByCreature` → "Üstünde biri var"; bedel `BALANCE.build.moveCostRate` (0 → ücretsiz).
+  `Sim.moveBuilding(b, x, y, rot)` **yerinde** (kaldır + kur DEĞİL; kimlik, sakinler, yumurtalar ve süreleri, eşyalar, seviye,
+  yem/su, yapım süresi aynı): `unstampBuilding` → bu binaya yürüyen (`targetBuildingId`) ya da kulübesinde uyuyan/`toKennel`
+  köpek `DogBrain.wake` (yol boş, idle; hemen yeniden karar verir) → `StaffSystem.onBuildingMoved` (görevi o binada olan,
+  dinlenme odasına giden/dinlenen, taşınan WC'ye yürüyen personel `dropTask`, `insideId` null) → `targetId === b.id` görevler
+  tahtadan düşer (tahta yeni yerde yeniden üretir) → x/y/rot → `stampBuilding` → `stats.moved++` → olay `buildingMoved`.
+  Komut `moveBuilding { id, x, y, rot? }`.
+- Arayüz: `BuildTool` += `{ kind: 'move', id: number | null, type?, rot?, dx?, dy? }` (id null = seç; dx/dy tutulan karenin sol
+  üste uzaklığı). `rotateBuildTool` taşımada da döndürür (dx/dy yeni boya kırpılır); `buildToolHint` dokunmatik/masaüstü
+  metinleri. İnşa çubuğunda Yık'ın yanında "Taşı" / "Taşı (V)"; taşırken öğe satırı gizli (telefonda çubuk tek satır), sekmeye
+  dokunmak taşımayı bırakır. HUD Döndür çipi taşımada da. WorldScene: basışta binanın üstündeyse `dragStartTile` (sürükle-bırak
+  tek harekette taşır), `applyMoveTool` (seçmede dokunuş tutar; taşımada dokunulan yere bırakır, başka binaya dokunmak onu
+  seçer, başarıdan sonra seçme evresi), `syncMoveGhost` (seçmede imleç altındaki binanın çevresi sarı/kırmızı; tutulan bina
+  hayaleti yeşil/kırmızı/beyaz, eski yer ince beyaz), `buildingMoved` → `placeBuildingImage` (`addBuildingImage`'dan ayrıldı:
+  konum, döndürme dokusu, derinlik) + lambalar. Klavye V (aç/kapa), R (taşımada döndür). Kontroller ve README tuş tablosuna V.
+- Hata ayıklama: `__pati.debug.dragTile(fx, fy, tx, ty)` (gerçek jest yolundan sürükle-bırak); denetimde yeni ekran `build:move`.
+- Testler `tests/unit/move.test.ts` (5): `ignoreId`; ofis/aynı yer/başka bina/üstünde köpek reddi; gece uyuyan sakinli kulübe
+  (eski kareler boş, yeni katı, köpek idle → 90 dk sonra yeni yatış karesinde uyuyor, `buildingMoved` 1 kez, Removed/Added 0,
+  para aynı); kabın görevi düşer ve personel bırakır, tahta yeni karede yeniden üretir; kuluçka yumurtası ve süresi korunur,
+  döndürme korunur/değişir, kayıt turu. 430 test. Tarayıcı 812×375: Taşı düğmesi → kulübeye dokun → yeni yere dokun (tutulan
+  kare korunarak taşındı, köpek kulübede), sürükle-bırak, hayalet ekran görüntüsü; masaüstünde V/R/tık. Denetim 60 ekran
+  568×320 ve 812×375 (TR/EN), 768×1024, 1280×720: 0 sorun; dokunma senaryoları 16/16.
+- Sıradaki: 0.22.3 kulübe içi (oda + eşya).
+
 ## 0.22.1 — Mini harita yakınlaştırma (M19; Claude, 2026-09-27)
 - Yeni saf `src/ui/minimapView.ts`: `ZOOM_LEVELS` [1, 2, 4], `parseZoom`, `zoomStep`, `pinchZoom` (başlangıç kademesi × parmak
   oranı, log ölçeğinde en yakın kademe), `clampCenter`, `viewRect` (merkez etrafında, dünya içinde; köşe tuval pikseline

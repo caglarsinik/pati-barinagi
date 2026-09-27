@@ -1,4 +1,4 @@
-import { canRotate, type Rotation } from '../sim/entities/Building';
+import { buildingSize, canRotate, type Rotation } from '../sim/entities/Building';
 import { signal } from '@preact/signals';
 import { BUILDING_DEFS, type BuildingType, TILE_TOOL_DEFS, type TileTool } from '../content/buildings';
 import { type Mode, type Sim, type GameOverInfo, type VictoryInfo } from '../sim/Sim';
@@ -57,7 +57,12 @@ export type BuildTool =
   | { kind: 'building'; type: BuildingType; rot?: Rotation }
   | { kind: 'tile'; tool: TileTool }
   | { kind: 'demolish' }
-  | { kind: 'zone'; zone: Zone };
+  | { kind: 'zone'; zone: Zone }
+  /**
+   * Taşı (0.22.2): `id` null → taşınacak binayı seç (ya da binayı sürükle); dolu → yeni yerine bırak. `dx/dy`: tutulan
+   * karenin binanın sol üstüne uzaklığı (bina parmağın tuttuğu yerden taşınır).
+   */
+  | { kind: 'move'; id: number | null; type?: BuildingType; rot?: Rotation; dx?: number; dy?: number };
 
 /**
  * Sim'den arayüze akan salt okunur durum. Paneller bunu okur, değişiklik için app/sim metodlarını çağırır.
@@ -207,9 +212,20 @@ export function syncStore(sim: Sim): void {
   store.hint.value = hintFor(sim);
 }
 
-/** Seçili inşa binasını 90° döndürür; kare binada uyarı verir. Döndüyse true. */
+/** Seçili inşa binasını (ya da taşınan binayı) 90° döndürür; kare binada uyarı verir. Döndüyse true. */
 export function rotateBuildTool(): boolean {
   const tool = store.build.value;
+  if (tool.kind === 'move') {
+    if (tool.id === null || !tool.type) return false;
+    if (!canRotate(tool.type)) {
+      showToast(t('Bu bina döndürülemez'));
+      return false;
+    }
+    const rot: Rotation = tool.rot === 1 ? 0 : 1;
+    const s = buildingSize(BUILDING_DEFS[tool.type], rot);
+    store.build.value = { ...tool, rot, dx: Math.min(tool.dx ?? 0, s.w - 1), dy: Math.min(tool.dy ?? 0, s.h - 1) };
+    return true;
+  }
   if (tool.kind !== 'building') return false;
   if (!canRotate(tool.type)) {
     showToast(t('Bu bina döndürülemez'));
@@ -235,6 +251,13 @@ export function buildToolHint(tool: BuildTool, touch = store.touch.value): strin
     }
     case 'demolish':
       return touch ? t('Yık · dokun: kaldır (yarısı iade)') : t('Yık · tıkla: kaldır (yarısı iade) · Esc: iptal');
+    case 'move': {
+      if (tool.id === null || !tool.type) return touch ? t('Taşı · binaya dokun ya da binayı sürükle') : t('Taşı · binayı tıkla ya da sürükle · Esc: iptal');
+      const name = t(BUILDING_DEFS[tool.type].name);
+      if (touch) return t('{name} · dokun: yeni yerine bırak', { name });
+      if (canRotate(tool.type)) return t('{name} · tıkla: yeni yerine bırak · R: döndür · sağ tık/Esc: iptal', { name });
+      return t('{name} · tıkla: yeni yerine bırak · sağ tık/Esc: iptal', { name });
+    }
     case 'zone': {
       const zone = tool.zone === Zone.None ? t('Bölge sil') : t(ZONE_NAMES_TR[tool.zone]);
       return touch ? t('{zone} · sürükle: dikdörtgen boya', { zone }) : t('{zone} · sürükle: dikdörtgen boya · Esc: iptal', { zone });

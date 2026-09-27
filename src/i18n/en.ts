@@ -1627,4 +1627,21 @@ export const EN: Record<string, string> = {
   'Haritayı bana ortala': 'Center the map on me',
   'İki parmak ya da +/−: yakınlaştır · sürükle: kaydır · ⌖: bana dön': 'Two fingers or +/−: zoom · drag: pan · ⌖: back to me',
   'Tekerlek ya da +/−: yakınlaştır · sürükle: kaydır · ⌖: bana dön': 'Wheel or +/−: zoom · drag: pan · ⌖: back to me',
+
+  // 0.22.2: Taşı aracı
+  'Taşı': 'Move',
+  'Taşı (V)': 'Move (V)',
+  'Taşı · binaya dokun ya da binayı sürükle': 'Move · tap a building or drag it',
+  'Taşı · binayı tıkla ya da sürükle · Esc: iptal': 'Move · click or drag a building · Esc: cancel',
+  '{name} · dokun: yeni yerine bırak': '{name} · tap: drop it in its new spot',
+  '{name} · tıkla: yeni yerine bırak · R: döndür · sağ tık/Esc: iptal': '{name} · click: drop it in its new spot · R: rotate · right click/Esc: cancel',
+  '{name} · tıkla: yeni yerine bırak · sağ tık/Esc: iptal': '{name} · click: drop it in its new spot · right click/Esc: cancel',
+  'Taşınacak binaya dokun': 'Tap the building to move',
+  '{name} taşınamaz': '{name} cannot be moved',
+  'İçerideyken taşınamaz': 'Cannot move it while you are inside',
+  'Zaten burada': 'Already there',
+  'Taşıma: {name}': 'Moving: {name}',
+  '{name} taşındı': '{name} moved',
+  'Burada bina yok': 'No building here',
+  'Taşı: binayı tıkla ya da sürükle, yeni yerine bırak (içindekiler korunur)': 'Move: click or drag a building, drop it in its new spot (contents are kept)',
 };
