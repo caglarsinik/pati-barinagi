@@ -111,6 +111,10 @@ export const store = {
   victory: signal<VictoryInfo | null>(null),
   victorySeen: signal(false),
   settingsOpen: signal(false),
+  /** Ayarlar → Karakter penceresi (0.24.2). */
+  characterOpen: signal(false),
+  /** Oyuncunun adı (0.24.2; boşsa arayüz varsayılanı gösterir). */
+  playerName: signal(''),
   /** Tarayıcının "Ana ekrana ekle" istemi (Chrome/Edge); null ise düğme gösterilmez. */
   installPrompt: signal<BeforeInstallPromptEvent | null>(null),
   /** Yeni service worker indirildi; Ayarlar → Şimdi yenile. */
@@ -198,6 +202,7 @@ export function showToast(message: string, ms = 2400): void {
 export function syncStore(sim: Sim): void {
   store.tick.value++;
   store.money.value = sim.money;
+  store.playerName.value = sim.player.name;
   store.timeText.value = sim.clock.timeText();
   store.dayText.value = t('{day}. Gün · {weekday}', { day: sim.clock.day, weekday: t(WEEKDAYS_TR[sim.clock.weekday]) });
   store.weekText.value = t('{week}. Hafta', { week: sim.clock.week });

@@ -339,6 +339,8 @@ const settle = (ms = 120): Promise<void> => new Promise((r) => setTimeout(r, ms)
 /** Denetim için dolu bir test oyunu: çok köpek (uzun adlar), binalar, personel, yumurtalar, sahipleniciler, mektuplar, görevler. */
 export function richGame(app: AuditApp): Sim {
   const sim = app.startDebugGame(1942, 'ready');
+  // Karakter (0.24.2): uzun ad ve varsayılan dışı görünüm; adın geçtiği yerler ve fotoğraflar en uzun hâliyle denetlenir.
+  sim.command({ type: 'setPlayer', look: { body: 1, skin: 2, hair: 3, hairStyle: 1, shirt: 5, shirtStyle: 1, pants: 1, pantsStyle: 2, shoes: 3, hat: 2, accessory: 1 }, name: 'Ayşe Nur Deniz' });
   let now = performance.now();
   for (let i = 0; i < 10 && (app.game?.scene.getScene('World') as { sim?: Sim } | undefined)?.sim !== sim; i++) {
     now += 16;
@@ -439,6 +441,7 @@ export async function auditScreens(app: AuditApp, only?: string, keep = false): 
     store.toolMenu.value = false;
     store.report.value = null;
     store.settingsOpen.value = false;
+    store.characterOpen.value = false;
     if (store.pauseMenu.value) app.closePauseMenu();
     app.tutorial.stop();
   };
@@ -583,6 +586,7 @@ export async function auditScreens(app: AuditApp, only?: string, keep = false): 
     { name: 'modal:week-report', enter: () => (store.report.value = closeWeek(sim, sim.clock.week + 1)) },
     { name: 'modal:pause', enter: () => app.openPauseMenu() },
     { name: 'modal:settings', enter: () => (store.settingsOpen.value = true) },
+    { name: 'modal:character', enter: () => (store.characterOpen.value = true) },
     { name: 'modal:game-over', enter: () => (store.gameOver.value = { reason: 'bankrupt', week: 3 }), exit: () => (store.gameOver.value = null) },
     {
       name: 'modal:victory',

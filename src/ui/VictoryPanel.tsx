@@ -3,6 +3,7 @@ import { BALANCE } from '../config/balance';
 import { t } from '../i18n';
 import { formatMoney } from './format';
 import { store } from './store';
+import { displayPlayerName } from '../sim/entities/PlayerLook';
 
 /** Zafer ekranı "Yılın Barınağı": bir kez açılır, oyun duraklatılır; "Devam et" ile oyun sürer. */
 export function VictoryPanel() {
@@ -19,7 +20,8 @@ export function VictoryPanel() {
       <div class="menu-card panel wide victory">
         <h2>{t('🏆 Yılın Barınağı!')}</h2>
         <p>
-          {t('{adopted} köpeğe yuva buldun ve itibarın {rep} oldu. Barınağın bu yılın en iyisi seçildi.', {
+          {t('Tebrikler {name}! {adopted} köpeğe yuva buldun ve itibarın {rep} oldu. Barınağın bu yılın en iyisi seçildi.', {
+            name: displayPlayerName(sim.player.name),
             adopted: sim.stats.adopted,
             rep: Math.round(sim.reputation),
           })}

@@ -58,13 +58,13 @@ const firstDog = (sim: Sim) => sim.shelterDogs()[0];
 
 const welcomeGuided: TutorialStep = {
   id: 'welcome',
-  text: 'Merhaba, ben belediyeden Nermin! Bu arsa artık senin barınağın, ilk köpeğin de burada. Birkaç şeyi birlikte yapalım mı?',
+  text: 'Merhaba {name}, ben belediyeden Nermin! Bu arsa artık senin barınağın, ilk köpeğin de burada. Birkaç şeyi birlikte yapalım mı?',
   info: 'Başla',
 };
 
 const welcomeReady: TutorialStep = {
   id: 'welcome',
-  text: 'Merhaba, ben belediyeden Nermin! Eski bakıcı emekli oldu, barınak artık sende. Kısa bir tur yapalım mı?',
+  text: 'Merhaba {name}, ben belediyeden Nermin! Eski bakıcı emekli oldu, barınak artık sende. Kısa bir tur yapalım mı?',
   info: 'Başla',
 };
 

@@ -260,6 +260,7 @@ export class QuestSystem {
         genome: { ...dog.genome },
         stage: dog.stage,
         key: -q.id,
+        playerLook: { ...sim.player.look },
       };
       const owner = sim.villagers.list[q.villager];
       if (owner) {

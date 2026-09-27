@@ -11,6 +11,7 @@ import { HelpSheet } from './HelpSheet';
 import { HUD } from './HUD';
 import { MainMenu } from './MainMenu';
 import { CharacterScreen } from './CharacterScreen';
+import { CharacterModal } from './CharacterModal';
 import { KennelPanel, ShedPanel } from './Panels';
 import { AlertsSheet, BackpackSheet, MapSheet } from './PhoneSheets';
 import { t } from '../i18n';
@@ -85,6 +86,7 @@ export function App() {
         </>
       )}
       {store.settingsOpen.value && <SettingsPanel />}
+      {store.characterOpen.value && <CharacterModal />}
       <div class="rotate-hint">
         <div class="rotate-icon">📱</div>
         <div>{t('Telefonu yatay çevir')}</div>

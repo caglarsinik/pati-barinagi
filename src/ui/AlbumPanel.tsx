@@ -49,7 +49,7 @@ export function AlbumPanel() {
             ].filter(Boolean);
             return (
               <div key={e.index} class="album-card">
-                <ScenePhoto scene={e.scene} genome={r.genome} stage={r.stage} caption={r.dogName} small />
+                <ScenePhoto scene={e.scene} genome={r.genome} stage={r.stage} caption={r.dogName} small player={r.playerLook} />
                 <div class="album-info">
                   <div>
                     <b>{r.dogName}</b> <span class="stars">{'★'.repeat(e.stars) + '☆'.repeat(5 - e.stars)}</span>

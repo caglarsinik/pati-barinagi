@@ -7,6 +7,9 @@ import type { GrowthStage } from '../sim/entities/Dog';
 import type { DogGenome } from '../sim/entities/DogGenome';
 import type { Letter, PhotoScene } from '../sim/systems/MailSystem';
 import { DogPortrait } from './DogPortrait';
+import { HumanPortrait } from './HumanPortrait';
+import { styleFromLook } from '../render/HumanPainter';
+import { type PlayerLook, displayPlayerName, lookKey } from '../sim/entities/PlayerLook';
 import { formatMoney } from './format';
 import { store } from './store';
 
@@ -30,6 +33,7 @@ export function ScenePhoto({
   stage2,
   caption,
   small = false,
+  player,
 }: {
   scene: PhotoScene;
   genome?: DogGenome;
@@ -39,12 +43,16 @@ export function ScenePhoto({
   stage2?: GrowthStage;
   caption: string;
   small?: boolean;
+  /** Fotoğraf çekildiği andaki oyuncu (0.24.2): köpeğin solunda durur; eski kayıtta yok. */
+  player?: PlayerLook;
 }) {
-  const scale = small ? (genome2 ? 1.6 : 2) : genome2 ? 2.4 : 3;
+  const scale = small ? (genome2 ? 1.6 : 2) : genome2 ? (player ? 2 : 2.4) : 3;
+  const humanScale = small ? (genome2 ? 1.5 : 2) : genome2 ? 2.5 : 3.2;
   return (
     <div class={'photo scene-' + scene + (small ? ' small' : '') + (genome2 ? ' two' : '')}>
       <div class="photo-scene">
         <span class="photo-props">{SCENE_PROPS[scene]}</span>
+        {player && <HumanPortrait style={styleFromLook(player)} sig={lookKey(player)} scale={humanScale} class="photo-player" />}
         {genome ? <DogPortrait genome={genome} stage={stage ?? 'adult'} scale={scale} /> : <span class="photo-paw">🐾</span>}
         {genome2 && <DogPortrait genome={genome2} stage={stage2 ?? 'adult'} scale={scale} />}
       </div>
@@ -53,9 +61,10 @@ export function ScenePhoto({
   );
 }
 
-export function LetterPhoto({ letter }: { letter: Letter }) {
+export function LetterPhoto({ letter, player }: { letter: Letter; player?: PlayerLook }) {
   return (
     <ScenePhoto
+      player={player}
       scene={letter.scene}
       genome={letter.genome}
       stage={letter.stage}
@@ -125,9 +134,11 @@ export function MailPanel() {
               ))}
             </div>
             <div class="letter-view">
-              <LetterPhoto letter={open} />
+              <LetterPhoto letter={open} player={sim.adoptions.find((r) => r.key === open.key && r.dogName === open.dogName)?.playerLook} />
               <div class="letter-body">
-                <p class="letter-text">“{sim.mail.text(open)}”</p>
+                <p class="letter-text">
+                  “{t('Sevgili {name},', { name: displayPlayerName(sim.player.name) })} {sim.mail.text(open)}”
+                </p>
                 <p class="muted small-text">
                   — {open.from}
                   {open.type ? ' · ' + t(ADOPTER_TYPES[open.type].name) : ''}

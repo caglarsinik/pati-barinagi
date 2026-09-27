@@ -564,7 +564,8 @@ html.is-touch .build-item {
   }
 
   /* Karakter ekranı (0.24.1): önizleme küçülür, seçiciler sıkışır; kart yine iki sütun. */
-  .menu-screen .menu-card.character {
+  .menu-screen .menu-card.character,
+  .overlay .menu-card.character {
     grid-template-columns: minmax(0, 0.75fr) minmax(0, 1.5fr);
     gap: 4px 12px;
     padding: 8px 14px;

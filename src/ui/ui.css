@@ -1633,6 +1633,19 @@ select,
   margin-left: -18px;
 }
 
+/* Fotoğrafta oyuncu (0.24.2): köpeğin solunda durur. */
+.photo-scene .photo-player {
+  margin-right: 2px;
+}
+
+.photo.two .photo-scene .photo-player + .portrait {
+  margin-left: 0;
+}
+
+.char-settings {
+  gap: 10px;
+}
+
 .photo.small .photo-paw {
   font-size: 1.6rem;
   margin-bottom: 8px;

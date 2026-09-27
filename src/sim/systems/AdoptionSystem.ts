@@ -1,4 +1,5 @@
 import { BALANCE } from '../../config/balance';
+import type { PlayerLook } from '../entities/PlayerLook';
 import { PERSON_NAMES } from '../../content/names';
 import { type Adopter, adoptable, matchScore, randomRequest, requestFee } from '../entities/Adopter';
 import { ADOPTER_TYPES, type AdopterType, VILLAGER_ADOPTER_TYPE, adopterIdentity, typedFee, withTypeLikes } from '../entities/AdopterType';
@@ -40,6 +41,8 @@ export interface AdoptionRecord {
   family?: number;
   /** İkili sahiplendirme (0.21.4): birlikte giden can dostunun adı (iki kayıt aynı anahtarı taşır). */
   pair?: string;
+  /** Fotoğraf çekildiği andaki oyuncu görünümü (0.24.2; eski kayıtta yok → fotoğrafta oyuncu çizilmez). */
+  playerLook?: PlayerLook;
 }
 
 export interface PendingReturn {
@@ -271,6 +274,7 @@ export class AdoptionSystem {
       genome: { ...dog.genome },
       stage: dog.stage,
       family: a.family ?? a.id,
+      playerLook: { ...sim.player.look },
     };
     sim.adoptions.push(record);
     sim.stats.adopted++;
@@ -325,6 +329,7 @@ export class AdoptionSystem {
       type: a.type,
       look: a.look,
       family: a.family ?? a.id,
+      playerLook: { ...sim.player.look },
       ...(a.villager !== undefined ? { villager: a.villager } : {}),
     };
     const recA: AdoptionRecord = { ...base, dogName: dog.name, genome: { ...dog.genome }, stage: dog.stage, pair: partner.name };

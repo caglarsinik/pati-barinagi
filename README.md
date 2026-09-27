@@ -55,7 +55,10 @@ oyuna dönünce "Hoş geldin" kartı karşılar. Kontroller sayfasının başın
 Ana menüde "Yeni oyun"a basınca önce **Karakterin** ekranı açılır (0.24.1): dönen canlı önizleme, ◀ ▶ ile beden (kadın/erkek), ten,
 saç rengi ve biçimi, tişört rengi ve biçimi, pantolon rengi ve biçimi, ayakkabı, şapka ve aksesuar seçilir, ad yazılır (en çok 14
 karakter; boşsa "Bakıcı"), Rastgele ile karıştırılır, Başla ile oyun kurulur; son seçim bir sonraki yeni oyunda hatırlanır. Kayıt
-kartında karakterin yüzü ve adı görünür.
+kartında karakterin yüzü ve adı görünür. Açık oyunda **Ayarlar → Karakter → Karakteri düzenle** ile görünüm ve ad değişir
+(0.24.2; anında uygulanır, kaydedilir). Adın Nermin Hanım'ın karşılamasında, sabah kartında, mektupların selamında ve zafer
+ekranında geçer; her sahiplendirme fotoğrafında köpeğin yanında o anki görünümünle sen de durursun (eski fotoğraflar
+değişmez).
 
 Ana menüde **Başlangıç türü** seçilir (0.19.0):
 
@@ -619,7 +622,8 @@ Bilgisayar değiştirirken ya da yedek almak için kullan.
 - [x] 0.23.5 Bakım: kapı güncellemesi karede bir kez; kare pencerede "çevir" uyarısı oyunu da durdurur; personel deneyimi görev başına 10 → 2 (Sv5 ~5 hafta, eskiden ~1 hafta); yeni oyunda ve Ayarlar → Bu oyun'da "Gün uzunluğu" 10 / 15 / 20 dk
 - [x] 0.24.0 Karakter 1: görünüm modeli (`PlayerLook`: beden, ten, saç biçimi ve rengi, tişört rengi ve biçimi, pantolon rengi ve biçimi, ayakkabı, şapka, aksesuar) ve ad kayıtta; `drawHuman` çeşitleri (varsayılan görünüm eski sprite ile piksel piksel aynı, köylü/personel/sahiplenici değişmez); oyuncunun dokusu görünümden, `setPlayer` komutuyla anında değişir; arayüz 0.24.1'de
 - [x] 0.24.1 Karakter 2: "Yeni oyun" → "Karakterin" ekranı (dönen canlı önizleme, ◀ ▶, 11 seçici, ad, Rastgele, Geri, Başla); son seçim hatırlanır; kayıt kartında ad ve yüz; 12 boyutta TR/EN denetim temiz
-- [ ] Sıradaki (2026-09-27 yol haritası, `docs/PLAN.md` §7): M20 Karakter (0.24.2 Ayarlar'dan değiştirme + ad + fotoğrafta oyuncu → 0.24.3 cila) → M21 Yuva evi içi (0.25.0–0.25.2) → M22 Kuzey/batı arsa (0.26.0–0.26.1) → M23 Arsa yeri (0.27.0–0.27.1)
+- [x] 0.24.2 Karakter 3: Ayarlar → Karakter (açık oyunda görünüm ve ad, anında uygulanır); ad Nermin'in karşılamasında, sabah kartında, mektup selamında ("Sevgili …,") ve zafer ekranında; sahiplendirme fotoğrafında o anki görünümüyle oyuncu (eski fotoğraflar değişmez); tam denetim 12 boyutta TR/EN temiz
+- [ ] Sıradaki (2026-09-27 yol haritası, `docs/PLAN.md` §7): M20 Karakter (0.24.3 cila) → M21 Yuva evi içi (0.25.0–0.25.2) → M22 Kuzey/batı arsa (0.26.0–0.26.1) → M23 Arsa yeri (0.27.0–0.27.1)
 - [ ] Sonrası: yuva evi içi, kuzey/batı arsa genişletme
 
 ## Geliştirme

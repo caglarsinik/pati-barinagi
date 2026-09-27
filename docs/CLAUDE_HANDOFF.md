@@ -57,6 +57,24 @@
   köpek paneli, araç şeridi, alt menü listesi, ana menü, Ayarlar: çakışma yok, taşma yok. Alt menü açılır listesi köpek
   panelinin üstüne gelebilir (geçici popover, üstte kalır) — kabul edildi. Gerçek cihaz testi kullanıcıda.
 
+## 0.24.2 — Karakter 3: Ayarlar → Karakter, ad, fotoğrafta oyuncu (Claude, 2026-09-27)
+- `store.characterOpen`, `store.playerName` (`syncStore`). `ui/CharacterModal.tsx`: `.overlay > .menu-card.panel.character`
+  (`.wide` değil; telefonda `.overlay .menu-card` zaten tam ekran, kısa ekran kuralına `.overlay .menu-card.character` eklendi),
+  ortak `CharacterEditor`, Rastgele / Vazgeç / Uygula (`data-char=apply`). `app.setPlayer(look, name)`: `setPlayer` komutu →
+  `rememberPlayer` → `save(true)` → `syncStore` → toast "Karakter güncellendi"; `start()`/`toMenu()` pencereyi kapatır.
+  SettingsPanel "Karakter" bölümü (yalnız açık oyunda): baş portresi + ad + "Karakteri düzenle" (`data-char=edit`).
+- Ad: Nermin karşılaması `steps.ts` iki metin "Merhaba {name}, …" (`Coach.tsx` `t(text, {name})`; EN "Hi {name}, I'm Nermin…"),
+  `MorningPanel` "👋 Hoş geldin, {name}!" / "☀️ Günaydın, {name}!" (ad boşsa eski başlıklar → eski kayıt değişmez), `MailPanel`
+  mektup metninin başına "Sevgili {name}," (mektup satırları değişmedi), `VictoryPanel` "Tebrikler {name}! …" (EN anahtarı
+  değişti). `displayPlayerName` boş adı "Bakıcı"/"Caretaker" yapar.
+- Fotoğraf: `AdoptionRecord.playerLook?` sahiplendirme anında kopya (`AdoptionSystem` tekli ve ikili `base`, `QuestSystem`
+  köylü teslimi); `Sim.fromJSON` `lookFromJSON` ile klempler, eski kayıtta alan yok → fotoğrafta oyuncu çizilmez.
+  `ScenePhoto player?` → `HumanPortrait` köpeğin solunda (mektupta 3,2×, ikilide 2,5× ve köpekler 2×, albümde 2×/1,5×);
+  `LetterPhoto player` kaydı `key + dogName` ile bulur; `AlbumPanel` `r.playerLook`. CSS `.photo-player`.
+- Denetim: `richGame` artık `setPlayer` ile uzun ad ("Ayşe Nur Deniz") ve varsayılan dışı görünüm kurar → ad geçen
+  yerler ve fotoğraflar en uzun hâliyle denetlenir; adım `modal:character`. Tam denetim 12 boyutta TR/EN 83 ekran 0 sorun.
+- 496 test (`playerPhoto.test.ts`: kayıt anlık kopya, sonradan değişmez, kayıt turu, eski/bozuk alan). Sıradaki 0.24.3 cila.
+
 ## 0.24.1 — Karakter 2: Karakterin ekranı (Claude, 2026-09-27)
 - `store.ts`: `Screen` += 'character'; `NewGameDraft {seed, difficulty, starter, dayMinutes, slot}` ve `store.newGameDraft`
   (MainMenu "Yeni oyun" → taslak + ekran; Karakterin → Başla → `app.newGame(..., profile)`; `app.start()` taslağı siler; Geri

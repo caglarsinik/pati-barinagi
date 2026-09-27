@@ -4,6 +4,9 @@ import { audio } from '../audio/audio';
 import { BALANCE } from '../config/balance';
 import { getLang, t } from '../i18n';
 import { InstallControls } from './InstallControls';
+import { HumanPortrait } from './HumanPortrait';
+import { styleFromLook } from '../render/HumanPainter';
+import { displayPlayerName, lookKey } from '../sim/entities/PlayerLook';
 import { showToast, store } from './store';
 
 /** Ses ve dil ayarları, kaydı JSON olarak dışa/içe aktarma. */
@@ -89,6 +92,15 @@ export function SettingsPanel() {
         )}
         {sim && (
           <>
+            <h4>{t('Karakter')}</h4>
+            <div class="row char-settings">
+              <HumanPortrait style={styleFromLook(sim.player.look)} sig={lookKey(sim.player.look)} headOnly scale={2} class="slot-portrait" />
+              <span>{displayPlayerName(sim.player.name)}</span>
+              <span class="spacer" />
+              <button class="btn small" data-char="edit" onClick={() => (store.characterOpen.value = true)}>
+                {t('Karakteri düzenle')}
+              </button>
+            </div>
             <h4>{t('Bu oyun')}</h4>
             <label class="setting">
               <span>{t('Gün uzunluğu')}</span>

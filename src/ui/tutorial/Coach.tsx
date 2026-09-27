@@ -7,6 +7,7 @@ import { type HumanStyle, drawHuman } from '../../render/HumanPainter';
 import { hex, shade } from '../../render/Pixels';
 import { P } from '../../render/palette';
 import { store } from '../store';
+import { displayPlayerName } from '../../sim/entities/PlayerLook';
 import { type TutorialStep, type TutorialView, stepText } from './steps';
 
 /** Belediyeden Nermin Hanım: kızıl saç, lacivert ceket. */
@@ -190,7 +191,7 @@ export function Coach() {
         <CoachPortrait />
         <div class="coach-body">
           <div class="coach-name">{t('Nermin Hanım · belediye')}</div>
-          <div class="coach-text">{t(stepText(step, touch))}</div>
+          <div class="coach-text">{t(stepText(step, touch), { name: displayPlayerName(app.sim?.player.name ?? '') })}</div>
           <div class="coach-actions">
             {step.info ? (
               <button class="btn small primary" onClick={() => app.tutorial.next()}>

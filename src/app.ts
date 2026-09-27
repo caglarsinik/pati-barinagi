@@ -288,6 +288,18 @@ class AppController {
     }
   }
 
+  /** Açık oyunda karakterin görünümünü ve adını değiştirir (Ayarlar → Karakter, 0.24.2): anında uygulanır, kaydedilir, tercih kalır. */
+  setPlayer(look: PlayerLook, name: string): boolean {
+    if (!this.sim) return false;
+    const r = this.sim.command({ type: 'setPlayer', look, name });
+    if (!r.ok) return false;
+    this.rememberPlayer({ look: this.sim.player.look, name: this.sim.player.name });
+    this.save(true);
+    syncStore(this.sim);
+    showToast(t('Karakter güncellendi'));
+    return true;
+  }
+
   setTouchMode(mode: TouchMode): void {
     store.touchMode.value = mode;
     try {
@@ -439,6 +451,7 @@ class AppController {
     store.build.value = { kind: 'none' };
     store.screen.value = 'game';
     store.newGameDraft.value = null;
+    store.characterOpen.value = false;
     this.applyDevice();
     store.gameOver.value = sim.gameOver;
     // Kazanılmış bir kayıt yüklenince zafer ekranı yeniden açılmaz.
@@ -469,6 +482,7 @@ class AppController {
     this.sim = null;
     audio.stopMusic();
     store.settingsOpen.value = false;
+    store.characterOpen.value = false;
     store.pauseMenu.value = false;
     store.gameOver.value = null;
     store.victory.value = null;

@@ -2072,7 +2072,11 @@ export class Sim {
       }
     }
     if (Array.isArray(data.weeks)) sim.weeks = (data.weeks as WeekSummary[]).filter((w) => w && typeof w.week === 'number');
-    if (Array.isArray(data.adoptions)) sim.adoptions = (data.adoptions as AdoptionRecord[]).filter((a) => a && typeof a.day === 'number');
+    if (Array.isArray(data.adoptions)) {
+      sim.adoptions = (data.adoptions as AdoptionRecord[])
+        .filter((a) => a && typeof a.day === 'number')
+        .map((a) => (a.playerLook !== undefined ? { ...a, playerLook: lookFromJSON(a.playerLook) } : a));
+    }
     if (Array.isArray(data.pendingReturns)) sim.pendingReturns = (data.pendingReturns as PendingReturn[]).filter((r) => r && typeof r.day === 'number' && r.dog);
     if (data.lastInspection && typeof data.lastInspection === 'object') sim.lastInspection = data.lastInspection as InspectionReport;
 

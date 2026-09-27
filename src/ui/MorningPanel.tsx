@@ -19,7 +19,18 @@ export function MorningPanel() {
   const close = (): void => {
     store.panel.value = 'none';
   };
-  const title = r.kind === 'welcome' ? t('👋 Hoş geldin!') : r.passedOut ? t('😵 Dışarıda bayıldın, ofiste uyandın') : t('☀️ Günaydın!');
+  // Karakter adı (0.24.2): ad boşsa eski başlıklar.
+  const name = store.playerName.value;
+  const title =
+    r.kind === 'welcome'
+      ? name
+        ? t('👋 Hoş geldin, {name}!', { name })
+        : t('👋 Hoş geldin!')
+      : r.passedOut
+        ? t('😵 Dışarıda bayıldın, ofiste uyandın')
+        : name
+          ? t('☀️ Günaydın, {name}!', { name })
+          : t('☀️ Günaydın!');
   const y = r.yesterday;
   const done: string[] = [];
   if (y) {
