@@ -1755,3 +1755,19 @@ select,
 .journal-nav {
   justify-content: space-between;
 }
+
+/* Evi onar (0.23.3): gereken / sende; eksik kırmızı. */
+.repair-panel {
+  max-width: 460px;
+}
+
+.repair-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 4px 0;
+}
+
+.repair-row .short {
+  color: var(--danger);
+}

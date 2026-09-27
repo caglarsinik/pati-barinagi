@@ -295,7 +295,19 @@ girilir; çıkmak için kapıya yürü.
 - **Dolap:** keskin balta ve kazma → ağaçtan ve kayadan +1 (ağaç +4 odun, çam +3, kaya +3 taş; kütük değişmez).
 - **Masadaki günlük:** Nuri Usta'nın hikâyesi (3 sayfa, istendiğinde yeniden okunur). İlk okuyuşta evden 12–20 kare uzakta gizli
   bir yuva açılır: haritada mor nokta ve 🥚 satırı (Git); **ilk yumurtası efsanevi**, sonra olağan bir yuva gibi dolar.
-- Sönük ocak ve kırık yatak şimdilik yalnız bakılır; ev 0.23.3'te onarılınca işe yarayacak. Otopilot eve girmez.
+- Otopilot eve girmez.
+
+### Orman evi (0.23.3)
+
+Terk edilmiş evde ocağa bakıp E: onarım paneli açılır. Bedel **🪵40 🪨25 + 800 ₺**; malzeme şart (parayla yerine konmaz,
+panel eksik olanı kırmızı gösterir). Onarınca ev **orman evi** olur: kütük duvar, sağlam çatı, bacadan duman, ışıklı
+pencereler, gece kapı önü aydınlık; "Orman evi" başarımı açılır, haritada 🏡 satırı.
+
+- **Yatak:** 20:00'den sonra E ile sabaha kadar uyunur; sabah orman evinde uyanırsın.
+- **Ocak:** günde bir kez E ile ısın: dayanıklılık dolar.
+- **Tabela:** kapının iki kare doğusunda; barınak, doğu yolu ve köy tabelalarıyla hızlı seyahat (barınaktan ~30 dakika).
+- **Bayılma:** gece 02:00'de dışarıdaysan orman evi ofisten yakınsa onun kapısında uyanırsın.
+- Sandık, dolap ve günlük yerinde kalır; onarımdan önce alınmadılarsa sonra da alınır.
 
 ## Ekonomi ve sahiplendirme
 
@@ -594,7 +606,8 @@ Bilgisayar değiştirirken ya da yedek almak için kullan.
 - [x] 0.23.0 Odun ve taş: arsa ve köy dışında ağaç/çam kes, kaya kır, kütük sök (E ya da dokunuş); kütük 5–8 günde yeniden ağaç; çantada en çok 99
 - [x] 0.23.1 Malzemeyle öde: inşa çubuğunda 🪵🪨 anahtarı; bina tarifleri (odun 20 ₺, taş 30 ₺ indirim, en çok yarısı), çit/kapı odunla, yol taşla; yıkımda ödenenin yarısı
 - [x] 0.23.2 Terk edilmiş ev: uzak ormanda Nuri Usta'nın evi (tohumdan yer, köylü ipucu, keşif başarımı); sandık 400 ₺ + nadir yumurta, dolapta keskin aletler (+1), günlük ve ilk yumurtası efsanevi gizli yuva
-- [ ] M18 Terk Edilmiş Ev ve Malzemeler (0.23.0–0.23.4): 0.23.0 ✅ odun ve taş → 0.23.1 ✅ malzemeyle öde → 0.23.2 ✅ uzak ormanda ev → 0.23.3 onarım → 0.23.4 cila
+- [x] 0.23.3 Orman evi: terk edilmiş evi 🪵40 🪨25 + 800 ₺ ile onar; yatakta uyu, ocakta günde bir ısın, kapıdaki tabeladan hızlı seyahat, gece bayılınca yakın evde uyan
+- [ ] M18 Terk Edilmiş Ev ve Malzemeler (0.23.0–0.23.4): 0.23.0 ✅ odun ve taş → 0.23.1 ✅ malzemeyle öde → 0.23.2 ✅ uzak ormanda ev → 0.23.3 ✅ onarım → 0.23.4 cila
 - [ ] Sonrası: yuva evi içi, kuzey/batı arsa genişletme
 
 ## Geliştirme

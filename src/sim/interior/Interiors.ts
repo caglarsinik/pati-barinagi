@@ -4,7 +4,7 @@ import { TileWorld, type TilePos } from '../world/TileWorld';
 import { Ground } from '../world/tiles';
 
 /** Girilebilen binaların iç mekân türü (M15; kulübeler 0.22.3: küçük ve büyük ayrı şablon). */
-export type InteriorKind = 'office' | 'restRoom' | 'pantry' | 'kitchen' | 'clinic' | 'hatchery' | 'wholesaler' | 'toyShop' | 'kennel' | 'kennelLarge' | 'ruin';
+export type InteriorKind = 'office' | 'restRoom' | 'pantry' | 'kitchen' | 'clinic' | 'hatchery' | 'wholesaler' | 'toyShop' | 'kennel' | 'kennelLarge' | 'ruin' | 'cabin';
 
 /** İç mekân eşyası: kare dikdörtgeni katıdır, önünde E ile kullanılır. */
 export type InteriorItemType = 'desk' | 'board' | 'window' | 'bookshelf' | 'coffee' | 'phone' | 'bed' | 'plant' | 'restBoard' | 'sofa' | 'tv' | 'fridge' | 'sacks' | 'ledger' | 'orderBoard' | 'counter' | 'oven' | 'waterTank' | 'spiceRack' | 'foodShelf' | 'examTable' | 'medCabinet' | 'reception' | 'waitChairs' | 'xray' | 'tray' | 'controlPanel' | 'heatLamp' | 'supplies' | 'bulkSacks' | 'shopCounter' | 'crates' | 'toyShelf' | 'vitaminShelf' | 'kennelBoard' | 'dogBed' | 'blanket' | 'dogBowl' | 'dogToy' | 'chest' | 'ruinCabinet' | 'ruinDesk' | 'hearth' | 'brokenBed' | 'cobweb';
@@ -57,6 +57,7 @@ export const FURNITURE_BY_KIND: Record<InteriorKind, readonly FurnitureType[]> =
   kennel: KENNEL_FURNITURE,
   kennelLarge: KENNEL_FURNITURE,
   ruin: [],
+  cabin: [],
 };
 
 /** Kulübe iç mekânı mı (0.22.3)? */
@@ -262,6 +263,19 @@ const TEMPLATES: Record<InteriorKind, InteriorTemplate> = {
       { type: 'cobweb', x: 7, y: 1, w: 1, h: 1 },
       { type: 'ruinCabinet', x: 1, y: 2, w: 1, h: 1 },
       { type: 'brokenBed', x: 8, y: 2, w: 1, h: 2 },
+      { type: 'ruinDesk', x: 1, y: 4, w: 2, h: 1 },
+      { type: 'chest', x: 8, y: 5, w: 1, h: 1 },
+    ],
+  },
+  // 0.23.3 orman evi (onarılmış ev): aynı yerleşim; ağların yerinde pencere, yanan ocak (günde bir ısınma), yatak (uyku), halı.
+  cabin: {
+    rows: ['##########', '#========#', '#........#', '#...cc...#', '#...cc...#', '#........#', '####D#####'],
+    items: [
+      { type: 'window', x: 2, y: 1, w: 1, h: 1 },
+      { type: 'hearth', x: 4, y: 1, w: 2, h: 1 },
+      { type: 'window', x: 7, y: 1, w: 1, h: 1 },
+      { type: 'ruinCabinet', x: 1, y: 2, w: 1, h: 1 },
+      { type: 'bed', x: 8, y: 2, w: 1, h: 2 },
       { type: 'ruinDesk', x: 1, y: 4, w: 2, h: 1 },
       { type: 'chest', x: 8, y: 5, w: 1, h: 1 },
     ],

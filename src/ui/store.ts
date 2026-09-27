@@ -53,7 +53,8 @@ export type Panel =
   | 'quests'
   | 'mail'
   | 'album'
-  | 'journal';
+  | 'journal'
+  | 'repair';
 
 export type BuildTool =
   | { kind: 'none' }

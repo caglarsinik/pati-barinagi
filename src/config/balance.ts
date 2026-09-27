@@ -225,6 +225,8 @@ export const BALANCE = {
     nestMinDist: 12,
     nestMaxDist: 20,
     nestClear: 6,
+    /** Onarım (0.23.3): malzeme şart (parayla yerine konmaz) ve para; onarılan ev orman evi olur. */
+    repair: { wood: 40, stone: 25, money: 800 },
   },
   /** Kuluçka içi (0.17.3): ısı lambası kalan ve yeni çatlama sürelerini bu oranla kısaltır. */
   hatchery: {

@@ -12,7 +12,7 @@ import { type DogGenome, genomeKey } from '../sim/entities/DogGenome';
 import { type Building, type Rotation, buildingDef, buildingDoorTile, buildingFootprint, canPlaceBuilding, isReady, buildingSize, kennelRestTile, solidRowsFor } from '../sim/entities/Building';
 import type { Dog } from '../sim/entities/Dog';
 import { quoteBuilding } from '../sim/systems/BuildSystem';
-import { type RuinSite, ruinAt } from '../sim/world/Ruin';
+import { ruinAt } from '../sim/world/Ruin';
 import type { PlayerInput } from '../sim/entities/Player';
 import type { Mode, Sim } from '../sim/Sim';
 import type { ActionKind, ActionOutcome, Tool } from '../sim/systems/Interaction';
@@ -33,7 +33,7 @@ import type { Staff } from '../sim/entities/Staff';
 import { drawEgg } from '../render/EggArt';
 import { type VillageBuilding, questBoardTile, villageDoorTile, villageInteractive } from '../sim/world/Village';
 import { isMarketDay } from '../sim/systems/ShopSystem';
-import { drawBalloons, drawQuestBoard, drawRuin, drawSignpost, drawVillageBuilding } from '../render/BuildingArt';
+import { drawBalloons, drawCabin, drawQuestBoard, drawRuin, drawSignpost, drawVillageBuilding, ruinChimneyTop } from '../render/BuildingArt';
 import { entryPoint } from '../sim/world/gates';
 import { type SignId, signKnown, signposts } from '../sim/world/Signposts';
 import { familyLast } from '../sim/systems/Stories';
@@ -141,7 +141,10 @@ export class WorldScene extends Phaser.Scene {
   /** Doku temizliği için köpek id → genom. */
   private dogGenomes = new Map<number, DogGenome>();
   /** Hazır lambalar (bina değişince yenilenir). */
-  private lamps: Building[] = [];
+  private lamps: Array<{ x: number; y: number }> = [];
+  /** Terk edilmiş ev / orman evi görseli ve onarılınca bacadan duman (0.23.2–0.23.3). */
+  private ruinImage: Phaser.GameObjects.Image | null = null;
+  private cabinSmoke: Phaser.GameObjects.Particles.ParticleEmitter | null = null;
   private adopterSprites = new Map<number, Phaser.GameObjects.Sprite>();
   /** Tekrar gelen ailenin yanındaki eski köpeği (0.21.2), sahiplenici kimliğiyle. */
   private adopterDogSprites = new Map<number, Phaser.GameObjects.Sprite>();
@@ -239,6 +242,10 @@ export class WorldScene extends Phaser.Scene {
       this.sim.events.on('villageGrew', (e) => {
         for (const vb of e.added) this.addVillageImage(vb);
       }),
+      this.sim.events.on('cabinRepaired', () => {
+        this.syncRuinImage();
+        this.refreshLamps();
+      }),
       this.sim.events.on('traveled', () => {
         const T = GAME.tile;
         this.cameras.main.centerOn(this.sim.player.x * T, this.sim.player.y * T);
@@ -281,7 +288,9 @@ export class WorldScene extends Phaser.Scene {
     // Köy binaları (0.18.2): oyuncuya ait değil, yalnız görsel (katılık dünya üretiminde).
     for (const vb of world.villageBuildings) this.addVillageImage(vb);
     // Terk edilmiş ev (0.23.2): yalnız görsel (katılık dünya üretiminde).
-    if (world.ruin) this.addRuinImage(world.ruin);
+    this.ruinImage = null;
+    this.cabinSmoke = null;
+    this.syncRuinImage();
     const market = world.villageBuildings.find((b) => b.kind === 'market');
     this.marketVendor = null;
     if (market) {
@@ -555,6 +564,8 @@ export class WorldScene extends Phaser.Scene {
         ruinChest: 'coin',
         ruinCabinet: 'pick',
         ruinJournal: 'click',
+        ruinRepair: 'click',
+        cabinWarm: 'pick',
       };
       const name = sfx[kind];
       if (name) audio.play(name);
@@ -587,6 +598,7 @@ export class WorldScene extends Phaser.Scene {
     else if (r.open === 'market') store.panel.value = 'market';
     else if (r.open === 'travel') store.panel.value = 'travel';
     else if (r.open === 'quests') store.panel.value = 'quests';
+    else if (r.open === 'repair') store.panel.value = 'repair';
     else if (r.open === 'journal') {
       store.journalPage.value = 0;
       store.panel.value = 'journal';
@@ -1452,7 +1464,11 @@ export class WorldScene extends Phaser.Scene {
   }
 
   private refreshLamps(): void {
-    this.lamps = this.sim.buildings.filter((b) => b.type === 'lamp' && isReady(b));
+    const lamps: Array<{ x: number; y: number }> = this.sim.buildings.filter((b) => b.type === 'lamp' && isReady(b));
+    // Orman evi (0.23.3): kapısının önü gece aydınlık.
+    const site = this.sim.world.ruin;
+    if (site && this.sim.ruin.repaired) lamps.push({ x: site.x + site.w / 2 - 0.5, y: site.y + site.h - 0.3 });
+    this.lamps = lamps;
   }
 
   private onResize(gameSize: Phaser.Structs.Size): void {
@@ -1609,15 +1625,35 @@ export class WorldScene extends Phaser.Scene {
       .setDepth(100 + (vb.y + vb.h) * T);
   }
 
-  /** Terk edilmiş ev görseli (0.23.2). */
-  private addRuinImage(site: RuinSite): void {
+  /** Terk edilmiş ev görseli (0.23.2); onarılınca orman evi ve bacadan duman (0.23.3). */
+  private syncRuinImage(): void {
+    const site = this.sim.world.ruin;
+    if (!site) return;
     const T = GAME.tile;
-    const key = `ruin-${site.w}x${site.h}`;
-    if (!this.textures.exists(key)) this.textures.addCanvas(key, drawRuin(site.w, site.h).toCanvas());
-    this.add
-      .image(site.x * T, (site.y + site.h) * T, key)
-      .setOrigin(0, 1)
-      .setDepth(100 + (site.y + site.h) * T);
+    const repaired = this.sim.ruin.repaired;
+    const key = `${repaired ? 'cabin' : 'ruin'}-${site.w}x${site.h}`;
+    if (!this.textures.exists(key)) this.textures.addCanvas(key, (repaired ? drawCabin : drawRuin)(site.w, site.h).toCanvas());
+    const bottom = (site.y + site.h) * T;
+    if (!this.ruinImage) this.ruinImage = this.add.image(site.x * T, bottom, key).setOrigin(0, 1).setDepth(100 + bottom);
+    else this.ruinImage.setTexture(key);
+    if (!repaired || this.cabinSmoke) return;
+    if (!this.textures.exists('smoke')) {
+      const puff = new Pixels(6, 6);
+      puff.ellipse(2.5, 2.5, 3, 3, hex(0xd9d6d2, 200));
+      this.textures.addCanvas('smoke', puff.toCanvas());
+    }
+    const c = ruinChimneyTop(site.w, site.h);
+    this.cabinSmoke = this.add
+      .particles(site.x * T + c.x, bottom + c.y, 'smoke', {
+        speedY: { min: -16, max: -9 },
+        speedX: { min: -2, max: 6 },
+        lifespan: 2800,
+        frequency: 450,
+        quantity: 1,
+        scale: { start: 0.5, end: 1.6 },
+        alpha: { start: 0.6, end: 0 },
+      })
+      .setDepth(100 + bottom + 1);
   }
 
   /** İç mekânlı binanın alt-orta karesi (kapının hemen üstü): dokunuş içeri sokar (0.17.0). */
@@ -1632,7 +1668,7 @@ export class WorldScene extends Phaser.Scene {
   private interiorTexture(item: InteriorItem): string {
     // Değişen eşyalar: kiler rafı stoğa göre; terk edilmiş evde sandık ve dolap açılınca (0.23.2).
     const R = this.sim.ruin;
-    const variant = item.type === 'sacks' ? sacksOnShelf(this.sim.foodStock, item.slot ?? 0) : item.type === 'chest' ? R.chest : item.type === 'ruinCabinet' ? (R.tools ? 1 : 0) : 0;
+    const variant = item.type === 'sacks' ? sacksOnShelf(this.sim.foodStock, item.slot ?? 0) : item.type === 'chest' ? R.chest : item.type === 'ruinCabinet' ? (R.tools ? 1 : 0) : item.type === 'hearth' ? (R.repaired ? 1 : 0) : 0;
     const key = interiorItemTextureKey(item.type, variant);
     if (!this.textures.exists(key)) this.textures.addCanvas(key, drawInteriorItem(item.type, variant).toCanvas());
     return key;

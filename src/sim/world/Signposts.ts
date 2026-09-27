@@ -1,14 +1,16 @@
 import { BALANCE } from '../../config/balance';
 import type { TilePos, TileWorld } from './TileWorld';
 import { Biome, Obj } from './tiles';
+import { ruinDoorTile } from './Ruin';
 
-/** Yol tabelaları (0.20.3). */
-export type SignId = 'shelter' | 'east' | 'village';
+/** Yol tabelaları (0.20.3; orman evi 0.23.3). */
+export type SignId = 'shelter' | 'east' | 'village' | 'cabin';
 
 export const SIGN_NAMES_TR: Record<SignId, string> = {
   shelter: 'Barınak',
   east: 'Doğu yolu',
   village: 'Köy',
+  cabin: 'Orman evi',
 };
 
 export interface Signpost {
@@ -71,6 +73,11 @@ export function signposts(world: TileWorld): Signpost[] {
 
   const v = world.village;
   if (v) out.push({ id: 'village', x: v.x + 13, y: v.y });
+  // Orman evi (0.23.3): onarılınca kapının iki kare doğusunda (açıklık içinde, hep boş).
+  if (world.ruin && world.cabin) {
+    const d = ruinDoorTile(world.ruin);
+    out.push({ id: 'cabin', x: d.x + 2, y: d.y });
+  }
   return out;
 }
 

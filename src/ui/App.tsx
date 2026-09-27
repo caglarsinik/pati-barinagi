@@ -30,6 +30,7 @@ import { MailPanel } from './MailPanel';
 import { AlbumPanel } from './AlbumPanel';
 import { Coach } from './tutorial/Coach';
 import { JournalPanel } from './JournalPanel';
+import { RepairPanel } from './RepairPanel';
 
 export function App() {
   store.lang.value;
@@ -72,6 +73,7 @@ export function App() {
           {panel === 'mail' && <MailPanel />}
           {panel === 'album' && <AlbumPanel />}
           {panel === 'journal' && <JournalPanel />}
+          {panel === 'repair' && <RepairPanel />}
           {store.report.value && <WeeklyReport />}
           {store.pauseMenu.value && <PauseMenu />}
           {store.gameOver.value && <GameOverPanel />}

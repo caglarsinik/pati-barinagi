@@ -209,11 +209,11 @@ describe('Terk edilmiş ev (0.23.2)', () => {
     const old = { ...data, ruin: undefined, objectChanges: [...(data.objectChanges as number[]), i, Obj.Stump] };
     const legacy = Sim.fromJSON(SaveManager.parse(JSON.stringify(old))!);
     // Oyuncu kapının önünde kaydetti: yüklenince ev yeniden bulunur, bulgular sıfırdan.
-    expect(legacy.ruin).toEqual({ found: true, chest: 0, tools: false, journal: false, nest: null });
+    expect(legacy.ruin).toEqual({ found: true, chest: 0, tools: false, journal: false, nest: null, repaired: false, warmDay: 0 });
     expect(legacy.world.objectAt(c.x + 1, c.y + 1)).toBe(Obj.None);
     // Bozuk değerler kırpılır.
     const bad = Sim.fromJSON(SaveManager.parse(JSON.stringify({ ...data, ruin: { found: 'x', chest: 9, tools: 1, journal: true, nest: { x: -5, y: 3 } } }))!);
-    expect(bad.ruin).toEqual({ found: true, chest: 2, tools: false, journal: true, nest: null });
+    expect(bad.ruin).toEqual({ found: true, chest: 2, tools: false, journal: true, nest: null, repaired: false, warmDay: 0 });
     // Bütün bu işler ana RNG'ye dokunmadı.
     expect(sim.rng.next()).toBe(twin.rng.next());
   });

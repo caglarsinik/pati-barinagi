@@ -5,7 +5,7 @@ import { TILE } from './TileArt';
 
 /** İç mekân eşyalarının doku anahtarı. */
 export function interiorItemTextureKey(type: InteriorItemType, variant = 0): string {
-  return type === 'sacks' || type === 'chest' || type === 'ruinCabinet' ? `int-${type}-${variant}` : `int-${type}`;
+  return type === 'sacks' || type === 'chest' || type === 'ruinCabinet' || type === 'hearth' ? `int-${type}-${variant}` : `int-${type}`;
 }
 
 /** Eşya çizimi: taban eşyanın kare dikdörtgeni, üst kısmı duvara taşabilir (sprite alt-sol kökenli çizilir). */
@@ -96,7 +96,7 @@ export function drawInteriorItem(type: InteriorItemType, variant = 3): Pixels {
     case 'ruinDesk':
       return drawRuinDesk();
     case 'hearth':
-      return drawHearth();
+      return drawHearth(variant);
     case 'brokenBed':
       return drawBrokenBed();
     case 'cobweb':
@@ -930,8 +930,8 @@ function drawRuinDesk(): Pixels {
   return p;
 }
 
-/** Sönük ocak (2 kare, duvara yaslı): taş örgü, rafı, isli ağız, kül ve yanmamış kütükler. */
-function drawHearth(): Pixels {
+/** Ocak (2 kare, duvara yaslı): taş örgü, rafı, isli ağız, kül ve kütükler; `lit` (orman evi, 0.23.3) alevli. */
+function drawHearth(lit = 0): Pixels {
   const w = TILE * 2;
   const h = 30;
   const p = new Pixels(w, h);
@@ -946,6 +946,13 @@ function drawHearth(): Pixels {
   p.fillRect(9, h - 3, w - 18, 2, ASH);
   p.fillRect(11, h - 5, 10, 2, P.trunkDark);
   p.fillRect(13, h - 7, 7, 2, P.trunk);
+  if (lit > 0) {
+    p.ellipse(16, h - 9, 5, 4, hex(0xf08a2c));
+    p.ellipse(16, h - 9.5, 3, 3.2, P.flowerYellow);
+    p.set(12, h - 12, hex(0xf08a2c));
+    p.set(19, h - 13, P.flowerYellow);
+    p.fillRect(9, h - 3, w - 18, 1, hex(0xf0b060));
+  }
   p.outline(P.outline);
   return p;
 }

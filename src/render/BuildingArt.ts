@@ -489,6 +489,68 @@ export function drawRuin(wTiles: number, hTiles: number): Pixels {
   return p;
 }
 
+/** Terk edilmiş evin/orman evinin baca ağzı (duman için): görselin sol alt köşesine göre piksel (yukarısı eksi). */
+export function ruinChimneyTop(wTiles: number, hTiles: number): { x: number; y: number } {
+  const H = hTiles * T + BUILDING_OVERHANG + 5;
+  const y0 = H - hTiles * T;
+  return { x: wTiles * T - 14, y: y0 - 10 - 4 - H };
+}
+
+/**
+ * Orman evi (0.23.3; onarılmış terk edilmiş ev): yatay kütük duvarlar, sağlam kiremit çatı, taş baca, içeriden ışık vuran
+ * pencereler, kapalı kapı ve fener, çiçek kasası. Ölçüler terk edilmiş evle aynı (baca yeri dahil).
+ */
+export function drawCabin(wTiles: number, hTiles: number): Pixels {
+  const W = wTiles * T;
+  const hBody = hTiles * T;
+  const H = hBody + BUILDING_OVERHANG + 5;
+  const p = new Pixels(W, H);
+  const y0 = H - hBody;
+  const wood = hex(0x9a6a3c);
+  const woodDark = hex(0x7a5130);
+  const woodLight = hex(0xb9844f);
+  const roof = hex(0x8a3f2c);
+  const roofDark = hex(0x6a2f22);
+  const roofLight = hex(0xa85540);
+  const lit = hex(0xf6d27a);
+  p.fillRect(0, y0, W, hBody, wood);
+  for (let y = y0 + 3; y < H - 1; y += 4) p.fillRect(0, y, W - 2, 1, woodDark);
+  p.fillRect(W - 2, y0, 2, hBody, woodDark);
+  const roofH = 10;
+  for (let i = 0; i < roofH; i++) {
+    const inset = Math.round(((roofH - 1 - i) * (W / 2 - 2)) / roofH);
+    p.fillRect(inset, y0 - roofH + i, W - inset * 2, 1, i % 3 === 0 ? roofDark : roof);
+  }
+  p.fillRect(0, y0, W, 1, roofDark);
+  p.fillRect(W / 2 - 6, y0 - roofH + 1, 12, 1, roofLight);
+  // Taş baca (terk edilmiş evdekiyle aynı yerde).
+  p.fillRect(W - 17, y0 - roofH - 4, 6, 8, P.rock);
+  p.fillRect(W - 17, y0 - roofH - 4, 6, 1, P.rockDark);
+  p.fillRect(W - 16, y0 - roofH - 2, 4, 1, P.rockLight);
+  // Işıklı pencereler: kayıtlı cam, pervaz.
+  for (const wx of [5, W - 13]) {
+    p.fillRect(wx, y0 + 6, 8, 7, lit);
+    p.fillRect(wx + 3, y0 + 6, 1, 7, woodDark);
+    p.fillRect(wx, y0 + 9, 8, 1, woodDark);
+    p.fillRect(wx - 1, y0 + 13, 10, 1, woodLight);
+  }
+  // Çiçek kasası (sol pencerenin altında).
+  p.fillRect(4, y0 + 14, 10, 2, woodDark);
+  p.set(6, y0 + 13, P.flowerRed);
+  p.set(9, y0 + 13, P.flowerPink);
+  p.set(12, y0 + 13, P.flowerYellow);
+  // Kapı ve fener.
+  const dx = Math.floor(W / 2) - 4;
+  p.fillRect(dx, H - 13, 8, 13, hex(0x5a3a22));
+  p.fillRect(dx + 1, H - 12, 6, 1, woodDark);
+  p.fillRect(dx + 1, H - 6, 6, 1, woodDark);
+  p.set(dx + 6, H - 7, P.flowerYellow);
+  p.fillRect(dx + 10, H - 12, 2, 3, lit);
+  p.set(dx + 10, H - 13, woodDark);
+  p.outline(P.outline);
+  return p;
+}
+
 /** Sahiplendirme günü balonları (0.21.3): üç balon ve ipleri. */
 export function drawBalloons(): Pixels {
   const p = new Pixels(22, 34);

@@ -145,7 +145,7 @@ export function Minimap({
     // Terk edilmiş ev (0.23.2), bulunduysa; günlükteki gizli yuva mor nokta.
     const ruin = sim.world.ruin;
     if (ruin && sim.ruin.found) {
-      ctx.fillStyle = '#8a7a66';
+      ctx.fillStyle = sim.ruin.repaired ? '#c98b4f' : '#8a7a66';
       ctx.fillRect(ruin.x, ruin.y, ruin.w, ruin.h);
     }
     const hidden = sim.ruin.nest;

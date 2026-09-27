@@ -563,6 +563,23 @@ export async function auditScreens(app: AuditApp, only?: string, keep = false): 
       },
       exit: () => sim.exitInterior(),
     },
+    // Onarım paneli (0.23.3): denetim oyununda taş yetmez → düğme kapalı, açıklama satırı görünür.
+    panel('repair'),
+    {
+      // Orman evi içi (0.23.3): onarılmış hâli; çıkınca denetim oyunu yeniden onarılmamış.
+      name: 'interior:cabin',
+      enter: () => {
+        sim.ruin.repaired = true;
+        sim.world.cabin = true;
+        sim.setMode('avatar');
+        sim.enterRuin();
+      },
+      exit: () => {
+        sim.exitInterior();
+        sim.ruin.repaired = false;
+        sim.world.cabin = false;
+      },
+    },
     { name: 'modal:week-report', enter: () => (store.report.value = closeWeek(sim, sim.clock.week + 1)) },
     { name: 'modal:pause', enter: () => app.openPauseMenu() },
     { name: 'modal:settings', enter: () => (store.settingsOpen.value = true) },

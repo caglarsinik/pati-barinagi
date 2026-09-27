@@ -36,8 +36,8 @@ import { rebuildMessSet } from './systems/MessSystem';
 import { NeedsSystem } from './systems/NeedsSystem';
 import { tickNests } from './systems/NestSystem';
 import { type Materials, type Regrow, materialsFromJSON, regrowFromJSON, regrowToJSON, tickRegrow } from './systems/Materials';
-import { type RuinState, checkRuinFound, defaultRuinState, ruinStateFromJSON, ruinTalkLine } from './systems/RuinSystem';
-import { RUIN_ID, restampRuin, ruinDoorTile } from './world/Ruin';
+import { type RuinState, checkRuinFound, defaultRuinState, repairRuin, ruinStateFromJSON, ruinTalkLine } from './systems/RuinSystem';
+import { RUIN_ID, type RuinSite, restampRuin, ruinDoorTile } from './world/Ruin';
 import { StaffSystem, maxStaff } from './systems/StaffSystem';
 import { breedMinutes, setNurseryPair, takeNurseryEgg, tickNurseries } from './systems/BreedingSystem';
 import { tickFeeders } from './systems/FeederSystem';
@@ -130,6 +130,8 @@ export interface SimEvents extends Record<string, unknown> {
   morning: MorningReport;
   /** Köy kademesi atladı (0.20.2): yeni yapılar (çizim onları ekler). */
   villageGrew: { stage: number; added: VillageBuilding[] };
+  /** Ev onarıldı (0.23.3): çizim orman evine döner, bacadan duman. */
+  cabinRepaired: RuinSite;
   /** Hızlı seyahat bitti (0.20.3): kamera oyuncuya atlar. */
   traveled: { to: SignId; minutes: number };
   /** Sahiplendirilen köpeğin ailesinden mektup geldi (0.21.1). */
@@ -163,6 +165,8 @@ export type Command =
   | { type: 'placeTiles'; tool: TileTool; tiles: TilePos[] }
   | { type: 'demolish'; x: number; y: number }
   | { type: 'moveBuilding'; id: number; x: number; y: number; rot?: Rotation }
+  /** Terk edilmiş evi onar (0.23.3). */
+  | { type: 'repairRuin' }
   | { type: 'paintZone'; zone: Zone; x0: number; y0: number; x1: number; y1: number }
   | { type: 'expandPlot'; dir: ExpandDir }
   | { type: 'placeEgg'; buildingId: number; eggId: number }
@@ -771,7 +775,18 @@ export class Sim {
 
   private passOut(): void {
     const office = this.buildings.find((b) => b.type === 'office');
-    const door = office ? buildingDoorTile(office) : { x: Math.floor(this.world.spawn.x), y: Math.floor(this.world.spawn.y) };
+    let door = office ? buildingDoorTile(office) : { x: Math.floor(this.world.spawn.x), y: Math.floor(this.world.spawn.y) };
+    let message = t('Gece dışarıda bayıldın; sabah ofiste uyandın.');
+    // Orman evi (0.23.3): ofisten yakınsa orada uyanırsın.
+    const site = this.world.ruin;
+    if (site && this.ruin.repaired) {
+      const cabin = ruinDoorTile(site);
+      const p = this.player;
+      if (Math.hypot(cabin.x - p.tileX, cabin.y - p.tileY) < Math.hypot(door.x - p.tileX, door.y - p.tileY)) {
+        door = cabin;
+        message = t('Gece dışarıda bayıldın; sabah orman evinde uyandın.');
+      }
+    }
     this.player.x = door.x + 0.5;
     this.player.y = door.y + 0.9;
     this.player.busy = 0;
@@ -783,7 +798,7 @@ export class Sim {
       }
     }
     this.sleepUntilMorning(true);
-    this.events.emit('message', t('Gece dışarıda bayıldın; sabah ofiste uyandın.'));
+    this.events.emit('message', message);
   }
 
   /** Hafta tiki: köpekler bir hafta yaşlanır, denetim ve yardım işlenir, haftalık rapor çıkar. */
@@ -941,6 +956,19 @@ export class Sim {
       case 'moveBuilding': {
         const r = tryMoveBuilding(this, cmd.id, cmd.x, cmd.y, cmd.rot);
         return { ok: r.ok, message: r.message, building: r.building };
+      }
+      case 'repairRuin': {
+        const r = repairRuin(this);
+        if (!r.ok) return r;
+        this.announcedSigns.add('cabin');
+        // İçerideyken oda orman evine döner (oyuncu yerinde kalır; eşyalar aynı yerlerde).
+        const it = this.interior;
+        if (it && it.buildingId === RUIN_ID) {
+          this.interior = { ...buildInterior('cabin'), buildingId: RUIN_ID, back: it.back };
+          this.events.emit('interiorChanged', this.interior);
+        }
+        if (this.world.ruin) this.events.emit('cabinRepaired', this.world.ruin);
+        return r;
       }
       case 'paintZone': {
         const r = paintZone(this, cmd.zone, cmd.x0, cmd.y0, cmd.x1, cmd.y1);
@@ -1334,7 +1362,7 @@ export class Sim {
     if (this.mode !== 'avatar' || this.interior) return { ok: false };
     const site = this.world.ruin;
     if (!site) return { ok: false };
-    const map = buildInterior('ruin');
+    const map = buildInterior(this.ruin.repaired ? 'cabin' : 'ruin');
     const door = ruinDoorTile(site);
     this.nav.cancel();
     this.interior = { ...map, buildingId: RUIN_ID, back: { x: door.x + 0.5, y: door.y + 0.9 } };
@@ -1879,6 +1907,7 @@ export class Sim {
     sim.bakesToday = Math.floor(numOr(data.bakesToday, 0, 0));
     sim.villageFound = data.villageFound === true;
     sim.ruin = ruinStateFromJSON(data.ruin, (x, y) => world.inBounds(x, y));
+    world.cabin = sim.ruin.repaired;
     const sup = (data.supplies && typeof data.supplies === 'object' ? data.supplies : {}) as Partial<Supplies>;
     const supply = (v: unknown): number => Math.min(BALANCE.shop.maxSupply, Math.floor(numOr(v, 0, 0)));
     sim.supplies = { toy: supply(sup.toy), vitamin: supply(sup.vitamin) };

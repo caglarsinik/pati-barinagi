@@ -42,6 +42,8 @@ export class TileWorld {
   villageBuildings: VillageBuilding[] = [];
   /** Terk edilmiş ev (0.23.2; üretimde kurulur, kaydedilmez). */
   ruin: RuinSite | null = null;
+  /** Ev onarıldı mı (0.23.3; `sim.ruin.repaired`ın dünyadaki yansıması, orman evi tabelası için; kaydedilmez). */
+  cabin = false;
   dirty: number[] = [];
   /** Üretimden sonra değişen nesne kareleri (kayıt için): kare indeksi → nesne. */
   objectChanges = new Map<number, number>();

@@ -24,10 +24,14 @@ export interface RuinState {
   journal: boolean;
   /** Günlükteki gizli yuva (ilk yumurtası efsanevi). */
   nest: TilePos | null;
+  /** Onarıldı: orman evi (0.23.3). */
+  repaired: boolean;
+  /** Ocakta en son ısınılan gün (0 hiç). */
+  warmDay: number;
 }
 
 export function defaultRuinState(): RuinState {
-  return { found: false, chest: 0, tools: false, journal: false, nest: null };
+  return { found: false, chest: 0, tools: false, journal: false, nest: null, repaired: false, warmDay: 0 };
 }
 
 /** Nuri Usta'nın günlüğü (üç sayfa). */
@@ -43,7 +47,9 @@ export function ruinStateFromJSON(raw: unknown, inBounds: (x: number, y: number)
   const nest = n && Number.isInteger(n.x) && Number.isInteger(n.y) && inBounds(n.x!, n.y!) ? { x: n.x!, y: n.y! } : null;
   const chest = typeof s.chest === 'number' && Number.isFinite(s.chest) ? Math.max(0, Math.min(2, Math.floor(s.chest))) : 0;
   const journal = s.journal === true;
-  return { found: s.found === true || journal || chest > 0 || s.tools === true, chest, tools: s.tools === true, journal, nest: journal ? nest : null };
+  const repaired = s.repaired === true;
+  const warmDay = typeof s.warmDay === 'number' && Number.isFinite(s.warmDay) ? Math.max(0, Math.floor(s.warmDay)) : 0;
+  return { found: s.found === true || journal || chest > 0 || s.tools === true || repaired, chest, tools: s.tools === true, journal, nest: journal ? nest : null, repaired, warmDay };
 }
 
 /** Keşif: evin `foundRadius` karesine yaklaşınca bir kez duyurulur. */
@@ -156,6 +162,42 @@ export function hiddenNestSpot(sim: Sim): TilePos | null {
     }
   }
   return best ? { x: best.i % w.width, y: Math.floor(best.i / w.width) } : null;
+}
+
+/** Onarım neden yapılamıyor (malzeme şart, parayla yerine konmaz); yapılabiliyorsa null. */
+export function repairIssue(sim: Sim): string | null {
+  const C = BALANCE.ruin.repair;
+  if (sim.ruin.repaired) return t('Ev zaten onarıldı');
+  if (sim.materials.wood < C.wood || sim.materials.stone < C.stone) {
+    return t('Onarım için 🪵{w} 🪨{s} gerek (sende 🪵{hw} 🪨{hs})', { w: C.wood, s: C.stone, hw: sim.materials.wood, hs: sim.materials.stone });
+  }
+  if (sim.money < C.money) return t('Onarım için {n} ₺ gerek', { n: C.money });
+  return null;
+}
+
+/** Evi onar (0.23.3): malzeme ve para düşer; ev orman evi olur (dünya bayrağı tabelayı açar). */
+export function repairRuin(sim: Sim): ActionOutcome {
+  const issue = repairIssue(sim);
+  if (issue) return { ok: false, message: issue };
+  const C = BALANCE.ruin.repair;
+  sim.materials.wood -= C.wood;
+  sim.materials.stone -= C.stone;
+  sim.addExpense('building', C.money, t("Nuri Usta'nın evi onarıldı"));
+  sim.ruin.repaired = true;
+  sim.ruin.found = true;
+  sim.world.cabin = true;
+  return { ok: true, message: t('🏡 Orman evi hazır: yatakta uyu, ocakta ısın, kapının yanındaki tabeladan hızlı seyahat') };
+}
+
+/** Orman evinin ocağı: günde bir kez dayanıklılık dolar. */
+export function warmAtHearth(sim: Sim): ActionOutcome {
+  if (!sim.ruin.repaired) return { ok: false };
+  if (sim.ruin.warmDay === sim.clock.day) return { ok: false, message: t('Bugün ocakta ısındın') };
+  sim.ruin.warmDay = sim.clock.day;
+  sim.player.stamina = BALANCE.player.staminaMax;
+  sim.player.exhausted = false;
+  sim.player.setBusy(1, 'coffee');
+  return { ok: true, message: t('🔥 Ocakta ısındın: dayanıklılık doldu') };
 }
 
 /** Gizli yuvanın ilk yumurtası mı (efsanevi)? */

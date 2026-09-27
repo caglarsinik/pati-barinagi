@@ -57,6 +57,36 @@
   köpek paneli, araç şeridi, alt menü listesi, ana menü, Ayarlar: çakışma yok, taşma yok. Alt menü açılır listesi köpek
   panelinin üstüne gelebilir (geçici popover, üstte kalır) — kabul edildi. Gerçek cihaz testi kullanıcıda.
 
+## 0.23.3 — Evi onar: orman evi (M18 dördüncü dilimi; Claude, 2026-09-27)
+- Önce 0.23.2 düzeltmesi (934aa17): CI'da `npm test` düştü — yeni 20 tohumlu ev testi yavaş makinede 5 sn sınırını aştı
+  ("Test timed out in 5000ms"; kayıt 403 verdiği için ayrıntı check-run annotations API'sinden okundu:
+  `/repos/…/check-runs/{job_id}/annotations`, kimlik gerektirmez). 12 tohum, kareler tek expect, A* ilk 4 tohumda, süre payı 30 sn.
+  DERS: dünya üreten/yol arayan döngülü testlere süre payı ver ya da expect'leri döngü dışında topla (yerelde 1,7 sn CI'da 5+ sn).
+- Onarım: `BALANCE.ruin.repair {wood 40, stone 25, money 800}`. `RuinSystem.repairIssue` (zaten onarıldı / malzeme şart, parayla
+  yerine konmaz / para), `repairRuin` (malzeme ve `building` gideri "Nuri Usta'nın evi onarıldı", `ruin.repaired`, `world.cabin`),
+  `warmAtHearth` (günde bir, `ruin.warmDay`; dayanıklılık dolar, `setBusy(1,'coffee')`). `RuinState` += repaired, warmDay (kayıtta;
+  eski kayıtta false/0). Sim komutu `repairRuin`: içerideyse oda `cabin` olarak yeniden kurulur (oyuncu yerinde, eşyalar aynı
+  yerde), `announcedSigns`'a 'cabin', olay `cabinRepaired`. `fromJSON`: `world.cabin = ruin.repaired`.
+- `TileWorld.cabin` (kaydedilmez) → `Signposts`: `SignId` += 'cabin' ("Orman evi"), tabela kapının 2 kare doğusunda (açıklıkta hep
+  boş); TravelPanel ve hızlı seyahat kendiliğinden. `passOut`: orman evi onarılmış ve ofisten yakınsa onun kapısında uyanılır
+  ("…sabah orman evinde uyandın").
+- İç mekân `cabin` (ruin'le aynı yerleşim): pencereler (ağ yerine), `hearth` (değişken 1 = alevli), ofisteki `bed` (uyku zaten
+  içeride kalır → sabah evde), halı; dolap/sandık/günlük durumlarıyla. Terk edilmiş evde ocak E → `ruinRepair` (panel `repair`),
+  orman evinde `cabinWarm`; iki eylem de `MANUAL_ACTIONS`. Dış ipucu "E: orman evi · içeri gir". Başarım `cabin` (38).
+- Çizim: `BuildingArt.drawCabin` (kütük duvar, kiremit çatı, taş baca aynı yerde, ışıklı pencere, kapı, fener, çiçek kasası),
+  `ruinChimneyTop`; WorldScene `syncRuinImage` (doku değişir, onarılınca `smoke` parçacıkları), `lamps` artık {x,y} dizisi: orman
+  evinin kapı önü gece aydınlık; `cabinRepaired` → yeniden çiz + lambalar. İç doku: `hearth` değişkeni anahtarda.
+- Arayüz: `RepairPanel` (gereken / sende, eksik kırmızı `.repair-row .short`, "🔨 Onar" malzeme yoksa kapalı + açıklama), mini
+  harita orman evi rengi, Harita satırı "🏡 Orman evi". 24 yeni EN metni (iki eski metin yenisiyle değişti). Denetim adımları
+  `panel:repair` ve `interior:cabin` (81 ekran).
+- Testler `tests/unit/cabin.test.ts` (5): ocak paneli, malzeme/para yetmezse hiçbir şey harcanmaz, onarım bedeli, oda cabin, başarım,
+  ikinci onarım reddi, dış ipucu; ocak günde bir, yatak 20:00 öncesi değil sonra sabaha kadar ve evde uyanma, ertesi gün ocak;
+  tabela yalnız onarılınca, barınaktan orman evine seyahat; bayılmada yakın ev (orman evi / ofis); kayıt turu ve eski kayıt. 473 test.
+  Tarayıcı: ocakta panel (52/40, 30/25), Onar → "🏡 Orman evi hazır", oda orman evi, E "ocakta ısın"; dışarıda kütük ev, duman,
+  tabela; tabelada "Buradasın: Orman evi · Barınak 30 dakika". Denetim 812×375, 568×320 (TR/EN), 768×1024 (TR/EN), 1024×768,
+  1280×720 (TR/EN): 0 sorun; dokunma senaryoları 19/19.
+- Sıradaki: 0.23.4 cila (senaryo 20, Kontroller "Orman ve malzeme", Oduncu/Taşçı başarımları).
+
 ## 0.23.2 — Terk edilmiş ev (M18 üçüncü dilimi; Claude, 2026-09-27)
 - Dünya: yeni `src/sim/world/Ruin.ts`. `findRuinSite(world)` RNG'siz: yasak kare maskesi (su, dağ, köy, arsa biyomu; en büyük arsa
   [`plot` + `plotMaxW/H`] + `plotPad` 6; köy + 16; yol karelerinin `roadPad` 4 çevresi; yuva ve in kareleri ±1 → yuva/in listeleri

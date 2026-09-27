@@ -9,7 +9,7 @@ import { eggDescription } from '../entities/Egg';
 import { cleanMess } from './MessSystem';
 import { harvestBerries, harvestNest } from './NestSystem';
 import { harvest, harvestFor, harvestHint, harvestIssue, isTreeTop } from './Materials';
-import { isHiddenNestFirst, openRuinCabinet, openRuinChest, readRuinJournal } from './RuinSystem';
+import { isHiddenNestFirst, openRuinCabinet, openRuinChest, readRuinJournal, warmAtHearth } from './RuinSystem';
 import { ruinAt } from '../world/Ruin';
 import { t } from '../../i18n';
 import { interiorItemAt } from '../interior/Interiors';
@@ -89,13 +89,16 @@ export type ActionKind =
   | 'ruinChest'
   | 'ruinCabinet'
   | 'ruinJournal'
+  /** Orman evi (0.23.3): onarım paneli, ocakta ısınma. */
+  | 'ruinRepair'
+  | 'cabinWarm'
   | 'none';
 
 /**
  * Köy, tabela ve görev eylemleri (0.20.5): yalnız oyuncu elle yapar. Otopilot varınca bunları yapmaz (panel açılmaz,
  * köylüyle konuşulmaz, kayıp köpek bulunmaz, köy binasına girilmez); `PlayerNav.arrive` denetler.
  */
-export const MANUAL_ACTIONS: ReadonlySet<ActionKind> = new Set<ActionKind>(['enterVillage', 'wholesale', 'toyShop', 'market', 'talk', 'post', 'travel', 'quests', 'lostDog', 'chop', 'mine', 'uproot', 'enterRuin', 'ruinChest', 'ruinCabinet', 'ruinJournal']);
+export const MANUAL_ACTIONS: ReadonlySet<ActionKind> = new Set<ActionKind>(['enterVillage', 'wholesale', 'toyShop', 'market', 'talk', 'post', 'travel', 'quests', 'lostDog', 'chop', 'mine', 'uproot', 'enterRuin', 'ruinChest', 'ruinCabinet', 'ruinJournal', 'ruinRepair', 'cabinWarm']);
 
 export interface ResolvedAction {
   kind: ActionKind;
@@ -276,14 +279,22 @@ function resolveInterior(sim: Sim, tile: TilePos): ResolvedAction {
       return { kind: 'ruinCabinet', hint: t('E: dolabı aç'), tile };
     case 'ruinDesk':
       return { kind: 'ruinJournal', hint: sim.ruin.journal ? t('E: günlüğü yeniden oku') : t('E: masadaki günlüğü oku'), tile };
-    case 'hearth':
-      return { kind: 'none', hint: t('Sönük ocak: yıllardır yanmamış'), tile };
+    case 'hearth': {
+      // Terk edilmiş evde ocak onarım panelini açar; orman evinde (0.23.3) günde bir ısınılır.
+      if (it.kind === 'ruin') {
+        const C = BALANCE.ruin.repair;
+        return { kind: 'ruinRepair', hint: t('E: evi onar (🪵{w} 🪨{s} + {m} ₺)', { w: C.wood, s: C.stone, m: C.money }), tile };
+      }
+      if (sim.ruin.warmDay === sim.clock.day) return { kind: 'none', hint: t('Ocak çıtırdıyor · bugün ısındın'), tile };
+      return { kind: 'cabinWarm', hint: t('E: ocakta ısın (dayanıklılık dolar, günde bir)'), tile };
+    }
     case 'brokenBed':
       return { kind: 'none', hint: t('Kırık yatak: onarılmadan uyunmaz'), tile };
     case 'cobweb':
       return { kind: 'none', hint: t('Örümcek ağları'), tile };
     default:
-      if (it.kind === 'ruin') return { kind: 'none', hint: t('Terk edilmiş ev · eşyalara bakıp E · çıkmak için kapıya yürü'), tile };
+      if (it.kind === 'ruin') return { kind: 'none', hint: t('Terk edilmiş ev · ocağa bakıp E: onarım · çıkmak için kapıya yürü'), tile };
+      if (it.kind === 'cabin') return { kind: 'none', hint: t('Orman evi · yatakta uyu, ocakta ısın · çıkmak için kapıya yürü'), tile };
       if (it.kind === 'kennel' || it.kind === 'kennelLarge') return { kind: 'none', hint: t('Kulübe içi · panoya bakıp E: eşya al · çıkmak için kapıya yürü'), tile };
       if (it.kind === 'toyShop') return { kind: 'none', hint: t('Oyuncak ve ilaç dükkânı · tezgâha bakıp E · çıkmak için kapıya yürü'), tile };
       if (it.kind === 'wholesaler') return { kind: 'none', hint: t('Yem toptancısı · tezgâha bakıp E: toptan çuval · çıkmak için kapıya yürü'), tile };
@@ -361,7 +372,7 @@ export function resolveAction(sim: Sim): ResolvedAction {
   }
 
   // Terk edilmiş ev (0.23.2).
-  if (ruinAt(w, tile.x, tile.y)) return { kind: 'enterRuin', hint: t('E: terk edilmiş ev · içeri gir'), tile };
+  if (ruinAt(w, tile.x, tile.y)) return { kind: 'enterRuin', hint: sim.ruin.repaired ? t('E: orman evi · içeri gir') : t('E: terk edilmiş ev · içeri gir'), tile };
 
   // Bina.
   const bid = w.buildingIdAt(tile.x, tile.y);
@@ -484,7 +495,7 @@ export interface ActionOutcome {
   ok: boolean;
   message?: string;
   /** UI'nın açması gereken panel. */
-  open?: 'shed' | 'kennel' | 'incubator' | 'office' | 'nursery' | 'computer' | 'order' | 'help' | 'furniture' | 'autoOrder' | 'clinic' | 'wholesale' | 'toyShop' | 'market' | 'travel' | 'quests' | 'journal';
+  open?: 'shed' | 'kennel' | 'incubator' | 'office' | 'nursery' | 'computer' | 'order' | 'help' | 'furniture' | 'autoOrder' | 'clinic' | 'wholesale' | 'toyShop' | 'market' | 'travel' | 'quests' | 'journal' | 'repair';
   building?: Building;
   dog?: Dog;
 }
@@ -683,6 +694,10 @@ export function performAction(sim: Sim): ActionOutcome {
       return openRuinCabinet(sim);
     case 'ruinJournal':
       return readRuinJournal(sim);
+    case 'ruinRepair':
+      return { ok: true, open: 'repair' };
+    case 'cabinWarm':
+      return warmAtHearth(sim);
     case 'wholesale':
       return { ok: true, open: 'wholesale' };
     case 'toyShop':

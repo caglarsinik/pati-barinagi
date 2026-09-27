@@ -144,8 +144,12 @@ export function MapSheet() {
             )}
             {ruinDoor && (
               <div class="marker-row">
-                <span class="marker-dot" style={{ background: '#8a7a66' }} />
-                <span class="small-text marker-dist">{t('🏚️ Terk edilmiş ev: {d} kare uzakta', { d: Math.round(Math.hypot(ruinDoor.x - po.tileX, ruinDoor.y - po.tileY)) })}</span>
+                <span class="marker-dot" style={{ background: sim.ruin.repaired ? '#c98b4f' : '#8a7a66' }} />
+                <span class="small-text marker-dist">
+                  {sim.ruin.repaired
+                    ? t('🏡 Orman evi: {d} kare uzakta', { d: Math.round(Math.hypot(ruinDoor.x - po.tileX, ruinDoor.y - po.tileY)) })
+                    : t('🏚️ Terk edilmiş ev: {d} kare uzakta', { d: Math.round(Math.hypot(ruinDoor.x - po.tileX, ruinDoor.y - po.tileY)) })}
+                </span>
                 <button class="btn small" disabled={!!sim.interior} onClick={() => goArea(ruinDoor.x, ruinDoor.y)}>
                   {t('Git')}
                 </button>
