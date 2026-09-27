@@ -517,7 +517,7 @@ Görevi olan köylünün başında soru balonu çıkar; sabah raporu kalan süre
 
 ## Başarımlar
 
-H tuşu ya da ofis panelinden 36 başarımın listesi açılır (ilk yumurta, 10 sahiplendirme, 95+ eşleşme, 1,4 denetim çarpanı, 20.000 ₺, efsanevi köpek, bir yıl dayanmak...). Her başarım açıldığında itibar +1 verir; kayıtla korunur.
+H tuşu ya da ofis panelinden 40 başarımın listesi açılır (ilk yumurta, 10 sahiplendirme, 95+ eşleşme, 1,4 denetim çarpanı, 20.000 ₺, efsanevi köpek, bir yıl dayanmak...). Her başarım açıldığında itibar +1 verir; kayıtla korunur.
 
 ## Dil
 
@@ -607,7 +607,8 @@ Bilgisayar değiştirirken ya da yedek almak için kullan.
 - [x] 0.23.1 Malzemeyle öde: inşa çubuğunda 🪵🪨 anahtarı; bina tarifleri (odun 20 ₺, taş 30 ₺ indirim, en çok yarısı), çit/kapı odunla, yol taşla; yıkımda ödenenin yarısı
 - [x] 0.23.2 Terk edilmiş ev: uzak ormanda Nuri Usta'nın evi (tohumdan yer, köylü ipucu, keşif başarımı); sandık 400 ₺ + nadir yumurta, dolapta keskin aletler (+1), günlük ve ilk yumurtası efsanevi gizli yuva
 - [x] 0.23.3 Orman evi: terk edilmiş evi 🪵40 🪨25 + 800 ₺ ile onar; yatakta uyu, ocakta günde bir ısın, kapıdaki tabeladan hızlı seyahat, gece bayılınca yakın evde uyan
-- [ ] M18 Terk Edilmiş Ev ve Malzemeler (0.23.0–0.23.4): 0.23.0 ✅ odun ve taş → 0.23.1 ✅ malzemeyle öde → 0.23.2 ✅ uzak ormanda ev → 0.23.3 ✅ onarım → 0.23.4 cila
+- [x] 0.23.4 Cila: dokunma senaryosu 20 (orman: ağaç, kaya, terk edilmiş ev, malzemeyle kulübe, otopilot), Kontroller'de "Orman ve malzeme", "Oduncu" ve "Taşçı" başarımları, 12 boyutta TR/EN denetim temiz — M18 tamam
+- [x] M18 Terk Edilmiş Ev ve Malzemeler (0.23.0–0.23.4): odun ve taş → malzemeyle öde → uzak ormanda ev → onarım (orman evi) → cila
 - [ ] Sonrası: yuva evi içi, kuzey/batı arsa genişletme
 
 ## Geliştirme
@@ -619,7 +620,7 @@ npm run build     # dist/index.html
 ```
 
 Dokunma testleri: oyunu `?touch=1&debug=1` ile açıp bir oyun başlatınca konsolda `await __pati.debug.runTouchScenarios()`
-19 senaryoyu koşar ve `{ summary, results }` döndürür (sözdür; 19 arayüzün çizilmesini bekler): 1–12 sabit tohumlu hazır barınakta (eğit → yürü, E düğmesi,
+20 senaryoyu koşar ve `{ summary, results }` döndürür (sözdür; 19 arayüzün çizilmesini bekler): 1–12 sabit tohumlu hazır barınakta (eğit → yürü, E düğmesi,
 pinch + iptal, takılı parmak, yönetim modu, uzun basış, köpeğin dibinde dokunuş, otopilot, ofis ve kiler iç mekânları),
 13 kuruluş oyununda (hedef "Göster" → dokunarak kulübe, kap, yalak, kuluçka → üç belediye hedefi), 14–15 taze hazır oyunda
 köyde (tabelaya dokun → hızlı seyahat paneli → köye git; görev panosu → kayıp köpeği bul → panoda teslim, otopilot panoyu
@@ -627,7 +628,9 @@ açmadan eve yürür), 16 taze hazır oyunda sahiplendirme hikâyesi (ofiste mas
 gelir, panel açılmaz, otopilot karışmaz → Posta → albüm), 17 Taşı (kulübeye dokun → boş yere dokun → köpeğiyle taşındı;
 sürükle-bırak; büyük kulübe Döndür ile), 18 kulübe içi (kulübeye dokun → panel → İçeri gir → panoya dokun → yatak al → gece köpek
 içeride yatağında çizili → kapıdan çık), 19 taze kuruluşta açılış tanıtımı gerçek arayüz düğmeleriyle (Başla, yürü, sev, Yönet,
-İnşa, kulübe, hedefler → bitti; test oyununda cihaz tercihi değişmez). Senaryolar açık oyunun
+İnşa, kulübe, hedefler → bitti; test oyununda cihaz tercihi değişmez), 20 taze hazır oyunda orman (ağacın tepesine dokun →
+keser, kayaya dokun → kırar, terk edilmiş eve dokun → içeri → sandık → kapıdan çık, malzemeyle küçük kulübe, otopilot ağacın
+dibinde kesmez ve evin kapısında girmez). Senaryolar açık oyunun
 yerine kendi test oyununu kurar; test oyunu kaydedilmez, yeni oyun ya da devam et ile normal oyuna dönülür. `__pati.debug.snapshot()` o anki
 dokunma/yürüyüş durumunu verir. Arayüz denetimi (0.21.6): `await __pati.debug.auditScreens()` zengin bir test oyununda
 77 ekranı (HUD hâlleri, inşa sekmeleri, açılır menüler, bütün paneller ve sekmeleri, kulübe içi, açılış tanıtımının 15 adımı,

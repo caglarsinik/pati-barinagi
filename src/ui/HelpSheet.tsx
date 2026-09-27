@@ -41,7 +41,15 @@ const WORLD_ROWS: Array<[string, string]> = [
   ['👥 Köylüler', 'Sabah işe, akşam eve giderler; E ile konuş. Köylünün sahiplendiği köpek köyde sahibiyle yaşar.'],
   ['🚏 Tabelalar', 'Barınak kapısının dışında, doğu yolunda ve köy girişinde; görünce keşfedilir, tabelada E ile hızlı seyahat (yol kadar zaman geçer, köpekler de gelir).'],
   ['📋 Görev panosu', 'Köy meydanında; her Pazartesi en çok üç ilan: kayıp köpek, köpek isteği, ödül maması. Panoda kabul et, süresi dolmadan köylüye ya da panoya teslim et.'],
-  ['🤖 Otopilot', 'Yalnız barınak işlerini yapar: köy, tabela, köylü ve görev işlerine dokunmaz, barınaktan uzaktaki yuva ve çalılara gitmez.'],
+  ['🤖 Otopilot', 'Yalnız barınak işlerini yapar: köy, tabela, köylü ve görev işlerine dokunmaz, barınaktan uzaktaki yuva ve çalılara gitmez; ağaç kesmez, kaya kırmaz, terk edilmiş eve girmez.'],
+];
+
+/** [konu, açıklama] Orman ve malzeme (M18, 0.23.4). */
+const FOREST_ROWS: Array<[string, string]> = [
+  ['🪵 Odun ve 🪨 taş', 'Arsa ve köy dışında ağaca (tepesine de), çama, kayaya ya da kütüğe dokun ya da önünde E: keser, kırar, söker. Kesilen ağaç 5–8 günde yeniden büyür; çantada her birinden en çok 99.'],
+  ['🪵🪨 Malzemeyle öde', 'İnşa çubuğundaki anahtar açıkken binanın tarifindeki odun ve taş fiyatı düşürür (odun 20 ₺, taş 30 ₺, en çok yarısı); çit odunla, yol taşla konur. Yıkımda ödenenin yarısı döner.'],
+  ['🏚️ Terk edilmiş ev', 'Uzak ormanda; köylüler yönünü söyler. İçeride sandık (para ve yumurta), dolap (keskin aletler: ağaç ve kayadan +1), günlük (gizli yuva, ilk yumurtası efsanevi).'],
+  ['🏡 Orman evi', 'Evin ocağında onar (🪵40 🪨25 + 800 ₺): yatakta uyu, ocakta günde bir ısın, kapıdaki tabeladan hızlı seyahat; gece bayılırsan yakınsa burada uyanırsın.'],
 ];
 
 /** [konu, açıklama] Sahiplendirme hikâyeleri (0.21.5). */
@@ -74,6 +82,8 @@ const TOUCH_ROWS: Array<[string, string]> = [
   ['Köylüye dokun', 'Yanına gidip konuşur: ipucu ve köy dedikodusu'],
   ['Tabelaya dokun', 'Hızlı seyahat: keşfettiğin tabelalar arasında git (yol kadar zaman geçer)'],
   ['Panoya dokun', 'Köy görev panosu: köylülerin ricaları, ödüllü görevler'],
+  ['Ağaca / kayaya / kütüğe dokun', 'Yanına gidip keser, kırar ya da söker (🪵/🪨 çantaya)'],
+  ['Terk edilmiş eve dokun', 'Kapısına yürüyüp içeri girer; içeride ocağa dokun: onarım'],
 ];
 
 /** Kontroller sayfası: klavye ve fare tablosu. Alt menü → Menü → Kontroller ya da duraklatma menüsünden açılır. */
@@ -140,6 +150,19 @@ export function HelpSheet() {
           <table class="help-table">
             <tbody>
               {WORLD_ROWS.map(([k, v]) => (
+                <tr key={k}>
+                  <td>{t(k)}</td>
+                  <td>{t(v)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        <h4>{t('Orman ve malzeme')}</h4>
+        <div class="table-scroll">
+          <table class="help-table">
+            <tbody>
+              {FOREST_ROWS.map(([k, v]) => (
                 <tr key={k}>
                   <td>{t(k)}</td>
                   <td>{t(v)}</td>

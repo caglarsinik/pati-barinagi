@@ -20,6 +20,7 @@ import { resolveAction } from '../sim/systems/Interaction';
 import { interiorItemAt } from '../sim/interior/Interiors';
 import { signposts } from '../sim/world/Signposts';
 import { questBoardTile } from '../sim/world/Village';
+import { ruinDoorTile } from '../sim/world/Ruin';
 import { albumEntries } from '../sim/systems/Stories';
 import { type AuditApp, auditScreens, layoutAudit, summarizeAudit } from './layoutAudit';
 
@@ -47,7 +48,8 @@ export interface DebugApp {
 
 /**
  * Senaryoların sabit tohumları (0.19.3): 1–12 hazır barınakta, 13 kuruluşta; 14–15 taze hazır oyunda köy (0.20.5), 16 sahiplendirme
- * hikâyesi (0.21.5); 17–18 taze hazır oyunda Taşı ve kulübe içi, 19 taze kuruluşta açılış tanıtımı (0.22.6).
+ * hikâyesi (0.21.5); 17–18 taze hazır oyunda Taşı ve kulübe içi, 19 taze kuruluşta açılış tanıtımı (0.22.6); 20 taze hazır oyunda
+ * orman: odun, taş, terk edilmiş ev, malzemeyle kulübe, otopilot (0.23.4).
  */
 const SCENARIO_SEED_READY = 1942;
 const SCENARIO_SEED_GUIDED = 1913;
@@ -833,6 +835,131 @@ export function createTouchDebug(app: DebugApp & AuditApp) {
       } catch (e) {
         results.push({ name: '19 tanıtım', ok: false, detail: String(e) });
       }
+
+      // 20 (0.23.4): M18 — odun ve taş, terk edilmiş ev, malzemeyle öde; otopilot ağaç kesmez, eve girmez (taze hazır oyun).
+      scenario('20 ağaca dokun → keser, kayaya → kırar; eve dokun → içeri → sandık → çık; malzemeyle kulübe; otopilot kesmez, girmez', () => {
+        const g = freshGame('ready', SCENARIO_SEED_READY);
+        const grun = (frames: number, until?: () => boolean): void => {
+          for (let i = 0; i < frames && !(until && until()); i++) g.update(1 / 30);
+        };
+        api.cancelTouches();
+        store.panel.value = 'none';
+        const w = g.world;
+        const site = w.ruin;
+        if (!site) return [false, 'ev yok'];
+        const door = ruinDoorTile(site);
+        const c = site.clearing;
+        /** Kapının 3–16 karesinde, açıklığın dışında, altında ya da yanında yürünür kare olan en yakın nesne. */
+        const near = (match: (o: Obj) => boolean): TilePos | null => {
+          let best: TilePos | null = null;
+          let bestD = Infinity;
+          for (let y = door.y - 16; y <= door.y + 16; y++) {
+            for (let x = door.x - 16; x <= door.x + 16; x++) {
+              if (!w.inBounds(x, y) || !match(w.objectAt(x, y))) continue;
+              if (x >= c.x - 1 && y >= c.y - 1 && x <= c.x + c.w && y <= c.y + c.h) continue;
+              if (![[0, 1], [1, 0], [-1, 0]].some(([dx, dy]) => !w.isSolid(x + dx, y + dy))) continue;
+              const d = Math.hypot(x - door.x, y - door.y);
+              if (d >= 3 && d < bestD) {
+                best = { x, y };
+                bestD = d;
+              }
+            }
+          }
+          return best;
+        };
+        const trunk = (o: Obj): boolean => o === Obj.TreeTrunk || o === Obj.PineTrunk;
+        const tree = near(trunk);
+        const rock = near((o) => o === Obj.Rock);
+        if (!tree || !rock) return [false, `ağaç=${!!tree} kaya=${!!rock}`];
+        const toDoor = (): void => {
+          g.player.x = door.x + 0.5;
+          g.player.y = door.y + 0.7;
+          g.player.busy = 0;
+          g.player.stamina = BALANCE.player.staminaMax;
+          grun(2);
+        };
+        // Ağacın tepesine dokun → gövdenin yanına yürür, keser; gövde kütüğe döner.
+        toDoor();
+        const wood0 = g.materials.wood;
+        api.tapTile(tree.x + 0.5, tree.y - 0.5);
+        grun(900, () => g.materials.wood > wood0 && !g.nav.active);
+        const chopped = g.materials.wood > wood0 && w.objectAt(tree.x, tree.y) === Obj.Stump;
+        // Kayaya dokun → kırar, kaya kalkar.
+        toDoor();
+        const stone0 = g.materials.stone;
+        api.tapTile(rock.x + 0.5, rock.y + 0.5);
+        grun(900, () => g.materials.stone > stone0 && !g.nav.active);
+        const mined = g.materials.stone > stone0 && w.objectAt(rock.x, rock.y) === Obj.None;
+        // Eve dokun → kapı önüne yürür, girer; sandığa dokun → 400 ₺; kapıya dokun → dışarı.
+        toDoor();
+        // Kapıdan iki kare solda, bir kare aşağıda (açıklığın içi hep yürünür; dışı ağaç olabilir).
+        g.player.x -= 2;
+        g.player.y += 1;
+        api.tapTile(site.x + 1.5, site.y + 1.5);
+        grun(900, () => g.interior !== null);
+        const inside = g.interior?.kind === 'ruin';
+        const chest = g.interior?.items.find((i) => i.type === 'chest');
+        const money0 = g.money;
+        if (chest) api.tapTile(chest.x + 0.5, chest.y + 0.5);
+        grun(600, () => g.ruin.chest > 0 && !g.nav.active);
+        const looted = g.ruin.chest > 0 && g.money === money0 + BALANCE.ruin.chestMoney;
+        const exit = g.interior?.door;
+        if (exit) api.tapTile(exit.x + 0.5, exit.y + 0.5);
+        grun(600, () => g.interior === null);
+        const out = g.interior === null && g.player.tileX === door.x && g.player.tileY === door.y;
+        // Malzemeyle öde: Yönet → İnşa → Küçük kulübe → arsaya dokun; tarif çantadan düşer, fiyat iner.
+        g.materials = { wood: 10, stone: 5 };
+        g.money = Math.max(g.money, 2000);
+        g.setMode('manage');
+        store.buildBar.value = true;
+        store.build.value = { kind: 'building', type: 'kennelSmall' };
+        const spot = spotFor(g, 'kennelSmall');
+        if (!spot) return [false, 'kulübeye yer yok'];
+        const cash = g.money;
+        api.tapTile(spot.x + 0.5, spot.y + 0.5);
+        const k = g.buildings.find((b) => b.type === 'kennelSmall' && b.x === spot.x && b.y === spot.y);
+        const paid = k ? k.paid : null;
+        const withMats =
+          !!paid && paid.wood === 6 && paid.stone === 2 && paid.money < BUILDING_DEFS.kennelSmall.cost && g.money === cash - paid.money && g.materials.wood === 4 && g.materials.stone === 3;
+        reset(g);
+        // Otopilot: ağacın dibine varsa da kesmez, evin kapısına varsa da girmez (varışta işi reddeder).
+        const seen: string[] = [];
+        const off = g.events.on('interacted', (e) => seen.push(`${e.kind}:${e.result.ok}`));
+        const tree2 = near(trunk);
+        const stand = tree2
+          ? [
+              [0, 1],
+              [-1, 0],
+              [1, 0],
+              [0, -1],
+            ]
+              .map(([dx, dy]) => ({ x: tree2.x + dx, y: tree2.y + dy }))
+              .find((s) => !w.isSolid(s.x, s.y))
+          : undefined;
+        let noChop = false;
+        let noEnter = false;
+        if (tree2 && stand) {
+          g.setAutopilot(true);
+          g.player.x = stand.x + 0.5;
+          g.player.y = stand.y + 0.7;
+          g.player.busy = 0;
+          g.player.stamina = BALANCE.player.staminaMax;
+          const wood1 = g.materials.wood;
+          g.nav.goInteract({ kind: 'object', tile: tree2 });
+          noChop = g.materials.wood === wood1 && trunk(w.objectAt(tree2.x, tree2.y)) && seen.includes('chop:false');
+          g.player.x = door.x + 0.5;
+          g.player.y = door.y + 0.7;
+          g.player.busy = 0;
+          g.nav.goInteract({ kind: 'ruin' });
+          noEnter = g.interior === null && seen.includes('enterRuin:false');
+          g.setAutopilot(false);
+        }
+        off();
+        return [
+          chopped && mined && inside && looted && out && withMats && noChop && noEnter,
+          `kesti=${chopped} kırdı=${mined} içeri=${inside} sandık=${looted} çıktı=${out} malzemeyle=${withMats ? `${paid?.money} ₺ + 🪵6 🪨2` : JSON.stringify(paid)} otopilot: kesmedi=${noChop} girmedi=${noEnter}`,
+        ];
+      });
 
       return { summary: summarize(results), results };
     },

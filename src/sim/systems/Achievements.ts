@@ -39,6 +39,8 @@ export const ACHIEVEMENTS: AchievementDef[] = [
   { id: 'village-helper', name: 'Köyün dostu', desc: '3 köylü görevini tamamla.', check: (s) => s.stats.quests >= 3 },
   { id: 'ruin', name: 'Terk edilmiş ev', desc: 'Ormandaki eski barınakçının evini bul.', check: (s) => s.ruin.found },
   { id: 'cabin', name: 'Orman evi', desc: "Nuri Usta'nın evini onar.", check: (s) => s.ruin.repaired },
+  { id: 'lumberjack', name: 'Oduncu', desc: '100 odun topla.', check: (s) => s.stats.woodGathered >= 100 },
+  { id: 'stonecutter', name: 'Taşçı', desc: '60 taş topla.', check: (s) => s.stats.stoneGathered >= 60 },
   {
     id: 'loyal-family',
     name: 'Sadık aile',

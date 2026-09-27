@@ -245,3 +245,19 @@ describe('Odun ve taş (0.23.0)', () => {
     expect(bad.regrow.size).toBe(0);
   });
 });
+
+describe('Oduncu ve Taşçı (0.23.4)', () => {
+  it('toplanan odun 100, taş 60 olunca başarımlar açılır; eşiğin altında açılmaz', () => {
+    const sim = Sim.create(2341);
+    sim.stats.woodGathered = 99;
+    sim.stats.stoneGathered = 59;
+    sim.achievements.check();
+    expect(sim.achievements.unlocked.has('lumberjack')).toBe(false);
+    expect(sim.achievements.unlocked.has('stonecutter')).toBe(false);
+    sim.stats.woodGathered = 100;
+    sim.stats.stoneGathered = 60;
+    sim.achievements.check();
+    expect(sim.achievements.unlocked.has('lumberjack')).toBe(true);
+    expect(sim.achievements.unlocked.has('stonecutter')).toBe(true);
+  });
+});

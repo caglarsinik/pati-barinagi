@@ -57,6 +57,24 @@
   köpek paneli, araç şeridi, alt menü listesi, ana menü, Ayarlar: çakışma yok, taşma yok. Alt menü açılır listesi köpek
   panelinin üstüne gelebilir (geçici popover, üstte kalır) — kabul edildi. Gerçek cihaz testi kullanıcıda.
 
+## 0.23.4 — M18 cilası (Claude, 2026-09-27) — M18 tamam
+- Dokunma senaryosu 20 (`touchDebug.ts`, taze hazır oyun, tohum 1942): evin kapısının 3–16 karesinde açıklık dışındaki en yakın ağaç ve
+  kaya (altında/yanında yürünür kare); ağacın tepesine dokun → yürür, keser (gövde kütük), kayaya dokun → kırar; oyuncu kapının iki
+  sol bir alt karesinde (açıklığın içi hep yürünür; ilk denemede kapının üç altı bu dünyada ağaç gövdesiydi → "Yol tıkalı") eve dokunur
+  → içeri → sandığa dokun (+400 ₺) → kapıya dokun → dışarı; Yönet → İnşa → Küçük kulübe → arsaya dokun (🪵10 🪨5 ile 420 ₺ + 🪵6
+  🪨2, `paid`); otopilot açıkken ağacın yanındaki karede `nav.goInteract` (yol boş → anında varış) ve kapı önünde `{kind:'ruin'}`:
+  `interacted` olayında `chop:false` ve `enterRuin:false`, odun ve ev değişmez. README "20 senaryo".
+- Başarımlar `lumberjack` "Oduncu" (`stats.woodGathered` ≥ 100) ve `stonecutter` "Taşçı" (`stoneGathered` ≥ 60) → 40; test
+  `materials.test.ts`'te. Kontroller: yeni bölüm "Orman ve malzeme" (odun ve taş, malzemeyle öde, terk edilmiş ev, orman evi),
+  dokunmatik satırları (ağaca/kayaya/kütüğe dokun, terk edilmiş eve dokun), otopilot satırına "ağaç kesmez, kaya kırmaz, terk edilmiş
+  eve girmez" (EN anahtarı değişti). 18 yeni EN metni.
+- DERS: Vite dev sunucusu bir modülün eski dönüşümünü bellekte tutabiliyor (touch + sayfa yenileme yetmedi; ağ isteğinde yeni
+  adres görünse de `__pati.debug.runTouchScenarios.toString()` eski kodu gösterdi) → `preview_stop` + `preview_start pati-dev` ile
+  sunucuyu yeniden başlat; yeni kodu `toString().includes(...)` ile doğrula.
+- 474 test. Denetim 12 boyutta (568×320, 640×360, 667×375, 740×360, 812×375, 844×390, 915×412, 768×1024, 820×1180, 1024×768,
+  1180×820, 1280×720) TR ve EN: 81 ekran, 0 sorun; dokunma senaryoları 20/20.
+- M18 bitti (0.23.0–0.23.4). Sıradaki büyük işler plan dosyasında: yuva evi içi, kuzey/batı arsa, açık küçük işler.
+
 ## 0.23.3 — Evi onar: orman evi (M18 dördüncü dilimi; Claude, 2026-09-27)
 - Önce 0.23.2 düzeltmesi (934aa17): CI'da `npm test` düştü — yeni 20 tohumlu ev testi yavaş makinede 5 sn sınırını aştı
   ("Test timed out in 5000ms"; kayıt 403 verdiği için ayrıntı check-run annotations API'sinden okundu:
