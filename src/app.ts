@@ -18,6 +18,7 @@ import { Sim, DIFFICULTIES, STARTER_KINDS, type Difficulty, type StarterKind } f
 import { BUILDING_DEFS, type BuildingType } from './content/buildings';
 import { type MorningReport, buildMorningReport } from './sim/systems/DayReport';
 import { showToast, store, syncStore } from './ui/store';
+import { type MinimapZoom, parseZoom } from './ui/minimapView';
 
 
 /** Görünür pencere boyutu; gizli/henüz yerleşmemiş pencerede 0 döner. */
@@ -118,6 +119,7 @@ class AppController {
       store.morningHidden.value = localStorage.getItem(`${SaveManager.key(0)}.morningHidden`) === '1';
       store.labels.value = localStorage.getItem(`${SaveManager.key(0)}.labels`) !== '0';
       store.minimapHidden.value = localStorage.getItem(`${SaveManager.key(0)}.minimapHidden`) === '1';
+      store.minimapZoom.value = parseZoom(localStorage.getItem(`${SaveManager.key(0)}.minimapZoom`));
       const tm = localStorage.getItem(`${SaveManager.key(0)}.touchMode`);
       if (tm === 'on' || tm === 'off') store.touchMode.value = tm;
     } catch {
@@ -186,6 +188,16 @@ class AppController {
   }
 
   /** Mini haritayı gizle/göster; tercih tarayıcıda kalır. */
+  /** Mini harita yakınlaştırması (0.22.1): cihazda saklanır. */
+  setMinimapZoom(z: MinimapZoom): void {
+    store.minimapZoom.value = z;
+    try {
+      localStorage.setItem(`${SaveManager.key(0)}.minimapZoom`, String(z));
+    } catch {
+      /* yoksay */
+    }
+  }
+
   setMinimap(hidden: boolean): void {
     store.minimapHidden.value = hidden;
     try {

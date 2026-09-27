@@ -45,7 +45,7 @@ interface Box {
 /** Katman kökleri: farklı katmandaki öğelerin üst üste binmesi bilerek (panel HUD'un, açılır liste çubuğun üstünde). */
 const LAYERS = '.overlay, .menu-screen, .toasts, .nav-menu, .tool-popover, .rotate-hint';
 /** Bilerek bindirilen süsler. */
-const INTENTIONAL = '.nav-badge, .minimap-toggle, .photo-scene';
+const INTENTIONAL = '.nav-badge, .minimap-toggle, .minimap-zoom.over, .photo-scene';
 /** Bilerek yatay kayan şeritler (sahiplenici kartları, inşa öğeleri, üst şerit, tablolar). */
 const HSCROLL_OK = '.adopter-list, .build-items, .build-tab-list, .tb-left, .table-scroll';
 const TOL = 1;

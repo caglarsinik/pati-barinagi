@@ -82,8 +82,9 @@ export function MapSheet() {
     if (r.message) showToast(r.message);
     if (r.ok) store.panel.value = 'none';
   };
-  const pick = (x: number, y: number): void => {
-    const near = sim.markers.find((m) => Math.hypot(m.x - x, m.y - y) <= 3);
+  // Dokunuş toleransı yakınlaştırmaya göre (0.22.1): uzakta geniş, yakında dar.
+  const pick = (x: number, y: number, tol = 3): void => {
+    const near = sim.markers.find((m) => Math.hypot(m.x - x, m.y - y) <= tol);
     if (near) {
       setSelected(near.id);
       return;
@@ -111,6 +112,9 @@ export function MapSheet() {
           <Minimap inSheet onPick={pick} selected={selected} />
           <div class="map-side">
             <p class="muted small-text">{t('Haritaya dokun: işaret koy (en çok {n}). İşarete dokun: seç.', { n: max })}</p>
+            <p class="muted small-text">
+              {store.touch.value ? t('İki parmak ya da +/−: yakınlaştır · sürükle: kaydır · ⌖: bana dön') : t('Tekerlek ya da +/−: yakınlaştır · sürükle: kaydır · ⌖: bana dön')}
+            </p>
             {sim.markers.length === 0 && <p class="muted small-text">{t('Henüz işaret yok.')}</p>}
             {sim.markers.map((m) => (
               <div key={m.id} class={'marker-row' + (selected === m.id ? ' sel' : '')} onClick={() => setSelected(m.id)}>

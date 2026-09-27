@@ -1,26 +1,52 @@
-import { useEffect, useRef } from 'preact/hooks';
+import { useEffect, useRef, useState } from 'preact/hooks';
 import { app } from '../app';
+import { buildingFootprint, isReady } from '../sim/entities/Building';
 import { BIOME_COLORS, type Biome, Obj } from '../sim/world/tiles';
 import { store } from './store';
 import { t } from '../i18n';
 import { signKnown, signposts } from '../sim/world/Signposts';
+import { type MinimapZoom, clampCenter, inView, panBy, pickTile, pinchZoom, viewRect, zoomStep } from './minimapView';
 
 /** Biyom renkleriyle çizilen taban; sis, yuva/in işaretleri ve oyuncu her güncellemede üstüne gelir. */
 /** Harita işaretlerinin renkleri (MapMarker.color sırası). */
 export const MARKER_COLORS = ['#e4514f', '#4fb3e8', '#6dbb4f', '#f6d55c', '#a66bd6'];
 
+/** Tekerlekte art arda kademe atlamasın (dokunmatik yüzeyler çok küçük olay üretir). */
+const WHEEL_GAP_MS = 180;
+
+/**
+ * Mini harita (masaüstü/tablet sağ alt) ve tam ekran harita (`inSheet`). 0.22.1: 1×/2×/4× yakınlaştırma (cihazda saklanır,
+ * ikisi ortak). Panel oyuncuyu izler, tekerlek ve köşedeki +/− (fareyle) kademe değiştirir, dokununca tam ekran harita
+ * açılır. Tam ekran haritada sürükleyerek kaydırılır, iki parmakla ya da tekerlekle yakınlaşır; ⌖ yeniden oyuncuya döner;
+ * dokunuş `onPick(x, y, tolerans)` ile kareyi verir.
+ */
 export function Minimap({
   inSheet = false,
   onPick,
   selected = null,
-}: { inSheet?: boolean; onPick?: (x: number, y: number) => void; selected?: number | null } = {}) {
+}: { inSheet?: boolean; onPick?: (x: number, y: number, tol: number) => void; selected?: number | null } = {}) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const baseRef = useRef<HTMLCanvasElement | null>(null);
   /** Sis katmanı: keşif sayısı değişmedikçe yeniden üretilmez. */
   const fogRef = useRef<{ canvas: HTMLCanvasElement; count: number } | null>(null);
+  /** Tam ekran haritada sürükleyerek seçilen merkez (kare); null: oyuncuyu izler. */
+  const [center, setCenter] = useState<{ x: number; y: number } | null>(null);
+  const gesture = useRef<{
+    pts: Map<number, { x: number; y: number }>;
+    start: { x: number; y: number; cx: number; cy: number } | null;
+    moved: boolean;
+    multi: boolean;
+    pinch: { dist: number; zoom: MinimapZoom } | null;
+  }>({ pts: new Map(), start: null, moved: false, multi: false, pinch: null });
+  const lastWheel = useRef(0);
   const version = store.version.value;
   const tile = store.playerTile.value;
   const tick = store.tick.value;
+  const zoom = store.minimapZoom.value;
+  const W = app.sim?.world.width ?? 200;
+  const H = app.sim?.world.height ?? 200;
+  const focus = inSheet && center ? center : { x: tile.x + 0.5, y: tile.y + 0.5 };
+  const view = viewRect(focus.x, focus.y, zoom, W, H);
 
   useEffect(() => {
     const sim = app.sim;
@@ -44,6 +70,13 @@ export function Minimap({
     baseRef.current = base;
   }, [version]);
 
+  // Seçilen işaret görünen alanın dışındaysa harita ona kayar (listeden seçince).
+  useEffect(() => {
+    if (!inSheet || selected === null || zoom === 1) return;
+    const m = app.sim?.markers.find((x) => x.id === selected);
+    if (m && !inView(view, m.x, m.y, 2)) setCenter(clampCenter(m.x + 0.5, m.y + 0.5, zoom, W, H));
+  }, [selected]);
+
   useEffect(() => {
     const c = canvasRef.current;
     const base = baseRef.current;
@@ -53,7 +86,14 @@ export function Minimap({
     if (!ctx) return;
     const w = sim.world.width;
     const h = sim.world.height;
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
     ctx.clearRect(0, 0, c.width, c.height);
+    // Görünen alan kademe kadar büyütülür; aşağıdaki çizimler dünya karesi cinsinden kalır.
+    ctx.imageSmoothingEnabled = false;
+    ctx.setTransform(zoom, 0, 0, zoom, -view.sx * zoom, -view.sy * zoom);
+    /** Bir tuval pikseli (kare cinsinden): nokta işaretleri her kademede aynı boyda kalır. */
+    const px = 1 / zoom;
+    const dot = (x: number, y: number, size: number): void => ctx.fillRect(x + 0.5 - (size * px) / 2, y + 0.5 - (size * px) / 2, size * px, size * px);
     ctx.drawImage(base, 0, 0);
     // Sis: keşfedilmemiş kareler koyu; keşif sayısı değişmediyse önbellekten.
     const explored = sim.world.explored;
@@ -73,22 +113,28 @@ export function Minimap({
       fogRef.current = { canvas: fogCanvas, count: sim.exploredCount };
     }
     ctx.drawImage(fogRef.current.canvas, 0, 0);
+    // Barınak binaları (0.22.1): yakınlaşınca arsada ne nerede görünsün; yapımdaki soluk.
+    for (const b of sim.buildings) {
+      const f = buildingFootprint(b);
+      ctx.fillStyle = isReady(b) ? '#a8764a' : '#6f5d4c';
+      ctx.fillRect(f.x, f.y, f.w, f.h);
+    }
     // Arsa çerçevesi
     const p = sim.world.plot;
     ctx.strokeStyle = '#f6d55c';
-    ctx.lineWidth = 1;
-    ctx.strokeRect(p.x + 0.5, p.y + 0.5, p.w - 1, p.h - 1);
+    ctx.lineWidth = px;
+    ctx.strokeRect(p.x + px / 2, p.y + px / 2, p.w - px, p.h - px);
     // Keşfedilmiş yuvalar ve inler
     for (const n of sim.world.nests) {
       const i = sim.world.idx(n.x, n.y);
       if (!explored[i]) continue;
       ctx.fillStyle = sim.world.object[i] === Obj.NestEggs ? '#fff2a8' : '#8f8f98';
-      ctx.fillRect(n.x - 1, n.y - 1, 3, 3);
+      dot(n.x, n.y, 3);
     }
     for (const d of sim.world.dens) {
       if (!explored[sim.world.idx(d.x, d.y)]) continue;
       ctx.fillStyle = '#ff9a3c';
-      ctx.fillRect(d.x - 1, d.y - 1, 3, 3);
+      dot(d.x, d.y, 3);
     }
     // Köy binaları (0.18.2), keşfedildiyse.
     for (const vb of sim.world.villageBuildings) {
@@ -98,48 +144,128 @@ export function Minimap({
     }
     // Yol tabelaları (0.20.3), keşfedildiyse.
     ctx.fillStyle = '#e8c547';
-    for (const s of signposts(sim.world)) if (signKnown(sim.world, s)) ctx.fillRect(s.x - 1, s.y - 1, 3, 3);
+    for (const s of signposts(sim.world)) if (signKnown(sim.world, s)) dot(s.x, s.y, 3);
     // Kayıp köpek görevi (0.20.4): görüldüğü alan turuncu çerçeve.
     const area = sim.quests.searchArea();
     if (area) {
       ctx.strokeStyle = '#ff7b3a';
-      ctx.strokeRect(area.x - area.r + 0.5, area.y - area.r + 0.5, 2 * area.r, 2 * area.r);
+      ctx.strokeRect(area.x - area.r + px / 2, area.y - area.r + px / 2, 2 * area.r, 2 * area.r);
     }
     for (const dog of sim.dogs) {
       if (!dog.wild || !dog.following) continue;
       ctx.fillStyle = '#ff9a3c';
-      ctx.fillRect(dog.tileX, dog.tileY, 2, 2);
+      dot(dog.tileX, dog.tileY, 2);
     }
     // İşaretler (0.18.1): koyu çerçeveli renkli kare, seçili olan beyaz halkalı; oyuncu üstte kalır.
     for (const m of sim.markers) {
       if (m.id === selected) {
         ctx.fillStyle = '#ffffff';
-        ctx.fillRect(m.x - 4, m.y - 4, 9, 9);
+        dot(m.x, m.y, 9);
       }
       ctx.fillStyle = '#24203a';
-      ctx.fillRect(m.x - 3, m.y - 3, 7, 7);
+      dot(m.x, m.y, 7);
       ctx.fillStyle = MARKER_COLORS[m.color] ?? MARKER_COLORS[0];
-      ctx.fillRect(m.x - 2, m.y - 2, 5, 5);
+      dot(m.x, m.y, 5);
     }
     ctx.fillStyle = '#ffffff';
-    ctx.fillRect(tile.x - 1, tile.y - 1, 3, 3);
+    dot(tile.x, tile.y, 3);
     ctx.fillStyle = '#e4514f';
-    ctx.fillRect(tile.x, tile.y, 1, 1);
-  }, [tile, version, Math.floor(tick / 5), app.sim?.markers.map((m) => m.id).join(',') ?? '', selected]);
+    dot(tile.x, tile.y, 1);
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+  }, [tile, version, Math.floor(tick / 5), app.sim?.markers.map((m) => m.id).join(',') ?? '', selected, zoom, view.sx, view.sy]);
 
-  /** Tuvaldeki dokunuşu harita karesine çevirir. */
-  const pickAt = (e: MouseEvent): void => {
-    const c = canvasRef.current;
-    if (!c || !onPick) return;
-    const r = c.getBoundingClientRect();
-    onPick(Math.floor(((e.clientX - r.left) / r.width) * c.width), Math.floor(((e.clientY - r.top) / r.height) * c.height));
+  const setZoom = (z: MinimapZoom): void => {
+    if (z !== zoom) app.setMinimapZoom(z);
+  };
+  const onWheel = (e: WheelEvent): void => {
+    e.preventDefault();
+    e.stopPropagation();
+    const now = performance.now();
+    if (now - lastWheel.current < WHEEL_GAP_MS || e.deltaY === 0) return;
+    lastWheel.current = now;
+    setZoom(zoomStep(zoom, e.deltaY < 0 ? 1 : -1));
   };
 
-  const size = app.sim?.world.width ?? 200;
+  // Tam ekran harita: dokun (işaret), sürükle (kaydır), iki parmak (yakınlaştır).
+  const rect = (): DOMRect | null => canvasRef.current?.getBoundingClientRect() ?? null;
+  const spread = (pts: Map<number, { x: number; y: number }>): number => {
+    const [a, b] = [...pts.values()];
+    return a && b ? Math.hypot(a.x - b.x, a.y - b.y) : 0;
+  };
+  const onDown = (e: PointerEvent): void => {
+    const g = gesture.current;
+    try {
+      (e.currentTarget as Element).setPointerCapture(e.pointerId);
+    } catch {
+      /* işaretçi çoktan bitmiş: yakalamadan sürer */
+    }
+    g.pts.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    if (g.pts.size === 1) {
+      g.start = { x: e.clientX, y: e.clientY, cx: focus.x, cy: focus.y };
+      g.moved = false;
+      g.multi = false;
+      g.pinch = null;
+    } else if (g.pts.size === 2) {
+      g.multi = true;
+      g.start = null;
+      g.pinch = { dist: Math.max(1, spread(g.pts)), zoom };
+    }
+  };
+  const onMove = (e: PointerEvent): void => {
+    const g = gesture.current;
+    if (!g.pts.has(e.pointerId)) return;
+    g.pts.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    if (g.pinch && g.pts.size >= 2) {
+      setZoom(pinchZoom(g.pinch.zoom, spread(g.pts) / g.pinch.dist));
+      return;
+    }
+    const st = g.start;
+    const r = rect();
+    if (!st || !r) return;
+    const dx = e.clientX - st.x;
+    const dy = e.clientY - st.y;
+    if (!g.moved && Math.hypot(dx, dy) < 6) return;
+    g.moved = true;
+    setCenter(panBy(st.cx, st.cy, dx, dy, zoom, W, H, r.width, r.height));
+  };
+  const onUp = (e: PointerEvent): void => {
+    const g = gesture.current;
+    if (!g.pts.delete(e.pointerId)) return;
+    if (g.pts.size < 2) g.pinch = null;
+    if (g.pts.size > 0) return;
+    const tap = g.start !== null && !g.moved && !g.multi;
+    g.start = null;
+    const r = rect();
+    if (!tap || !onPick || !r) return;
+    const at = pickTile(view, e.clientX - r.left, e.clientY - r.top, r.width, r.height);
+    // Dokunuş toleransı ekranda ~16 px: uzakta geniş, yakında dar.
+    onPick(at.x, at.y, Math.max(1.5, 16 * (view.sw / r.width)));
+  };
+  const onCancel = (e: PointerEvent): void => {
+    const g = gesture.current;
+    g.pts.delete(e.pointerId);
+    if (g.pts.size === 0) {
+      g.start = null;
+      g.pinch = null;
+    }
+  };
+
   if (inSheet) {
     return (
       <div class="minimap in-sheet">
-        <canvas ref={canvasRef} width={size} height={size} onClick={pickAt} />
+        <canvas ref={canvasRef} width={W} height={H} onPointerDown={onDown} onPointerMove={onMove} onPointerUp={onUp} onPointerCancel={onCancel} onWheel={onWheel} />
+        <div class="minimap-zoom sheet">
+          <button class="btn small" disabled={zoom === 1} title={t('Uzaklaştır')} onClick={() => setZoom(zoomStep(zoom, -1))}>
+            −
+          </button>
+          <span class="mm-level">{zoom}×</span>
+          <button class="btn small" disabled={zoom === 4} title={t('Yakınlaştır')} onClick={() => setZoom(zoomStep(zoom, 1))}>
+            +
+          </button>
+          <button class="btn small" disabled={center === null} title={t('Haritayı bana ortala')} onClick={() => setCenter(null)}>
+            ⌖
+          </button>
+        </div>
       </div>
     );
   }
@@ -155,7 +281,17 @@ export function Minimap({
       <button class="btn small minimap-toggle" title={t('Mini haritayı gizle')} onClick={() => app.setMinimap(true)}>
         ✕
       </button>
-      <canvas ref={canvasRef} width={size} height={size} title={t('Dokun: tam ekran harita')} onClick={() => (store.panel.value = 'map')} />
+      <canvas ref={canvasRef} width={W} height={H} title={t('Dokun: tam ekran harita')} onClick={() => (store.panel.value = 'map')} onWheel={onWheel} />
+      {!store.touch.value && (
+        <div class="minimap-zoom over">
+          <button class="mm-btn" disabled={zoom === 1} title={t('Uzaklaştır')} onClick={() => setZoom(zoomStep(zoom, -1))}>
+            −
+          </button>
+          <button class="mm-btn" disabled={zoom === 4} title={t('Yakınlaştır')} onClick={() => setZoom(zoomStep(zoom, 1))}>
+            +
+          </button>
+        </div>
+      )}
     </div>
   );
 }

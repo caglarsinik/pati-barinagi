@@ -332,6 +332,13 @@ oraya renkli bir işaret konur (en çok 5); bir işarete dokunmak onu seçer. Sa
 **Git** haritayı kapatıp seni oraya yürütür (yol yoksa söyler), **✕** işareti siler. İşaretler mini haritada da görünür ve
 kayıtla korunur. İç mekândayken önce dışarı çıkmak gerekir.
 
+**Yakınlaştırma** (0.22.1): harita 1×, 2× ve 4× gösterilir (bütün dünya, yarısı, çeyreği); seçim cihazda saklanır, tam ekran
+haritayla masaüstündeki mini harita ortak kullanır. Tam ekran haritada altındaki **−** / **+** düğmeleri, iki parmak ya da fare
+tekerleği yakınlaştırır; **sürükleyince** harita kayar, **⌖** yeniden seni ortalar. Yakınken arsadaki binalar da görünür;
+listeden seçilen işaret görünen alanın dışındaysa harita ona kayar. Masaüstü mini haritası seni izler; tekerlek ya da köşedeki
+küçük −/+ ile yakınlaşır, dokununca tam ekran harita açılır. Dokunuş toleransı yakınlaştırmaya göre ayarlanır (uzakta
+işaretlere dokunmak daha kolay).
+
 ## Yol tabelaları ve hızlı seyahat
 
 Üç yol tabelası vardır (0.20.3): barınağın güney kapısının hemen dışında (arsa büyüyünce kapıyla birlikte taşınır), doğu
@@ -468,7 +475,8 @@ Bilgisayar değiştirirken ya da yedek almak için kullan.
 - [x] 0.21.5 Cila: dokunma senaryosu 16 (sahiplendirme hikâyesi), Kontroller'de "Sahiplendirme", "Mektup kutusu" başarımı — M13 Sahiplendirme Hikâyeleri tamam
 - [x] 0.21.6 Arayüz denetimi: telefon (568×320–915×412), tablet (768×1024–1180×820) ve masaüstünde 59 ekranda taşan, kesilen, üst üste binen yazılar düzeltildi; dünya adları çakışmaz; `__pati.debug.auditScreens()`
 - [x] 0.22.0 Arka planda müzik durur (kaldığı yerden sürer) ve sol altta ihtiyaç şeridi ("3 köpek aç · 2 susuz")
-- [ ] M19 Konfor ve Yaşam Kalitesi (dilimlendi, `docs/PLAN.md`): 0.22.0 ✅ müzik + ihtiyaç şeridi → 0.22.1 mini harita yakınlaştırma → 0.22.2 binayı taşı → 0.22.3 kulübe içi → 0.22.4 kulübe eşya etkileri → 0.22.5 açılış hikâyesi (tanıtım) → 0.22.6 cila
+- [x] 0.22.1 Mini harita yakınlaştırma: 1×/2×/4×, sürükle, iki parmak, tekerlek, ⌖ ile bana dön; yakınken binalar görünür
+- [ ] M19 Konfor ve Yaşam Kalitesi (dilimlendi, `docs/PLAN.md`): 0.22.0 ✅ müzik + ihtiyaç şeridi → 0.22.1 ✅ mini harita yakınlaştırma → 0.22.2 binayı taşı → 0.22.3 kulübe içi → 0.22.4 kulübe eşya etkileri → 0.22.5 açılış hikâyesi (tanıtım) → 0.22.6 cila
 - [ ] M18 Terk Edilmiş Ev ve Malzemeler (0.23.0–0.23.4): odun ve taş, malzemeyle öde, uzak ormanda ev, onarım
 - [ ] Sonrası: yuva evi içi, kuzey/batı arsa genişletme
 

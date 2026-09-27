@@ -566,7 +566,7 @@ tanıtılsın (Ayarlar'dan kapatılabilir).
 | Sürüm | Konu |
 |---|---|
 | 0.22.0 ✅ | Arka planda müzik durur (`AudioEngine.setBackground`: bağlam askıya alınır, müzik kaldığı yerden sürer; gizli sekme, odak kaybı, sayfa önbelleği) + sol altta ihtiyaç şeridi (`NeedSummary`: köpek uyarıları kimlik önekiyle sayılır; dokununca uyarı listesi) |
-| 0.22.1 | Mini harita yakınlaştırma 1×/2×/4×: +/−/⌖, sürükle, iki parmak; tam ekran haritada ve masaüstü panelinde |
+| 0.22.1 ✅ | Mini harita yakınlaştırma 1×/2×/4× (`minimapView.ts` saf: kademe, görünen alan, dokunuş → kare, kaydırma, iki parmak; tuval dönüşümüyle çizim): tam ekran haritada −/+/⌖, sürükle, iki parmak, tekerlek; masaüstü panelinde tekerlek ve köşede −/+; cihaz tercihi `minimapZoom`; yakınken binalar |
 | 0.22.2 | Taşı aracı: kurulu bina içindekilerle yerinde taşınır (köpekler, yumurtalar, eşyalar, seviye korunur), döndürülür; ücretsiz; ofis taşınmaz |
 | 0.22.3 | Kulübe içi 1: kapıdan girilen oda (küçük 8×6, büyük 10×6), panodan yatak, battaniye, su kabı, oyuncak sepeti, pencere; uyuyan köpekler içeride |
 | 0.22.4 | Kulübe içi 2: eşya etkileri (uyku enerjisi, hijyen, susuzluk, oyun, hastalık, dekor), denetimde "Konfor", başarım |

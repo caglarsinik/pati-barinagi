@@ -57,6 +57,28 @@
   köpek paneli, araç şeridi, alt menü listesi, ana menü, Ayarlar: çakışma yok, taşma yok. Alt menü açılır listesi köpek
   panelinin üstüne gelebilir (geçici popover, üstte kalır) — kabul edildi. Gerçek cihaz testi kullanıcıda.
 
+## 0.22.1 — Mini harita yakınlaştırma (M19; Claude, 2026-09-27)
+- Yeni saf `src/ui/minimapView.ts`: `ZOOM_LEVELS` [1, 2, 4], `parseZoom`, `zoomStep`, `pinchZoom` (başlangıç kademesi × parmak
+  oranı, log ölçeğinde en yakın kademe), `clampCenter`, `viewRect` (merkez etrafında, dünya içinde; köşe tuval pikseline
+  oturur), `pickTile` (tuval CSS noktası → kare), `panBy` (sürükleme; harita parmakla gelir), `inView`.
+- `Minimap.tsx`: tuval dünya genişliğinde kalır; çizimden önce `ctx.setTransform(z, 0, 0, z, -sx·z, -sy·z)` ve
+  `imageSmoothingEnabled = false` → mevcut kare koordinatlı çizimler değişmedi; nokta işaretleri (yuva, in, tabela, işaret,
+  oyuncu) `dot()` ile her kademede aynı tuval pikseli boyunda, çizgiler `lineWidth = 1/z`. Yeni: barınak binaları (yapımdaki
+  soluk). Tam ekran haritada (`inSheet`) işaretçi olayları: tek parmak ≥6 px = sürükleme (merkez yerel durumda, ⌖ ile
+  izlemeye döner), hareketsiz bırakma = `onPick(x, y, tolerans)` (tolerans ekranda ~16 px, en az 1,5 kare), iki parmak
+  kademe; tekerlek (180 ms aralık) her iki tuvalde; seçilen işaret görünen alanın dışındaysa haritayı ona kaydırır.
+  Masaüstü paneli oyuncuyu izler, fareyle köşede `.minimap-zoom.over` −/+ (dokunmatikte yok), tık yine tam ekran haritayı açar.
+  `setPointerCapture` try/catch (bitmiş ya da sahte işaretçi).
+- `store.minimapZoom` + `app.setMinimapZoom` (localStorage `…save.0.minimapZoom`, init'te `parseZoom`). MapSheet `pick`
+  toleransı kullanır; açıklama satırı (dokunmatik: iki parmak, fare: tekerlek). CSS `.minimap-zoom` (sayfada tuval altında satır,
+  `.btn.small`), `.mm-btn`, sayfa tuvalinde `touch-action: none`. Denetimde `.minimap-zoom.over` bilerek bindirilen süs.
+- Testler `tests/unit/minimap.test.ts` (5): kademe/tercih/iki parmak, görünen dikdörtgen kırpma ve piksel hizası, her kademede
+  dokunuş → kare gidiş dönüş, sürükleme ve kırpma, `inView`. 425 test. Tarayıcı: 812×375'te + ile 4× (tercih kaydedildi),
+  sahte işaretçiyle sürükleme işaret koymadı ve ⌖'yi açtı, dokunuş beklenen kareye (75, 100) işaret koydu, iki parmak 4×→2×,
+  ⌖ oyuncuya döndü; masaüstünde tekerlek 2→4 (tavan) →2. Denetim 568×320 ve 812×375 (TR/EN), 768×1024, 1280×720: 0 sorun;
+  dokunma senaryoları 16/16.
+- Sıradaki: 0.22.2 Taşı aracı.
+
 ## 0.22.0 — Arka planda müzik durur + sol altta ihtiyaç şeridi (M19 ilk dilimi; Claude, 2026-09-27)
 - Kullanıcı notları (2026-09-27) M19 Konfor ve Yaşam Kalitesi olarak 0.22.0–0.22.6'ya dilimlendi; M18 Terk Edilmiş Ev
   0.23.x'e kaydı (plan: `docs/PLAN.md` M19/M18 tabloları).

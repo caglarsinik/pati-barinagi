@@ -16,6 +16,7 @@ export type Screen = 'menu' | 'game';
 /** Cihaz sınıfı: pencere boyutundan (app.ts) belirlenir. */
 import type { Layout } from './layout';
 import type { SaveSummary } from '../core/SaveManager';
+import type { MinimapZoom } from './minimapView';
 export type { Layout };
 export type TouchMode = 'auto' | 'on' | 'off';
 export type Panel =
@@ -110,6 +111,8 @@ export const store = {
   adoptionsOpen: signal(true),
   /** Mini harita gizli (tercih tarayıcıda kalır). */
   minimapHidden: signal(false),
+  /** Mini harita yakınlaştırması (0.22.1): 1×/2×/4×, cihazda saklanır; panel ve tam ekran harita ortak. */
+  minimapZoom: signal<MinimapZoom>(1),
   /** Cihaz sınıfı ve dokunmatik kontroller (app.applyDevice). */
   layout: signal<Layout>('desktop'),
   touch: signal(false),

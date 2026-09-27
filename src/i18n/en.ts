@@ -1621,4 +1621,10 @@ export const EN: Record<string, string> = {
   '{n} köpek sıkılmış': '{n} bored',
   '{n} sıkılmış': '{n} bored',
   'Uyarıları aç': 'Open alerts',
+
+  // 0.22.1: mini harita yakınlaştırma
+  'Uzaklaştır': 'Zoom out',
+  'Haritayı bana ortala': 'Center the map on me',
+  'İki parmak ya da +/−: yakınlaştır · sürükle: kaydır · ⌖: bana dön': 'Two fingers or +/−: zoom · drag: pan · ⌖: back to me',
+  'Tekerlek ya da +/−: yakınlaştır · sürükle: kaydır · ⌖: bana dön': 'Wheel or +/−: zoom · drag: pan · ⌖: back to me',
 };
