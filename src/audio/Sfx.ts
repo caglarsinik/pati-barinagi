@@ -23,7 +23,9 @@ export type SfxName =
   | 'step'
   | 'treat'
   | 'tame'
-  | 'gate';
+  | 'gate'
+  | 'chop'
+  | 'mine';
 
 export interface SfxOpts {
   /** 1 = normal; 2 = bir oktav tiz. */
@@ -76,6 +78,22 @@ export function playSfx(s: Synth, dest: AudioNode, name: SfxName, opts: SfxOpts 
     case 'demolish':
       s.noise(dest, { dur: 0.45, gain: g(0.2), lowpass: 600, attack: 0.01, release: 0.3 });
       s.tone(dest, { type: 'sawtooth', freq: 120, freqEnd: 60, dur: 0.4, gain: g(0.08), lowpass: 400 });
+      break;
+    case 'chop':
+      // Balta: iki tok vuruş (odun gövdesi), sonuncusunda kısa çatırtı.
+      for (let i = 0; i < 2; i++) {
+        s.noise(dest, { dur: 0.07, gain: g(0.2), lowpass: 1100, attack: 0.004, at: i * 0.32 });
+        s.tone(dest, { type: 'triangle', freq: 240 * p, freqEnd: 150 * p, dur: 0.09, gain: g(0.16), at: i * 0.32 });
+      }
+      s.noise(dest, { dur: 0.16, gain: g(0.08), bandpass: 1800, q: 1.2, attack: 0.01, at: 0.7 });
+      break;
+    case 'mine':
+      // Kazma: iki sert taş vuruşu ve dökülen parçalar.
+      for (let i = 0; i < 2; i++) {
+        s.noise(dest, { dur: 0.05, gain: g(0.2), bandpass: 2600, q: 2, attack: 0.002, at: i * 0.34 });
+        s.tone(dest, { type: 'square', freq: 1150 * p, freqEnd: 700 * p, dur: 0.05, gain: g(0.07), lowpass: 3200, at: i * 0.34 });
+      }
+      for (let i = 0; i < 3; i++) s.noise(dest, { dur: 0.03, gain: g(0.06), bandpass: 3500, q: 1.5, at: 0.72 + i * 0.07 });
       break;
     case 'gate':
       // Gıcırtı + mandal tıkı.

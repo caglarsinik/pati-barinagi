@@ -24,6 +24,9 @@ export interface PlayerInput {
 
 export const IDLE_INPUT: PlayerInput = { dx: 0, dy: 0, run: false };
 
+/** Sürerken dayanıklılığın yenilenmediği ağır işler (0.23.0: odun ve taş). */
+const HEAVY_ACTIONS: ReadonlySet<string> = new Set(['chop', 'mine', 'uproot']);
+
 /**
  * Oyuncu avatarı. Konum kare biriminde, ayak merkezine göre (x: 12.5 = 12. karenin ortası).
  * Hareket gerçek zamanlıdır (oyun hızından bağımsız), çarpışma kare ızgarasına karşı.
@@ -113,9 +116,11 @@ export class Player {
       this.animTime = 0;
     }
 
+    // Ağır iş (0.23.0: ağaç kesme, kaya kırma, kütük sökme) sürerken soluklanılmaz: dayanıklılık bedeli gerçek olsun.
+    const toiling = this.busy > 0 && this.busyAction !== null && HEAVY_ACTIONS.has(this.busyAction);
     if (this.running) this.stamina = Math.max(0, this.stamina - p.staminaDrainPerSecond * exertion.runDrainMul * dtSec);
     else if (this.moving && exertion.walkDrain > 0) this.stamina = Math.max(0, this.stamina - exertion.walkDrain * dtSec);
-    else this.stamina = Math.min(p.staminaMax, this.stamina + p.staminaRegenPerSecond * dtSec);
+    else if (!toiling) this.stamina = Math.min(p.staminaMax, this.stamina + p.staminaRegenPerSecond * dtSec);
   }
 
   private moveAxis(world: TileWorld, dx: number, dy: number): void {

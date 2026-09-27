@@ -698,8 +698,10 @@ select,
 }
 
 /* --- Çanta ve yumurtalar --- */
+/* Dar sütunda (tablet) sayaçlar alt satıra geçer (0.23.0: odun ve taş eklenince taşıyordu). */
 .backpack-row {
   display: flex;
+  flex-wrap: wrap;
   gap: 4px;
   align-items: center;
 }

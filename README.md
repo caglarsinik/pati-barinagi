@@ -235,6 +235,23 @@ toplamaya arsadan en çok 40 kare uzağa gider, köyün çevresine hiç gitmez. 
   **Telefon**: yem siparişi. **Kitaplık**: kontroller sayfası. Pencere ve saksı süs.
 - Gece 20:00'den sonra ofisteki yatakta sabaha kadar uyursun. Dışarıda 02:00'ye kadar kalırsan bayılıp ofiste uyanırsın.
 
+## Odun ve taş
+
+Arsanın ve köyün dışında ağaç, çam, kaya ve kütük toplanır (0.23.0; araç gerekmez). Önüne gidip E'ye bas ya da nesneye
+dokun (ağacın tepesine dokunmak da olur):
+
+| Nesne | Verim | Dayanıklılık | Sonra |
+|---|---|---|---|
+| 🌳 Ağaç | 🪵 +3 | 15 | Kütük kalır; 5–8 gün sonra yeniden ağaç olur |
+| 🌲 Çam | 🪵 +2 | 15 | Kütük kalır; 5–8 gün sonra yeniden çam olur |
+| 🪨 Kaya | 🪨 +2 | 18 | Kalkar, yeniden çıkmaz |
+| Kütük | 🪵 +1 | 8 | Kalkar; kesilmiş ağacın kütüğüyse o ağaç artık büyümez |
+
+İş 1,2 saniye sürer ve bu sürede dayanıklılık yenilenmez; yetmezse "Çok yorgunsun: biraz soluklan". Çantada her birinden en
+çok 99 durur (masaüstünde sol üstteki çanta satırında, telefonda 🥚 çipiyle açılan çanta sayfasında 🪵 ve 🪨). Kütüğün
+yeniden ağaç olması için üstündeki kare boş olmalı, değilse ertesi gün yeniden denenir. Otopilot toplamaz. Malzemeler
+0.23.1'den itibaren inşada indirim olarak kullanılacak.
+
 ## Ekonomi ve sahiplendirme
 
 - Sahiplenici 10:00-16:00 arasında kapıdan gelir, ofisin önünde yaklaşık 2,5 saat bekler. O tuşu ya da ofisteki bilgisayarı (E) aç; istek kartına göre en uygun köpeği puanla gör ve sahiplendir. Zayıf eşleşme (puan < 50) itibar düşürür, köpek geri gelebilir.
@@ -529,7 +546,8 @@ Bilgisayar değiştirirken ya da yedek almak için kullan.
 - [x] 0.22.5 Açılış tanıtımı: yeni oyunda Nermin Hanım gerçek düğmeleri halkayla gösterir (kuruluş 7, hazır barınak 8 adım); Atla, kapat, Ayarlar'dan yeniden
 - [x] 0.22.6 Cila: dokunma senaryoları 17–19 (Taşı, kulübe içi, tanıtım), Kontroller'de yeni satırlar, "Yeni düzen" başarımı, İngilizcede "Awards", 12 boyutta TR/EN denetim temiz — M19 tamam
 - [x] M19 Konfor ve Yaşam Kalitesi (0.22.0–0.22.6): müzik arka planda durur, ihtiyaç şeridi, mini harita yakınlaştırma, binayı taşı, kulübe içi ve eşya etkileri, açılış tanıtımı
-- [ ] M18 Terk Edilmiş Ev ve Malzemeler (0.23.0–0.23.4): odun ve taş, malzemeyle öde, uzak ormanda ev, onarım
+- [x] 0.23.0 Odun ve taş: arsa ve köy dışında ağaç/çam kes, kaya kır, kütük sök (E ya da dokunuş); kütük 5–8 günde yeniden ağaç; çantada en çok 99
+- [ ] M18 Terk Edilmiş Ev ve Malzemeler (0.23.0–0.23.4): 0.23.0 ✅ odun ve taş → 0.23.1 malzemeyle öde → 0.23.2 uzak ormanda ev → 0.23.3 onarım → 0.23.4 cila
 - [ ] Sonrası: yuva evi içi, kuzey/batı arsa genişletme
 
 ## Geliştirme

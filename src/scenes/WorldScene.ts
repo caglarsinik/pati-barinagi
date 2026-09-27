@@ -19,6 +19,7 @@ import { GATE_OPEN_TILE, OBJ_INFO, Obj, TOILET_TILE, ZONE_COLORS, ZONE_TILE_BASE
 import { showToast, store, syncStore, rotateBuildTool } from '../ui/store';
 import { audio } from '../audio/audio';
 import { resolveAction } from '../sim/systems/Interaction';
+import { harvestAt } from '../sim/systems/Materials';
 import { drawLightDisc } from '../render/LightArt';
 import { drawInteriorItem, interiorItemTextureKey } from '../render/InteriorArt';
 import { type ActiveInterior, type InteriorItem, interiorItemAt, interiorKindFor, isKennelInterior, kennelRestSpotInside, sacksOnShelf } from '../sim/interior/Interiors';
@@ -517,6 +518,9 @@ export class WorldScene extends Phaser.Scene {
         clean: 'clean',
         pickEgg: 'pick',
         berries: 'berries',
+        chop: 'chop',
+        mine: 'mine',
+        uproot: 'chop',
         treatWild: 'pet',
         call: 'play',
         treat: 'treat',
@@ -839,7 +843,10 @@ export class WorldScene extends Phaser.Scene {
         sim.command(villageInteractive(vb.kind) ? { type: 'goInteract', goal: { kind: 'village', index: vb.index } } : { type: 'goTo', x: d.x, y: d.y });
       } else if (bid >= 0) sim.command({ type: 'goInteract', goal: this.isDoorTile(bid, tx, ty) ? { kind: 'enter', id: bid } : { kind: 'building', id: bid } });
       else if (o === Obj.NestEggs || o === Obj.Nest || o === Obj.BerryBush || o === Obj.Mess || o === Obj.Den) sim.command({ type: 'goInteract', goal: { kind: 'object', tile: { x: tx, y: ty } } });
-      else sim.command({ type: 'goTo', x: tx, y: ty });
+      else if (harvestAt(w, tx, ty)) {
+        // Odun ve taş (0.23.0): ağaca (tepesine de), kayaya ya da kütüğe dokun → yanına git, kes/kır/sök.
+        sim.command({ type: 'goInteract', goal: { kind: 'object', tile: harvestAt(w, tx, ty)!.tile } });
+      } else sim.command({ type: 'goTo', x: tx, y: ty });
     }
     if (!this.touchTipShown) {
       this.touchTipShown = true;

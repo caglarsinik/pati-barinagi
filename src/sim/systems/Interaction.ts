@@ -8,6 +8,7 @@ import type { Sim } from '../Sim';
 import { eggDescription } from '../entities/Egg';
 import { cleanMess } from './MessSystem';
 import { harvestBerries, harvestNest } from './NestSystem';
+import { harvest, harvestAt, harvestHint, harvestIssue, isTreeTop } from './Materials';
 import { t } from '../../i18n';
 import { interiorItemAt } from '../interior/Interiors';
 import { WEATHER_NAMES_TR } from './WeatherSystem';
@@ -77,13 +78,17 @@ export type ActionKind =
   | 'travel'
   | 'quests'
   | 'lostDog'
+  /** Odun ve taş (0.23.0): ağaç/çam kes, kaya kır, kütük sök. */
+  | 'chop'
+  | 'mine'
+  | 'uproot'
   | 'none';
 
 /**
  * Köy, tabela ve görev eylemleri (0.20.5): yalnız oyuncu elle yapar. Otopilot varınca bunları yapmaz (panel açılmaz,
  * köylüyle konuşulmaz, kayıp köpek bulunmaz, köy binasına girilmez); `PlayerNav.arrive` denetler.
  */
-export const MANUAL_ACTIONS: ReadonlySet<ActionKind> = new Set<ActionKind>(['enterVillage', 'wholesale', 'toyShop', 'market', 'talk', 'post', 'travel', 'quests', 'lostDog']);
+export const MANUAL_ACTIONS: ReadonlySet<ActionKind> = new Set<ActionKind>(['enterVillage', 'wholesale', 'toyShop', 'market', 'talk', 'post', 'travel', 'quests', 'lostDog', 'chop', 'mine', 'uproot']);
 
 export interface ResolvedAction {
   kind: ActionKind;
@@ -288,6 +293,13 @@ export function resolveAction(sim: Sim): ResolvedAction {
     return { kind: 'berries', hint: t('E: böğürtlen topla (ödül maması +{n})', { n: BALANCE.eggs.treatsPerBush + sim.weatherSys.modifiers().berryBonus }), tile };
   }
   if (obj === Obj.Den) return { kind: 'none', hint: t('Sokak köpeği ini'), tile };
+
+  // Odun ve taş (0.23.0): arsa ve köy dışında ağaç, çam, kaya, kütük. Ağaç tepesi yürünür: altında köpek varsa köpek önce.
+  const h = harvestAt(w, tile.x, tile.y);
+  if (h && !(isTreeTop(w, tile.x, tile.y) && nearestDog(sim, fp.x, fp.y, 1))) {
+    const issue = harvestIssue(sim, h);
+    return { kind: issue ? 'none' : h.kind, hint: issue ?? harvestHint(h), tile: h.tile };
+  }
 
   // Yol tabelası (0.20.3): hızlı seyahat.
   const sign = signAt(w, fp.x, fp.y);
@@ -569,6 +581,19 @@ export function performAction(sim: Sim): ActionOutcome {
       if (got <= 0) return { ok: false };
       p.setBusy(0.6, 'pick');
       return { ok: true, message: t('+{n} ödül maması ({total})', { n: got, total: sim.treats }) };
+    }
+    case 'chop':
+    case 'mine':
+    case 'uproot': {
+      const h = r.tile ? harvestAt(sim.world, r.tile.x, r.tile.y) : null;
+      if (!h) return { ok: false };
+      const issue = harvestIssue(sim, h);
+      if (issue) return { ok: false, message: issue };
+      const got = harvest(sim, h);
+      if (got <= 0) return { ok: false };
+      p.setBusy(BALANCE.materials.busySec, h.kind);
+      const total = sim.materials[h.material];
+      return { ok: true, message: h.material === 'wood' ? t('+{n} odun ({total})', { n: got, total }) : t('+{n} taş ({total})', { n: got, total }) };
     }
     case 'treatWild': {
       const dog = r.dog!;

@@ -180,6 +180,24 @@ export const BALANCE = {
     /** Haftalık denetimde "Konfor" kaleminin en büyük artı katkısı (ağırlığa eklenmez: eşyasız barınak cezalanmaz). */
     inspectionBonus: 0.5,
   },
+  /**
+   * Odun ve taş (M18, 0.23.0): arsa ve köy dışında ağaç (+3 odun), çam (+2), kaya (+2 taş), kütük (+1 odun). Dayanıklılık
+   * bedeli iş sürerken yenilenmez. Kesilen ağacın kütüğü 5–8 günde yeniden ağaç olur; doğal kütük ve kaya büyümez.
+   */
+  materials: {
+    treeWood: 3,
+    pineWood: 2,
+    stumpWood: 1,
+    rockStone: 2,
+    chopStamina: 15,
+    mineStamina: 18,
+    uprootStamina: 8,
+    busySec: 1.2,
+    /** Her malzemeden en çok (çanta). */
+    max: 99,
+    regrowDaysMin: 5,
+    regrowDaysMax: 8,
+  },
   /** Kuluçka içi (0.17.3): ısı lambası kalan ve yeni çatlama sürelerini bu oranla kısaltır. */
   hatchery: {
     lampTimeMul: 0.85,

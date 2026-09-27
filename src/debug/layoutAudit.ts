@@ -358,6 +358,8 @@ export function richGame(app: AuditApp): Sim {
   for (const type of ['nursery', 'vetClinic', 'kitchen', 'staffRoom', 'kennelLarge', 'groomStation', 'toyRope', 'staffToilet'] as BuildingType[]) place(type);
   // Kulübe eşyaları (0.22.4): ilk küçük kulübe tam döşeli; kulübe panelinin etki satırı en uzun hâliyle denetlenir.
   sim.buildings.find((b) => b.type === 'kennelSmall')?.furniture.push('dogBed', 'blanket', 'dogBowl', 'dogToy', 'kennelWindow');
+  // Odun ve taş (0.23.0): çanta satırında iki basamaklı sayılar.
+  sim.materials = { wood: 48, stone: 23 };
   const names = ['Minnoş Karabaşım', 'Pamuk Şekerleme', 'Mandalina', 'Kestane', 'Karabaş', 'Karamel', 'Boncuk', 'Fındık', 'Zeytin', 'Tarçın'];
   const c = sim.world.plot;
   for (let i = 0; i < names.length; i++) {

@@ -44,6 +44,7 @@ import { type NavGoal, PlayerNav } from './systems/PlayerNav';
 import { rebuildMessSet } from './systems/MessSystem';
 import { NeedsSystem } from './systems/NeedsSystem';
 import { tickNests } from './systems/NestSystem';
+import { type Materials, type Regrow, materialsFromJSON, regrowFromJSON, regrowToJSON, tickRegrow } from './systems/Materials';
 import { StaffSystem, maxStaff } from './systems/StaffSystem';
 import { breedMinutes, setNurseryPair, takeNurseryEgg, tickNurseries } from './systems/BreedingSystem';
 import { tickFeeders } from './systems/FeederSystem';
@@ -300,6 +301,12 @@ export interface SimStats {
   slept: number;
   /** Tamamlanan köylü görevleri (0.20.4). */
   quests: number;
+  /** Odun ve taş (0.23.0): kesilen ağaç, kırılan kaya, sökülen kütük ve toplanan toplam malzeme. */
+  chopped: number;
+  mined: number;
+  uprooted: number;
+  woodGathered: number;
+  stoneGathered: number;
 }
 
 function emptyStats(): SimStats {
@@ -336,6 +343,11 @@ function emptyStats(): SimStats {
     hired: 0,
     slept: 0,
     quests: 0,
+    chopped: 0,
+    mined: 0,
+    uprooted: 0,
+    woodGathered: 0,
+    stoneGathered: 0,
   };
 }
 
@@ -393,6 +405,10 @@ export class Sim {
   lastDay: DaySnapshot | null = null;
   /** Köy dükkânı (0.20.0): çanta dışı tüketimlikler, bisiklet, pazardan yumurta alınan son hafta. */
   supplies: Supplies = { toy: 0, vitamin: 0 };
+  /** Çantadaki odun ve taş (0.23.0; en çok BALANCE.materials.max). */
+  materials: Materials = { wood: 0, stone: 0 };
+  /** Kesilen ağaçların kütükleri: kare → yeniden ağaç olacağı gün ve türü (kayıtta). */
+  regrow = new Map<number, Regrow>();
   bicycle = false;
   marketEggWeek = 0;
   /** Köy kademesi (0.20.2; kayıtta): itibarla 1'den 3'e çıkar, düşmez. */
@@ -487,6 +503,7 @@ export class Sim {
     this.events.on('day', () => this.illness.onDay());
     this.events.on('day', () => this.staffSystem.onDay());
     this.events.on('day', () => this.rollDay());
+    this.events.on('day', (d) => tickRegrow(this, d));
     this.events.on('hour', () => this.staffSystem.onHour());
     this.events.on('hour', () => this.illness.onHour());
     this.events.on('hour', (h) => this.eventSys.onHour(h));
@@ -1730,6 +1747,8 @@ export class Sim {
       dayStart: { ...this.dayStart },
       lastDay: this.lastDay ? { ...this.lastDay } : null,
       supplies: { ...this.supplies },
+      materials: { ...this.materials },
+      regrow: regrowToJSON(this.regrow),
       bicycle: this.bicycle,
       marketEggWeek: this.marketEggWeek,
       villageStage: this.villageStage,
@@ -1827,6 +1846,8 @@ export class Sim {
     const sup = (data.supplies && typeof data.supplies === 'object' ? data.supplies : {}) as Partial<Supplies>;
     const supply = (v: unknown): number => Math.min(BALANCE.shop.maxSupply, Math.floor(numOr(v, 0, 0)));
     sim.supplies = { toy: supply(sup.toy), vitamin: supply(sup.vitamin) };
+    sim.materials = materialsFromJSON(data.materials);
+    sim.regrow = regrowFromJSON(data.regrow, world.width * world.height);
     sim.bicycle = data.bicycle === true;
     sim.marketEggWeek = Math.floor(numOr(data.marketEggWeek, 0, 0));
     sim.villageStage = Math.max(1, Math.min(VILLAGE_MAX_STAGE, Math.floor(numOr(data.villageStage, 1, 1))));

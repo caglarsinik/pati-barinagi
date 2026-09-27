@@ -57,6 +57,33 @@
   köpek paneli, araç şeridi, alt menü listesi, ana menü, Ayarlar: çakışma yok, taşma yok. Alt menü açılır listesi köpek
   panelinin üstüne gelebilir (geçici popover, üstte kalır) — kabul edildi. Gerçek cihaz testi kullanıcıda.
 
+## 0.23.0 — Odun ve taş (M18 ilk dilimi; Claude, 2026-09-27)
+- Yeni `src/sim/systems/Materials.ts`: `harvestAt(world, x, y)` → `{kind: chop|mine|uproot, tile, material, amount, stamina, pine}`
+  (ağaç tepesi `isTreeTop` → alttaki gövde; arsa ve köy dikdörtgeninde null), `harvestHint`, `harvestIssue` (çanta dolu
+  "Odun/Taş deposu dolu (99)", dayanıklılık yetmezse "Çok yorgunsun: biraz soluklan"), `harvest(sim, h)` (üst sınıra kadar ekler,
+  dayanıklılığı düşer; ağaç: gövde `Stump`, tepe `None`, `sim.regrow`'a gün = bugün + 5–8 [`Rng(hash3(seed, kare, 0x7ee ^ gün))`,
+  ana RNG'ye dokunmaz] ve tür; kaya/kütük: kare `None`, sıradan silinir), `tickRegrow(sim, day)` (Sim `'day'` olayında; kütük
+  yoksa ya da kare arsaya/köye düştüyse sıradan çıkar; tepe karesi boş değilse ertesi gün), kayıt yardımcıları. `BALANCE.materials`
+  (verim 3/2/1/2, dayanıklılık 15/18/8, meşgul 1,2 sn, üst sınır 99, 5–8 gün).
+- Sim: `materials {wood, stone}` ve `regrow` (kayıtta `materials`, `regrow: [kare, gün, çam, …]`; eski kayıtta 0/boş, bozuk değerler
+  kırpılır), `stats.chopped/mined/uprooted/woodGathered/stoneGathered` (0.23.4 başarımları için). Dünya değişiklikleri zaten
+  `objectChanges` ile kayıtta. `Player`: `HEAVY_ACTIONS` (chop, mine, uproot) sürerken dayanıklılık yenilenmez (yoksa 1,2 sn
+  meşguliyette 12 yenilenip bedel anlamsızdı).
+- Etkileşim: `ActionKind` += chop/mine/uproot, `MANUAL_ACTIONS`'a eklendi (otopilot varınca yapmaz). `resolveAction` inin ardından
+  toplama (tepe karesinde köpek varsa köpek önce); `performAction` "+3 odun (12)". WorldScene `touchTap` ağaç/tepe/kaya/kütük →
+  `goInteract {kind:'object', tile: gövde}`; ses `chop` (iki tok balta vuruşu) ve `mine` (iki taş vuruşu) yeni `SfxName`.
+- Arayüz: çanta satırında 🪵/🪨 (sıfırdan büyükse; masaüstünde sol sütun, telefonda çanta sayfası, açıklamaya bir cümle);
+  `.backpack-row` sarılır (tablette 22 px taşıyordu). Denetim oyununda 🪵 48 🪨 23.
+- Testler `tests/unit/materials.test.ts` (6): ağaç verimi, dünya ve dayanıklılık, iş sürerken yenilenmeme, yeniden büyüme günü;
+  çam/kaya/doğal kütük ve kesilen kütüğü sökünce sıranın silinmesi; yorgun/dolu; arsa ve köyde yok, tepeye bakış gövde, tepede köpek
+  önce, otopilot kesmez; yeniden büyüme (gün öncesi, tepe dolu → ertesi gün, gün olayıyla çam, arsadaki kütük sıradan çıkar);
+  kayıt turu, eski kayıt, bozuk değerler, ana RNG ikizle aynı. 454 test. Tarayıcı 812×375: ağaç tepesine dokun → yürüdü, kesti
+  ("+3 odun (3)", kütük, E "kütüğü sök"), kayaya dokun → "+2 taş (2)", telefon çanta sayfası 🪵 3 🪨 2, gün olayıyla ağaç geri geldi;
+  masaüstünde ipucu "E: ağacı kes (+3 odun)". Denetim 77 ekran 812×375 ve 568×320 (TR/EN), 768×1024 (TR/EN), 1024×768, 1280×720
+  (TR/EN): 0 sorun; dokunma senaryoları 19/19. DERS: Vite dosya izleyicisi hızlı ardışık düzenlemede son yazımı kaçırabiliyor
+  (tarayıcıda "harvestAt is not defined"); `touch` ile dosyaları yenileyip sayfayı yeniden yükle.
+- Sıradaki: 0.23.1 malzemeyle öde.
+
 ## 0.22.6 — M19 cilası: dokunma senaryoları 17–19, Kontroller, "Yeni düzen", tam denetim (M19 tamam; Claude, 2026-09-27)
 - Dokunma senaryoları (`src/debug/touchDebug.ts`): **17 Taşı** (taze hazır oyun: Yönet → İnşa → Taşı yolu, kulübeye dokun → tutulur,
   boş yere dokun → köpeğiyle taşındı ve araç seçme evresine döndü; `dragTile` ile sürükle-bırak; büyük kulübe tut → `rotateBuildTool`

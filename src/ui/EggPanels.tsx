@@ -1,4 +1,5 @@
 import { app } from '../app';
+import { BALANCE } from '../config/balance';
 import { t } from '../i18n';
 import { buildingDef, isReady } from '../sim/entities/Building';
 import { type Egg, eggLook } from '../sim/entities/Egg';
@@ -71,6 +72,16 @@ export function Backpack({ inSheet = false }: { inSheet?: boolean } = {}) {
         {sim.supplies.vitamin > 0 && (
           <div class="treats" title={t('Vitamin: köpek panelinden ver')}>
             💊 {sim.supplies.vitamin}
+          </div>
+        )}
+        {sim.materials.wood > 0 && (
+          <div class="treats" title={t('Odun: arsa ve köy dışında ağaç kes (en çok {n})', { n: BALANCE.materials.max })}>
+            🪵 {sim.materials.wood}
+          </div>
+        )}
+        {sim.materials.stone > 0 && (
+          <div class="treats" title={t('Taş: arsa ve köy dışında kaya kır (en çok {n})', { n: BALANCE.materials.max })}>
+            🪨 {sim.materials.stone}
           </div>
         )}
       </div>

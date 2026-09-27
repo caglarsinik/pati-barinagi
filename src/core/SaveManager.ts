@@ -29,6 +29,9 @@ export interface SaveData {
   dayStart?: unknown;
   lastDay?: unknown;
   supplies?: unknown;
+  /** Odun ve taş (0.23.0) ve kesilen ağaçların yeniden büyümesi: [kare, gün, çam, …]. */
+  materials?: unknown;
+  regrow?: number[];
   bicycle?: boolean;
   marketEggWeek?: number;
   villageStage?: number;

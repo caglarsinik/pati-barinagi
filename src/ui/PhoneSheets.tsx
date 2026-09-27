@@ -60,7 +60,7 @@ export function BackpackSheet() {
           </button>
         </div>
         <Backpack inSheet />
-        <p class="muted small-text">{t('Yumurtaya dokununca incelenir. Ödül maması sokak köpeklerini evcilleştirir.')}</p>
+        <p class="muted small-text">{t('Yumurtaya dokununca incelenir. Ödül maması sokak köpeklerini evcilleştirir. 🪵 Odun ve 🪨 taş arsa ve köy dışında ağaçtan, kayadan ve kütükten toplanır.')}</p>
       </div>
     </div>
   );
