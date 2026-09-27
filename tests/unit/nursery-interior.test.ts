@@ -42,7 +42,10 @@ describe('Yuva evi içi (0.25.0)', () => {
     expect(m.world.width).toBe(8);
     expect(m.world.height).toBe(6);
     expect(m.door).toEqual({ x: 3, y: 5 });
-    expect(m.items.map((i) => i.type).sort()).toEqual(['eggBasket', 'nestBed', 'nestBed', 'nestBoard', 'window']);
+    expect(m.items.map((i) => i.type).sort()).toEqual(['eggBasket', 'nestBed', 'nestBed', 'nestBoard']);
+    // Eşyalar (0.25.1) satın alınınca duvar sırasına gelir.
+    const full = buildInterior('nursery', ['nestCushion', 'nestHeater', 'nestWindow', 'photoWall']);
+    expect(full.items.map((i) => i.type).sort()).toEqual(['eggBasket', 'nestBed', 'nestBed', 'nestBoard', 'nestCushion', 'nestHeater', 'photoWall', 'window']);
     for (const it of m.items) for (let y = it.y; y < it.y + it.h; y++) for (let x = it.x; x < it.x + it.w; x++) expect(m.world.isSolid(x, y)).toBe(true);
     // Önler: pano (1..2,2), yataklar (1..2,4) ve (5,4), sepet (5,4)'ten sağa.
     for (const [x, y] of [

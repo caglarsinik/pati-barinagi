@@ -41,6 +41,8 @@ export const ACHIEVEMENTS: AchievementDef[] = [
   { id: 'cabin', name: 'Orman evi', desc: "Nuri Usta'nın evini onar.", check: (s) => s.ruin.repaired },
   { id: 'lumberjack', name: 'Oduncu', desc: '100 odun topla.', check: (s) => s.stats.woodGathered >= 100 },
   { id: 'stonecutter', name: 'Taşçı', desc: '60 taş topla.', check: (s) => s.stats.stoneGathered >= 60 },
+  // Yuva evi eşyaları (0.25.1).
+  { id: 'warm-nest', name: 'Sıcak yuva', desc: 'Bir yuva evini dört eşyayla donat.', check: (s) => s.buildings.some((b) => b.type === 'nursery' && new Set(b.furniture).size >= 4) },
   {
     id: 'loyal-family',
     name: 'Sadık aile',

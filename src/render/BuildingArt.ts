@@ -182,6 +182,12 @@ export function drawBuilding(type: BuildingType, variant = 0, rot: 0 | 1 = 0): P
       p.fillRect(cx - 4, y0 + 12, 9, 2, C.heart);
       p.fillRect(cx - 3, y0 + 14, 7, 2, C.heart);
       p.fillRect(cx - 1, y0 + 16, 3, 2, C.heart);
+      if (variant === 1) {
+        // Yumurta hazır (0.25.1): çatının sağında direkte yumurtalı bayrak.
+        p.fillRect(W - 7, y0 - 2, 1, 12, C.wallDark);
+        p.fillRect(W - 6, y0 - 2, 6, 5, C.heart);
+        p.ellipse(W - 3, y0, 1.5, 2, C.wall);
+      }
       p.ellipse(W / 4, bottom - 12, 3.5, 5, C.door);
       p.ellipse((3 * W) / 4, bottom - 12, 3.5, 5, C.door);
       p.fillRect(4, bottom - 5, W - 8, 4, C.mat);

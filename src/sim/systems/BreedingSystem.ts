@@ -8,9 +8,24 @@ import { t } from '../../i18n';
 
 const DAY = 24 * 60;
 
-/** Bir yuva evinde tam çiftin bir yumurta için harcadığı süre (dk). */
+/** Bir yuva evinde tam çiftin bir yumurta için harcadığı süre (dk; eşyasız). */
 export function breedMinutes(): number {
   return BALANCE.breeding.days * DAY;
+}
+
+/** Yuva evi eşyası (0.25.1): yumuşak yuva varsa sayaç bu çarpanla kısalır (kuluçkanın `incubatorTimeMul` deseni: `breedLeft` temel dakika). */
+export function nurseryTimeMul(b: Building): number {
+  return b.furniture.includes('nestCushion') ? BALANCE.breeding.furniture.cushionDaysMul : 1;
+}
+
+/** Yumurtaya kalan gün (eşya hesaba katılmış). */
+export function nurseryDaysLeft(b: Building): number {
+  return (b.breedLeft * nurseryTimeMul(b)) / DAY;
+}
+
+/** Yumurtadan sonra çiftin dinlenme süresi (dk; ısıtıcı kısaltır). */
+export function nurseryCooldownMinutes(b: Building): number {
+  return BALANCE.breeding.cooldownWeeks * 7 * DAY * (b.furniture.includes('nestHeater') ? BALANCE.breeding.furniture.heaterCooldownMul : 1);
 }
 
 /** Karşılıklı dostluk: iki köpeğin birbirine verdiği puanın küçüğü. */
@@ -64,7 +79,7 @@ export function tickNurseries(sim: Sim, dtMin: number): void {
     if (b.pair.length < 2 || b.eggs.length > 0) continue;
     const [a, c] = b.pair.map((id) => sim.dogById(id));
     if (breedingIssues(sim, a, c, b).length > 0) continue;
-    b.breedLeft = Math.max(0, b.breedLeft - dtMin);
+    b.breedLeft = Math.max(0, b.breedLeft - dtMin / nurseryTimeMul(b));
     if (b.breedLeft > 0) continue;
     const rng = new Rng(hash3(sim.seed, b.id, sim.stats.bred));
     const egg = {
@@ -77,7 +92,7 @@ export function tickNurseries(sim: Sim, dtMin: number): void {
     };
     b.eggs.push(egg);
     b.breedLeft = breedMinutes();
-    const rest = sim.clock.totalMinutes + BALANCE.breeding.cooldownWeeks * 7 * DAY;
+    const rest = sim.clock.totalMinutes + nurseryCooldownMinutes(b);
     a!.breedReadyAt = rest;
     c!.breedReadyAt = rest;
     sim.stats.bred++;

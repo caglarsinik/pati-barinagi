@@ -57,6 +57,24 @@
   köpek paneli, araç şeridi, alt menü listesi, ana menü, Ayarlar: çakışma yok, taşma yok. Alt menü açılır listesi köpek
   panelinin üstüne gelebilir (geçici popover, üstte kalır) — kabul edildi. Gerçek cihaz testi kullanıcıda.
 
+## 0.25.1 — Yuva evi içi 2: eşyalar ve etkileri (Claude, 2026-09-27)
+- `FurnitureType` += nestCushion / nestHeater / nestWindow / photoWall (`NURSERY_FURNITURE`, `FURNITURE_BY_KIND.nursery`; adlar ve
+  açıklamalar TR + EN elle); `BALANCE.interior.furniture` 150/200/200/120 ₺ (max 1); `BALANCE.breeding.furniture`
+  {cushionDaysMul 0.85, heaterCooldownMul 0.75, windowDecor 1, photoWallDecor 1}. Şablonda duvar sırası: minder rafı (3,1),
+  ısıtıcı (4,1), pencere (5,1; artık `buy: nestWindow`), fotoğraf duvarı (6,1); `nestBed` dokusu varyant 1 (minderli) —
+  `interiorItemTextureKey` nestBed varyantlı, WorldScene `interiorTexture` binanın eşyasına bakar.
+- `BreedingSystem`: `nurseryTimeMul(b)` (kuluçkanın `incubatorTimeMul` deseni: `breedLeft` temel dakika, sayaç `dtMin / mul`
+  düşer), `nurseryDaysLeft(b)` (panel ve sepet ipucu), `nurseryCooldownMinutes(b)` (yumurta anında ikisinin `breedReadyAt`).
+  `Sim.decorScore` pencere ve fotoğraf duvarı +1. `resolveInterior` nestCushion / nestHeater / photoWall ipuçları (fotoğraf
+  duvarı `stats.bredHatched` + çift adları).
+- Dış görünüm: `drawBuilding('nursery', 1)` çatıda yumurtalı bayrak; `registerTextures` yuva evine 2 varyant; WorldScene
+  `buildingVariant` nursery → `eggs.length > 0`, `syncBuildings` yuva evini de tazeler. NurseryPanel: eşya satırı ("🛋️ ad · ad"
+  ya da "Eşya yok: …") + "🛋️ Eşyalar (n)" (FurniturePanel genel). Başarım `warm-nest` "Sıcak yuva" (4 farklı eşya) → 41.
+- Denetim: `richGame` yuva evine dört eşyayı alır (oda dolu denetlenir); adım `panel:furniture-nursery`. Test
+  `nursery-furniture.test.ts` (4): alım/para/tek adet, oda eşyalı, başarım, kayıt turu; sayaç ×1/0,85 ve dinlenme ×0,75 (yumurta
+  anı); dekor +2; çizimler + yatak varyantı. DERS: yetişkin 12–51. hafta (`BALANCE.dogs.growth`), 60+ hafta yaşlı → çift kurmaz.
+- 504 test. Denetim `interior:nursery`, `panel:nursery`, `panel:furniture#nursery` 12 boyutta TR/EN 0 sorun. Sıradaki 0.25.2 cila.
+
 ## 0.25.0 — Yuva evi içi 1: oda, çift, yumurta sepeti (Claude, 2026-09-27)
 - `Interiors.ts`: `InteriorKind` += 'nursery' (`interiorKindFor('nursery')`), `InteriorItemType` += nestBoard/nestBed/eggBasket,
   şablon 8×6 (rows '#......#' üç döşeme satırı; pano (1,1,w2), pencere (5,1), yatak slot 0 (1,3,w2) ve slot 1 (5,3,w2), sepet

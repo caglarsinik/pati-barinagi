@@ -162,6 +162,11 @@ export const BALANCE = {
       dogBowl: { cost: 60, max: 1 },
       dogToy: { cost: 120, max: 1 },
       kennelWindow: { cost: 200, max: 1 },
+      // Yuva evi içi (0.25.1).
+      nestCushion: { cost: 150, max: 1 },
+      nestHeater: { cost: 200, max: 1 },
+      nestWindow: { cost: 200, max: 1 },
+      photoWall: { cost: 120, max: 1 },
     },
   },
   /**
@@ -461,6 +466,8 @@ export const BALANCE = {
     minHealth: 70,
     /** Karşılıklı dostluk (iki yönün küçüğü) en az. */
     minAffinity: 60,
+    /** Yuva evi eşyaları (0.25.1): yumuşak yuva yumurta süresini, ısıtıcı dinlenme süresini kısaltır; pencere ve fotoğraf duvarı dekor. */
+    furniture: { cushionDaysMul: 0.85, heaterCooldownMul: 0.75, windowDecor: 1, photoWallDecor: 1 },
   },
   eggs: {
     hatchDays: 3,

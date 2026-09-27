@@ -2,7 +2,8 @@ import { app } from '../app';
 import { BALANCE } from '../config/balance';
 import { t } from '../i18n';
 import { isReady } from '../sim/entities/Building';
-import { breedMinutes, breedingIssues, mutualAffinity } from '../sim/systems/BreedingSystem';
+import { breedMinutes, breedingIssues, mutualAffinity, nurseryDaysLeft } from '../sim/systems/BreedingSystem';
+import { FURNITURE_NAMES_TR, type FurnitureType } from '../sim/interior/Interiors';
 import { EggIcon } from './EggIcon';
 import { showToast, store } from './store';
 
@@ -67,6 +68,13 @@ export function NurseryPanel() {
           </button>
           <span class="muted small-text">{t('İçeride: pano çift seçer, sepetten yumurta alınır; çift yuva yataklarında yatar.')}</span>
         </div>
+        <div class="row wrap">
+          <span class="small-text">{b.furniture.length > 0 ? '🛋️ ' + b.furniture.map((k) => t(FURNITURE_NAMES_TR[k as FurnitureType])).join(' · ') : t('Eşya yok: yumuşak yuva, ısıtıcı, pencere, fotoğraf duvarı')}</span>
+          <span class="spacer" />
+          <button class="btn small" disabled={!ready} onClick={() => (store.panel.value = 'furniture')}>
+            {t('🛋️ Eşyalar ({n})', { n: b.furniture.length })}
+          </button>
+        </div>
         <p class="muted small-text">
           {t('İki yetişkin köpek {days} günde bir yumurta verir. Sağlıkları en az {h}, birbirlerine dostlukları en az {f} olmalı; sonra {w} hafta dinlenirler. Yavru özelliklerini ikisinden alır.', {
             days: B.days,
@@ -95,7 +103,7 @@ export function NurseryPanel() {
                 <div class="bar mini">
                   <div class="fill" style={{ width: `${Math.max(0, Math.min(100, 100 * (1 - b.breedLeft / total)))}%` }} />
                 </div>
-                <div class="muted small-text">{t('{days} gün kaldı', { days: (b.breedLeft / (24 * 60)).toFixed(1) })}</div>
+                <div class="muted small-text">{t('{days} gün kaldı', { days: nurseryDaysLeft(b).toFixed(1) })}</div>
               </>
             ) : (
               <>

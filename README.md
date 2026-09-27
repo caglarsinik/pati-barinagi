@@ -533,7 +533,7 @@ Görevi olan köylünün başında soru balonu çıkar; sabah raporu kalan süre
 
 ## Başarımlar
 
-H tuşu ya da ofis panelinden 40 başarımın listesi açılır (ilk yumurta, 10 sahiplendirme, 95+ eşleşme, 1,4 denetim çarpanı, 20.000 ₺, efsanevi köpek, bir yıl dayanmak...). Her başarım açıldığında itibar +1 verir; kayıtla korunur.
+H tuşu ya da ofis panelinden 41 başarımın listesi açılır (ilk yumurta, 10 sahiplendirme, 95+ eşleşme, 1,4 denetim çarpanı, 20.000 ₺, efsanevi köpek, bir yıl dayanmak...). Her başarım açıldığında itibar +1 verir; kayıtla korunur.
 
 ## Dil
 
@@ -632,7 +632,8 @@ Bilgisayar değiştirirken ya da yedek almak için kullan.
 - [x] 0.24.3 Karakter 4 (cila): dokunma senaryosu 21 (Ayarlar → Karakteri düzenle → Uygula → sprite; Karakterin ekranı), Kontroller'de "🧑 Karakter" satırı, README "Karakter" bölümü — M20 tamam
 - [x] M20 Karakter (0.24.0–0.24.3): görünüm modeli ve çizim → Karakterin ekranı → Ayarlar, ad, fotoğraf → cila
 - [x] 0.25.0 Yuva evi içi 1: yuva evine girilir (↑, kapıya dokunuş, panelde "İçeri gir"); içeride pano çift panelini açar, iki yuva yatağında çift yatar, hazır yumurta sepette görünür ve E ile çantaya alınır
-- [ ] Sıradaki (2026-09-27 yol haritası, `docs/PLAN.md` §7): M21 Yuva evi içi (0.25.1 eşyalar → 0.25.2 cila) → M22 Yuva evi içi (0.25.0–0.25.2) → M22 Kuzey/batı arsa (0.26.0–0.26.1) → M23 Arsa yeri (0.27.0–0.27.1)
+- [x] 0.25.1 Yuva evi içi 2: eşyalar (yumuşak yuva: yumurta %15 çabuk; ısıtıcı: dinlenme %25 kısa; pencere ve fotoğraf duvarı: dekor +1), yumurta hazırken çatıda bayrak, panelde eşya satırı, "Sıcak yuva" başarımı (41)
+- [ ] Sıradaki (2026-09-27 yol haritası, `docs/PLAN.md` §7): M21 Yuva evi içi (0.25.2 cila) → M22 Yuva evi içi (0.25.0–0.25.2) → M22 Kuzey/batı arsa (0.26.0–0.26.1) → M23 Arsa yeri (0.27.0–0.27.1)
 - [ ] Sonrası: yuva evi içi, kuzey/batı arsa genişletme
 
 ## Geliştirme

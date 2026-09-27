@@ -7,11 +7,11 @@ import { Ground } from '../world/tiles';
 export type InteriorKind = 'office' | 'restRoom' | 'pantry' | 'kitchen' | 'clinic' | 'hatchery' | 'wholesaler' | 'toyShop' | 'kennel' | 'kennelLarge' | 'ruin' | 'cabin' | 'nursery';
 
 /** İç mekân eşyası: kare dikdörtgeni katıdır, önünde E ile kullanılır. */
-export type InteriorItemType = 'desk' | 'board' | 'window' | 'bookshelf' | 'coffee' | 'phone' | 'bed' | 'plant' | 'restBoard' | 'sofa' | 'tv' | 'fridge' | 'sacks' | 'ledger' | 'orderBoard' | 'counter' | 'oven' | 'waterTank' | 'spiceRack' | 'foodShelf' | 'examTable' | 'medCabinet' | 'reception' | 'waitChairs' | 'xray' | 'tray' | 'controlPanel' | 'heatLamp' | 'supplies' | 'bulkSacks' | 'shopCounter' | 'crates' | 'toyShelf' | 'vitaminShelf' | 'kennelBoard' | 'dogBed' | 'blanket' | 'dogBowl' | 'dogToy' | 'chest' | 'ruinCabinet' | 'ruinDesk' | 'hearth' | 'brokenBed' | 'cobweb' | 'nestBoard' | 'nestBed' | 'eggBasket';
+export type InteriorItemType = 'desk' | 'board' | 'window' | 'bookshelf' | 'coffee' | 'phone' | 'bed' | 'plant' | 'restBoard' | 'sofa' | 'tv' | 'fridge' | 'sacks' | 'ledger' | 'orderBoard' | 'counter' | 'oven' | 'waterTank' | 'spiceRack' | 'foodShelf' | 'examTable' | 'medCabinet' | 'reception' | 'waitChairs' | 'xray' | 'tray' | 'controlPanel' | 'heatLamp' | 'supplies' | 'bulkSacks' | 'shopCounter' | 'crates' | 'toyShelf' | 'vitaminShelf' | 'kennelBoard' | 'dogBed' | 'blanket' | 'dogBowl' | 'dogToy' | 'chest' | 'ruinCabinet' | 'ruinDesk' | 'hearth' | 'brokenBed' | 'cobweb' | 'nestBoard' | 'nestBed' | 'eggBasket' | 'nestCushion' | 'nestHeater' | 'photoWall';
 
 /** İç mekâna satın alınan eşyalar (0.16.3 dinlenme odası; 0.22.3 kulübe). Fiyat ve üst sınır BALANCE.interior.furniture. */
-export type FurnitureType = 'sofa' | 'coffee' | 'tv' | 'fridge' | 'waterTank' | 'oven2' | 'medCabinet' | 'heatLamp' | 'dogBed' | 'blanket' | 'dogBowl' | 'dogToy' | 'kennelWindow';
-export const FURNITURE_TYPES: readonly FurnitureType[] = ['sofa', 'coffee', 'tv', 'fridge', 'waterTank', 'oven2', 'medCabinet', 'heatLamp', 'dogBed', 'blanket', 'dogBowl', 'dogToy', 'kennelWindow'];
+export type FurnitureType = 'sofa' | 'coffee' | 'tv' | 'fridge' | 'waterTank' | 'oven2' | 'medCabinet' | 'heatLamp' | 'dogBed' | 'blanket' | 'dogBowl' | 'dogToy' | 'kennelWindow' | 'nestCushion' | 'nestHeater' | 'nestWindow' | 'photoWall';
+export const FURNITURE_TYPES: readonly FurnitureType[] = ['sofa', 'coffee', 'tv', 'fridge', 'waterTank', 'oven2', 'medCabinet', 'heatLamp', 'dogBed', 'blanket', 'dogBowl', 'dogToy', 'kennelWindow', 'nestCushion', 'nestHeater', 'nestWindow', 'photoWall'];
 export const FURNITURE_NAMES_TR: Record<FurnitureType, string> = {
   sofa: 'Kanepe',
   coffee: 'Kahve köşesi',
@@ -26,6 +26,10 @@ export const FURNITURE_NAMES_TR: Record<FurnitureType, string> = {
   dogBowl: 'Su kabı',
   dogToy: 'Oyuncak sepeti',
   kennelWindow: 'Pencere',
+  nestCushion: 'Yumuşak yuva',
+  nestHeater: 'Isıtıcı',
+  nestWindow: 'Pencere',
+  photoWall: 'Fotoğraf duvarı',
 };
 export const FURNITURE_DESC_TR: Record<FurnitureType, string> = {
   sofa: 'İki kişi oturur; oturanın mola dinlenmesi +%25.',
@@ -41,10 +45,16 @@ export const FURNITURE_DESC_TR: Record<FurnitureType, string> = {
   dogBowl: 'Kulübesinde uyuyan köpek susamaz; sabah yalağa daha az koşar.',
   dogToy: 'Keyif %25 daha yavaş düşer.',
   kennelWindow: 'Dekor +1: sahiplenici biraz daha sık gelir, daha sabırlı bekler.',
+  nestCushion: 'Yuva yatakları minderli: yumurta %15 daha çabuk gelir.',
+  nestHeater: 'Yumurtadan sonra çiftin dinlenmesi %25 kısalır.',
+  nestWindow: 'Dekor +1: sahiplenici biraz daha sık gelir, daha sabırlı bekler.',
+  photoWall: 'Dekor +1: duvarda yuva evinden çıkan yavruların fotoğrafları.',
 };
 
 /** Oda türü başına satın alınabilen eşyalar (0.17.0 ortak katalog; kulübe 0.22.3). */
 export const KENNEL_FURNITURE: readonly FurnitureType[] = ['dogBed', 'blanket', 'dogBowl', 'dogToy', 'kennelWindow'];
+/** Yuva evi eşyaları (0.25.1). */
+export const NURSERY_FURNITURE: readonly FurnitureType[] = ['nestCushion', 'nestHeater', 'nestWindow', 'photoWall'];
 export const FURNITURE_BY_KIND: Record<InteriorKind, readonly FurnitureType[]> = {
   office: [],
   restRoom: ['sofa', 'coffee', 'tv', 'fridge'],
@@ -58,7 +68,7 @@ export const FURNITURE_BY_KIND: Record<InteriorKind, readonly FurnitureType[]> =
   kennelLarge: KENNEL_FURNITURE,
   ruin: [],
   cabin: [],
-  nursery: [],
+  nursery: NURSERY_FURNITURE,
 };
 
 /** Kulübe iç mekânı mı (0.22.3)? */
@@ -286,7 +296,11 @@ const TEMPLATES: Record<InteriorKind, InteriorTemplate> = {
     rows: ['########', '#======#', '#......#', '#......#', '#......#', '###D####'],
     items: [
       { type: 'nestBoard', x: 1, y: 1, w: 2, h: 1 },
-      { type: 'window', x: 5, y: 1, w: 1, h: 1 },
+      // Eşyalar (0.25.1): duvar sırasında minder rafı, ısıtıcı, pencere, fotoğraf duvarı; minder yatakların dokusunu değiştirir.
+      { type: 'nestCushion', x: 3, y: 1, w: 1, h: 1, buy: 'nestCushion' },
+      { type: 'nestHeater', x: 4, y: 1, w: 1, h: 1, buy: 'nestHeater' },
+      { type: 'window', x: 5, y: 1, w: 1, h: 1, buy: 'nestWindow' },
+      { type: 'photoWall', x: 6, y: 1, w: 1, h: 1, buy: 'photoWall' },
       { type: 'nestBed', x: 1, y: 3, w: 2, h: 1, slot: 0 },
       { type: 'nestBed', x: 5, y: 3, w: 2, h: 1, slot: 1 },
       { type: 'eggBasket', x: 6, y: 4, w: 1, h: 1 },

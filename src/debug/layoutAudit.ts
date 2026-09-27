@@ -390,6 +390,8 @@ export function richGame(app: AuditApp): Sim {
   if (inc && sim.backpack.length > 0) placeEgg(sim, inc, sim.backpack[0].id);
   const nursery = sim.buildings.find((b) => b.type === 'nursery');
   if (nursery && dogs.length >= 4) sim.command({ type: 'setNurseryPair', buildingId: nursery.id, dogIds: [dogs[2].id, dogs[3].id] });
+  // Yuva evi eşyaları (0.25.1): oda dolu denetlenir.
+  if (nursery) for (const item of ['nestCushion', 'nestHeater', 'nestWindow', 'photoWall'] as const) sim.command({ type: 'buyFurniture', buildingId: nursery.id, item });
   // Sahiplenmeler, mektuplar ve bekleyen sahipleniciler (10:00).
   sim.clock.totalMinutes = (sim.clock.day - 1) * 24 * 60 + 10 * 60;
   for (const d of dogs.slice(6, 8)) {
@@ -532,6 +534,15 @@ export async function auditScreens(app: AuditApp, only?: string, keep = false): 
       enter: () => {
         sim.setMode('avatar');
         store.panelBuildingId.value = bid('kennelLarge') ?? bid('kennelSmall');
+        store.panel.value = 'furniture';
+      },
+    },
+    {
+      // Yuva evi eşyaları (0.25.1): dört eşyalı katalog.
+      name: 'panel:furniture-nursery',
+      enter: () => {
+        sim.setMode('avatar');
+        store.panelBuildingId.value = bid('nursery');
         store.panel.value = 'furniture';
       },
     },

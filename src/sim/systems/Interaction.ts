@@ -1,5 +1,5 @@
 import { BALANCE } from '../../config/balance';
-import { takeNurseryEgg } from './BreedingSystem';
+import { nurseryDaysLeft, takeNurseryEgg } from './BreedingSystem';
 import { type Building, buildingDef, isReady, buildingFootprint } from '../entities/Building';
 import { type Dog, SKILL_KEYS, SKILL_NAMES_TR, type SkillKey, clamp100 } from '../entities/Dog';
 import { FACING_DELTA } from '../entities/Player';
@@ -293,7 +293,17 @@ function resolveInterior(sim: Sim, tile: TilePos): ResolvedAction {
       }
       const pairOk = b ? b.pair.filter((id) => sim.dogById(id)).length === 2 : false;
       if (!b || !pairOk) return { kind: 'none', hint: t('Sepet boş · panodan çift seç'), tile };
-      return { kind: 'none', hint: t('Sepet boş · yumurtaya {days} gün', { days: (b.breedLeft / (24 * 60)).toFixed(1) }), tile };
+      return { kind: 'none', hint: t('Sepet boş · yumurtaya {days} gün', { days: nurseryDaysLeft(b).toFixed(1) }), tile };
+    }
+    case 'nestCushion':
+      return { kind: 'none', hint: t('Yumuşak yuva: yumurta %{n} daha çabuk gelir', { n: Math.round((1 - BALANCE.breeding.furniture.cushionDaysMul) * 100) }), tile };
+    case 'nestHeater':
+      return { kind: 'none', hint: t('Isıtıcı: çiftin dinlenmesi %{n} kısa', { n: Math.round((1 - BALANCE.breeding.furniture.heaterCooldownMul) * 100) }), tile };
+    case 'photoWall': {
+      const b = sim.buildingById(it.buildingId);
+      const names = b ? b.pair.map((id) => sim.dogById(id)?.name).filter((n): n is string => !!n) : [];
+      const base = t('Fotoğraf duvarı: yuva evlerinden {n} yavru doğdu', { n: sim.stats.bredHatched });
+      return { kind: 'none', hint: names.length === 2 ? base + ' · ' + t('{a} ❤ {b}', { a: names[0], b: names[1] }) : base, tile };
     }
     case 'chest': {
       // Terk edilmiş ev (0.23.2): sandık bir kez para ve yumurta verir; çanta doluysa yumurta sandıkta bekler.

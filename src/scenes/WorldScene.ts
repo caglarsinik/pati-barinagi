@@ -1357,6 +1357,8 @@ export class WorldScene extends Phaser.Scene {
   private buildingVariant(b: Building): number {
     // Ofis lisansla büyür (Sv1–3).
     if (b.type === 'office') return Math.min(2, Math.max(0, this.sim.licenseLevel - 1));
+    // Yuva evi (0.25.1): yumurta hazırken bayrak.
+    if (b.type === 'nursery') return b.eggs.length > 0 ? 1 : 0;
     if (b.type === 'trough') {
       if (b.water <= 0.01) return 0;
       return b.water >= this.sim.troughCapacity() * 0.5 ? 2 : 1;
@@ -1371,7 +1373,7 @@ export class WorldScene extends Phaser.Scene {
     for (const b of this.sim.buildings) {
       const img = this.buildingImages.get(b.id);
       if (!img) continue;
-      if (b.type === 'bowl' || b.type === 'trough' || b.type === 'office') {
+      if (b.type === 'bowl' || b.type === 'trough' || b.type === 'office' || b.type === 'nursery') {
         const key = buildingTextureKey(b.type, this.buildingVariant(b), b.rot);
         if (img.texture.key !== key) img.setTexture(key);
       }
@@ -1679,7 +1681,8 @@ export class WorldScene extends Phaser.Scene {
   private interiorTexture(item: InteriorItem): string {
     // Değişen eşyalar: kiler rafı stoğa göre; terk edilmiş evde sandık ve dolap açılınca (0.23.2).
     const R = this.sim.ruin;
-    const variant = item.type === 'sacks' ? sacksOnShelf(this.sim.foodStock, item.slot ?? 0) : item.type === 'chest' ? R.chest : item.type === 'ruinCabinet' ? (R.tools ? 1 : 0) : item.type === 'hearth' ? (R.repaired ? 1 : 0) : 0;
+    const nest = item.type === 'nestBed' ? (this.sim.buildingById(this.sim.interior?.buildingId ?? -1)?.furniture.includes('nestCushion') ? 1 : 0) : 0;
+    const variant = item.type === 'sacks' ? sacksOnShelf(this.sim.foodStock, item.slot ?? 0) : item.type === 'chest' ? R.chest : item.type === 'ruinCabinet' ? (R.tools ? 1 : 0) : item.type === 'hearth' ? (R.repaired ? 1 : 0) : nest;
     const key = interiorItemTextureKey(item.type, variant);
     if (!this.textures.exists(key)) this.textures.addCanvas(key, drawInteriorItem(item.type, variant).toCanvas());
     return key;

@@ -5,7 +5,7 @@ import { TILE } from './TileArt';
 
 /** İç mekân eşyalarının doku anahtarı. */
 export function interiorItemTextureKey(type: InteriorItemType, variant = 0): string {
-  return type === 'sacks' || type === 'chest' || type === 'ruinCabinet' || type === 'hearth' ? `int-${type}-${variant}` : `int-${type}`;
+  return type === 'sacks' || type === 'chest' || type === 'ruinCabinet' || type === 'hearth' || type === 'nestBed' ? `int-${type}-${variant}` : `int-${type}`;
 }
 
 /** Eşya çizimi: taban eşyanın kare dikdörtgeni, üst kısmı duvara taşabilir (sprite alt-sol kökenli çizilir). */
@@ -104,7 +104,13 @@ export function drawInteriorItem(type: InteriorItemType, variant = 3): Pixels {
     case 'nestBoard':
       return drawNestBoard();
     case 'nestBed':
-      return drawNestBed();
+      return drawNestBed(variant === 1);
+    case 'nestCushion':
+      return drawCushionShelf();
+    case 'nestHeater':
+      return drawNestHeater();
+    case 'photoWall':
+      return drawPhotoWall();
     case 'eggBasket':
       return drawEggBasket();
   }
@@ -147,8 +153,8 @@ function drawNestBoard(): Pixels {
   return p;
 }
 
-/** Yuva yatağı (0.25.0): pembe kenarlı minder, ortada kalp (2 kare). */
-function drawNestBed(): Pixels {
+/** Yuva yatağı (0.25.0): pembe kenarlı minder, ortada kalp (2 kare); `cushion` (0.25.1) krem yastık ekler. */
+function drawNestBed(cushionOn = false): Pixels {
   const p = new Pixels(TILE * 2, TILE);
   const rim = hex(0xd97aa0);
   const rimDark = hex(0xa8567a);
@@ -161,10 +167,54 @@ function drawNestBed(): Pixels {
   p.ellipse(16, 8.5, 11, 3.8, cushionDark);
   p.ellipse(16, 8, 10, 3, cushion);
   p.fillRect(8, 12, 16, 1, rimDark);
+  if (cushionOn) {
+    p.ellipse(16, 7.5, 8.5, 2.6, hex(0xfff6e0));
+    p.fillRect(9, 9, 14, 1, hex(0xe9d7b5));
+  }
   p.set(15, 7, P.flowerRed);
   p.set(17, 7, P.flowerRed);
   p.fillRect(15, 8, 3, 1, P.flowerRed);
   p.set(16, 9, P.flowerRed);
+  p.outline(P.outline);
+  return p;
+}
+
+/** Minder rafı (0.25.1): duvar rafında iki katlı krem minder. */
+function drawCushionShelf(): Pixels {
+  const p = new Pixels(TILE, TILE);
+  p.fillRect(1, 11, 14, 2, P.trunk);
+  p.fillRect(2, 5, 12, 6, hex(0xfff6e0));
+  p.fillRect(2, 8, 12, 1, hex(0xe9d7b5));
+  p.fillRect(3, 2, 10, 3, hex(0xf0a3c2));
+  p.fillRect(3, 4, 10, 1, hex(0xd97aa0));
+  p.outline(P.outline);
+  return p;
+}
+
+/** Isıtıcı (0.25.1): duvarda küçük radyatör, turuncu ısı çubukları. */
+function drawNestHeater(): Pixels {
+  const p = new Pixels(TILE, TILE);
+  p.fillRect(2, 3, 12, 9, hex(0xd8d4cc));
+  p.fillRect(3, 4, 10, 7, hex(0xf2f0ea));
+  for (let x = 4; x < 12; x += 2) p.fillRect(x, 5, 1, 5, hex(0xf07a3a));
+  p.fillRect(3, 10, 10, 1, hex(0xc9403a));
+  p.fillRect(4, 12, 2, 2, hex(0x8a8a8a));
+  p.fillRect(10, 12, 2, 2, hex(0x8a8a8a));
+  p.outline(P.outline);
+  return p;
+}
+
+/** Fotoğraf duvarı (0.25.1): iki çerçeveli yavru fotoğrafı. */
+function drawPhotoWall(): Pixels {
+  const p = new Pixels(TILE, TILE);
+  p.fillRect(1, 2, 7, 6, P.trunk);
+  p.fillRect(2, 3, 5, 4, PAPER);
+  p.fillRect(3, 4, 3, 2, hex(0xc98a3a));
+  p.fillRect(8, 6, 7, 6, P.trunk);
+  p.fillRect(9, 7, 5, 4, PAPER);
+  p.fillRect(10, 8, 3, 2, hex(0x5c3b22));
+  p.set(4, 4, P.eye);
+  p.set(11, 8, P.eye);
   p.outline(P.outline);
   return p;
 }

@@ -1907,4 +1907,18 @@ export const EN: Record<string, string> = {
   "Sepet boş · yumurtaya {days} gün": "Basket empty · {days} days to the egg",
   "Yuva evi · panodan çift seç · sepetten yumurtayı al · çıkmak için kapıya yürü": "Nest house · board: pick the pair · basket: take the egg · walk to the door to leave",
   "İçeride: pano çift seçer, sepetten yumurta alınır; çift yuva yataklarında yatar.": "Inside: the board picks the pair, the egg is taken from the basket; the pair rests on the nest beds.",
+  // 0.25.1 yuva evi eşyaları
+  "Yumuşak yuva": "Soft nest",
+  "Isıtıcı": "Heater",
+  "Fotoğraf duvarı": "Photo wall",
+  "Yuva yatakları minderli: yumurta %15 daha çabuk gelir.": "Cushioned nest beds: the egg comes 15% sooner.",
+  "Yumurtadan sonra çiftin dinlenmesi %25 kısalır.": "The pair's rest after an egg is 25% shorter.",
+  "Dekor +1: duvarda yuva evinden çıkan yavruların fotoğrafları.": "Decor +1: photos of the pups born from the nest house.",
+  "Yumuşak yuva: yumurta %{n} daha çabuk gelir": "Soft nest: the egg comes {n}% sooner",
+  "Isıtıcı: çiftin dinlenmesi %{n} kısa": "Heater: the pair's rest is {n}% shorter",
+  "Fotoğraf duvarı: yuva evlerinden {n} yavru doğdu": "Photo wall: {n} pups born from nest houses",
+  "{a} ❤ {b}": "{a} ❤ {b}",
+  "Eşya yok: yumuşak yuva, ısıtıcı, pencere, fotoğraf duvarı": "No furniture yet: soft nest, heater, window, photo wall",
+  "Sıcak yuva": "Warm nest",
+  "Bir yuva evini dört eşyayla donat.": "Furnish a nest house with all four items.",
 };

@@ -1627,6 +1627,9 @@ export class Sim {
     for (const b of this.buildings) {
       if (!isReady(b)) continue;
       if (b.furniture.includes('kennelWindow')) score += BALANCE.kennelComfort.windowDecor;
+      // Yuva evi (0.25.1): pencere ve fotoğraf duvarı.
+      if (b.furniture.includes('nestWindow')) score += BALANCE.breeding.furniture.windowDecor;
+      if (b.furniture.includes('photoWall')) score += BALANCE.breeding.furniture.photoWallDecor;
       const pts = (D.points as Record<string, number>)[b.type];
       if (pts === undefined) continue;
       if (b.type === 'sign') {
