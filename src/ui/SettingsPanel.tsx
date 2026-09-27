@@ -73,6 +73,18 @@ export function SettingsPanel() {
           <input type="checkbox" checked={store.labels.value} onChange={(e) => app.setLabels((e.target as HTMLInputElement).checked)} />
           <span>{t('Köpek ve kişi isimlerini dünyada göster (L)')}</span>
         </label>
+        {/* Açılış tanıtımı (0.22.5): bir kez görülünce ya da kapatılınca kutu boşalır; işaretlersen yeni oyunda yine açılır. */}
+        <label class="setting">
+          <input type="checkbox" checked={!store.tutorialDone.value} onChange={(e) => app.setTutorialDone(!(e.target as HTMLInputElement).checked)} />
+          <span>{t('Başlangıç tanıtımı (yeni oyunda Nermin Hanım yol gösterir)')}</span>
+        </label>
+        {app.sim && (
+          <div class="row">
+            <button class="btn small" disabled={store.tutorial.value !== null} onClick={() => app.startTutorial()}>
+              {t('Tanıtımı şimdi başlat')}
+            </button>
+          </div>
+        )}
         <h4>{t('Dokunmatik')}</h4>
         <label class="setting">
           <span>{t('Dokunmatik kontroller')}</span>

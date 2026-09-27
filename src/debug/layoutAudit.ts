@@ -15,6 +15,7 @@ import { closeWeek } from '../sim/systems/EconomySystem';
 import { placeEgg } from '../sim/systems/IncubatorSystem';
 import { MENU_GROUPS } from '../ui/menu';
 import { type Panel, showToast, store, syncStore } from '../ui/store';
+import { stepsFor } from '../ui/tutorial/steps';
 
 export type IssueKind = 'spill' | 'clip' | 'ellipsis' | 'offscreen' | 'hscroll' | 'text-text' | 'text-box' | 'box-box';
 
@@ -43,7 +44,7 @@ interface Box {
 }
 
 /** Katman kökleri: farklı katmandaki öğelerin üst üste binmesi bilerek (panel HUD'un, açılır liste çubuğun üstünde). */
-const LAYERS = '.overlay, .menu-screen, .toasts, .nav-menu, .tool-popover, .rotate-hint';
+const LAYERS = '.overlay, .menu-screen, .toasts, .nav-menu, .tool-popover, .rotate-hint, .coach';
 /** Bilerek bindirilen süsler. */
 const INTENTIONAL = '.nav-badge, .minimap-toggle, .minimap-zoom.over, .photo-scene';
 /** Bilerek yatay kayan şeritler (sahiplenici kartları, inşa öğeleri, üst şerit, tablolar). */
@@ -326,6 +327,7 @@ export function layoutAudit(root: Element | null = document.getElementById('ui')
 export interface AuditApp {
   readonly sim: Sim | null;
   readonly game: { scene: { getScene(key: string): unknown }; step(time: number, delta: number): void } | null;
+  readonly tutorial: { jump(sim: Sim, starter: StarterKind, n: number, hold?: boolean): void; stop(): void };
   startDebugGame(seed: number, starter: StarterKind): Sim;
   openPauseMenu(): void;
   closePauseMenu(): void;
@@ -412,6 +414,9 @@ interface Step {
   exit?: () => void;
 }
 
+/** Tanıtım adımının gerçek akıştaki arayüz hâli (0.22.5): avatar, yönetim ya da yönetim + inşa çubuğu. */
+const TUTORIAL_POSE: Record<string, 'avatar' | 'manage' | 'build'> = { 'build-open': 'manage', kennel: 'build', 'build-info': 'build', goals: 'build' };
+
 /**
  * Zengin test oyununda bütün paneller ve HUD hâlleri; her birinde `layoutAudit`. Sonuç yalnız sorunlu ekranlar. `only` tek
  * adımla (tam ad) ya da `*` ile biten önekle sınırlar; `keep` son ekranı açık bırakır (ekran görüntüsü için).
@@ -428,6 +433,7 @@ export async function auditScreens(app: AuditApp, only?: string, keep = false): 
     store.report.value = null;
     store.settingsOpen.value = false;
     if (store.pauseMenu.value) app.closePauseMenu();
+    app.tutorial.stop();
   };
   const panel = (p: Panel, ctx?: () => void): Step => ({
     name: 'panel:' + p,
@@ -553,6 +559,19 @@ export async function auditScreens(app: AuditApp, only?: string, keep = false): 
       exit: () => (store.victory.value = null),
     },
     { name: 'screen:menu', enter: () => (store.screen.value = 'menu'), exit: () => (store.screen.value = 'game') },
+    // Açılış tanıtımı (0.22.5): her adımın balonu ve halkası, gerçek akıştaki arayüz hâliyle (adımlar kendiliğinden geçmez).
+    ...(['guided', 'ready'] as const).flatMap((kind) =>
+      stepsFor(kind).map((s, i) => ({
+        name: `tut:${kind}-${i + 1}`,
+        enter: () => {
+          const pose = TUTORIAL_POSE[s.id] ?? 'avatar';
+          sim.setMode(pose === 'avatar' ? 'avatar' : 'manage');
+          store.buildBar.value = pose === 'build';
+          app.tutorial.jump(sim, kind, i);
+        },
+        exit: () => app.tutorial.stop(),
+      })),
+    ),
   ];
   const screens: ScreenReport[] = [];
   let checked = 0;

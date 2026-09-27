@@ -28,6 +28,7 @@ import { TravelPanel } from './TravelPanel';
 import { QuestPanel } from './QuestPanel';
 import { MailPanel } from './MailPanel';
 import { AlbumPanel } from './AlbumPanel';
+import { Coach } from './tutorial/Coach';
 
 export function App() {
   store.lang.value;
@@ -73,6 +74,7 @@ export function App() {
           {store.pauseMenu.value && <PauseMenu />}
           {store.gameOver.value && <GameOverPanel />}
           {store.victory.value && !store.victorySeen.value && !store.gameOver.value && <VictoryPanel />}
+          <Coach />
         </>
       )}
       {store.settingsOpen.value && <SettingsPanel />}

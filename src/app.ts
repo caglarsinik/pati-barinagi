@@ -19,6 +19,9 @@ import { BUILDING_DEFS, type BuildingType } from './content/buildings';
 import { type MorningReport, buildMorningReport } from './sim/systems/DayReport';
 import { showToast, store, syncStore } from './ui/store';
 import { type MinimapZoom, parseZoom } from './ui/minimapView';
+import { effect, untracked } from '@preact/signals';
+import { Tutorial, type TutorialEnd, type TutorialState } from './ui/tutorial/Tutorial';
+import type { TutorialView } from './ui/tutorial/steps';
 
 
 /** Görünür pencere boyutu; gizli/henüz yerleşmemiş pencerede 0 döner. */
@@ -39,6 +42,15 @@ class AppController {
   /** Kullanıcı en az bir kez dokundu (karma cihazlarda otomatik dokunmatik). */
   private touchSeen = false;
   private readonly orientationPause = new OrientationPause();
+  /** Açılış tanıtımı (0.22.5): yalnız yeni oyunda ya da Ayarlar'dan; test oyununda ve kayıttan dönüşte açılmaz. */
+  readonly tutorial = new Tutorial(
+    {
+      setBuildTab: (tab) => {
+        store.buildTab.value = tab;
+      },
+    },
+    (state, end) => this.onTutorial(state, end),
+  );
 
   init(parent: string): void {
     initLang();
@@ -122,9 +134,52 @@ class AppController {
       store.minimapZoom.value = parseZoom(localStorage.getItem(`${SaveManager.key(0)}.minimapZoom`));
       const tm = localStorage.getItem(`${SaveManager.key(0)}.touchMode`);
       if (tm === 'on' || tm === 'off') store.touchMode.value = tm;
+      store.tutorialDone.value = localStorage.getItem(`${SaveManager.key(0)}.tutorialDone`) === '1';
     } catch {
       /* yoksay */
     }
+    // Tanıtım adımları 10 Hz'de (store.tick) ve mod, panel, inşa çubuğu ya da araç değişince hemen denetlenir.
+    effect(() => {
+      store.tick.value;
+      const b = store.build.value;
+      const view: TutorialView = {
+        mode: store.mode.value,
+        buildBar: store.buildBar.value,
+        panel: store.panel.value,
+        buildType: b.kind === 'building' ? b.type : null,
+        touch: store.touch.value,
+      };
+      untracked(() => {
+        if (this.sim && this.tutorial.active) this.tutorial.update(this.sim, view);
+      });
+    });
+  }
+
+  /** Tanıtım adımı değişti ya da bitti: bitince (tamam ya da kapatıldı) cihaz tercihi "görüldü" olur. */
+  private onTutorial(state: TutorialState | null, end?: TutorialEnd): void {
+    store.tutorial.value = state;
+    if (!end) return;
+    this.setTutorialDone(true);
+    showToast(end === 'done' ? t("Tanıtım bitti · Ayarlar'dan yeniden başlatabilirsin") : t("Tanıtım kapandı · Ayarlar'dan yeniden başlatabilirsin"), 4000);
+  }
+
+  /** Başlangıç tanıtımı tercihi: true = görüldü, yeni oyunda açılmaz (Ayarlar'daki kutu bunun tersi). */
+  setTutorialDone(done: boolean): void {
+    store.tutorialDone.value = done;
+    try {
+      localStorage.setItem(`${SaveManager.key(0)}.tutorialDone`, done ? '1' : '0');
+    } catch {
+      /* yoksay */
+    }
+  }
+
+  /** Ayarlar → "Tanıtımı şimdi başlat": açık oyunda, başlangıç türüne göre adımlar. */
+  startTutorial(): void {
+    if (!this.sim) return;
+    store.settingsOpen.value = false;
+    this.closePauseMenu();
+    this.closePanel();
+    this.tutorial.start(this.sim, this.sim.starter);
   }
 
   /**
@@ -248,8 +303,10 @@ class AppController {
     this.start(sim);
     this.save(true);
     showToast(t('Yeni dünya · tohum {seed} · yuva {n}', { seed, n: store.saveSlot.value + 1 }));
+    // Açılış tanıtımı (0.22.5): görülmediyse Nermin Hanım yol gösterir; açıkken "İlk hedef" bildirimi gerekmez.
+    if (!store.tutorialDone.value) this.tutorial.start(sim, starter);
     const goal = sim.goals.current;
-    if (starter === 'guided' && goal) showToast(t('Belediye bu arsayı sana emanet etti. İlk hedef: {goal}', { goal: t(goal.title) }), 6000);
+    if (starter === 'guided' && goal && !this.tutorial.active) showToast(t('Belediye bu arsayı sana emanet etti. İlk hedef: {goal}', { goal: t(goal.title) }), 6000);
   }
 
   continueGame(slot: number = store.saveSlot.value): boolean {
@@ -271,6 +328,7 @@ class AppController {
 
   private start(sim: Sim): void {
     if (!this.game) throw new Error('Oyun başlatılmadı');
+    this.tutorial.stop();
     this.detach();
     this.orientationPause.reset();
     this.sim = sim;
@@ -345,6 +403,7 @@ class AppController {
 
   toMenu(): void {
     if (!this.game) return;
+    this.tutorial.stop();
     this.save(true);
     this.game.scene.stop('World');
     this.detach();

@@ -27,14 +27,14 @@ export function Guide() {
   };
   if (store.layout.value !== 'desktop') {
     return (
-      <button class="guide guide-pill panel has-goal" onClick={open} title={t('Belediye hedefleri')}>
+      <button class="guide guide-pill panel has-goal" data-tut="guide" onClick={open} title={t('Belediye hedefleri')}>
         🎯 {t(goal.title)}
         {goalRewardText(goal)} ▸
       </button>
     );
   }
   return (
-    <div class="guide panel has-goal">
+    <div class="guide panel has-goal" data-tut="guide">
       <div class="guide-head">
         <b>{t('Belediye hedefleri')}</b>
         <span class="muted small-text">

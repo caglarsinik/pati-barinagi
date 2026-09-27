@@ -123,10 +123,15 @@ export function TopBar() {
       <div class="tb-right">
         {phoneChips}
         {speedControls}
-        <button class={'btn small' + (autopilot ? ' active' : '')} title={t('Otopilot (T): barınağın işlerini kendiliğinden yapar')} onClick={() => app.sim?.command({ type: 'setAutopilot', on: !autopilot })}>
+        <button
+          class={'btn small' + (autopilot ? ' active' : '')}
+          data-tut="autopilot"
+          title={t('Otopilot (T): barınağın işlerini kendiliğinden yapar')}
+          onClick={() => app.sim?.command({ type: 'setAutopilot', on: !autopilot })}
+        >
           🤖{compact ? '' : ` ${t('Otopilot')}`}
         </button>
-        <button class={'btn small' + (mode === 'manage' ? ' active' : '')} title={t('Avatar ve yönetim modu arasında geçiş (Tab)')} onClick={() => app.toggleMode()}>
+        <button class={'btn small' + (mode === 'manage' ? ' active' : '')} data-tut="mode" title={t('Avatar ve yönetim modu arasında geçiş (Tab)')} onClick={() => app.toggleMode()}>
           {compact ? (
             <>
               {mode === 'avatar' ? '🛠' : '🧍'}

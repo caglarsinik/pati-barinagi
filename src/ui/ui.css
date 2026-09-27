@@ -1598,3 +1598,124 @@ select,
 .clinic-info {
   flex: 1;
 }
+
+/* Açılış tanıtımı (0.22.5): koç katmanı panelin üstünde, bildirimin altında; tıklamayı yalnız balon alır. */
+.coach {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: var(--z-coach);
+}
+
+.coach-ring {
+  position: absolute;
+  box-sizing: border-box;
+  border: 3px solid var(--accent);
+  border-radius: 10px;
+  box-shadow: 0 0 12px 3px rgba(246, 213, 92, 0.55);
+  animation: coach-pulse 1.1s ease-in-out infinite;
+}
+
+@keyframes coach-pulse {
+  50% {
+    border-color: #fff3b0;
+    box-shadow: 0 0 22px 8px rgba(246, 213, 92, 0.85);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .coach-ring,
+  .coach-pointer {
+    animation: none;
+  }
+}
+
+/* Dünyadaki hedef ekran dışındaysa kenarda yönünü gösteren ok. */
+.coach-pointer {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  box-sizing: border-box;
+  border: 3px solid var(--accent);
+  border-radius: 50%;
+  background: rgba(27, 26, 42, 0.85);
+  animation: coach-pulse 1.1s ease-in-out infinite;
+}
+
+/* Ok: sağa bakan üçgen, satır içi döndürülür (yazı değil, taşmaz). */
+.coach-pointer span {
+  display: block;
+  width: 0;
+  height: 0;
+  border-top: 7px solid transparent;
+  border-bottom: 7px solid transparent;
+  border-left: 11px solid var(--accent);
+}
+
+.coach-bubble {
+  position: absolute;
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 10px 12px;
+  border-color: var(--accent);
+  pointer-events: auto;
+}
+
+.coach-portrait {
+  flex: none;
+  width: 48px;
+  height: 48px;
+  border-radius: 8px;
+  background: #3a3550;
+  image-rendering: pixelated;
+}
+
+.coach-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.coach-name {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--accent);
+}
+
+.coach-text {
+  margin: 2px 0 8px;
+  font-size: 0.85rem;
+  line-height: 1.3;
+}
+
+.coach-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+
+.coach-step {
+  margin-left: auto;
+  font-size: 0.7rem;
+}
+
+@media (max-height: 500px) {
+  .coach-bubble {
+    gap: 8px;
+    padding: 8px 10px;
+  }
+
+  .coach-portrait {
+    width: 36px;
+    height: 36px;
+  }
+
+  .coach-text {
+    margin-bottom: 6px;
+    font-size: 0.78rem;
+  }
+}

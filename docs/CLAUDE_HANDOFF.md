@@ -57,6 +57,40 @@
   köpek paneli, araç şeridi, alt menü listesi, ana menü, Ayarlar: çakışma yok, taşma yok. Alt menü açılır listesi köpek
   panelinin üstüne gelebilir (geçici popover, üstte kalır) — kabul edildi. Gerçek cihaz testi kullanıcıda.
 
+## 0.22.5 — Açılış tanıtımı: Nermin Hanım (M19; Claude, 2026-09-27)
+- Yapı (sim'e dokunmaz): `src/ui/tutorial/steps.ts` saf adımlar (`TutorialStep {id, text, touchText?, anchor?(view), world?(sim),
+  info?, cta?, done?(sim, view, ctx), enter?(ui)}`; `TUTORIAL_GUIDED` 7: welcome, walk, pet, manage, build-open, kennel, goals;
+  `TUTORIAL_READY` 8: welcome, feed, pet, status, manage, build-open, build-info, goals; `stepsFor`, `stepText`,
+  `tutorialCtx` = tanıtım başındaki oyuncu yeri + `stats.petted/bowlsFilled` → o andan sonra yapılan iş sayılır).
+  `Tutorial.ts` DOM'suz durum makinesi: `start/update/next/close/stop/jump(…, hold)`; `update` koşulu sağlanan adımları bir
+  kerede geçer (öne geçen oyuncu beklemez), bilgi adımı yalnız düğmeyle; bitiş `'done' | 'closed'` (ikisinde tercih "görüldü"),
+  `stop` sessiz (oyun değişince, ana menüde). `Coach.tsx` koç katmanı `--z-coach: 150` (panel 100 üstü, bildirim 200 altı),
+  `pointer-events: none`, yalnız balon tıklanır; halka çapa dikdörtgeninde yanıp söner (karartma yok, dünya hep görünür); dünya
+  çapası (köpek, yem kabı) kameranın görüşüyle yansıtılır, ekran dışındaysa kenarda yön oku (CSS üçgen). Balon yeri adaylardan
+  puanla seçilir: halkayı örtme yok, avatar modunda oyuncuyu örtme çok kötü, alt rıhtıma binen alan kötü; yükseklik ölçülür
+  (`useLayoutEffect`) ve oynanan alana (üst şerit ile rıhtım arası) sığdırılır; telefonda genişlik ekranın yarısından dar.
+  Panel, duraklatma, ayarlar, rapor, iflas ya da zafer açıkken gizli. Portre `drawHuman` (kızıl saç, lacivert ceket) üst yarısı.
+- Bağlantı: `app.tutorial` (`AppController`); `init`'te `effect` 10 Hz `store.tick` ile ve mod/panel/inşa çubuğu/araç değişince
+  `update` (sim'e `untracked`); `newGame` tercih görülmediyse başlatır ve 6 sn "İlk hedef" bildirimini bastırır;
+  `start/toMenu` `stop` (kayıttan devam, içe aktarma, `startDebugGame` tanıtımsız → senaryolar ve denetim temiz);
+  `setTutorialDone`, `startTutorial` (Ayarlar düğmesi: ayarları ve duraklatmayı kapatır). Tercih `${SaveManager.key(0)}.tutorialDone`,
+  `store.tutorial` (adım durumu) ve `store.tutorialDone`. Çapalar: TopBar `data-tut="mode"`/`"autopilot"`, BottomNav
+  `data-nav`, BuildBar `data-tab`/`data-type`/`data-tut="build-close"`, Guide `data-tut="guide"`; mevcut `.action-btn`,
+  `.hud-bottom.hint`, `.topbar .tb-left`. Ayarlar → Rehber: "Başlangıç tanıtımı (…)" kutusu (`!tutorialDone`) + "Tanıtımı şimdi
+  başlat" (açık oyunda).
+- Metinler tablo metni: `i18n.test.ts` `tableValues` tanıtım metinlerini (text, touchText, info, cta) de denetler; EN elle.
+- Denetim: `.coach` `LAYERS`'ta; yeni ekranlar `tut:guided-1…7`, `tut:ready-1…8` (`TUTORIAL_POSE` ile avatar/yönetim/inşa hâli,
+  `jump` sabit) → 77 ekran. 568×320'de inşa bilgisi adımı halkası sekme satırından Kapat düğmesine alındı (balona yer yoktu).
+- Testler `tests/unit/tutorial.test.ts` (4): listeler (≤8, benzersiz, hoş geldinle başlar, hedeflerle biter); koşullar gerçek
+  oyunda (yürü, sev, yönetim, inşa çubuğu, kulübe, kap, hedef paneli; kulübe seçilince halka kalkar; çapalar dokunmatik/masaüstü);
+  durum makinesi (bilgi adımı düğmeyle, öne geçen oyuncuda dört adım bir kerede, bitiş `done`); Atla/kapat/sessiz durdurma/sabit
+  atlama. 447 test. Tarayıcı 812×375: kuruluş akışı baştan sona gerçek dokunuşlarla (ok → köpeğin yanı → E halkası → Yönet → İnşa →
+  Küçük kulübe → arsaya dokun → hedef +200 ₺ → Hedefleri aç → "Tanıtım bitti", tercih kaydedildi); hazır barınak akışı (kap halkası
+  → doldur → sev → üst şerit → … → hedefler); tanıtım görüldükten sonra yeni oyunda açılmıyor ve "İlk hedef" bildirimi geri geliyor;
+  Ayarlar'dan yeniden başlatma ve "Tanıtımı atla". Denetim 77 ekran 568×320 ve 812×375 (TR/EN), 768×1024, 1280×720: 0 sorun;
+  dokunma senaryoları 16/16 (test oyununda tanıtım açılmıyor).
+- Sıradaki: 0.22.6 cila (senaryolar 17 Taşı, 18 kulübe içi, 19 tanıtım; Kontroller satırları; başarım mover; tam denetim).
+
 ## 0.22.4 — Kulübe eşyalarının etkileri (M19; Claude, 2026-09-27)
 - Yeni saf `src/sim/systems/KennelComfort.ts`: `kennelComfort(sim, dog)` → `{bed, blanket, bowl, toy, window, count}` (kulübesiz ya da
   kulübe hazır değilse hepsi yok; **yatak köpek başına**: `dogBed` sayısı > köpeğin `occupants` sırası), `atKennelRest(sim, dog)`

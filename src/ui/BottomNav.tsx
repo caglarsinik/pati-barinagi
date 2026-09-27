@@ -97,6 +97,7 @@ export function BottomNav() {
           )}
           <button
             class={'nav-item' + (isActive(g) || open === g.id ? ' active' : '')}
+            data-nav={g.id}
             title={title(g)}
             onClick={(e) => {
               (e.currentTarget as HTMLButtonElement).blur();

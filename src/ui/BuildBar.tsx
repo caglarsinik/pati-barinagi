@@ -53,7 +53,7 @@ export function BuildBar() {
       <div class="build-tabs">
         <div class="build-tab-list">
           {tabs.map(([id, name]) => (
-            <button key={id} class={'btn small' + (tab === id ? ' active' : '')} onClick={() => setTab(id)}>
+            <button key={id} class={'btn small' + (tab === id ? ' active' : '')} data-tab={id} onClick={() => setTab(id)}>
               {name}
             </button>
           ))}
@@ -65,7 +65,7 @@ export function BuildBar() {
         <button class={'btn small danger' + (tool.kind === 'demolish' ? ' active' : '')} onClick={() => pick({ kind: 'demolish' })}>
           {touch ? t('Yık') : t('Yık (X)')}
         </button>
-        <button class="btn small" onClick={() => app.toggleBuildBar()}>
+        <button class="btn small" data-tut="build-close" onClick={() => app.toggleBuildBar()}>
           {touch ? t('Kapat') : t('Kapat (B)')}
         </button>
       </div>
@@ -91,6 +91,7 @@ export function BuildBar() {
               .map((d) => (
                 <button
                   key={d.type}
+                  data-type={d.type}
                   class={'build-item' + (tool.kind === 'building' && tool.type === d.type ? ' active' : '') + (money < d.cost ? ' poor' : '')}
                   title={`${t(d.desc)}${d.buildMinutes ? ` · ${d.buildMinutes} dk` : ''}`}
                   onClick={() => pick({ kind: 'building', type: d.type })}

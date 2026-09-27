@@ -28,6 +28,7 @@ import { LEDGER_NAMES_TR } from '../../src/sim/systems/EconomySystem';
 import { TOOL_DEFS } from '../../src/sim/systems/Interaction';
 import { SEASON_NAMES_TR, WEATHER_NAMES_TR } from '../../src/sim/systems/WeatherSystem';
 import { ZONE_NAMES_TR } from '../../src/sim/world/tiles';
+import { TUTORIAL_GUIDED, TUTORIAL_READY } from '../../src/ui/tutorial/steps';
 
 /** Tüm kaynak dosyalar ham metin olarak (Vite glob). */
 const SOURCES = import.meta.glob('../../src/**/*.{ts,tsx}', { query: '?raw', import: 'default', eager: true }) as Record<string, string>;
@@ -83,6 +84,7 @@ function tableValues(): string[] {
   push(LIKE_NAMES_TR);
   for (const d of Object.values(ADOPTER_TYPES)) out.push(d.name, d.trait);
   for (const l of [...Object.values(GREAT_LETTERS).flat(), ...OK_LETTERS, ...HARD_LETTERS, ...VILLAGE_LETTERS, ...PAIR_LETTERS]) out.push(l);
+  for (const st of [...TUTORIAL_GUIDED, ...TUTORIAL_READY]) out.push(st.text, st.touchText ?? '', st.info ?? '', st.cta?.label ?? '');
   return out.filter((v) => typeof v === 'string' && v.length > 0);
 }
 

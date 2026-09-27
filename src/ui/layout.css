@@ -18,6 +18,8 @@
   --z-col: 20;
   --z-bar: 30;
   --z-overlay: 100;
+  /* Açılış tanıtımı (0.22.5): panelin üstünde, bildirimin altında. */
+  --z-coach: 150;
   --z-toast: 200;
 }
 

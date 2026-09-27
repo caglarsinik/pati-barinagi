@@ -61,6 +61,22 @@ Ana menüde **Başlangıç türü** seçilir (0.19.0):
 
 Eski kayıtlar hazır barınak sayılır.
 
+### Açılış tanıtımı (Nermin Hanım)
+
+Yeni oyunda belediyeden **Nermin Hanım** konuşma balonuyla ilk adımları gösterir (0.22.5). Gösterdiği gerçek düğmenin
+çevresinde sarı bir halka yanıp söner (düğme tıklanabilir kalır); hedef dünyadaysa (köpek, yem kabı) halka onun çevresindedir,
+ekran dışındaysa kenarda yönünü gösteren bir ok çıkar. Adım, sen o işi yapınca kendiliğinden geçer; önceden yaptıysan hemen
+atlanır. Her balonda **Atla** (bu adım) ve **Tanıtımı kapat** vardır.
+
+- **Kuruluş (7 adım):** hoş geldin → köpeğinin yanına yürü → onu sev → 🛠 Yönet → 🏗️ İnşa → Küçük kulübe kur (ilk hedef, +200 ₺)
+  → 🎯 hedef kartını aç.
+- **Hazır barınak (8 adım):** hoş geldin → yem kabını doldur → köpeği sev → üst şerit ve ihtiyaç şeridi → 🛠 Yönet → 🏗️ İnşa
+  → inşa çubuğu → 🎯 hedef kartı.
+
+Tanıtım bitince ya da kapatılınca bu cihazda "görüldü" sayılır, yeni oyunda bir daha açılmaz. **Ayarlar → Rehber →
+"Başlangıç tanıtımı"** kutusuyla yeniden açılır; açık bir oyunda **"Tanıtımı şimdi başlat"** düğmesi hemen başlatır.
+Kayıttan devam ederken açılmaz; panel, duraklatma ya da ayarlar açıkken balon gizlenir, kapanınca kaldığı yerden sürer.
+
 ### Belediye hedefleri
 
 Sol üstteki 🎯 kart sıradaki belediye hedefini ve ödülünü gösterir (0.19.1; telefonda tek satır). Karta dokununca, ☰ Menü →
@@ -506,7 +522,8 @@ Bilgisayar değiştirirken ya da yedek almak için kullan.
 - [x] 0.22.2 Taşı aracı: kurulu bina içindekilerle yerinde taşınır (dokun-dokun ya da sürükle-bırak, R/Döndür), ücretsiz; ofis taşınmaz
 - [x] 0.22.3 Kulübe içi: kulübeye girilir (panel, ↑, kapı karesi), panodan yatak/battaniye/su kabı/oyuncak/pencere; uyuyan köpek içeride yatağında
 - [x] 0.22.4 Kulübe eşya etkileri: yatak uyku enerjisi, battaniye temizlik ve hastalık, su kabı gece susuzluğu, oyuncak keyif, pencere dekor; denetimde Konfor, "Konforlu kulübe" başarımı
-- [ ] M19 Konfor ve Yaşam Kalitesi (dilimlendi, `docs/PLAN.md`): 0.22.0 ✅ müzik + ihtiyaç şeridi → 0.22.1 ✅ mini harita yakınlaştırma → 0.22.2 ✅ binayı taşı → 0.22.3 ✅ kulübe içi → 0.22.4 ✅ kulübe eşya etkileri → 0.22.5 açılış hikâyesi (tanıtım) → 0.22.6 cila
+- [x] 0.22.5 Açılış tanıtımı: yeni oyunda Nermin Hanım gerçek düğmeleri halkayla gösterir (kuruluş 7, hazır barınak 8 adım); Atla, kapat, Ayarlar'dan yeniden
+- [ ] M19 Konfor ve Yaşam Kalitesi (dilimlendi, `docs/PLAN.md`): 0.22.0 ✅ müzik + ihtiyaç şeridi → 0.22.1 ✅ mini harita yakınlaştırma → 0.22.2 ✅ binayı taşı → 0.22.3 ✅ kulübe içi → 0.22.4 ✅ kulübe eşya etkileri → 0.22.5 ✅ açılış hikâyesi (tanıtım) → 0.22.6 cila
 - [ ] M18 Terk Edilmiş Ev ve Malzemeler (0.23.0–0.23.4): odun ve taş, malzemeyle öde, uzak ormanda ev, onarım
 - [ ] Sonrası: yuva evi içi, kuzey/batı arsa genişletme
 

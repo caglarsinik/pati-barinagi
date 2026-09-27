@@ -17,6 +17,7 @@ export type Screen = 'menu' | 'game';
 import type { Layout } from './layout';
 import type { SaveSummary } from '../core/SaveManager';
 import type { MinimapZoom } from './minimapView';
+import type { TutorialState } from './tutorial/Tutorial';
 export type { Layout };
 export type TouchMode = 'auto' | 'on' | 'off';
 export type Panel =
@@ -101,6 +102,9 @@ export const store = {
   /** Yeni service worker indirildi; Ayarlar → Şimdi yenile. */
   updateReady: signal(false),
   guideHidden: signal(false),
+  /** Açılış tanıtımı (0.22.5): açık adım (yoksa null) ve cihaz tercihi "görüldü" (yeni oyunda bir daha açılmaz). */
+  tutorial: signal<TutorialState | null>(null),
+  tutorialDone: signal(false),
   /** Sabah raporu (0.19.2): gösterilen rapor ve Ayarlar'daki kapatma. */
   morningReport: signal<MorningReport | null>(null),
   morningHidden: signal(false),
