@@ -36,6 +36,8 @@ import { rebuildMessSet } from './systems/MessSystem';
 import { NeedsSystem } from './systems/NeedsSystem';
 import { tickNests } from './systems/NestSystem';
 import { type Materials, type Regrow, materialsFromJSON, regrowFromJSON, regrowToJSON, tickRegrow } from './systems/Materials';
+import { type RuinState, checkRuinFound, defaultRuinState, ruinStateFromJSON, ruinTalkLine } from './systems/RuinSystem';
+import { RUIN_ID, restampRuin, ruinDoorTile } from './world/Ruin';
 import { StaffSystem, maxStaff } from './systems/StaffSystem';
 import { breedMinutes, setNurseryPair, takeNurseryEgg, tickNurseries } from './systems/BreedingSystem';
 import { tickFeeders } from './systems/FeederSystem';
@@ -391,6 +393,8 @@ export class Sim {
   markers: MapMarker[] = [];
   /** Köy bulundu mu (0.18.2; kayıtta). */
   villageFound = false;
+  /** Terk edilmiş ev (0.23.2; kayıtta): bulundu mu, sandık/dolap/günlük ve gizli yuva. */
+  ruin: RuinState = defaultRuinState();
   /** Başlangıç türü (0.19.0; kayıtta, eski kayıt 'ready'). */
   starter: StarterKind = 'ready';
   /** Günün başındaki sayaçlar ve biten günün özeti (0.19.2; kayıtta). */
@@ -640,6 +644,7 @@ export class Sim {
       this.villageFound = true;
       this.events.emit('message', t('🏘️ Köyü buldun! Yem toptancısında çuvallar %30 ucuz.'));
     }
+    checkRuinFound(this);
   }
 
   /** Oyuncunun yanında durduğu bilinen tabela (0.20.3). */
@@ -1324,6 +1329,28 @@ export class Sim {
     return { ok: true };
   }
 
+  /** Terk edilmiş eve gir (0.23.2): kapı önünde E ya da dokunuş; oda kimliği RUIN_ID. Giren evi bulmuş sayılır. */
+  enterRuin(): ActionOutcome {
+    if (this.mode !== 'avatar' || this.interior) return { ok: false };
+    const site = this.world.ruin;
+    if (!site) return { ok: false };
+    const map = buildInterior('ruin');
+    const door = ruinDoorTile(site);
+    this.nav.cancel();
+    this.interior = { ...map, buildingId: RUIN_ID, back: { x: door.x + 0.5, y: door.y + 0.9 } };
+    this.player.x = map.spawn.x;
+    this.player.y = map.spawn.y;
+    this.player.facing = 3;
+    this.ruin.found = true;
+    this.events.emit('interiorChanged', this.interior);
+    return { ok: true };
+  }
+
+  /** Köylü sözü için evin yön ipucu; ev bulunduysa null (0.23.2). */
+  ruinHint(): string | null {
+    return ruinTalkLine(this);
+  }
+
   /** İçinde bulunulan odanın eşyaları değişince odayı yeniden kurar (oyuncu yerinde kalır). */
   private refreshInterior(buildingId: number): void {
     const it = this.interior;
@@ -1746,6 +1773,7 @@ export class Sim {
       bakesToday: this.bakesToday,
       markers: this.markers.map((m) => ({ ...m })),
       villageFound: this.villageFound,
+      ruin: { ...this.ruin, nest: this.ruin.nest ? { ...this.ruin.nest } : null },
       starter: this.starter,
       goals: this.goals.toJSON(),
       dayStart: { ...this.dayStart },
@@ -1850,6 +1878,7 @@ export class Sim {
     sim.bakeDay = numOr(data.bakeDay, 0, 0);
     sim.bakesToday = Math.floor(numOr(data.bakesToday, 0, 0));
     sim.villageFound = data.villageFound === true;
+    sim.ruin = ruinStateFromJSON(data.ruin, (x, y) => world.inBounds(x, y));
     const sup = (data.supplies && typeof data.supplies === 'object' ? data.supplies : {}) as Partial<Supplies>;
     const supply = (v: unknown): number => Math.min(BALANCE.shop.maxSupply, Math.floor(numOr(v, 0, 0)));
     sim.supplies = { toy: supply(sup.toy), vitamin: supply(sup.vitamin) };
@@ -1921,6 +1950,8 @@ export class Sim {
     }
     // Köy alanı eski nesne değişikliklerinden sonra yeniden temizlenir (0.18.2).
     restampVillage(world);
+    // Terk edilmiş evin açıklığı (0.23.2): eski kayıtta orada kesilen ağacın kütüğü vb. kalkar.
+    restampRuin(world);
     // Köy kademesi yapıları (0.20.2): kayıttaki kademeye göre yeniden damgalanır.
     stampVillageStage(world, sim.villageStage);
     const p = world.plot;

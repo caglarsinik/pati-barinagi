@@ -435,6 +435,60 @@ export function drawVillageBuilding(kind: 'wholesaler' | 'toyShop' | 'house' | '
   return p;
 }
 
+/**
+ * Terk edilmiş ev (0.23.2): yıpranmış tahta duvarlar, delikli çatı, kırık baca, çapraz tahtayla kapatılmış pencereler, aralık
+ * kapı, sarmaşık ve yosun. Kökeni sol alt; bacası çatının üstüne taşar.
+ */
+export function drawRuin(wTiles: number, hTiles: number): Pixels {
+  const W = wTiles * T;
+  const hBody = hTiles * T;
+  const H = hBody + BUILDING_OVERHANG + 5;
+  const p = new Pixels(W, H);
+  const y0 = H - hBody;
+  const wood = hex(0x6f5a44);
+  const woodDark = hex(0x4f3f30);
+  const woodLight = hex(0x8a735a);
+  const roof = hex(0x5e4b3c);
+  const roofDark = hex(0x45362b);
+  const hole = hex(0x221a15);
+  const moss = hex(0x4f7a3a);
+  const mossLight = hex(0x6d9a4f);
+  p.fillRect(0, y0, W, hBody, wood);
+  for (let x = 3; x < W - 2; x += 6) p.fillRect(x, y0 + 1, 1, hBody - 2, woodDark);
+  p.fillRect(W - 2, y0, 2, hBody, woodDark);
+  p.fillRect(7, H - 9, 4, 6, hole);
+  const roofH = 10;
+  for (let i = 0; i < roofH; i++) {
+    const inset = Math.round(((roofH - 1 - i) * (W / 2 - 2)) / roofH);
+    p.fillRect(inset, y0 - roofH + i, W - inset * 2, 1, i % 3 === 0 ? roofDark : roof);
+  }
+  p.fillRect(0, y0, W, 1, roofDark);
+  p.fillRect(W / 2 + 6, y0 - 6, 4, 3, hole);
+  p.fillRect(15, y0 - 3, 3, 2, hole);
+  // Kırık baca.
+  p.fillRect(W - 17, y0 - roofH - 4, 6, 8, P.rock);
+  p.fillRect(W - 17, y0 - roofH - 4, 6, 1, P.rockDark);
+  p.fillRect(W - 13, y0 - roofH - 4, 2, 2, hole);
+  // Pencereler: çapraz tahtalar.
+  for (const wx of [5, W - 13]) {
+    p.fillRect(wx, y0 + 6, 8, 7, hole);
+    p.line(wx, y0 + 6, wx + 7, y0 + 12, woodLight);
+    p.line(wx + 7, y0 + 6, wx, y0 + 12, woodLight);
+  }
+  // Aralık kapı.
+  const dx = Math.floor(W / 2) - 4;
+  p.fillRect(dx, H - 13, 8, 13, hole);
+  p.fillRect(dx, H - 13, 3, 13, woodDark);
+  p.set(dx + 2, H - 7, P.flowerYellow);
+  // Sarmaşık ve yosun.
+  p.ellipse(2, y0 + 10, 2.5, 5, moss);
+  p.ellipse(3, y0 + 6, 2, 2, mossLight);
+  p.ellipse(W - 5, H - 5, 3, 4, moss);
+  p.ellipse(W / 2 - 10, y0 - 6, 3, 1.5, moss);
+  p.outline(P.outline);
+  return p;
+}
+
 /** Sahiplendirme günü balonları (0.21.3): üç balon ve ipleri. */
 export function drawBalloons(): Pixels {
   const p = new Pixels(22, 34);

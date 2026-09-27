@@ -37,6 +37,7 @@ export const ACHIEVEMENTS: AchievementDef[] = [
   { id: 'village', name: 'Köyü buldun', desc: 'Güney yolunun ucundaki köye ulaş.', check: (s) => s.villageFound },
   { id: 'village-grow', name: 'Köy büyüyor', desc: 'Barınağının ünüyle köyde postane açılsın.', check: (s) => s.villageStage >= 2 },
   { id: 'village-helper', name: 'Köyün dostu', desc: '3 köylü görevini tamamla.', check: (s) => s.stats.quests >= 3 },
+  { id: 'ruin', name: 'Terk edilmiş ev', desc: 'Ormandaki eski barınakçının evini bul.', check: (s) => s.ruin.found },
   {
     id: 'loyal-family',
     name: 'Sadık aile',

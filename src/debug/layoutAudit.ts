@@ -13,6 +13,7 @@ import type { Sim, StarterKind } from '../sim/Sim';
 import { buildMorningReport } from '../sim/systems/DayReport';
 import { closeWeek } from '../sim/systems/EconomySystem';
 import { placeEgg } from '../sim/systems/IncubatorSystem';
+import { readRuinJournal } from '../sim/systems/RuinSystem';
 import { MENU_GROUPS } from '../ui/menu';
 import { type Panel, showToast, store, syncStore } from '../ui/store';
 import { stepsFor } from '../ui/tutorial/steps';
@@ -360,6 +361,10 @@ export function richGame(app: AuditApp): Sim {
   sim.buildings.find((b) => b.type === 'kennelSmall')?.furniture.push('dogBed', 'blanket', 'dogBowl', 'dogToy', 'kennelWindow');
   // Odun ve taş (0.23.0): çanta satırında iki basamaklı sayılar.
   sim.materials = { wood: 48, stone: 23 };
+  // Terk edilmiş ev (0.23.2): bulundu, aletler alındı, günlük okundu → harita satırları, mor nokta, günlükteki uzaklık.
+  sim.ruin.found = true;
+  sim.ruin.tools = true;
+  readRuinJournal(sim);
   const names = ['Minnoş Karabaşım', 'Pamuk Şekerleme', 'Mandalina', 'Kestane', 'Karabaş', 'Karamel', 'Boncuk', 'Fındık', 'Zeytin', 'Tarçın'];
   const c = sim.world.plot;
   for (let i = 0; i < names.length; i++) {
@@ -548,6 +553,16 @@ export async function auditScreens(app: AuditApp, only?: string, keep = false): 
     panel('quests'),
     panel('mail'),
     panel('album'),
+    panel('journal', () => (store.journalPage.value = 2)),
+    {
+      // Terk edilmiş ev içi (0.23.2): ipucu satırı ve HUD.
+      name: 'interior:ruin',
+      enter: () => {
+        sim.setMode('avatar');
+        sim.enterRuin();
+      },
+      exit: () => sim.exitInterior(),
+    },
     { name: 'modal:week-report', enter: () => (store.report.value = closeWeek(sim, sim.clock.week + 1)) },
     { name: 'modal:pause', enter: () => app.openPauseMenu() },
     { name: 'modal:settings', enter: () => (store.settingsOpen.value = true) },

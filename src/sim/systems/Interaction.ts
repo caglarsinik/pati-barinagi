@@ -8,7 +8,9 @@ import type { Sim } from '../Sim';
 import { eggDescription } from '../entities/Egg';
 import { cleanMess } from './MessSystem';
 import { harvestBerries, harvestNest } from './NestSystem';
-import { harvest, harvestAt, harvestHint, harvestIssue, isTreeTop } from './Materials';
+import { harvest, harvestFor, harvestHint, harvestIssue, isTreeTop } from './Materials';
+import { isHiddenNestFirst, openRuinCabinet, openRuinChest, readRuinJournal } from './RuinSystem';
+import { ruinAt } from '../world/Ruin';
 import { t } from '../../i18n';
 import { interiorItemAt } from '../interior/Interiors';
 import { WEATHER_NAMES_TR } from './WeatherSystem';
@@ -82,13 +84,18 @@ export type ActionKind =
   | 'chop'
   | 'mine'
   | 'uproot'
+  /** Terk edilmiş ev (0.23.2): içeri gir, sandık, dolap, günlük. */
+  | 'enterRuin'
+  | 'ruinChest'
+  | 'ruinCabinet'
+  | 'ruinJournal'
   | 'none';
 
 /**
  * Köy, tabela ve görev eylemleri (0.20.5): yalnız oyuncu elle yapar. Otopilot varınca bunları yapmaz (panel açılmaz,
  * köylüyle konuşulmaz, kayıp köpek bulunmaz, köy binasına girilmez); `PlayerNav.arrive` denetler.
  */
-export const MANUAL_ACTIONS: ReadonlySet<ActionKind> = new Set<ActionKind>(['enterVillage', 'wholesale', 'toyShop', 'market', 'talk', 'post', 'travel', 'quests', 'lostDog', 'chop', 'mine', 'uproot']);
+export const MANUAL_ACTIONS: ReadonlySet<ActionKind> = new Set<ActionKind>(['enterVillage', 'wholesale', 'toyShop', 'market', 'talk', 'post', 'travel', 'quests', 'lostDog', 'chop', 'mine', 'uproot', 'enterRuin', 'ruinChest', 'ruinCabinet', 'ruinJournal']);
 
 export interface ResolvedAction {
   kind: ActionKind;
@@ -257,7 +264,26 @@ function resolveInterior(sim: Sim, tile: TilePos): ResolvedAction {
       return { kind: 'none', hint: t('Su kabı: kulübesinde uyuyan köpek susamaz'), tile };
     case 'dogToy':
       return { kind: 'none', hint: t('Oyuncak sepeti: keyif %25 daha yavaş düşer'), tile };
+    case 'chest': {
+      // Terk edilmiş ev (0.23.2): sandık bir kez para ve yumurta verir; çanta doluysa yumurta sandıkta bekler.
+      const c = sim.ruin.chest;
+      if (c >= 2) return { kind: 'none', hint: t('Sandık boş'), tile };
+      if (c === 1 && sim.backpack.length >= sim.backpackSlots()) return { kind: 'none', hint: t('Sandıkta bir yumurta var: çantada yer aç ({n}/{max})', { n: sim.backpack.length, max: sim.backpackSlots() }), tile };
+      return { kind: 'ruinChest', hint: c === 1 ? t('E: sandıktaki yumurtayı al') : t('E: sandığı aç'), tile };
+    }
+    case 'ruinCabinet':
+      if (sim.ruin.tools) return { kind: 'none', hint: t('Dolap: boş, yalnız eski bir palto asılı'), tile };
+      return { kind: 'ruinCabinet', hint: t('E: dolabı aç'), tile };
+    case 'ruinDesk':
+      return { kind: 'ruinJournal', hint: sim.ruin.journal ? t('E: günlüğü yeniden oku') : t('E: masadaki günlüğü oku'), tile };
+    case 'hearth':
+      return { kind: 'none', hint: t('Sönük ocak: yıllardır yanmamış'), tile };
+    case 'brokenBed':
+      return { kind: 'none', hint: t('Kırık yatak: onarılmadan uyunmaz'), tile };
+    case 'cobweb':
+      return { kind: 'none', hint: t('Örümcek ağları'), tile };
     default:
+      if (it.kind === 'ruin') return { kind: 'none', hint: t('Terk edilmiş ev · eşyalara bakıp E · çıkmak için kapıya yürü'), tile };
       if (it.kind === 'kennel' || it.kind === 'kennelLarge') return { kind: 'none', hint: t('Kulübe içi · panoya bakıp E: eşya al · çıkmak için kapıya yürü'), tile };
       if (it.kind === 'toyShop') return { kind: 'none', hint: t('Oyuncak ve ilaç dükkânı · tezgâha bakıp E · çıkmak için kapıya yürü'), tile };
       if (it.kind === 'wholesaler') return { kind: 'none', hint: t('Yem toptancısı · tezgâha bakıp E: toptan çuval · çıkmak için kapıya yürü'), tile };
@@ -295,7 +321,7 @@ export function resolveAction(sim: Sim): ResolvedAction {
   if (obj === Obj.Den) return { kind: 'none', hint: t('Sokak köpeği ini'), tile };
 
   // Odun ve taş (0.23.0): arsa ve köy dışında ağaç, çam, kaya, kütük. Ağaç tepesi yürünür: altında köpek varsa köpek önce.
-  const h = harvestAt(w, tile.x, tile.y);
+  const h = harvestFor(sim, tile.x, tile.y);
   if (h && !(isTreeTop(w, tile.x, tile.y) && nearestDog(sim, fp.x, fp.y, 1))) {
     const issue = harvestIssue(sim, h);
     return { kind: issue ? 'none' : h.kind, hint: issue ?? harvestHint(h), tile: h.tile };
@@ -333,6 +359,9 @@ export function resolveAction(sim: Sim): ResolvedAction {
     if (vb.kind === 'postOffice') return { kind: 'post', hint: t('E: postane · köydeki sahiplenicilerden mektup'), tile };
     return { kind: 'none', hint: name, tile };
   }
+
+  // Terk edilmiş ev (0.23.2).
+  if (ruinAt(w, tile.x, tile.y)) return { kind: 'enterRuin', hint: t('E: terk edilmiş ev · içeri gir'), tile };
 
   // Bina.
   const bid = w.buildingIdAt(tile.x, tile.y);
@@ -455,7 +484,7 @@ export interface ActionOutcome {
   ok: boolean;
   message?: string;
   /** UI'nın açması gereken panel. */
-  open?: 'shed' | 'kennel' | 'incubator' | 'office' | 'nursery' | 'computer' | 'order' | 'help' | 'furniture' | 'autoOrder' | 'clinic' | 'wholesale' | 'toyShop' | 'market' | 'travel' | 'quests';
+  open?: 'shed' | 'kennel' | 'incubator' | 'office' | 'nursery' | 'computer' | 'order' | 'help' | 'furniture' | 'autoOrder' | 'clinic' | 'wholesale' | 'toyShop' | 'market' | 'travel' | 'quests' | 'journal';
   building?: Building;
   dog?: Dog;
 }
@@ -570,10 +599,13 @@ export function performAction(sim: Sim): ActionOutcome {
       return { ok: true, message: t('{name} fırçalandı', { name: dog.name }) };
     }
     case 'pickEgg': {
+      // Nuri Usta'nın gizli yuvası (0.23.2): ilk yumurtası efsanevi.
+      const hidden = !!r.tile && isHiddenNestFirst(sim, r.tile.x, r.tile.y, sim.nestHarvests.get(sim.world.idx(r.tile.x, r.tile.y)) ?? 0);
       const egg = r.tile ? harvestNest(sim, r.tile.x, r.tile.y) : null;
       if (!egg) return { ok: false };
       sim.backpack.push(egg);
       p.setBusy(0.7, 'pick');
+      if (hidden) return { ok: true, message: t("🌟 Nuri Usta'nın gizli yuvası: {desc}", { desc: eggDescription(egg) }) };
       return { ok: true, message: t('Yumurta bulundu: {desc}', { desc: eggDescription(egg) }) };
     }
     case 'berries': {
@@ -585,7 +617,7 @@ export function performAction(sim: Sim): ActionOutcome {
     case 'chop':
     case 'mine':
     case 'uproot': {
-      const h = r.tile ? harvestAt(sim.world, r.tile.x, r.tile.y) : null;
+      const h = r.tile ? harvestFor(sim, r.tile.x, r.tile.y) : null;
       if (!h) return { ok: false };
       const issue = harvestIssue(sim, h);
       if (issue) return { ok: false, message: issue };
@@ -643,6 +675,14 @@ export function performAction(sim: Sim): ActionOutcome {
       return { ok: true, open: 'clinic' };
     case 'enterVillage':
       return r.village !== undefined ? sim.enterVillage(r.village) : { ok: false };
+    case 'enterRuin':
+      return sim.enterRuin();
+    case 'ruinChest':
+      return openRuinChest(sim);
+    case 'ruinCabinet':
+      return openRuinCabinet(sim);
+    case 'ruinJournal':
+      return readRuinJournal(sim);
     case 'wholesale':
       return { ok: true, open: 'wholesale' };
     case 'toyShop':

@@ -357,7 +357,11 @@ export class VillagerSystem {
     const base = hash3(this.sim.seed, v.index, this.sim.clock.day) >>> 0;
     const n = v.talks++;
     const dog = this.dogOf(v);
-    const line = dog && n % 2 === 0 ? t(DOG_TALK_LINES[(base + n / 2) % DOG_TALK_LINES.length], { dog: dog.name }) : t(TALK_LINES[(base + n) % TALK_LINES.length]);
+    // Terk edilmiş ev bulunmadıysa dedikodunun yerini evin yönü alır (0.23.2): köpeği olan köpeğini ve evi sırayla anlatır,
+    // olmayan iki sözden birinde evden söz eder.
+    const dogTurn = !!dog && n % 2 === 0;
+    const hint = !dogTurn && (dog || n % 2 === 0) ? this.sim.ruinHint() : null;
+    const line = hint ?? (dog && dogTurn ? t(DOG_TALK_LINES[(base + n / 2) % DOG_TALK_LINES.length], { dog: dog.name }) : t(TALK_LINES[(base + n) % TALK_LINES.length]));
     return { ok: true, message: t('{name}: “{line}”', { name: v.name, line }) };
   }
 

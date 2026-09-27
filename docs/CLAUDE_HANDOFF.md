@@ -57,6 +57,43 @@
   köpek paneli, araç şeridi, alt menü listesi, ana menü, Ayarlar: çakışma yok, taşma yok. Alt menü açılır listesi köpek
   panelinin üstüne gelebilir (geçici popover, üstte kalır) — kabul edildi. Gerçek cihaz testi kullanıcıda.
 
+## 0.23.2 — Terk edilmiş ev (M18 üçüncü dilimi; Claude, 2026-09-27)
+- Dünya: yeni `src/sim/world/Ruin.ts`. `findRuinSite(world)` RNG'siz: yasak kare maskesi (su, dağ, köy, arsa biyomu; en büyük arsa
+  [`plot` + `plotMaxW/H`] + `plotPad` 6; köy + 16; yol karelerinin `roadPad` 4 çevresi; yuva ve in kareleri ±1 → yuva/in listeleri
+  değişmez, sonraki her şey aynı) ve orman sayısı için kare toplamları (pencere başına O(1)); güney yolunun başından tek BFS
+  (`reachableFrom`, katılık katmanlardan çünkü üretimde `solid` henüz yok), pencerenin dış halkasından bir kare ulaşılmalı. Puan:
+  ideal 65'e uzaklık (tam kare) → orman oranı → tarama sırası; orman eşiği `forestTiers` 0,7 → 0,4 → 0. 20 tohumda hep var (orman
+  54–80/80), ~3 ms. `stampRuin` `generateWorld`'de köyden sonra (RNG'den sonra), `world.ruin` {x, y, w 4, h 3, clearing 10×8};
+  açıklıktaki gövdeler tepeleriyle kalkar, gövdesi açıklığın altındaki tepe kalır; ev kareleri `buildingSolid`. `restampRuin`
+  yüklemede `restampVillage`'dan sonra (eski kayıtta orada kesilmiş ağacın kütüğü kalkar). `ruinAt`, `ruinDoorTile`, `RUIN_ID` −2000.
+- Sim: `sim.ruin: RuinState {found, chest 0|1|2, tools, journal, nest}` (kayıtta; `ruinStateFromJSON` kırpar, bulgu varsa found).
+  `systems/RuinSystem.ts`: `checkRuinFound` (`revealPlayer`'da, 7 kare), `ruinDirection`/`ruinTalkLine` (QuestSystem'in
+  `DIRECTION_NAMES_TR`; Sim `ruinHint()` üzerinden → VillagerSystem döngüsel içe aktarma yok), `openRuinChest` (400 ₺ `event` geliri
+  "Nuri Usta'nın sandığı"; yumurta `Rng(hash3(seed, RUIN_ID, 0xc4e57))` nadir → hep aynı soy, çanta doluysa chest 1),
+  `openRuinCabinet` (tools), `readRuinJournal` (ilk okuyuşta `hiddenNestSpot`: kapıdan 12–20 kare, ulaşılır boş kara karesi, açıklık/
+  en büyük arsa/köy dışında, yuva ve inlerden ≥6, `hash3(seed, kare, 0x9e57)` en küçüğü; `setObject(NestEggs)` → kayıtta
+  `objectChanges` ile geri gelir), `isHiddenNestFirst` (NestSystem: ilk hasat efsanevi, yerel RNG). `Sim.enterRuin()` (köy binası
+  gibi; girince found). `Materials.harvestFor(sim, …)`: aletlerle ağaç/kaya +`toolBonus`; `tickRegrow` tepe karesi binada değilse.
+- Etkileşim: `ActionKind` += enterRuin/ruinChest/ruinCabinet/ruinJournal (hepsi `MANUAL_ACTIONS`); dışarıda ev karesine bakınca
+  "E: terk edilmiş ev · içeri gir"; iç eşyalar `chest`, `ruinCabinet`, `ruinDesk`, `hearth`, `brokenBed`, `cobweb`; gizli yuvanın ilk
+  yumurtası "🌟 Nuri Usta'nın gizli yuvası: …". PlayerNav `{kind: 'ruin'}` (kapı önü, otopilotta girmez). Köylü: köpeği olmayan iki
+  sözden birinde, köpeği olan köpek sözü dışındaki her sözde evin yönü (ev bulununca susar; village-stage testi korunur).
+- Arayüz: WorldScene `addRuinImage` (`BuildingArt.drawRuin`: yıpranmış tahta, delik çatı, kırık baca, çapraz tahtalı pencere, aralık
+  kapı, yosun), eve dokunuş `goInteract ruin`; iç eşya dokuları sandık 0/1/2 ve dolap 0/1 değişkeni (`interiorItemTextureKey`),
+  10 Hz yenilenir; sesler (sandık coin). `JournalPanel` (`store.journalPage`, masadan açınca 0; son sayfada gizli yuva uzaklığı + 🗺️
+  Harita). Mini harita ev (bulununca) ve mor nokta; Harita sayfasında 🏚️ ve 🥚 satırları + Git + açıklama. Başarım `ruin` (37).
+  TouchControls: E düğmesinde 12 harften uzun çok kelimeli köpek adının ilk kelimesi (1024×768 dokunmatikte "Minnoş Karabaşım"
+  5 px kesiliyordu; köpek oyuncunun önüne denk gelince denetimde çıkıyordu). 37 yeni EN metni; günlük sayfaları i18n tablo testinde.
+- Denetim: `richGame` evi bulmuş, aletleri almış, günlüğü okumuş; yeni adımlar `panel:journal` (3. sayfa) ve `interior:ruin` (79 ekran).
+- Testler `tests/unit/ruin.test.ts` (7): 20 tohumda yer (uzaklık, arsa/köy/yol dışı, yuva/in yok, açıklık temiz, ev katı, kapıya
+  güney yolundan yol, aynı tohum aynı yer); keşif + başarım + giriş/çıkış; sandık (çanta dolu → bekler; soy her oyunda aynı); dolap
+  (ağaç/kaya +1, kütük değil); günlük ve gizli yuva (uzaklık, ulaşım, efsanevi ilk yumurta, ikinci okuma yuva eklemez); kayıt turu,
+  eski kayıt (açıklıktaki kütük kalkar), bozuk değerler, ana RNG ikizle aynı; köylü ipucu. 468 test. Tarayıcı 812×375: yaklaşınca
+  mesaj, E "terk edilmiş ev · içeri gir", eve dokununca yürüyüp girdi; sandık "+400 ₺ ve bir yumurta", dolap "🪓 …", günlük paneli
+  3 sayfa + "Gizli yuva: 19 kare", Harita satırları ve mor nokta. Denetim 812×375, 568×320 (TR/EN), 768×1024 (TR/EN), 1024×768,
+  1280×720 (TR/EN): 0 sorun; dokunma senaryoları 19/19.
+- Sıradaki: 0.23.3 evi onar (orman evi).
+
 ## 0.23.1 — Malzemeyle öde (M18 ikinci dilimi; Claude, 2026-09-27)
 - İçerik: `BuildingDef.mats?: {wood?, stone?}` 20 binada (top, çiçek, ofis yok; her tarif fiyatın en çok yarısı, test denetler);
   `TileToolDef.mat {kind, n, tiles}` (çit odun 1/1, kapı odun 2/1, yol taş 1/2). `BALANCE.materials` += `woodValue 20`,

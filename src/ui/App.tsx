@@ -29,6 +29,7 @@ import { QuestPanel } from './QuestPanel';
 import { MailPanel } from './MailPanel';
 import { AlbumPanel } from './AlbumPanel';
 import { Coach } from './tutorial/Coach';
+import { JournalPanel } from './JournalPanel';
 
 export function App() {
   store.lang.value;
@@ -70,6 +71,7 @@ export function App() {
           {panel === 'quests' && <QuestPanel />}
           {panel === 'mail' && <MailPanel />}
           {panel === 'album' && <AlbumPanel />}
+          {panel === 'journal' && <JournalPanel />}
           {store.report.value && <WeeklyReport />}
           {store.pauseMenu.value && <PauseMenu />}
           {store.gameOver.value && <GameOverPanel />}

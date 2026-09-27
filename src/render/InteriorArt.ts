@@ -5,7 +5,7 @@ import { TILE } from './TileArt';
 
 /** İç mekân eşyalarının doku anahtarı. */
 export function interiorItemTextureKey(type: InteriorItemType, variant = 0): string {
-  return type === 'sacks' ? `int-sacks-${variant}` : `int-${type}`;
+  return type === 'sacks' || type === 'chest' || type === 'ruinCabinet' ? `int-${type}-${variant}` : `int-${type}`;
 }
 
 /** Eşya çizimi: taban eşyanın kare dikdörtgeni, üst kısmı duvara taşabilir (sprite alt-sol kökenli çizilir). */
@@ -89,6 +89,18 @@ export function drawInteriorItem(type: InteriorItemType, variant = 3): Pixels {
       return drawDogBowl();
     case 'dogToy':
       return drawDogToy();
+    case 'chest':
+      return drawChest(variant);
+    case 'ruinCabinet':
+      return drawRuinCabinet(variant);
+    case 'ruinDesk':
+      return drawRuinDesk();
+    case 'hearth':
+      return drawHearth();
+    case 'brokenBed':
+      return drawBrokenBed();
+    case 'cobweb':
+      return drawCobweb();
   }
 }
 
@@ -819,5 +831,162 @@ function drawDogToy(): Pixels {
   for (let x = 3; x < 14; x += 3) p.fillRect(x, 11, 1, 4, WICKER_DARK);
   p.fillRect(1, 13, 14, 1, WICKER_DARK);
   p.outline(P.outline);
+  return p;
+}
+
+// --- Terk edilmiş ev (0.23.2) ---
+const OLD_WOOD = hex(0x6f5a44);
+const OLD_WOOD_DARK = hex(0x4f3f30);
+const OLD_WOOD_LIGHT = hex(0x8a735a);
+const IRON = hex(0x5b5f68);
+const SOOT = hex(0x2f2b2e);
+const ASH = hex(0x9a9794);
+const WEB = hex(0xdcdce4);
+const HOLLOW = hex(0x2a211a);
+
+/** Sandık: 0 kapalı ve kilitli; 1 açık, dipte yumurta; 2 (ve üstü) açık ve boş. Kapak açıkken arkaya devrik. */
+function drawChest(state: number): Pixels {
+  const p = new Pixels(TILE, 20);
+  if (state === 0) {
+    p.fillRect(1, 9, 14, 10, P.trunk);
+    p.fillRect(1, 4, 14, 5, P.trunkLight);
+    p.fillRect(2, 5, 12, 1, hex(0xb38352));
+    p.fillRect(1, 9, 14, 1, P.trunkDark);
+    for (const x of [3, 11]) p.fillRect(x, 4, 2, 15, IRON);
+    p.fillRect(7, 9, 2, 3, GOLD);
+    p.set(7, 11, P.trunkDark);
+  } else {
+    p.fillRect(1, 0, 14, 6, P.trunkLight);
+    p.fillRect(2, 1, 12, 1, hex(0xb38352));
+    for (const x of [3, 11]) p.fillRect(x, 0, 2, 6, IRON);
+    p.fillRect(1, 6, 14, 1, P.trunkDark);
+    p.fillRect(1, 7, 14, 4, HOLLOW);
+    if (state === 1) {
+      p.ellipse(8, 8.5, 2.5, 2, P.eggYellow);
+      p.set(7, 8, P.eggSpot);
+    }
+    p.fillRect(1, 11, 14, 8, P.trunk);
+    p.fillRect(1, 11, 14, 1, P.trunkDark);
+    for (const x of [3, 11]) p.fillRect(x, 11, 2, 8, IRON);
+  }
+  p.outline(P.outline);
+  return p;
+}
+
+/** Yıpranmış dolap (duvara taşar): kapalıyken çatlak kapaklar; açıkken boş askılar ve eski bir palto. */
+function drawRuinCabinet(open: number): Pixels {
+  const p = new Pixels(TILE, 28);
+  p.fillRect(0, 0, 16, 26, OLD_WOOD);
+  p.fillRect(0, 0, 16, 2, OLD_WOOD_LIGHT);
+  p.fillRect(15, 2, 1, 24, OLD_WOOD_DARK);
+  if (open === 0) {
+    p.fillRect(2, 3, 5, 22, OLD_WOOD_LIGHT);
+    p.fillRect(9, 3, 5, 22, OLD_WOOD_LIGHT);
+    p.fillRect(7, 3, 2, 22, OLD_WOOD_DARK);
+    p.set(6, 14, GOLD);
+    p.set(9, 14, GOLD);
+    p.line(3, 7, 5, 12, OLD_WOOD_DARK);
+    p.line(11, 17, 12, 21, OLD_WOOD_DARK);
+  } else {
+    p.fillRect(2, 3, 12, 22, HOLLOW);
+    p.fillRect(3, 6, 10, 1, OLD_WOOD_DARK);
+    p.set(4, 7, METAL);
+    p.set(6, 7, METAL);
+    p.fillRect(8, 7, 4, 12, hex(0x5a6b4e));
+    p.fillRect(8, 7, 4, 1, hex(0x44523b));
+    p.fillRect(9, 12, 2, 1, hex(0x44523b));
+  }
+  p.fillRect(1, 26, 2, 2, OLD_WOOD_DARK);
+  p.fillRect(13, 26, 2, 2, OLD_WOOD_DARK);
+  p.outline(P.outline);
+  return p;
+}
+
+/** Eski masa (2 kare): üstünde deri kaplı günlük, sönmüş mum, dağınık kâğıt; bir ayağı takozlu. */
+function drawRuinDesk(): Pixels {
+  const w = TILE * 2;
+  const p = new Pixels(w, 26);
+  const top = 12;
+  p.fillRect(0, top, w, 3, OLD_WOOD_LIGHT);
+  p.fillRect(0, top + 2, w, 1, OLD_WOOD_DARK);
+  p.fillRect(2, top + 3, 3, 11, OLD_WOOD);
+  p.fillRect(w - 5, top + 3, 3, 8, OLD_WOOD);
+  p.fillRect(w - 6, top + 11, 5, 3, P.rock);
+  p.fillRect(7, top + 3, 12, 5, OLD_WOOD);
+  p.fillRect(8, top + 4, 10, 1, OLD_WOOD_DARK);
+  p.set(12, top + 6, GOLD);
+  // Günlük: kahverengi deri kapak, kayış ve toka.
+  p.fillRect(3, top - 5, 11, 5, hex(0x7a4a2a));
+  p.fillRect(3, top - 5, 11, 1, hex(0x94603a));
+  p.fillRect(4, top - 1, 9, 1, PAPER);
+  p.fillRect(10, top - 5, 1, 5, hex(0x4e2e19));
+  p.set(10, top - 3, GOLD);
+  // Mum ve kâğıt.
+  p.fillRect(24, top - 6, 3, 6, PAPER);
+  p.set(25, top - 7, SOOT);
+  p.fillRect(23, top - 1, 5, 1, hex(0xe8e2d4));
+  p.fillRect(16, top - 2, 5, 2, hex(0xe8e2d4));
+  p.outline(P.outline);
+  return p;
+}
+
+/** Sönük ocak (2 kare, duvara yaslı): taş örgü, rafı, isli ağız, kül ve yanmamış kütükler. */
+function drawHearth(): Pixels {
+  const w = TILE * 2;
+  const h = 30;
+  const p = new Pixels(w, h);
+  p.fillRect(3, 0, w - 6, h, P.rock);
+  for (let row = 0; row * 5 + 2 < h - 2; row++) {
+    for (let x = 4 + (row % 2) * 3; x < w - 6; x += 7) p.fillRect(x, row * 5 + 2, 5, 3, P.rockLight);
+  }
+  p.fillRect(0, 11, w, 3, OLD_WOOD);
+  p.fillRect(0, 11, w, 1, OLD_WOOD_LIGHT);
+  p.fillRect(8, 16, w - 16, h - 16, SOOT);
+  p.fillRect(9, 14, w - 18, 2, hex(0x4a4547));
+  p.fillRect(9, h - 3, w - 18, 2, ASH);
+  p.fillRect(11, h - 5, 10, 2, P.trunkDark);
+  p.fillRect(13, h - 7, 7, 2, P.trunk);
+  p.outline(P.outline);
+  return p;
+}
+
+/** Kırık yatak (dikey, 2 kare): solmuş şilte, yırtık, çökmüş ayak ucu, dökülen saman. */
+function drawBrokenBed(): Pixels {
+  const h = TILE * 2 + 2;
+  const p = new Pixels(TILE, h);
+  p.fillRect(0, 0, 16, 6, OLD_WOOD);
+  p.fillRect(1, 1, 14, 2, OLD_WOOD_LIGHT);
+  p.fillRect(1, 6, 14, h - 7, OLD_WOOD_DARK);
+  p.fillRect(2, 6, 12, h - 9, hex(0xc9bfa6));
+  p.fillRect(3, 7, 10, 4, hex(0xb3a88d));
+  p.line(3, 14, 12, 21, hex(0x8f8266));
+  p.fillRect(2, h - 11, 12, 7, hex(0x9c8f72));
+  p.set(5, h - 8, P.sandLight);
+  p.set(9, h - 7, P.sandLight);
+  p.set(11, h - 9, P.sandLight);
+  p.fillRect(12, h - 4, 3, 3, OLD_WOOD_DARK);
+  p.outline(P.outline);
+  return p;
+}
+
+/** Örümcek ağı (duvarda): köşeden açılan teller ve halkalar, küçük örümcek. */
+function drawCobweb(): Pixels {
+  const p = new Pixels(TILE, TILE);
+  for (const [x, y] of [
+    [14, 1],
+    [11, 8],
+    [4, 13],
+  ]) {
+    p.line(0, 0, x, y, WEB);
+  }
+  for (const r of [4, 8, 12]) {
+    for (let a = 0; a <= 90; a += 12) {
+      const rad = (a * Math.PI) / 180;
+      p.set(Math.round(r * Math.cos(rad)), Math.round(r * Math.sin(rad)), WEB);
+    }
+  }
+  p.set(8, 9, SOOT);
+  p.set(8, 10, SOOT);
+  p.line(8, 5, 8, 8, WEB);
   return p;
 }

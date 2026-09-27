@@ -3,6 +3,7 @@ import { Rng, hash2 } from '../../core/Rng';
 import { TileWorld } from './TileWorld';
 import { Biome, Ground, Obj } from './tiles';
 import { stampVillage } from './Village';
+import { stampRuin } from './Ruin';
 
 // ---------------------------------------------------------------------------
 // Gürültü
@@ -150,6 +151,9 @@ export function generateWorld(seed: number): TileWorld {
 
   // 8) Köy (0.18.2): güney yolunun ucunda; RNG kullanmaz, eski kayıtlarda da aynı yerde.
   stampVillage(world);
+
+  // 9) Terk edilmiş ev (0.23.2): köyden sonra, RNG kullanmaz; yuva ve in listeleri değişmez.
+  stampRuin(world);
 
   // 7) Doğuş noktası ve geçilmezlik
   world.spawn = { x: plot.x + plot.w / 2, y: plot.y + plot.h - 3 };

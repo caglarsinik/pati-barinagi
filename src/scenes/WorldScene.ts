@@ -12,6 +12,7 @@ import { type DogGenome, genomeKey } from '../sim/entities/DogGenome';
 import { type Building, type Rotation, buildingDef, buildingDoorTile, buildingFootprint, canPlaceBuilding, isReady, buildingSize, kennelRestTile, solidRowsFor } from '../sim/entities/Building';
 import type { Dog } from '../sim/entities/Dog';
 import { quoteBuilding } from '../sim/systems/BuildSystem';
+import { type RuinSite, ruinAt } from '../sim/world/Ruin';
 import type { PlayerInput } from '../sim/entities/Player';
 import type { Mode, Sim } from '../sim/Sim';
 import type { ActionKind, ActionOutcome, Tool } from '../sim/systems/Interaction';
@@ -32,7 +33,7 @@ import type { Staff } from '../sim/entities/Staff';
 import { drawEgg } from '../render/EggArt';
 import { type VillageBuilding, questBoardTile, villageDoorTile, villageInteractive } from '../sim/world/Village';
 import { isMarketDay } from '../sim/systems/ShopSystem';
-import { drawBalloons, drawQuestBoard, drawSignpost, drawVillageBuilding } from '../render/BuildingArt';
+import { drawBalloons, drawQuestBoard, drawRuin, drawSignpost, drawVillageBuilding } from '../render/BuildingArt';
 import { entryPoint } from '../sim/world/gates';
 import { type SignId, signKnown, signposts } from '../sim/world/Signposts';
 import { familyLast } from '../sim/systems/Stories';
@@ -279,6 +280,8 @@ export class WorldScene extends Phaser.Scene {
     // --- Seçim halkası ve inşa hayaleti ---
     // Köy binaları (0.18.2): oyuncuya ait değil, yalnız görsel (katılık dünya üretiminde).
     for (const vb of world.villageBuildings) this.addVillageImage(vb);
+    // Terk edilmiş ev (0.23.2): yalnız görsel (katılık dünya üretiminde).
+    if (world.ruin) this.addRuinImage(world.ruin);
     const market = world.villageBuildings.find((b) => b.kind === 'market');
     this.marketVendor = null;
     if (market) {
@@ -548,6 +551,10 @@ export class WorldScene extends Phaser.Scene {
         travel: 'click',
         quests: 'click',
         lostDog: 'pick',
+        enterRuin: 'click',
+        ruinChest: 'coin',
+        ruinCabinet: 'pick',
+        ruinJournal: 'click',
       };
       const name = sfx[kind];
       if (name) audio.play(name);
@@ -580,6 +587,10 @@ export class WorldScene extends Phaser.Scene {
     else if (r.open === 'market') store.panel.value = 'market';
     else if (r.open === 'travel') store.panel.value = 'travel';
     else if (r.open === 'quests') store.panel.value = 'quests';
+    else if (r.open === 'journal') {
+      store.journalPage.value = 0;
+      store.panel.value = 'journal';
+    }
   }
 
   private readInput(): PlayerInput {
@@ -842,7 +853,8 @@ export class WorldScene extends Phaser.Scene {
       if (vb) {
         const d = villageDoorTile(vb);
         sim.command(villageInteractive(vb.kind) ? { type: 'goInteract', goal: { kind: 'village', index: vb.index } } : { type: 'goTo', x: d.x, y: d.y });
-      } else if (bid >= 0) sim.command({ type: 'goInteract', goal: this.isDoorTile(bid, tx, ty) ? { kind: 'enter', id: bid } : { kind: 'building', id: bid } });
+      } else if (ruinAt(w, tx, ty)) sim.command({ type: 'goInteract', goal: { kind: 'ruin' } });
+      else if (bid >= 0) sim.command({ type: 'goInteract', goal: this.isDoorTile(bid, tx, ty) ? { kind: 'enter', id: bid } : { kind: 'building', id: bid } });
       else if (o === Obj.NestEggs || o === Obj.Nest || o === Obj.BerryBush || o === Obj.Mess || o === Obj.Den) sim.command({ type: 'goInteract', goal: { kind: 'object', tile: { x: tx, y: ty } } });
       else if (harvestAt(w, tx, ty)) {
         // Odun ve taş (0.23.0): ağaca (tepesine de), kayaya ya da kütüğe dokun → yanına git, kes/kır/sök.
@@ -1597,6 +1609,17 @@ export class WorldScene extends Phaser.Scene {
       .setDepth(100 + (vb.y + vb.h) * T);
   }
 
+  /** Terk edilmiş ev görseli (0.23.2). */
+  private addRuinImage(site: RuinSite): void {
+    const T = GAME.tile;
+    const key = `ruin-${site.w}x${site.h}`;
+    if (!this.textures.exists(key)) this.textures.addCanvas(key, drawRuin(site.w, site.h).toCanvas());
+    this.add
+      .image(site.x * T, (site.y + site.h) * T, key)
+      .setOrigin(0, 1)
+      .setDepth(100 + (site.y + site.h) * T);
+  }
+
   /** İç mekânlı binanın alt-orta karesi (kapının hemen üstü): dokunuş içeri sokar (0.17.0). */
   private isDoorTile(bid: number, tx: number, ty: number): boolean {
     const b = this.sim.buildingById(bid);
@@ -1607,7 +1630,9 @@ export class WorldScene extends Phaser.Scene {
 
   /** Eşyanın dokusu (kiler rafı stoğa göre değişir); yoksa üretir. */
   private interiorTexture(item: InteriorItem): string {
-    const variant = item.type === 'sacks' ? sacksOnShelf(this.sim.foodStock, item.slot ?? 0) : 0;
+    // Değişen eşyalar: kiler rafı stoğa göre; terk edilmiş evde sandık ve dolap açılınca (0.23.2).
+    const R = this.sim.ruin;
+    const variant = item.type === 'sacks' ? sacksOnShelf(this.sim.foodStock, item.slot ?? 0) : item.type === 'chest' ? R.chest : item.type === 'ruinCabinet' ? (R.tools ? 1 : 0) : 0;
     const key = interiorItemTextureKey(item.type, variant);
     if (!this.textures.exists(key)) this.textures.addCanvas(key, drawInteriorItem(item.type, variant).toCanvas());
     return key;
@@ -1619,7 +1644,7 @@ export class WorldScene extends Phaser.Scene {
     const it = this.sim.interior;
     if (!v || !it) return;
     it.items.forEach((item, i) => {
-      if (item.type !== 'sacks' || !v.items[i]) return;
+      if ((item.type !== 'sacks' && item.type !== 'chest' && item.type !== 'ruinCabinet') || !v.items[i]) return;
       const key = this.interiorTexture(item);
       if (v.items[i].texture.key !== key) v.items[i].setTexture(key);
     });

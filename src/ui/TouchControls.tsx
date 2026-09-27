@@ -14,6 +14,11 @@ const DOG_VERBS: Partial<Record<ActionKind, string>> = {
   treatWild: 'Ödül ver',
 };
 
+/** Düğmedeki ad: uzun, çok kelimeli adın ilk kelimesi (0.23.2: 1024×768'de "Minnoş Karabaşım" 5 px kesiliyordu); tamamı ipucunda. */
+function buttonName(name: string): string {
+  return name.length > 12 && name.includes(' ') ? name.split(' ')[0] : name;
+}
+
 /**
  * Dokunmatik kontroller (avatar modu): büyük E düğmesi ipucundaki işi gösterir ve yapar; Koş anahtarı.
  * Yürüme dokun-git ile (WorldScene.touchTap), joystick yok.
@@ -36,7 +41,7 @@ export function TouchControls() {
         {verb && action?.dog ? (
           <>
             <span class="action-label one">{t(verb)}</span>
-            <span class="action-name">{action.dog.name}</span>
+            <span class="action-name">{buttonName(action.dog.name)}</span>
           </>
         ) : (
           <span class="action-label">{label ?? t('Yakında iş yok')}</span>

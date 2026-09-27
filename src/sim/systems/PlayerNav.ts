@@ -7,6 +7,7 @@ import type { Sim } from '../Sim';
 import { MANUAL_ACTIONS, performAction, resolveAction } from './Interaction';
 import { t } from '../../i18n';
 import { villageDoorTile, villageInteriorKind } from '../world/Village';
+import { ruinDoorTile } from '../world/Ruin';
 
 /** Dokun-git hedefi: boş kare ya da etkileşilecek şey (köpek, bina, yuva/çalı/pislik). */
 export type NavGoal =
@@ -19,6 +20,8 @@ export type NavGoal =
   | { kind: 'village'; index: number }
   /** Köylü (0.20.1): yanına git, dönüp konuş. */
   | { kind: 'villager'; index: number }
+  /** Terk edilmiş ev (0.23.2): kapı önüne yürü, içeri gir. */
+  | { kind: 'ruin' }
   | { kind: 'object'; tile: TilePos };
 
 interface Target {
@@ -85,6 +88,11 @@ export class PlayerNav {
       if (!v || v.inside) return null;
       anchor = { x: Math.floor(v.x), y: Math.floor(v.y) };
       face = { x: v.x, y: v.y - 0.35 };
+    } else if (goal.kind === 'ruin') {
+      const site = sim.world.ruin;
+      if (!site) return null;
+      const door = ruinDoorTile(site);
+      return { tile: door, face: { x: door.x + 0.5, y: door.y - 0.5 } };
     } else if (goal.kind === 'village') {
       const vb = sim.world.villageBuildings[goal.index];
       if (!vb) return null;
@@ -262,8 +270,13 @@ export class PlayerNav {
     }
     const kind = resolveAction(sim).kind;
     // Otopilot köy, tabela ve görev işlerini yapmaz (0.20.5): iş başarısız sayılır, panel açılmaz, köylüyle konuşulmaz.
-    if (sim.autopilot && (goal.kind === 'village' || MANUAL_ACTIONS.has(kind))) {
+    if (sim.autopilot && (goal.kind === 'village' || goal.kind === 'ruin' || MANUAL_ACTIONS.has(kind))) {
       sim.events.emit('interacted', { kind, result: { ok: false } });
+      return;
+    }
+    if (goal.kind === 'ruin') {
+      const result = sim.enterRuin();
+      sim.events.emit('interacted', { kind: 'enterRuin', result });
       return;
     }
     if (goal.kind === 'village') {

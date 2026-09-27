@@ -142,6 +142,17 @@ export function Minimap({
       ctx.fillStyle = vb.kind === 'fountain' ? '#6faae0' : vb.kind === 'market' ? '#e27aa8' : '#7d5430';
       ctx.fillRect(vb.x, vb.y, vb.w, vb.h);
     }
+    // Terk edilmiş ev (0.23.2), bulunduysa; günlükteki gizli yuva mor nokta.
+    const ruin = sim.world.ruin;
+    if (ruin && sim.ruin.found) {
+      ctx.fillStyle = '#8a7a66';
+      ctx.fillRect(ruin.x, ruin.y, ruin.w, ruin.h);
+    }
+    const hidden = sim.ruin.nest;
+    if (hidden) {
+      ctx.fillStyle = '#c77dff';
+      dot(hidden.x, hidden.y, 5);
+    }
     // Yol tabelaları (0.20.3), keşfedildiyse.
     ctx.fillStyle = '#e8c547';
     for (const s of signposts(sim.world)) if (signKnown(sim.world, s)) dot(s.x, s.y, 3);

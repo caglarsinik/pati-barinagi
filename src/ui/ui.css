@@ -1739,3 +1739,19 @@ select,
     font-size: 0.78rem;
   }
 }
+
+/* Nuri Usta'nın günlüğü (0.23.2). */
+.journal-panel {
+  max-width: 460px;
+}
+
+.journal-page {
+  font-style: italic;
+  font-size: 0.95rem;
+  line-height: 1.5;
+  margin: 8px 0 10px;
+}
+
+.journal-nav {
+  justify-content: space-between;
+}

@@ -4,6 +4,7 @@ import { type Egg, createEgg } from '../entities/Egg';
 import type { Rarity } from '../entities/DogGenome';
 import { Biome, Obj } from '../world/tiles';
 import type { Sim } from '../Sim';
+import { isHiddenNestFirst } from './RuinSystem';
 
 /** Biyom ve uzaklığa göre nadirlik ağırlıkları: [sıradan, az, nadir, efsanevi]. */
 function rarityWeights(biome: Biome, dist: number): [number, number, number, number] {
@@ -48,7 +49,8 @@ export function harvestNest(sim: Sim, x: number, y: number): Egg | null {
   const rng = new Rng(hash3(sim.seed, i, count));
   const p = w.plot;
   const dist = Math.hypot(x - (p.x + p.w / 2), y - (p.y + p.h / 2));
-  const rarity = rng.weighted(RARITIES, rarityWeights(w.biomeAt(x, y), dist));
+  // Nuri Usta'nın gizli yuvası (0.23.2): ilk yumurtası efsanevi (yerel RNG; ana sıra değişmez).
+  const rarity = isHiddenNestFirst(sim, x, y, count) ? 'legendary' : rng.weighted(RARITIES, rarityWeights(w.biomeAt(x, y), dist));
   const egg = createEgg(sim.nextId++, rng, rarity, sim.clock.day);
   sim.nestHarvests.set(i, count + 1);
   w.setObject(x, y, Obj.Nest);

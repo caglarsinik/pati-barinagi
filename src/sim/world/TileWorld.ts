@@ -1,5 +1,6 @@
 import { Biome, GROUND_SOLID, Ground, OBJ_INFO, Obj, Zone } from './tiles';
 import type { VillageBuilding } from './Village';
+import type { RuinSite } from './Ruin';
 
 export interface Rect {
   x: number;
@@ -39,6 +40,8 @@ export class TileWorld {
   /** Köy dikdörtgeni ve binaları (0.18.2; üretimde kurulur, kaydedilmez). */
   village: Rect | null = null;
   villageBuildings: VillageBuilding[] = [];
+  /** Terk edilmiş ev (0.23.2; üretimde kurulur, kaydedilmez). */
+  ruin: RuinSite | null = null;
   dirty: number[] = [];
   /** Üretimden sonra değişen nesne kareleri (kayıt için): kare indeksi → nesne. */
   objectChanges = new Map<number, number>();

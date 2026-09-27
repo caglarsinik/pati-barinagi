@@ -24,6 +24,8 @@ export interface SaveData {
   bakesToday?: number;
   markers?: unknown[];
   villageFound?: boolean;
+  /** Terk edilmiş ev (0.23.2): bulundu, sandık/dolap/günlük, gizli yuva. */
+  ruin?: unknown;
   starter?: string;
   goals?: unknown;
   dayStart?: unknown;

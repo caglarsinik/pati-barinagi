@@ -4,10 +4,10 @@ import { TileWorld, type TilePos } from '../world/TileWorld';
 import { Ground } from '../world/tiles';
 
 /** Girilebilen binaların iç mekân türü (M15; kulübeler 0.22.3: küçük ve büyük ayrı şablon). */
-export type InteriorKind = 'office' | 'restRoom' | 'pantry' | 'kitchen' | 'clinic' | 'hatchery' | 'wholesaler' | 'toyShop' | 'kennel' | 'kennelLarge';
+export type InteriorKind = 'office' | 'restRoom' | 'pantry' | 'kitchen' | 'clinic' | 'hatchery' | 'wholesaler' | 'toyShop' | 'kennel' | 'kennelLarge' | 'ruin';
 
 /** İç mekân eşyası: kare dikdörtgeni katıdır, önünde E ile kullanılır. */
-export type InteriorItemType = 'desk' | 'board' | 'window' | 'bookshelf' | 'coffee' | 'phone' | 'bed' | 'plant' | 'restBoard' | 'sofa' | 'tv' | 'fridge' | 'sacks' | 'ledger' | 'orderBoard' | 'counter' | 'oven' | 'waterTank' | 'spiceRack' | 'foodShelf' | 'examTable' | 'medCabinet' | 'reception' | 'waitChairs' | 'xray' | 'tray' | 'controlPanel' | 'heatLamp' | 'supplies' | 'bulkSacks' | 'shopCounter' | 'crates' | 'toyShelf' | 'vitaminShelf' | 'kennelBoard' | 'dogBed' | 'blanket' | 'dogBowl' | 'dogToy';
+export type InteriorItemType = 'desk' | 'board' | 'window' | 'bookshelf' | 'coffee' | 'phone' | 'bed' | 'plant' | 'restBoard' | 'sofa' | 'tv' | 'fridge' | 'sacks' | 'ledger' | 'orderBoard' | 'counter' | 'oven' | 'waterTank' | 'spiceRack' | 'foodShelf' | 'examTable' | 'medCabinet' | 'reception' | 'waitChairs' | 'xray' | 'tray' | 'controlPanel' | 'heatLamp' | 'supplies' | 'bulkSacks' | 'shopCounter' | 'crates' | 'toyShelf' | 'vitaminShelf' | 'kennelBoard' | 'dogBed' | 'blanket' | 'dogBowl' | 'dogToy' | 'chest' | 'ruinCabinet' | 'ruinDesk' | 'hearth' | 'brokenBed' | 'cobweb';
 
 /** İç mekâna satın alınan eşyalar (0.16.3 dinlenme odası; 0.22.3 kulübe). Fiyat ve üst sınır BALANCE.interior.furniture. */
 export type FurnitureType = 'sofa' | 'coffee' | 'tv' | 'fridge' | 'waterTank' | 'oven2' | 'medCabinet' | 'heatLamp' | 'dogBed' | 'blanket' | 'dogBowl' | 'dogToy' | 'kennelWindow';
@@ -56,6 +56,7 @@ export const FURNITURE_BY_KIND: Record<InteriorKind, readonly FurnitureType[]> =
   toyShop: [],
   kennel: KENNEL_FURNITURE,
   kennelLarge: KENNEL_FURNITURE,
+  ruin: [],
 };
 
 /** Kulübe iç mekânı mı (0.22.3)? */
@@ -250,6 +251,19 @@ const TEMPLATES: Record<InteriorKind, InteriorTemplate> = {
       { type: 'blanket', x: 8, y: 2, w: 1, h: 1, buy: 'blanket' },
       { type: 'dogBowl', x: 1, y: 4, w: 1, h: 1, buy: 'dogBowl' },
       { type: 'dogToy', x: 8, y: 4, w: 1, h: 1, buy: 'dogToy' },
+    ],
+  },
+  // 0.23.2 terk edilmiş ev: duvarda örümcek ağları ve sönük ocak; dolap (keskin aletler), kırık yatak, masada günlük, sandık.
+  ruin: {
+    rows: ['##########', '#========#', '#........#', '#........#', '#........#', '#........#', '####D#####'],
+    items: [
+      { type: 'cobweb', x: 2, y: 1, w: 1, h: 1 },
+      { type: 'hearth', x: 4, y: 1, w: 2, h: 1 },
+      { type: 'cobweb', x: 7, y: 1, w: 1, h: 1 },
+      { type: 'ruinCabinet', x: 1, y: 2, w: 1, h: 1 },
+      { type: 'brokenBed', x: 8, y: 2, w: 1, h: 2 },
+      { type: 'ruinDesk', x: 1, y: 4, w: 2, h: 1 },
+      { type: 'chest', x: 8, y: 5, w: 1, h: 1 },
     ],
   },
 };

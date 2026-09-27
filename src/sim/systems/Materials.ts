@@ -68,6 +68,13 @@ export function harvestAt(w: TileWorld, x: number, y: number): Harvest | null {
   }
 }
 
+/** Oyuncunun toplayacağı: dolaptaki keskin balta ve kazma (0.23.2) ağaçta ve kayada verimi artırır, kütükte değil. */
+export function harvestFor(sim: Sim, x: number, y: number): Harvest | null {
+  const h = harvestAt(sim.world, x, y);
+  if (h && sim.ruin.tools && h.kind !== 'uproot') h.amount += BALANCE.ruin.toolBonus;
+  return h;
+}
+
 /** E'nin ipucu: yapılabiliyorsa iş ve verim. */
 export function harvestHint(h: Harvest): string {
   switch (h.kind) {
@@ -134,7 +141,7 @@ export function tickRegrow(sim: Sim, day: number): void {
       sim.regrow.delete(i);
       continue;
     }
-    const topFree = y > 0 && w.objectAt(x, y - 1) === Obj.None && w.buildingIdAt(x, y - 1) === -1 && !w.inPlot(x, y - 1) && !inVillage(w, x, y - 1);
+    const topFree = y > 0 && w.objectAt(x, y - 1) === Obj.None && w.buildingIdAt(x, y - 1) === -1 && w.buildingSolid[w.idx(x, y - 1)] === 0 && !w.inPlot(x, y - 1) && !inVillage(w, x, y - 1);
     if (!topFree) {
       r.day = day + 1;
       continue;

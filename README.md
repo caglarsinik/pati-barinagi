@@ -283,6 +283,20 @@ malzeme bitince kalan kareler parayla. Yıkım ödediğinin yarısını geri ver
 yuvarlanır, çanta doluysa fazlası kaybolur); malzemeyle konan çit, kapı ya da yol karesi iade vermez. Defterde gider ödenen
 paradır, notta "(malzemeyle −180 ₺)". Malzeme satılamaz.
 
+## Terk edilmiş ev
+
+Uzak ormanda, barınaktan 55–85 kare ötede eski barınakçı **Nuri Usta**'nın terk edilmiş evi var (0.23.2; yeri her dünyada
+tohumdan belli, yürüyerek ulaşılır). Ev bulunmadıysa köylüler sözlerinin arasında evin barınağa göre yönünü söyler ("…barınaktan
+kuzeydoğu yönünde, ormanın içindeymiş"). Eve 7 kare yaklaşınca bulunur ("🏚️ Ormanda terk edilmiş bir ev buldun"), "Terk edilmiş
+ev" başarımı açılır, ev mini haritada ve Harita sayfasında görünür (🏚️ satırı ve Git). Kapısının önünde E ya da eve dokun: içeri
+girilir; çıkmak için kapıya yürü.
+
+- **Sandık:** bir kez 400 ₺ ve nadir bir yumurta. Çanta doluysa para alınır, yumurta sandıkta bekler (yer açınca yeniden E).
+- **Dolap:** keskin balta ve kazma → ağaçtan ve kayadan +1 (ağaç +4 odun, çam +3, kaya +3 taş; kütük değişmez).
+- **Masadaki günlük:** Nuri Usta'nın hikâyesi (3 sayfa, istendiğinde yeniden okunur). İlk okuyuşta evden 12–20 kare uzakta gizli
+  bir yuva açılır: haritada mor nokta ve 🥚 satırı (Git); **ilk yumurtası efsanevi**, sonra olağan bir yuva gibi dolar.
+- Sönük ocak ve kırık yatak şimdilik yalnız bakılır; ev 0.23.3'te onarılınca işe yarayacak. Otopilot eve girmez.
+
 ## Ekonomi ve sahiplendirme
 
 - Sahiplenici 10:00-16:00 arasında kapıdan gelir, ofisin önünde yaklaşık 2,5 saat bekler. O tuşu ya da ofisteki bilgisayarı (E) aç; istek kartına göre en uygun köpeği puanla gör ve sahiplendir. Zayıf eşleşme (puan < 50) itibar düşürür, köpek geri gelebilir.
@@ -579,7 +593,8 @@ Bilgisayar değiştirirken ya da yedek almak için kullan.
 - [x] M19 Konfor ve Yaşam Kalitesi (0.22.0–0.22.6): müzik arka planda durur, ihtiyaç şeridi, mini harita yakınlaştırma, binayı taşı, kulübe içi ve eşya etkileri, açılış tanıtımı
 - [x] 0.23.0 Odun ve taş: arsa ve köy dışında ağaç/çam kes, kaya kır, kütük sök (E ya da dokunuş); kütük 5–8 günde yeniden ağaç; çantada en çok 99
 - [x] 0.23.1 Malzemeyle öde: inşa çubuğunda 🪵🪨 anahtarı; bina tarifleri (odun 20 ₺, taş 30 ₺ indirim, en çok yarısı), çit/kapı odunla, yol taşla; yıkımda ödenenin yarısı
-- [ ] M18 Terk Edilmiş Ev ve Malzemeler (0.23.0–0.23.4): 0.23.0 ✅ odun ve taş → 0.23.1 ✅ malzemeyle öde → 0.23.2 uzak ormanda ev → 0.23.3 onarım → 0.23.4 cila
+- [x] 0.23.2 Terk edilmiş ev: uzak ormanda Nuri Usta'nın evi (tohumdan yer, köylü ipucu, keşif başarımı); sandık 400 ₺ + nadir yumurta, dolapta keskin aletler (+1), günlük ve ilk yumurtası efsanevi gizli yuva
+- [ ] M18 Terk Edilmiş Ev ve Malzemeler (0.23.0–0.23.4): 0.23.0 ✅ odun ve taş → 0.23.1 ✅ malzemeyle öde → 0.23.2 ✅ uzak ormanda ev → 0.23.3 onarım → 0.23.4 cila
 - [ ] Sonrası: yuva evi içi, kuzey/batı arsa genişletme
 
 ## Geliştirme

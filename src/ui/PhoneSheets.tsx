@@ -6,6 +6,7 @@ import { showToast, store } from './store';
 import { useState } from 'preact/hooks';
 import { BALANCE } from '../config/balance';
 import { audio } from '../audio/audio';
+import { ruinDoorTile } from '../sim/world/Ruin';
 
 /** Telefonda uyarılar sütun yerine üst şeritteki 🔔 rozetinden açılan sayfada listelenir. */
 export function AlertsSheet() {
@@ -77,6 +78,10 @@ export function MapSheet() {
   const po = sim.playerOutside;
   // Kayıp köpek görevi (0.20.4): arama alanına git.
   const area = sim.quests.searchArea();
+  // Terk edilmiş ev ve günlükteki gizli yuva (0.23.2).
+  const ruin = sim.ruin.found ? sim.world.ruin : null;
+  const ruinDoor = ruin ? ruinDoorTile(ruin) : null;
+  const nest = sim.ruin.nest;
   const goArea = (x: number, y: number): void => {
     const r = sim.command({ type: 'goTo', x, y });
     if (r.message) showToast(r.message);
@@ -137,7 +142,26 @@ export function MapSheet() {
                 </button>
               </div>
             )}
+            {ruinDoor && (
+              <div class="marker-row">
+                <span class="marker-dot" style={{ background: '#8a7a66' }} />
+                <span class="small-text marker-dist">{t('🏚️ Terk edilmiş ev: {d} kare uzakta', { d: Math.round(Math.hypot(ruinDoor.x - po.tileX, ruinDoor.y - po.tileY)) })}</span>
+                <button class="btn small" disabled={!!sim.interior} onClick={() => goArea(ruinDoor.x, ruinDoor.y)}>
+                  {t('Git')}
+                </button>
+              </div>
+            )}
+            {nest && (
+              <div class="marker-row">
+                <span class="marker-dot" style={{ background: '#c77dff' }} />
+                <span class="small-text marker-dist">{t('🥚 Gizli yuva: {d} kare uzakta', { d: Math.round(Math.hypot(nest.x - po.tileX, nest.y - po.tileY)) })}</span>
+                <button class="btn small" disabled={!!sim.interior} onClick={() => goArea(nest.x, nest.y)}>
+                  {t('Git')}
+                </button>
+              </div>
+            )}
             <p class="muted small-text">{t('Sarı nokta dolu yuva, turuncu nokta sokak köpeği ini, beyaz nokta sensin.')}</p>
+            {nest && <p class="muted small-text">{t("Mor nokta: Nuri Usta'nın gizli yuvası.")}</p>}
             {area && <p class="muted small-text">{t('Turuncu çerçeve: kayıp köpeğin görüldüğü alan.')}</p>}
           </div>
         </div>

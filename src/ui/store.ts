@@ -52,7 +52,8 @@ export type Panel =
   | 'travel'
   | 'quests'
   | 'mail'
-  | 'album';
+  | 'album'
+  | 'journal';
 
 export type BuildTool =
   | { kind: 'none' }
@@ -108,6 +109,8 @@ export const store = {
   tutorialDone: signal(false),
   /** Sabah raporu (0.19.2): gösterilen rapor ve Ayarlar'daki kapatma. */
   morningReport: signal<MorningReport | null>(null),
+  /** Nuri Usta'nın günlüğünde açık sayfa (0.23.2; masadan açınca başa döner). */
+  journalPage: signal(0),
   morningHidden: signal(false),
   /** Dünya üstü isim etiketleri (L). */
   labels: signal(true),

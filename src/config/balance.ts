@@ -202,6 +202,30 @@ export const BALANCE = {
     stoneValue: 30,
     maxShare: 0.5,
   },
+  /**
+   * Terk edilmiş ev (M18, 0.23.2): uzak ormanda Nuri Usta'nın evi. Yer RNG'siz seçilir: ev merkezi arsa merkezinden
+   * `minDist`–`maxDist` kare (en iyisi `idealDist`), en büyük arsa + `plotPad`, köy + `villagePad`, yollar + `roadPad` dışında;
+   * açıklığın orman oranı en az `forestTiers` sırasındaki eşik (bulunamazsa sıradaki).
+   */
+  ruin: {
+    minDist: 55,
+    maxDist: 85,
+    idealDist: 65,
+    plotPad: 6,
+    villagePad: 16,
+    roadPad: 4,
+    forestTiers: [0.7, 0.4, 0],
+    /** Bu kadar kare yaklaşınca ev bulunur. */
+    foundRadius: 7,
+    /** Sandıktaki para (yanında nadir bir yumurta). */
+    chestMoney: 400,
+    /** Dolaptaki keskin balta ve kazma: ağaçtan ve kayadan fazladan. */
+    toolBonus: 1,
+    /** Günlükteki gizli yuva: kapıdan uzaklık aralığı ve başka yuvalardan en az uzaklık. */
+    nestMinDist: 12,
+    nestMaxDist: 20,
+    nestClear: 6,
+  },
   /** Kuluçka içi (0.17.3): ısı lambası kalan ve yeni çatlama sürelerini bu oranla kısaltır. */
   hatchery: {
     lampTimeMul: 0.85,
