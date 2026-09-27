@@ -1606,4 +1606,19 @@ export const EN: Record<string, string> = {
   'Yıka': 'Wash',
   'Tedavi et': 'Treat',
   'Ödül ver': 'Give treat',
+
+  // 0.22.0: ihtiyaç şeridi
+  '{n} köpek aç': '{n} hungry',
+  '{n} aç': '{n} hungry',
+  '{n} köpek susuz': '{n} thirsty',
+  '{n} susuz': '{n} thirsty',
+  '{n} köpek hasta': '{n} sick',
+  '{n} hasta': '{n} sick',
+  '{n} köpek kirli': '{n} dirty',
+  '{n} kirli': '{n} dirty',
+  '{n} köpek kulübesiz': '{n} without a kennel',
+  '{n} kulübesiz': '{n} without a kennel',
+  '{n} köpek sıkılmış': '{n} bored',
+  '{n} sıkılmış': '{n} bored',
+  'Uyarıları aç': 'Open alerts',
 };

@@ -166,6 +166,9 @@ toplamaya arsadan en çok 40 kare uzağa gider, köyün çevresine hiç gitmez. 
   de kalkıp alana gider; gezintide tuvaletini dışarıda yapar, pislik bırakmaz.
 - Sevmek sadakati, oynamak keyfi, fırçalamak temizliği artırır. Eğitim aracıyla köpek panelinden seçtiğin beceriyi çalıştırırsın.
 - Gece köpekler kulübelerinde uyur; kulübesi olmayan köpek dışarıda kötü uyur.
+- **İhtiyaç şeridi** (0.22.0): sol altta, araç düğmesinin üstünde "3 köpek aç · 2 susuz · 1 hasta" gibi, oyuncunun
+  sağlayabileceği şeylerden (yem, su, tedavi, temizlik, kulübe, oyun) yoksun köpekleri sayar; rengi en ağır uyarıdan gelir.
+  Dokununca uyarı listesi açılır, satıra dokununca köpeğin paneli. Telefonda da görünür (telefonda inşa çubuğu açıkken gizlenir).
 - **Dostluk:** sıkılan iki köpek 8 kare içinde buluşup birlikte oynar (oyun bahçesi varsa orada); ikisinin de keyfi, dostluk puanı ve "sosyallik" becerisi artar, üstlerinde 🐾 çıkar. İki cesur köpek arada hırlaşır (dostluk düşer, bir saatlik uyarı); sosyalliği tam köpekler hırlaşmaz. Köpek paneli en yakın dostu gösterir; kulübe ataması dostun kulübesini tercih eder. Sıkılan ya da aç kalan köpek havlar.
 - **Huy:** Çekingen köpek güvenmeden (sadakat 40 altı) sevmeden az etkilenir, güvenince çok bağlanır; sadakati 50 altındayken yaklaşan insandan kaçar. Cesur köpek daha kolay kaçar (x1,5), 2 ödülle evcilleşir, daha geniş dolaşır. Oyuncu huylu köpek daha erken oyuncak arar. Sakin köpek daha çok yatar, hırlaşmaz.
 - **Beceriler işe yarar:** Gel → 6 numaralı Çağır aracı; Otur → oyuncu 2 sn bitişik durunca oturur, eşleşmede +3; Bekle → gece kaçmaz; Tasma → köpek panelinden "Gezdir": köpek peşine takılır, arsadan çıkıp dönünce keyif +40, sadakat +5 (biraz kirlenir, yorulur); HUD'daki Bırak ile dışarıda bırakılan köpek kendi başına eve döner. İstekten fazla her öğrenilmiş beceri eşleşme puanına +2 (en çok +6) verir.
@@ -314,7 +317,8 @@ Personel yalnız dinlenme odasına girer (molada); Personel WC'yi dışarıdan k
 Tüm efektler ve müzik Web Audio API ile çalışma anında sentezlenir (`src/audio/`): havlama köpeğin boyuna göre
 inceliyor/kalınlaşıyor, yem dökme, fırça, yumurta çatlama, sahiplendirme cıngılı, hafta raporu akoru gibi
 20'den fazla efekt ve gündüz/gece değişen üretken bir ortam müziği var. Tarayıcı kuralı gereği ilk tıklamadan
-sonra ses açılır. Ayarlar (Esc → Ayarlar) ses seviyelerini ve sessiz modu tutar.
+sonra ses açılır. Ayarlar (Esc → Ayarlar) ses seviyelerini ve sessiz modu tutar. Oyun arka plana atılınca (sekme ya da
+uygulama değişince, pencere odağı gidince) müzik ve efektler susar; öne gelince müzik kaldığı yerden sürer (0.22.0).
 
 Gerçek ses dosyası kullanmak istersen: `src/audio/Sfx.ts` içindeki `playSfx` her efekt için tek giriş noktasıdır;
 oraya bir `Audio` nesnesi ya da `AudioBufferSourceNode` oynatan bir dal ekleyip dosyayı `public/` altına koyabilirsin.
@@ -463,7 +467,10 @@ Bilgisayar değiştirirken ya da yedek almak için kullan.
 - [x] 0.21.4 Can dostları: karşılıklı dostluk ≥70 olan iki köpek birlikte verilir (ücret ×1,7, tek mektup), ayrılırsa kalan üzülür
 - [x] 0.21.5 Cila: dokunma senaryosu 16 (sahiplendirme hikâyesi), Kontroller'de "Sahiplendirme", "Mektup kutusu" başarımı — M13 Sahiplendirme Hikâyeleri tamam
 - [x] 0.21.6 Arayüz denetimi: telefon (568×320–915×412), tablet (768×1024–1180×820) ve masaüstünde 59 ekranda taşan, kesilen, üst üste binen yazılar düzeltildi; dünya adları çakışmaz; `__pati.debug.auditScreens()`
-- [ ] Sonrası: yuva evi içi, kuzey/batı arsa genişletme; isteğe bağlı terk edilmiş ev + taş/odun
+- [x] 0.22.0 Arka planda müzik durur (kaldığı yerden sürer) ve sol altta ihtiyaç şeridi ("3 köpek aç · 2 susuz")
+- [ ] M19 Konfor ve Yaşam Kalitesi (dilimlendi, `docs/PLAN.md`): 0.22.0 ✅ müzik + ihtiyaç şeridi → 0.22.1 mini harita yakınlaştırma → 0.22.2 binayı taşı → 0.22.3 kulübe içi → 0.22.4 kulübe eşya etkileri → 0.22.5 açılış hikâyesi (tanıtım) → 0.22.6 cila
+- [ ] M18 Terk Edilmiş Ev ve Malzemeler (0.23.0–0.23.4): odun ve taş, malzemeyle öde, uzak ormanda ev, onarım
+- [ ] Sonrası: yuva evi içi, kuzey/batı arsa genişletme
 
 ## Geliştirme
 

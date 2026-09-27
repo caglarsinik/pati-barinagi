@@ -12,11 +12,20 @@ export interface AudioSettings {
 
 const DEFAULTS: AudioSettings = { master: 0.8, sfx: 0.9, music: 0.5, muted: false };
 
+/** Arka plan dinleyicileri için pencere ve belge (testte sahtesi verilir). */
+export interface BackgroundTarget {
+  addEventListener(type: string, listener: () => void): void;
+}
+export interface BackgroundDoc extends BackgroundTarget {
+  readonly visibilityState: string;
+  hasFocus(): boolean;
+}
+
 /**
  * Ses yolu: master → sfx / music kazançları. Ayarlar localStorage'da saklanır.
  * `SoundSource` mantığı: gerçek ses dosyalarına geçmek istersen playSfx'i dosya oynatanla değiştirmen yeter.
  */
-class AudioEngine {
+export class AudioEngine {
   settings: AudioSettings = { ...DEFAULTS };
   private ctx: AudioContext | null = null;
   private synth: Synth | null = null;
@@ -26,6 +35,8 @@ class AudioEngine {
   private music: Music | null = null;
   private lastPlayed = new Map<string, number>();
   private wantMusic: MusicMode | null = null;
+  /** Oyun arka planda (sekme gizli, pencere odak dışı, sayfa önbellekte): ses bağlamı askıda (0.22.0). */
+  private background = false;
 
   constructor() {
     this.load();
@@ -35,8 +46,13 @@ class AudioEngine {
     return this.ctx !== null && this.ctx.state === 'running';
   }
 
-  /** İlk tıklama/tuşta çağrılır; AudioContext ancak o zaman açılabilir. */
+  get inBackground(): boolean {
+    return this.background;
+  }
+
+  /** İlk tıklama/tuşta çağrılır; AudioContext ancak o zaman açılabilir. Kullanıcı etkileşimi oyunun önde olduğu demektir. */
   unlock(): void {
+    this.background = false;
     if (!this.ctx) {
       try {
         const Ctor = window.AudioContext ?? (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
@@ -56,12 +72,44 @@ class AudioEngine {
         return;
       }
     }
-    if (this.ctx.state === 'suspended') void this.ctx.resume();
+    if (this.ctx.state !== 'running') void this.ctx.resume().catch(() => undefined);
     if (this.wantMusic && this.music && !this.music.isRunning) this.music.start(this.wantMusic);
   }
 
+  /**
+   * Oyun arka plana atılınca ses bağlamı askıya alınır, öne gelince sürer (0.22.0). Müzik durdurulmaz: zamanlayıcı
+   * `ctx.currentTime` donduğu için yeni nota planlamaz, dönüşte kaldığı yerden çalar. Arka planda efekt çalınmaz.
+   */
+  setBackground(on: boolean): void {
+    if (this.background === on) return;
+    this.background = on;
+    const ctx = this.ctx;
+    if (!ctx) return;
+    if (on) {
+      if (ctx.state === 'running') void ctx.suspend().catch(() => undefined);
+      return;
+    }
+    if (ctx.state !== 'running') void ctx.resume().catch(() => undefined);
+    if (this.wantMusic && this.music && !this.music.isRunning) this.music.start(this.wantMusic);
+  }
+
+  /**
+   * Arka plan dinleyicileri (bir kez, app.init'te): sekme gizlenince, pencere odağı gidince ve sayfa önbelleğe girince
+   * susar; görünür ve odakta olunca sürer.
+   */
+  attachBackgroundListeners(win: BackgroundTarget = window, doc: BackgroundDoc = document): void {
+    const hide = (): void => this.setBackground(true);
+    const sync = (): void => this.setBackground(doc.visibilityState === 'hidden' || !doc.hasFocus());
+    doc.addEventListener('visibilitychange', sync);
+    win.addEventListener('blur', hide);
+    win.addEventListener('focus', sync);
+    win.addEventListener('pagehide', hide);
+    win.addEventListener('pageshow', sync);
+    sync();
+  }
+
   play(name: SfxName, opts: SfxOpts = {}, minGapMs = 40): void {
-    if (!this.synth || !this.sfxGain || this.settings.muted) return;
+    if (!this.synth || !this.sfxGain || this.settings.muted || this.background) return;
     const now = performance.now();
     const last = this.lastPlayed.get(name) ?? -Infinity;
     if (now - last < minGapMs) return;

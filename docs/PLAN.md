@@ -558,6 +558,30 @@ köpek panelinde kulübe + Göster satırı taşıyordu; ofis düğme satırı t
 ve balonlar üst üste biniyordu. Sonuç: bütün boyutlarda Türkçe 0 sorun (İngilizcede yalnız tablet dikeyde "Achievements"
 etiketi birkaç piksel üç noktayla kısalıyor).
 
+### M19 Konfor ve Yaşam Kalitesi (2026-09-27 kullanıcı notları; M18'den önce)
+Kullanıcının altı notu: arka plana atılınca müzik kesilsin, köpeklerin açlık/susuzluk gibi yoksunlukları sol altta sayılsın,
+mini harita yakınlaşsın, kurulu binalar taşınabilsin, kulübenin içi eşyayla tasarlansın, düğmeler bir başlangıç hikâyesiyle
+tanıtılsın (Ayarlar'dan kapatılabilir).
+
+| Sürüm | Konu |
+|---|---|
+| 0.22.0 ✅ | Arka planda müzik durur (`AudioEngine.setBackground`: bağlam askıya alınır, müzik kaldığı yerden sürer; gizli sekme, odak kaybı, sayfa önbelleği) + sol altta ihtiyaç şeridi (`NeedSummary`: köpek uyarıları kimlik önekiyle sayılır; dokununca uyarı listesi) |
+| 0.22.1 | Mini harita yakınlaştırma 1×/2×/4×: +/−/⌖, sürükle, iki parmak; tam ekran haritada ve masaüstü panelinde |
+| 0.22.2 | Taşı aracı: kurulu bina içindekilerle yerinde taşınır (köpekler, yumurtalar, eşyalar, seviye korunur), döndürülür; ücretsiz; ofis taşınmaz |
+| 0.22.3 | Kulübe içi 1: kapıdan girilen oda (küçük 8×6, büyük 10×6), panodan yatak, battaniye, su kabı, oyuncak sepeti, pencere; uyuyan köpekler içeride |
+| 0.22.4 | Kulübe içi 2: eşya etkileri (uyku enerjisi, hijyen, susuzluk, oyun, hastalık, dekor), denetimde "Konfor", başarım |
+| 0.22.5 | Açılış hikâyesi: belediyeden Nermin Hanım 7 adımda gerçek düğmeleri gösterir; olay güdümlü, Atla; Ayarlar'dan kapatılır ve yeniden açılır |
+| 0.22.6 | Cila: dokunma senaryoları 17–19, Kontroller, başarımlar, belgeler, tam denetim |
+
+### M18 Terk Edilmiş Ev ve Malzemeler (2026-09-26 dilimlendi; M19'dan sonra, 0.23.x)
+| Sürüm | Konu |
+|---|---|
+| 0.23.0 | Odun ve taş: ağaç (+3 odun, çam +2), kaya (+2 taş), kütük (+1 odun); ağaç kütükten 5–8 günde yeniden büyür |
+| 0.23.1 | Malzemeyle öde: bina tarifleri (odun 20 ₺, taş 30 ₺ indirim, en çok yarısı), çit odunla, yol taşla; yıkımda ödenenin yarısı |
+| 0.23.2 | Terk edilmiş ev: uzak ormanda RNG'siz yer, keşif, köylüden ipucu; sandık, dolap (keskin aletler), günlük (gizli yuva) |
+| 0.23.3 | Evi onar: orman evi (yatak, ocak, tabela, bayılınca yakın ev) |
+| 0.23.4 | Cila: dokunma senaryosu 20, Kontroller, başarımlar, belgeler |
+
 ## 6. Varsayımlar ve açık noktalar
 
 - Tek oyunculu, çevrimdışı; klavye + fare ve dokunmatik (M9).

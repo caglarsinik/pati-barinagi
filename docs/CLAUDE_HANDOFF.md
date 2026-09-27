@@ -57,6 +57,29 @@
   köpek paneli, araç şeridi, alt menü listesi, ana menü, Ayarlar: çakışma yok, taşma yok. Alt menü açılır listesi köpek
   panelinin üstüne gelebilir (geçici popover, üstte kalır) — kabul edildi. Gerçek cihaz testi kullanıcıda.
 
+## 0.22.0 — Arka planda müzik durur + sol altta ihtiyaç şeridi (M19 ilk dilimi; Claude, 2026-09-27)
+- Kullanıcı notları (2026-09-27) M19 Konfor ve Yaşam Kalitesi olarak 0.22.0–0.22.6'ya dilimlendi; M18 Terk Edilmiş Ev
+  0.23.x'e kaydı (plan: `docs/PLAN.md` M19/M18 tabloları).
+- **Ses** (`src/audio/audio.ts`): `AudioEngine` dışa açıldı (test için). `setBackground(on)`: arka planda `ctx.suspend()`,
+  öne gelince `ctx.resume()`; müzik durdurulmaz — `Music` zamanlayıcısı `ctx.currentTime` donduğu için nota planlamaz, dönüşte
+  kaldığı yerden sürer. Arka planda `play()` efekt çalmaz. `attachBackgroundListeners(win, doc)` (app.init'te bir kez):
+  `visibilitychange` (gizli ya da odak dışı → arka plan), `blur`, `focus`, `pagehide`, `pageshow`. `unlock()` kullanıcı etkileşimi
+  olduğu için arka plan bayrağını kaldırır ve bağlam `running` değilse sürdürür (iOS "interrupted"). Phaser yapılandırmasına
+  `audio: { noAudio: true }`: kullanılmayan Phaser ses yöneticisi ikinci bir AudioContext açmıyor.
+  Tarayıcıda gerçek bağlamla denendi: gizli/odak kaybı/pagehide → `suspended`, `currentTime` 1 sn boyunca sabit; görünür/odak/
+  pageshow → `running`, müzik çalışır durumda.
+- **İhtiyaç şeridi**: yeni saf `src/sim/systems/NeedSummary.ts` (`needSummaryFromAlerts`: köpek uyarılarını kimlik önekiyle sayar
+  — `hunger-` aç, `thirst-` susuz, `ill-`/`sick-` hasta, `dirty-` kirli, `nokennel-` kulübesiz, `bored-` sıkılmış; `meal-`
+  sayılmaz; farklı köpek sayısı ve en ağır önem), `needSummaryText` ("3 köpek aç · 2 susuz · 1 hasta"; ilk parça "köpek"
+  taşır). `src/ui/NeedStrip.tsx` `.dock-left`'in ilk çocuğu (sol alt, araç düğmesinin/çubuğunun üstünde; yönetim modunda tek
+  başına), sınıf `alert need-strip {önem}` (uyarı renkleri), en çok iki satır (`.need-text` line-clamp), dokununca
+  `app.togglePanel('alerts')`; telefonda inşa çubuğu açıkken gizli.
+- Testler: `tests/unit/need-summary.test.ts` (3: sayım ve eşikler AlertSystem ile aynı, öğün uyarısı sayılmaz, metin/renk),
+  `tests/unit/audio-background.test.ts` (3: sahte AudioContext ve sahte pencere/belge ile askıya alma, efekt susması, dinleyiciler,
+  bağlam yokken bayrak). 420 test; dokunma senaryoları 16/16; denetim 568×320 (TR/EN), 812×375 (TR/EN), 768×1024, 1280×720
+  0 sorun.
+- Sıradaki: 0.22.1 mini harita yakınlaştırma.
+
 ## 0.21.6 — Arayüz denetimi: telefon ve tablette taşan/çakışan yazılar (Claude, 2026-09-26)
 - Kullanıcı isteği: "tüm fonksiyonları özellikle telefon ve tablet için … yazılar taşıyor mu, çakışma var mı; varsa düzelt".
 - Yeni `src/debug/layoutAudit.ts` (yalnız `?debug=1`, `__pati.debug`): `layoutAudit()` o anki DOM'da kutusundan taşan

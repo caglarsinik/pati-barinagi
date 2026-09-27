@@ -262,6 +262,21 @@
   padding: 6px 8px;
 }
 
+/* İhtiyaç şeridi (0.22.0): sol altta, araç düğmesinin üstünde; renk en ağır uyarıdan (.alert.*), en çok iki satır. */
+.need-strip {
+  display: block;
+  max-width: min(240px, 36vw);
+  text-align: left;
+}
+
+.need-text {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  overflow: hidden;
+}
+
 /* Telefonda tek araç düğmesi + yukarı açılan şerit */
 .tool-dock {
   position: relative;

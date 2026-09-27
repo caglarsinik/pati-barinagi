@@ -6,6 +6,7 @@ import { Guide } from './Guide';
 import { BuildBar } from './BuildBar';
 import { BottomNav } from './BottomNav';
 import { Minimap } from './Minimap';
+import { NeedStrip } from './NeedStrip';
 import { AlertsPanel } from './Panels';
 import { Toolbar } from './Toolbar';
 import { ToolPopover } from './ToolPopover';
@@ -42,8 +43,9 @@ function useMeasuredBands(dockRef: { current: HTMLDivElement | null }): void {
 
 /**
  * Oyun içi iskelet: üst durum şeridi, sol sütun (çanta, rehber), sağ sütun (uyarılar, köpek paneli) ve alt rıhtım.
- * Rıhtım tek bir flex satırıdır: sol yuva araç çubuğu (telefonda tek düğme), orta yuva inşa çubuğu + ipucu + alt menü,
- * sağ yuva dokunmatik E/Koş ve mini harita. Flex kardeşler üst üste binemez; dar ekranda orta yuva daralır.
+ * Rıhtım tek bir flex satırıdır: sol yuva ihtiyaç şeridi (0.22.0) + araç çubuğu (telefonda tek düğme), orta yuva inşa
+ * çubuğu + ipucu + alt menü, sağ yuva dokunmatik E/Koş ve mini harita. Flex kardeşler üst üste binemez; dar ekranda orta
+ * yuva daralır.
  */
 export function HUD() {
   store.lang.value;
@@ -69,7 +71,10 @@ export function HUD() {
         {panel === 'dog' && <DogPanel />}
       </div>
       <div class="hud-dock" ref={dockRef}>
-        <div class="dock-left">{mode === 'avatar' && (phone ? <ToolPopover /> : <Toolbar />)}</div>
+        <div class="dock-left">
+          <NeedStrip />
+          {mode === 'avatar' && (phone ? <ToolPopover /> : <Toolbar />)}
+        </div>
         <div class="dock-center">
           <BuildBar />
           {showHint && (

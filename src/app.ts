@@ -63,6 +63,8 @@ class AppController {
       // Telefon: pil için 30 kare/sn yeter (sim gerçek zamanı dt ile ölçekler).
       fps: viewport().w <= 767 || viewport().h <= 500 ? { limit: 30 } : undefined,
       scene: [BootScene, WorldScene, OverlayScene],
+      // Sesler kendi motorumuzda (src/audio); Phaser'ın kullanılmayan ses yöneticisi ikinci bir AudioContext açmasın.
+      audio: { noAudio: true },
     });
     // Gömülü tarayıcılar ilk anda 0 boyut bildirebiliyor; hem resize olayında hem periyodik kontrol et.
     const syncSize = (): void => {
@@ -105,6 +107,8 @@ class AppController {
     const unlock = (): void => audio.unlock();
     window.addEventListener('pointerdown', unlock, { passive: true });
     window.addEventListener('keydown', unlock);
+    // Oyun arka plana atılınca müzik ve efektler susar, öne gelince kaldığı yerden sürer (0.22.0).
+    audio.attachBackgroundListeners();
     document.getElementById('ui')?.addEventListener('click', (e) => {
       const t = e.target as HTMLElement | null;
       if (t && t.closest('button')) audio.play('click', {}, 60);
