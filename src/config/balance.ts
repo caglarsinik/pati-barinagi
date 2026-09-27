@@ -153,6 +153,12 @@ export const BALANCE = {
       oven2: { cost: 450, max: 1 },
       medCabinet: { cost: 600, max: 1 },
       heatLamp: { cost: 500, max: 1 },
+      // Kulübe içi (0.22.3; kulübe başına). Yatak üst sınırı şablondaki yuvayla da kırpılır: küçük kulübeye 1, büyüğe 2.
+      dogBed: { cost: 150, max: 2 },
+      blanket: { cost: 80, max: 1 },
+      dogBowl: { cost: 60, max: 1 },
+      dogToy: { cost: 120, max: 1 },
+      kennelWindow: { cost: 200, max: 1 },
     },
   },
   /** Kuluçka içi (0.17.3): ısı lambası kalan ve yeni çatlama sürelerini bu oranla kısaltır. */

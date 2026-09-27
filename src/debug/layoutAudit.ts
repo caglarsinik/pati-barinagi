@@ -508,6 +508,25 @@ export async function auditScreens(app: AuditApp, only?: string, keep = false): 
     panel('map'),
     panel('computer'),
     panel('furniture', () => (store.panelBuildingId.value = bid('staffRoom'))),
+    {
+      // Kulübe eşyaları (0.22.3): büyük kulübe, sakin satırı ve İçeri gir.
+      name: 'panel:furniture-kennel',
+      enter: () => {
+        sim.setMode('avatar');
+        store.panelBuildingId.value = bid('kennelLarge') ?? bid('kennelSmall');
+        store.panel.value = 'furniture';
+      },
+    },
+    {
+      // Kulübe içi (0.22.3): içerideki ipucu satırı ve HUD.
+      name: 'interior:kennel',
+      enter: () => {
+        sim.setMode('avatar');
+        const k = bid('kennelSmall');
+        if (k !== null) sim.enterBuilding(k);
+      },
+      exit: () => sim.exitInterior(),
+    },
     panel('autoOrder'),
     panel('clinic'),
     panel('wholesale'),

@@ -2,7 +2,7 @@ import { app } from '../app';
 import { audio } from '../audio/audio';
 import { BALANCE } from '../config/balance';
 import { t } from '../i18n';
-import { buildingDef } from '../sim/entities/Building';
+import { buildingDef, isReady } from '../sim/entities/Building';
 import { formatMoney } from './HUD';
 import { showToast, store } from './store';
 
@@ -82,6 +82,13 @@ export function KennelPanel() {
   const def = buildingDef(kennel);
   const occupants = kennel.occupants.map((d) => sim.dogById(d)).filter((d) => !!d);
   const candidates = sim.shelterDogs().filter((d) => d.kennelId !== kennel.id && sim.kennelHasRoom(kennel, d));
+  const ready = isReady(kennel);
+  // Kulübe içi (0.22.3): kapıya yürüyüp girer (dokunmatikte kapı karesi köpeğin yattığı yer olabilir); eşya paneli.
+  const enter = (): void => {
+    const r = sim.command({ type: 'goInteract', goal: { kind: 'enter', id: kennel.id } });
+    if (r.ok) store.panel.value = 'none';
+    else if (r.message) showToast(r.message);
+  };
   return (
     <div class="overlay">
       <div class="menu-card panel">
@@ -94,6 +101,14 @@ export function KennelPanel() {
           </button>
         </div>
         <p class="muted">{t(def.desc)}</p>
+        <div class="row wrap">
+          <button class="btn small" disabled={!ready || sim.mode !== 'avatar'} onClick={enter}>
+            {t('🚪 İçeri gir')}
+          </button>
+          <button class="btn small" disabled={!ready} onClick={() => (store.panel.value = 'furniture')}>
+            {t('🛋️ Eşyalar ({n})', { n: kennel.furniture.length })}
+          </button>
+        </div>
         <p>{t('Doluluk: {n}/{cap}', { n: occupants.length, cap: def.capacity ?? 0 })}</p>
         {occupants.map((d) => (
           <div key={d.id} class="row">

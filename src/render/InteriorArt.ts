@@ -79,6 +79,16 @@ export function drawInteriorItem(type: InteriorItemType, variant = 3): Pixels {
       return drawTv();
     case 'fridge':
       return drawFridge();
+    case 'kennelBoard':
+      return drawKennelBoard();
+    case 'dogBed':
+      return drawDogBed();
+    case 'blanket':
+      return drawBlanket();
+    case 'dogBowl':
+      return drawDogBowl();
+    case 'dogToy':
+      return drawDogToy();
   }
 }
 
@@ -687,6 +697,127 @@ function drawToyShelf(): Pixels {
   p.ellipse(8.5, 23, 3, 2.5, hex(0xb07a4f));
   p.fillRect(18, 23, 9, 6, hex(0xa66bd6));
   p.fillRect(18, 25, 9, 1, PAPER);
+  p.outline(P.outline);
+  return p;
+}
+
+// Kulübe içi (0.22.3).
+const PAW = hex(0x6b4a2e);
+const BED_RIM = hex(0xc0603f);
+const BED_RIM_DARK = hex(0x96452c);
+const BED_RIM_LIGHT = hex(0xdc8a5e);
+const CUSHION = hex(0xf2e2c4);
+const CUSHION_DARK = hex(0xdcc7a0);
+const WICKER = hex(0xc99a5b);
+const WICKER_DARK = hex(0x9c7240);
+const WICKER_LIGHT = hex(0xe0b878);
+const PLAID = hex(0xc0443c);
+const PLAID_DARK = hex(0x7e2a2a);
+const PLAID_LIGHT = hex(0xe07a62);
+const BOWL = hex(0x3f82dc);
+const BOWL_DARK = hex(0x2e63ad);
+const BOWL_LIGHT = hex(0x7aa6f0);
+
+/** Kulübe panosu (duvarda): mantar pano, pati izli kâğıt, kemik biçimli not ve küçük köpek fotoğrafı. Alt 3 satır boş. */
+function drawKennelBoard(): Pixels {
+  const p = new Pixels(TILE * 2, TILE);
+  p.fillRect(1, 1, 30, 11, P.trunk);
+  p.fillRect(2, 2, 28, 9, CORK);
+  p.fillRect(3, 9, 26, 1, CORK_DARK);
+  // Pati izli kâğıt: taban ve dört parmak.
+  p.fillRect(4, 3, 8, 7, PAPER);
+  p.ellipse(8.5, 7.5, 2, 1.5, PAW);
+  for (const [x, y] of [
+    [5, 5],
+    [7, 4],
+    [9, 4],
+    [11, 5],
+  ] as const)
+    p.set(x, y, PAW);
+  // Kemik biçimli not.
+  p.fillRect(15, 5, 6, 2, P.flowerYellow);
+  for (const [x, y] of [
+    [14, 4],
+    [14, 7],
+    [21, 4],
+    [21, 7],
+  ] as const)
+    p.set(x, y, P.flowerYellow);
+  // Fotoğraf: gökyüzü, çimen, köpek; kırmızı raptiye.
+  p.fillRect(23, 3, 6, 6, PAPER);
+  p.fillRect(24, 4, 4, 3, hex(0xa3d5e9));
+  p.fillRect(24, 7, 4, 1, P.grassLight);
+  p.fillRect(25, 6, 2, 1, P.trunkLight);
+  p.set(26, 5, P.trunkLight);
+  p.set(25, 2, P.flowerRed);
+  p.outline(P.outline);
+  return p;
+}
+
+/** Köpek yatağı (2 kare): kalın kenarlı oval minder, ortası çukur. Köpek sahnede üstüne yatırılır. */
+function drawDogBed(): Pixels {
+  const p = new Pixels(TILE * 2, TILE);
+  p.ellipse(16, 9, 14.5, 6, BED_RIM_DARK);
+  p.ellipse(16, 8, 14.5, 6, BED_RIM);
+  p.ellipse(16, 7, 13, 4.5, BED_RIM_LIGHT);
+  p.ellipse(16, 8.5, 11, 3.8, CUSHION_DARK);
+  p.ellipse(16, 8, 10, 3, CUSHION);
+  p.fillRect(8, 12, 16, 1, BED_RIM_DARK);
+  p.outline(P.outline);
+  return p;
+}
+
+/** Battaniye: hasır sepette katlanmış ekose battaniye (kırmızı, koyu çizgili, sarı şerit). */
+function drawBlanket(): Pixels {
+  const p = new Pixels(TILE, 15);
+  p.fillRect(2, 1, 12, 7, PLAID);
+  p.fillRect(2, 1, 12, 1, PLAID_LIGHT);
+  p.fillRect(2, 4, 12, 1, PLAID_DARK);
+  p.fillRect(5, 1, 1, 7, PLAID_DARK);
+  p.fillRect(10, 1, 1, 7, PLAID_DARK);
+  p.fillRect(2, 6, 12, 1, P.flowerYellow);
+  p.fillRect(1, 7, 14, 8, WICKER);
+  p.fillRect(1, 7, 14, 1, WICKER_LIGHT);
+  for (let x = 3; x < 14; x += 3) p.fillRect(x, 9, 1, 5, WICKER_DARK);
+  p.fillRect(1, 11, 14, 1, WICKER_DARK);
+  p.outline(P.outline);
+  return p;
+}
+
+/** Su kabı: yerde mavi kap, içinde su ve parıltı. */
+function drawDogBowl(): Pixels {
+  const p = new Pixels(TILE, 10);
+  p.ellipse(8, 6.5, 6.5, 3, BOWL_DARK);
+  p.fillRect(2, 4, 12, 3, BOWL);
+  p.ellipse(8, 4, 6.5, 2.2, BOWL_LIGHT);
+  p.ellipse(8, 4, 4.8, 1.3, P.water);
+  p.fillRect(5, 3, 2, 1, P.foam);
+  p.fillRect(6, 6, 4, 1, PAPER);
+  p.outline(P.outline);
+  return p;
+}
+
+/** Oyuncak sepeti: hasır sepetten taşan kırmızı top, beyaz kemik ve halat. */
+function drawDogToy(): Pixels {
+  const p = new Pixels(TILE, 16);
+  // Halat (arkada, dik).
+  p.fillRect(10, 1, 2, 8, hex(0xe8d5a8));
+  for (let y = 2; y < 9; y += 2) p.set(10, y, hex(0xc9a86a));
+  p.fillRect(9, 0, 4, 2, hex(0x5aa0e6));
+  // Kemik.
+  p.fillRect(3, 4, 6, 2, PAPER);
+  p.ellipse(3, 4, 1.4, 1.4, PAPER);
+  p.ellipse(3, 6, 1.4, 1.4, PAPER);
+  p.ellipse(9, 4, 1.4, 1.4, PAPER);
+  p.ellipse(9, 6, 1.4, 1.4, PAPER);
+  // Top.
+  p.ellipse(6, 8, 3, 3, P.flowerRed);
+  p.set(5, 6, P.flowerWhite);
+  // Sepet.
+  p.fillRect(1, 9, 14, 7, WICKER);
+  p.fillRect(1, 9, 14, 1, WICKER_LIGHT);
+  for (let x = 3; x < 14; x += 3) p.fillRect(x, 11, 1, 4, WICKER_DARK);
+  p.fillRect(1, 13, 14, 1, WICKER_DARK);
   p.outline(P.outline);
   return p;
 }

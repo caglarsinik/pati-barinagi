@@ -54,7 +54,7 @@ import { GateSystem } from './systems/GateSystem';
 import type { EmoteEvent } from './systems/Emotes';
 import { type Weather, WeatherSystem } from './systems/WeatherSystem';
 import type { TilePos, TileWorld } from './world/TileWorld';
-import { type ActiveInterior, FURNITURE_BY_KIND, FURNITURE_NAMES_TR, type FurnitureType, buildInterior, interiorKindFor, sanitizeFurniture } from './interior/Interiors';
+import { type ActiveInterior, FURNITURE_BY_KIND, FURNITURE_NAMES_TR, type FurnitureType, buildInterior, furnitureMax, interiorKindFor, sanitizeFurniture } from './interior/Interiors';
 import { generateWorld } from './world/WorldGen';
 import { Biome, Ground, Obj, Zone } from './world/tiles';
 import { t } from '../i18n';
@@ -1050,7 +1050,7 @@ export class Sim {
         if (!b || !kind || !isReady(b) || !FURNITURE_BY_KIND[kind].includes(cmd.item)) return { ok: false };
         const F = BALANCE.interior.furniture[cmd.item];
         const name = t(FURNITURE_NAMES_TR[cmd.item]);
-        if (b.furniture.filter((f) => f === cmd.item).length >= F.max) return { ok: false, message: t('{name} için yer kalmadı', { name }) };
+        if (b.furniture.filter((f) => f === cmd.item).length >= furnitureMax(kind, cmd.item)) return { ok: false, message: t('{name} için yer kalmadı', { name }) };
         if (this.money < F.cost) return { ok: false, message: t('Yeterli para yok') };
         this.addExpense('building', F.cost, name);
         b.furniture.push(cmd.item);
@@ -1266,13 +1266,17 @@ export class Sim {
     return { ok: true };
   }
 
-  /** Kapının önünde, yüzü binaya dönük ↑ basılı tutulursa (klavye) iç mekânlı binaya girer; E hızlı işi yapmaya devam eder. */
+  /**
+   * Kapının önünde, yüzü binaya dönük ↑ basılı tutulursa (klavye) iç mekânlı binaya girer; E hızlı işi yapmaya devam eder.
+   * Kulübede (0.22.3) kapı sütunundaki eşik karesi de kapı sayılır: eşik yürünür, ↑ oyuncuyu oradan gövdeye dayar.
+   */
   private tryPushEnter(dtSec: number, input: PlayerInput): void {
     const p = this.player;
     const bid = input.dy < 0 && input.dx === 0 ? this.world.buildingIdAt(p.tileX, p.tileY - 1) : -1;
     const b = bid >= 0 ? this.buildingById(bid) : undefined;
     const door = b && isReady(b) && interiorKindFor(b.type) ? buildingDoorTile(b) : null;
-    if (!b || !door || door.x !== p.tileX || door.y !== p.tileY) {
+    const kennel = b?.type === 'kennelSmall' || b?.type === 'kennelLarge';
+    if (!b || !door || door.x !== p.tileX || (door.y !== p.tileY && !(kennel && door.y - 1 === p.tileY))) {
       this.enterPushSec = 0;
       return;
     }

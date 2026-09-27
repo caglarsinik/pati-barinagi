@@ -166,10 +166,11 @@ html.is-touch .build-item {
   line-clamp: 1;
 }
 
+/* Köpeğin adı tek satır; 76 px düğmede etiket kadar geniş (0.22.3: tablette 16 harfli ad 4 px kesiliyordu). */
 .action-name {
   font-size: 0.55rem;
   font-weight: 600;
-  max-width: 60px;
+  max-width: 64px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -366,6 +367,10 @@ html.is-touch .build-item {
 
   .action-label {
     max-width: 56px;
+  }
+
+  .action-name {
+    max-width: 60px;
   }
 
   .run-toggle {

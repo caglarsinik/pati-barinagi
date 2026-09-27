@@ -235,7 +235,25 @@ function resolveInterior(sim: Sim, tile: TilePos): ResolvedAction {
         hint: sim.policies.autoOrderFood ? t('E: otomatik sipariş (açık, eşik {n})', { n: sim.policies.foodThreshold }) : t('E: otomatik sipariş (kapalı)'),
         tile,
       };
+    case 'kennelBoard':
+      return { kind: 'restShop', hint: t('E: pano · eşya al (yatak, battaniye, su kabı, oyuncak, pencere)'), building: sim.buildingById(it.buildingId), tile };
+    case 'dogBed': {
+      // Yatağın sahibi: kulübedeki aynı sıradaki köpek; uyuyorsa adı (0.22.3).
+      const b = sim.buildingById(it.buildingId);
+      const id = b?.occupants[item.slot ?? 0];
+      const dog = id !== undefined ? sim.dogById(id) : undefined;
+      if (!dog) return { kind: 'none', hint: t('Köpek yatağı · boş'), tile };
+      if (dog.isAsleep()) return { kind: 'none', hint: t('Köpek yatağı · {name} uyuyor', { name: dog.name }), tile };
+      return { kind: 'none', hint: t('Köpek yatağı · {name}', { name: dog.name }), tile };
+    }
+    case 'blanket':
+      return { kind: 'none', hint: t('Battaniye: soğuk gecelerde sıcak tutar'), tile };
+    case 'dogBowl':
+      return { kind: 'none', hint: t('Su kabı: gece uyanan köpek içeride su içer'), tile };
+    case 'dogToy':
+      return { kind: 'none', hint: t('Oyuncak sepeti: top, kemik ve halat'), tile };
     default:
+      if (it.kind === 'kennel' || it.kind === 'kennelLarge') return { kind: 'none', hint: t('Kulübe içi · panoya bakıp E: eşya al · çıkmak için kapıya yürü'), tile };
       if (it.kind === 'toyShop') return { kind: 'none', hint: t('Oyuncak ve ilaç dükkânı · tezgâha bakıp E · çıkmak için kapıya yürü'), tile };
       if (it.kind === 'wholesaler') return { kind: 'none', hint: t('Yem toptancısı · tezgâha bakıp E: toptan çuval · çıkmak için kapıya yürü'), tile };
       if (it.kind === 'hatchery') return { kind: 'none', hint: t('Kuluçka · kontrol paneline bakıp E: yumurta koy/al · raf: eşya al · çıkmak için kapıya yürü'), tile };
@@ -344,7 +362,7 @@ export function resolveAction(sim: Sim): ResolvedAction {
     }
     if (building.type === 'kennelSmall' || building.type === 'kennelLarge') {
       const names = building.occupants.map((id) => sim.dogById(id)?.name ?? '?').join(', ');
-      return { kind: 'kennel', hint: t('E: {name}{who}', { name: t(def.name), who: names ? ` (${names})` : t(' (boş)') }), building };
+      return { kind: 'kennel', hint: t('E: {name}{who}', { name: t(def.name), who: names ? ` (${names})` : t(' (boş)') }) + t(' · ↑ içeri'), building };
     }
     if (building.type === 'incubator') return { kind: 'incubator', hint: t('E: kuluçka') + t(' · ↑ içeri'), building };
     if (building.type === 'kitchen') return { kind: 'enter', hint: t('E: mutfağa gir'), building };

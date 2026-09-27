@@ -3,11 +3,11 @@ import { audio } from '../audio/audio';
 import { BALANCE } from '../config/balance';
 import { t } from '../i18n';
 import { buildingDef, isReady } from '../sim/entities/Building';
-import { FURNITURE_BY_KIND, FURNITURE_DESC_TR, FURNITURE_NAMES_TR, interiorKindFor } from '../sim/interior/Interiors';
+import { FURNITURE_BY_KIND, FURNITURE_DESC_TR, FURNITURE_NAMES_TR, furnitureMax, interiorKindFor, isKennelInterior } from '../sim/interior/Interiors';
 import { formatMoney } from './HUD';
 import { showToast, store } from './store';
 
-/** İç mekân eşya alımı (0.16.3 dinlenme odası; 0.17.0'dan beri tüm iç mekânlar için ortak). */
+/** İç mekân eşya alımı (0.16.3 dinlenme odası; 0.17.0'dan beri tüm iç mekânlar için ortak; kulübe 0.22.3). */
 export function FurniturePanel() {
   store.tick.value;
   const sim = app.sim;
@@ -20,6 +20,14 @@ export function FurniturePanel() {
   const rest = b.type === 'staffRoom';
   const resting = rest ? sim.staffSystem.restingIn(b) : [];
   const seats = rest ? sim.staffSystem.seatsIn(b) : 0;
+  const kennel = isKennelInterior(kind);
+  const residents = kennel ? b.occupants.map((d) => sim.dogById(d)?.name).filter((n) => !!n) : [];
+  const outside = sim.interior?.buildingId !== b.id;
+  const enter = (): void => {
+    const r = sim.command({ type: 'goInteract', goal: { kind: 'enter', id: b.id } });
+    if (r.ok) store.panel.value = 'none';
+    else if (r.message) showToast(r.message);
+  };
   return (
     <div class="overlay">
       <div class="menu-card panel furniture">
@@ -38,10 +46,22 @@ export function FurniturePanel() {
               : t('Şu an molada kimse yok · kanepe yeri {seats}', { seats })}
           </p>
         )}
+        {kennel && <p class="muted small-text">{t('Eşyalar kulübenin içine yerleşir; köpek gece yatağında uyur, yatak yoksa halıda.')}</p>}
+        {kennel && (
+          <div class="row wrap">
+            <span class="small-text">{residents.length > 0 ? t('Kulübede: {names}', { names: residents.join(', ') }) : t('Kulübe boş')}</span>
+            {outside && (
+              <button class="btn small" disabled={!ready || sim.mode !== 'avatar'} onClick={enter}>
+                {t('🚪 İçeri gir')}
+              </button>
+            )}
+          </div>
+        )}
         <div class="furniture-list">
           {FURNITURE_BY_KIND[kind].map((f) => {
             const n = b.furniture.filter((x) => x === f).length;
-            const full = n >= F[f].max;
+            const max = furnitureMax(kind, f);
+            const full = n >= max;
             const buy = (): void => {
               const r = sim.command({ type: 'buyFurniture', buildingId: b.id, item: f });
               if (r.message) showToast(r.message);
@@ -51,7 +71,7 @@ export function FurniturePanel() {
               <div key={f} class="furniture-row">
                 <div class="furniture-info">
                   <div>
-                    <b>{t(FURNITURE_NAMES_TR[f])}</b> <span class="muted small-text">{n}/{F[f].max}</span>
+                    <b>{t(FURNITURE_NAMES_TR[f])}</b> <span class="muted small-text">{n}/{max}</span>
                   </div>
                   <div class="muted small-text">{t(FURNITURE_DESC_TR[f])}</div>
                 </div>

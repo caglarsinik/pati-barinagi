@@ -291,9 +291,9 @@ verir; dokunma senaryosu 16 bütün zinciri dener (ofiste masa → sahiplendir �
 
 ## İç mekânlar
 
-Ofise, dinlenme odasına, kilere, mutfağa, veteriner odasına ve kuluçkaya girilir (M15, M16). Ofiste, dinlenme odasında ve mutfakta kapıda E'ye bas ya
-da binaya dokun.
-Kapıda hızlı işi olan binada (kiler: sipariş, veteriner: yakındaki hasta köpeği tedavi, kuluçka: yumurta paneli) E ve binaya dokunmak o işi yapar; **içeri girmek için binanın kapı karesine
+Ofise, dinlenme odasına, kilere, mutfağa, veteriner odasına, kuluçkaya (M15, M16) ve kulübelere (0.22.3) girilir. Ofiste, dinlenme odasında ve mutfakta
+kapıda E'ye bas ya da binaya dokun.
+Kapıda hızlı işi olan binada (kiler: sipariş, veteriner: yakındaki hasta köpeği tedavi, kuluçka: yumurta paneli, kulübe: kulübe paneli) E ve binaya dokunmak o işi yapar; **içeri girmek için binanın kapı karesine
 (alt orta kare) dokun ya da kapının önünde ↑ tuşuna basılı tut.** Ayrı bir odaya geçersin.
 Dışarıda zaman akar; içerisi gece de aydınlıktır, yağmur yağmaz. İçeride eşyaya bakıp E'ye bas ya da eşyaya dokun. Alttaki
 paspaslı kapı karesine yürüyünce ya da dokununca dışarı çıkarsın; yönetim moduna geçmek seni hemen dışarı alır. İçerideyken
@@ -315,6 +315,13 @@ kaydedersen oyun seni kapının önünde kaydeder.
 | Veteriner | Resepsiyon | İlaç dolabı satın al (600 ₺: tedavi 60 → 42 ₺) |
 | Kuluçka | Tepsiler / kontrol paneli | Yumurtalar tepside görünür, bakınca kalan gün; panel yumurta koyar/alır (Sv2'de ikinci tepsi) |
 | Kuluçka | Malzeme rafı | Isı lambası satın al (500 ₺: yumurtalar %15 çabuk çatlar) |
+| Kulübe | Pano | Köpek yatağı (150 ₺; küçük kulübeye 1, büyüğe 2), battaniye (80 ₺), su kabı (60 ₺), oyuncak sepeti (120 ₺), pencere (200 ₺) satın al |
+| Kulübe | Yatak / halı | Gece kulübesinde uyuyan köpek içeride yatağında (yatak yoksa halıda) görünür; yatağa bakınca sahibi yazar |
+
+**Kulübe içi** (0.22.3): küçük kulübe 8×6, büyük kulübe 10×6 karelik bir oda. Kulübede E (ya da gövdesine dokunmak) kulübe
+panelini açar; panelde **🚪 İçeri gir** ve **🛋️ Eşyalar** düğmeleri var. Klavyede kapının önünde ya da eşiğin orta karesinde ↑ basılı
+tut; dokunmatikte eşiğin orta karesine dokun (büyük kulübede orada köpek yatıyorsa dokunuş köpeğe gider, paneli kullan). Eşyalar
+şimdilik görseldir; etkileri 0.22.4'te gelir.
 
 Otopilot içerideyken açılırsa kapıdan yürüyerek çıkar; gece ofise girip yatakta uyur, sabah dışarı çıkıp işine döner.
 Personel yalnız dinlenme odasına girer (molada); Personel WC'yi dışarıdan kullanır.
@@ -484,7 +491,8 @@ Bilgisayar değiştirirken ya da yedek almak için kullan.
 - [x] 0.22.0 Arka planda müzik durur (kaldığı yerden sürer) ve sol altta ihtiyaç şeridi ("3 köpek aç · 2 susuz")
 - [x] 0.22.1 Mini harita yakınlaştırma: 1×/2×/4×, sürükle, iki parmak, tekerlek, ⌖ ile bana dön; yakınken binalar görünür
 - [x] 0.22.2 Taşı aracı: kurulu bina içindekilerle yerinde taşınır (dokun-dokun ya da sürükle-bırak, R/Döndür), ücretsiz; ofis taşınmaz
-- [ ] M19 Konfor ve Yaşam Kalitesi (dilimlendi, `docs/PLAN.md`): 0.22.0 ✅ müzik + ihtiyaç şeridi → 0.22.1 ✅ mini harita yakınlaştırma → 0.22.2 ✅ binayı taşı → 0.22.3 kulübe içi → 0.22.4 kulübe eşya etkileri → 0.22.5 açılış hikâyesi (tanıtım) → 0.22.6 cila
+- [x] 0.22.3 Kulübe içi: kulübeye girilir (panel, ↑, kapı karesi), panodan yatak/battaniye/su kabı/oyuncak/pencere; uyuyan köpek içeride yatağında
+- [ ] M19 Konfor ve Yaşam Kalitesi (dilimlendi, `docs/PLAN.md`): 0.22.0 ✅ müzik + ihtiyaç şeridi → 0.22.1 ✅ mini harita yakınlaştırma → 0.22.2 ✅ binayı taşı → 0.22.3 ✅ kulübe içi → 0.22.4 kulübe eşya etkileri → 0.22.5 açılış hikâyesi (tanıtım) → 0.22.6 cila
 - [ ] M18 Terk Edilmiş Ev ve Malzemeler (0.23.0–0.23.4): odun ve taş, malzemeyle öde, uzak ormanda ev, onarım
 - [ ] Sonrası: yuva evi içi, kuzey/batı arsa genişletme
 

@@ -57,6 +57,40 @@
   köpek paneli, araç şeridi, alt menü listesi, ana menü, Ayarlar: çakışma yok, taşma yok. Alt menü açılır listesi köpek
   panelinin üstüne gelebilir (geçici popover, üstte kalır) — kabul edildi. Gerçek cihaz testi kullanıcıda.
 
+## 0.22.3 — Kulübe içi: oda, eşya kataloğu, uyuyan köpek içeride (M19; Claude, 2026-09-27)
+- Sim/iç mekân: `InteriorKind` += `'kennel'` (küçük kulübe, 8×6) ve `'kennelLarge'` (10×6); `interiorKindFor` switch'e döndü,
+  kennelSmall → kennel, kennelLarge → kennelLarge (döndürülmüş büyük kulübe de aynı oda). Şablonlar: pano `kennelBoard` (1,1 w2,
+  hep var) → `restShop` (eşya paneli); satın alınanlar `window` (5,1; `buy:'kennelWindow'`), `dogBed` (küçük 2,2; büyük 3,2 slot 0
+  ve 6,2 slot 1), `blanket`, `dogBowl`, `dogToy`; halı çiftleri yatağı olmayan köpeğin yeri. Her eşyanın önü tam donanımda da
+  ulaşılır (pano büyük kulübede yatağın altında kalmasın diye yataklar 3 ve 6. sütunda). `FurnitureType` += dogBed, blanket,
+  dogBowl, dogToy, kennelWindow (adlar/açıklamalar `FURNITURE_*_TR`, EN elle); `BALANCE.interior.furniture` dogBed 150/2,
+  blanket 80/1, dogBowl 60/1, dogToy 120/1, kennelWindow 200/1. Yeni `furnitureSlots(kind, type)` (şablonda `buy === type`
+  sayısı) ve `furnitureMax` = min(denge sınırı, yuva) → `buyFurniture`, `sanitizeFurniture` ve FurniturePanel `n/max` bunu
+  kullanır (küçük kulübeye ikinci yatak "yer kalmadı"; eski odalarda sınırlar aynı). Yeni saf `kennelRestSpotInside(map, slot)`
+  (sıranın yatağı varsa üstü, yoksa sıradaki halı çifti; yalnız çizim, köpeğin gerçek yeri dışarıdaki eşik) ve
+  `isKennelInterior`. Kayıtta `furniture` zaten vardı; `interiorKindFor` kulübeyi tanıdığı için yüklemede artık silinmez.
+- Giriş: `Sim.tryPushEnter` kulübede kapı sütunundaki eşik karesini de kapı sayar (eşik yürünür, ↑ oyuncuyu oradan gövdeye
+  dayar; kapı önünden basılı tutmak da sayaç kesilmeden girer). Dışarıdaki kulübe ipucuna `' · ↑ içeri'`; E hâlâ KennelPanel.
+  WorldScene `isDoorTile` kulübede de giriş (eşiğin orta karesi; köpek dokunuşu önce). KennelPanel: "🚪 İçeri gir"
+  (`goInteract {kind:'enter'}`, avatar modunda) ve "🛋️ Eşyalar (n)" (`panel = 'furniture'`); FurniturePanel kulübede açıklama,
+  "Kulübede: …" ve dışarıdayken "🚪 İçeri gir". `resolveInterior`: pano, yatak (sahibi: aynı sıradaki köpek; "… uyuyor"),
+  battaniye, su kabı, oyuncak ipuçları; boşta "Kulübe içi · panoya bakıp E: eşya al · çıkmak için kapıya yürü".
+- Çizim: `InteriorArt` `drawKennelBoard` (pati izli kâğıt, kemik not, fotoğraf), `drawDogBed` (oval minder), `drawBlanket`
+  (sepette ekose), `drawDogBowl`, `drawDogToy` (sepette top, kemik, halat); pencere mevcut çizim. `WorldScene.syncDogs`:
+  oyuncu bir kulübenin içindeyken, dışarıdaki eşiğinde `sleep`/`lie` olan sakin `kennelSpotInside` ile içeride yatar
+  (`DOG_FRAME_LIE`, yatak derinliğinin üstü; sıra 0 sağa, sıra 1 sola bakar). Gündüz gezen köpek içeride görünmez; ad etiketi
+  ve emote dışarıda kalır (kabul).
+- Yardım: ↑ ve kapı karesi satırlarının girilebilen listesine "kulübe" (TR/EN). Arayüz: E düğmesinde köpek adı tablette 64 px
+  (16 harfli "Minnoş Karabaşım" 4 px kesiliyordu; denetim ancak köpek yanında kalınca yakalıyordu), telefonda 60 px aynı.
+- Denetim: yeni ekranlar `panel:furniture-kennel` ve `interior:kennel` (62 ekran). Testler `tests/unit/kennel-interior.test.ts`
+  (7): şablonlar ve ulaşılabilirlik (BFS), yuva/sınır/sanitize, kapıda E paneli + ↑ giriş + kapıdan çıkış, eşikte kapı sütunu
+  girer öbürü girmez + uzaktan `enter`, pano → eşya paneli + beş eşya + küçükte ikinci yatak reddi + büyükte iki + hazır değil/
+  para yok reddi + kayıt turu, `kennelRestSpotInside`, çizimler dolu; `interior.test.ts` "girilemeyen bina" artık yem kabı.
+  437 test. Tarayıcı 812×375: küçük kulübe tam donanım + uyuyan köpek yatakta; büyük kulübe tek yatak (biri yatakta, biri halıda
+  karşılıklı) → panodan ikinci yatak → ikisi yatakta; KennelPanel düğmeleri, Eşyalar paneli, İçeri gir; kapı karesine dokunuş.
+  Denetim 62 ekran 568×320 ve 812×375 (TR/EN), 768×1024, 1280×720: 0 sorun; dokunma senaryoları 16/16.
+- Sıradaki: 0.22.4 kulübe eşya etkileri (`BALANCE.kennelComfort`, `KennelComfort.ts`; açıklamalara sayılar).
+
 ## 0.22.2 — Taşı aracı: kurulu binayı içindekilerle taşı (M19; Claude, 2026-09-27)
 - Sim: `canPlaceBuilding(world, type, x, y, rot, ignoreId = -1)` — taşınan binanın kendi kareleri (bina ve katılık denetimi)
   boş sayılır. Yeni `BuildSystem.tryMoveBuilding(sim, id, x, y, rot?)` (döndürme verilmezse eskisi): bina yok → "Burada bina

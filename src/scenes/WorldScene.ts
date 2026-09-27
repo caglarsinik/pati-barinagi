@@ -9,7 +9,7 @@ import { BUILDING_DEFS } from '../content/buildings';
 import { DOG_FRAMES, DOG_FRAME_EAT, DOG_FRAME_IDLE, DOG_FRAME_LIE, DOG_FRAME_SIT } from '../render/DogPainter';
 import { TEX, buildingTextureKey, ensureDogTexture, ensureHumanTexture, releaseDogTextures } from '../render/TextureRegistry';
 import { type DogGenome, genomeKey } from '../sim/entities/DogGenome';
-import { type Building, type Rotation, buildingDef, buildingDoorTile, buildingFootprint, canPlaceBuilding, isReady, buildingSize, solidRowsFor } from '../sim/entities/Building';
+import { type Building, type Rotation, buildingDef, buildingDoorTile, buildingFootprint, canPlaceBuilding, isReady, buildingSize, kennelRestTile, solidRowsFor } from '../sim/entities/Building';
 import type { Dog } from '../sim/entities/Dog';
 import type { PlayerInput } from '../sim/entities/Player';
 import type { Mode, Sim } from '../sim/Sim';
@@ -21,7 +21,7 @@ import { audio } from '../audio/audio';
 import { resolveAction } from '../sim/systems/Interaction';
 import { drawLightDisc } from '../render/LightArt';
 import { drawInteriorItem, interiorItemTextureKey } from '../render/InteriorArt';
-import { type ActiveInterior, type InteriorItem, interiorItemAt, interiorKindFor, sacksOnShelf } from '../sim/interior/Interiors';
+import { type ActiveInterior, type InteriorItem, interiorItemAt, interiorKindFor, isKennelInterior, kennelRestSpotInside, sacksOnShelf } from '../sim/interior/Interiors';
 import { DPR } from '../render/dpr';
 import { Pixels, hex } from '../render/Pixels';
 import { SEASON_TINT } from '../sim/systems/WeatherSystem';
@@ -1024,6 +1024,15 @@ export class WorldScene extends Phaser.Scene {
         s.anims.stop();
         s.setTexture(key, 0);
       }
+      // Oyuncu kulübenin içindeyken orada uyuyan sakin içeride, yatağında ya da halıda yatar (0.22.3).
+      const inside = this.kennelSpotInside(dog);
+      if (inside) {
+        s.anims.stop();
+        s.setPosition(inside.x, inside.y);
+        s.setDepth(inside.depth);
+        s.setFrame(inside.facing * DOG_FRAMES + DOG_FRAME_LIE);
+        continue;
+      }
       const px = Math.round(dog.x * T);
       const py = Math.round(dog.y * T + 6);
       s.setPosition(px, py);
@@ -1682,6 +1691,26 @@ export class WorldScene extends Phaser.Scene {
     const p = stand[(i - seats.length) % stand.length];
     const py = (p.y + 1) * T - 2;
     return { x: ox + (p.x + 0.5) * T, y: py, depth: 100 + py, frame: 0 };
+  }
+
+  /**
+   * Oyuncu bir kulübenin içindeyken o kulübenin dışarıdaki eşiğinde uyuyan (ya da uzanan) sakininin içerideki yeri (0.22.3):
+   * sırasındaki yatak varsa yatağın üstü, yoksa halı. Gündüz dışarıda gezen köpek içeride görünmez. İkinci köpek karşıya bakar.
+   */
+  private kennelSpotInside(dog: Dog): { x: number; y: number; depth: number; facing: number } | null {
+    const it = this.sim.interior;
+    if (!it || !isKennelInterior(it.kind) || dog.kennelId !== it.buildingId) return null;
+    if (dog.state !== 'sleep' && dog.state !== 'lie') return null;
+    const k = this.sim.buildingById(it.buildingId);
+    if (!k) return null;
+    const slot = k.occupants.indexOf(dog.id);
+    const rest = kennelRestTile(k, slot);
+    if (slot < 0 || dog.tileX !== rest.x || dog.tileY !== rest.y) return null;
+    const spot = kennelRestSpotInside(it, slot);
+    if (!spot) return null;
+    const T = GAME.tile;
+    const bottom = spot.y * T;
+    return { x: this.interiorOffsetX() + Math.round(spot.x * T), y: bottom - (spot.bed ? 2 : 1), depth: 100 + bottom + 0.5, facing: slot % 2 === 0 ? 2 : 1 };
   }
 
   /** İçeride dokunuş: eşyaya → yanına git ve E; boş kare → yürü (kapı karesi dışarı çıkarır). */

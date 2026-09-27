@@ -3,15 +3,15 @@ import type { BuildingType } from '../../content/buildings';
 import { TileWorld, type TilePos } from '../world/TileWorld';
 import { Ground } from '../world/tiles';
 
-/** Girilebilen binaların iç mekân türü (M15; diğer binalar sonra eklenir). */
-export type InteriorKind = 'office' | 'restRoom' | 'pantry' | 'kitchen' | 'clinic' | 'hatchery' | 'wholesaler' | 'toyShop';
+/** Girilebilen binaların iç mekân türü (M15; kulübeler 0.22.3: küçük ve büyük ayrı şablon). */
+export type InteriorKind = 'office' | 'restRoom' | 'pantry' | 'kitchen' | 'clinic' | 'hatchery' | 'wholesaler' | 'toyShop' | 'kennel' | 'kennelLarge';
 
 /** İç mekân eşyası: kare dikdörtgeni katıdır, önünde E ile kullanılır. */
-export type InteriorItemType = 'desk' | 'board' | 'window' | 'bookshelf' | 'coffee' | 'phone' | 'bed' | 'plant' | 'restBoard' | 'sofa' | 'tv' | 'fridge' | 'sacks' | 'ledger' | 'orderBoard' | 'counter' | 'oven' | 'waterTank' | 'spiceRack' | 'foodShelf' | 'examTable' | 'medCabinet' | 'reception' | 'waitChairs' | 'xray' | 'tray' | 'controlPanel' | 'heatLamp' | 'supplies' | 'bulkSacks' | 'shopCounter' | 'crates' | 'toyShelf' | 'vitaminShelf';
+export type InteriorItemType = 'desk' | 'board' | 'window' | 'bookshelf' | 'coffee' | 'phone' | 'bed' | 'plant' | 'restBoard' | 'sofa' | 'tv' | 'fridge' | 'sacks' | 'ledger' | 'orderBoard' | 'counter' | 'oven' | 'waterTank' | 'spiceRack' | 'foodShelf' | 'examTable' | 'medCabinet' | 'reception' | 'waitChairs' | 'xray' | 'tray' | 'controlPanel' | 'heatLamp' | 'supplies' | 'bulkSacks' | 'shopCounter' | 'crates' | 'toyShelf' | 'vitaminShelf' | 'kennelBoard' | 'dogBed' | 'blanket' | 'dogBowl' | 'dogToy';
 
-/** İç mekâna satın alınan eşyalar (0.16.3 dinlenme odası). Fiyat ve üst sınır BALANCE.interior.furniture. */
-export type FurnitureType = 'sofa' | 'coffee' | 'tv' | 'fridge' | 'waterTank' | 'oven2' | 'medCabinet' | 'heatLamp';
-export const FURNITURE_TYPES: readonly FurnitureType[] = ['sofa', 'coffee', 'tv', 'fridge', 'waterTank', 'oven2', 'medCabinet', 'heatLamp'];
+/** İç mekâna satın alınan eşyalar (0.16.3 dinlenme odası; 0.22.3 kulübe). Fiyat ve üst sınır BALANCE.interior.furniture. */
+export type FurnitureType = 'sofa' | 'coffee' | 'tv' | 'fridge' | 'waterTank' | 'oven2' | 'medCabinet' | 'heatLamp' | 'dogBed' | 'blanket' | 'dogBowl' | 'dogToy' | 'kennelWindow';
+export const FURNITURE_TYPES: readonly FurnitureType[] = ['sofa', 'coffee', 'tv', 'fridge', 'waterTank', 'oven2', 'medCabinet', 'heatLamp', 'dogBed', 'blanket', 'dogBowl', 'dogToy', 'kennelWindow'];
 export const FURNITURE_NAMES_TR: Record<FurnitureType, string> = {
   sofa: 'Kanepe',
   coffee: 'Kahve köşesi',
@@ -21,6 +21,11 @@ export const FURNITURE_NAMES_TR: Record<FurnitureType, string> = {
   oven2: 'İkinci fırın',
   medCabinet: 'İlaç dolabı',
   heatLamp: 'Isı lambası',
+  dogBed: 'Köpek yatağı',
+  blanket: 'Battaniye',
+  dogBowl: 'Su kabı',
+  dogToy: 'Oyuncak sepeti',
+  kennelWindow: 'Pencere',
 };
 export const FURNITURE_DESC_TR: Record<FurnitureType, string> = {
   sofa: 'İki kişi oturur; oturanın mola dinlenmesi +%25.',
@@ -31,9 +36,15 @@ export const FURNITURE_DESC_TR: Record<FurnitureType, string> = {
   oven2: 'Günde 3 pişirme hakkı daha.',
   medCabinet: 'Tedavi ücreti %30 düşer.',
   heatLamp: 'Yumurtalar %15 daha çabuk çatlar (içerideki yumurtalar da).',
+  dogBed: 'Yumuşak minder: kulübedeki köpek geceyi üstünde geçirir (büyük kulübeye iki tane).',
+  blanket: 'Sepette ekose battaniye: soğuk gecelerde sıcak tutar.',
+  dogBowl: 'Gece uyanan köpek dışarı çıkmadan su içer.',
+  dogToy: 'Top, kemik ve halat: kulübede oyalanacak bir şey.',
+  kennelWindow: 'İçeri gün ışığı girer, kulübe ferahlar.',
 };
 
-/** Oda türü başına satın alınabilen eşyalar (0.17.0 ortak katalog; mutfak, veteriner, kuluçka sonraki sürümlerde). */
+/** Oda türü başına satın alınabilen eşyalar (0.17.0 ortak katalog; kulübe 0.22.3). */
+const KENNEL_FURNITURE: readonly FurnitureType[] = ['dogBed', 'blanket', 'dogBowl', 'dogToy', 'kennelWindow'];
 export const FURNITURE_BY_KIND: Record<InteriorKind, readonly FurnitureType[]> = {
   office: [],
   restRoom: ['sofa', 'coffee', 'tv', 'fridge'],
@@ -43,7 +54,24 @@ export const FURNITURE_BY_KIND: Record<InteriorKind, readonly FurnitureType[]> =
   hatchery: ['heatLamp'],
   wholesaler: [],
   toyShop: [],
+  kennel: KENNEL_FURNITURE,
+  kennelLarge: KENNEL_FURNITURE,
 };
+
+/** Kulübe iç mekânı mı (0.22.3)? */
+export function isKennelInterior(kind: InteriorKind): boolean {
+  return kind === 'kennel' || kind === 'kennelLarge';
+}
+
+/** Odanın şablonunda o eşyaya ayrılmış yuva sayısı (küçük kulübede bir yatak, büyükte iki). */
+export function furnitureSlots(kind: InteriorKind, type: FurnitureType): number {
+  return TEMPLATES[kind].items.filter((it) => it.buy === type).length;
+}
+
+/** Odaya bu eşyadan en çok kaç tane konur: denge üst sınırı ve şablondaki yuva sayısının küçüğü. */
+export function furnitureMax(kind: InteriorKind, type: FurnitureType): number {
+  return Math.min(BALANCE.interior.furniture[type].max, furnitureSlots(kind, type));
+}
 
 /** Kayıttan gelen eşya listesini temizler: odanın kataloğundaki türler, her türden en çok üst sınır kadar. */
 export function sanitizeFurniture(kind: InteriorKind, list: unknown): FurnitureType[] {
@@ -53,7 +81,7 @@ export function sanitizeFurniture(kind: InteriorKind, list: unknown): FurnitureT
   for (const f of list) {
     if (!allowed.includes(f as FurnitureType)) continue;
     const type = f as FurnitureType;
-    if (out.filter((x) => x === type).length < BALANCE.interior.furniture[type].max) out.push(type);
+    if (out.filter((x) => x === type).length < furnitureMax(kind, type)) out.push(type);
   }
   return out;
 }
@@ -198,6 +226,32 @@ const TEMPLATES: Record<InteriorKind, InteriorTemplate> = {
       { type: 'plant', x: 8, y: 5, w: 1, h: 1 },
     ],
   },
+  // 0.22.3 küçük kulübe: pano hep var (eşya al); yatak, battaniye, su kabı, oyuncak sepeti ve pencere satın alınınca yerinde.
+  // Halı çifti yatağı olmayan köpeğin yattığı yer; her eşyanın önü boş kalır (pano yatak alınınca da ulaşılır).
+  kennel: {
+    rows: ['########', '#======#', '#......#', '#..cc..#', '#......#', '###D####'],
+    items: [
+      { type: 'kennelBoard', x: 1, y: 1, w: 2, h: 1 },
+      { type: 'window', x: 5, y: 1, w: 1, h: 1, buy: 'kennelWindow' },
+      { type: 'dogBed', x: 2, y: 2, w: 2, h: 1, buy: 'dogBed', slot: 0 },
+      { type: 'blanket', x: 6, y: 2, w: 1, h: 1, buy: 'blanket' },
+      { type: 'dogBowl', x: 1, y: 4, w: 1, h: 1, buy: 'dogBowl' },
+      { type: 'dogToy', x: 6, y: 4, w: 1, h: 1, buy: 'dogToy' },
+    ],
+  },
+  // 0.22.3 büyük kulübe: iki yatak yuvası (slot = köpeğin kulübedeki sırası), iki halı çifti.
+  kennelLarge: {
+    rows: ['##########', '#========#', '#........#', '#..cc.cc.#', '#........#', '####D#####'],
+    items: [
+      { type: 'kennelBoard', x: 1, y: 1, w: 2, h: 1 },
+      { type: 'window', x: 5, y: 1, w: 1, h: 1, buy: 'kennelWindow' },
+      { type: 'dogBed', x: 3, y: 2, w: 2, h: 1, buy: 'dogBed', slot: 0 },
+      { type: 'dogBed', x: 6, y: 2, w: 2, h: 1, buy: 'dogBed', slot: 1 },
+      { type: 'blanket', x: 8, y: 2, w: 1, h: 1, buy: 'blanket' },
+      { type: 'dogBowl', x: 1, y: 4, w: 1, h: 1, buy: 'dogBowl' },
+      { type: 'dogToy', x: 8, y: 4, w: 1, h: 1, buy: 'dogToy' },
+    ],
+  },
 };
 
 /** Kurulmuş iç oda: ayrı küçük dünya (duvarlar katı), kapı karesi ve giriş noktası. */
@@ -221,7 +275,26 @@ const GROUND_OF: Record<string, Ground> = {
 
 /** Binanın iç mekânı varsa türü. */
 export function interiorKindFor(type: BuildingType): InteriorKind | null {
-  return type === 'office' ? 'office' : type === 'staffRoom' ? 'restRoom' : type === 'shed' ? 'pantry' : type === 'kitchen' ? 'kitchen' : type === 'vetClinic' ? 'clinic' : type === 'incubator' ? 'hatchery' : null;
+  switch (type) {
+    case 'office':
+      return 'office';
+    case 'staffRoom':
+      return 'restRoom';
+    case 'shed':
+      return 'pantry';
+    case 'kitchen':
+      return 'kitchen';
+    case 'vetClinic':
+      return 'clinic';
+    case 'incubator':
+      return 'hatchery';
+    case 'kennelSmall':
+      return 'kennel';
+    case 'kennelLarge':
+      return 'kennelLarge';
+    default:
+      return null;
+  }
 }
 
 export function buildInterior(kind: InteriorKind, owned: readonly string[] = [], level = 1): InteriorMap {
@@ -253,6 +326,26 @@ export function buildInterior(kind: InteriorKind, owned: readonly string[] = [],
 /** Karedeki eşya. */
 export function interiorItemAt(map: InteriorMap, x: number, y: number): InteriorItem | null {
   return map.items.find((it) => x >= it.x && x < it.x + it.w && y >= it.y && y < it.y + it.h) ?? null;
+}
+
+/**
+ * Kulübe içinde `slot`taki köpeğin yattığı yer (0.22.3): o sıranın yatağı varsa yatağın üstü, yoksa sıradaki halı çifti.
+ * `x` ortası, `y` alt kenarı (kare biriminde); yer yoksa null. Yalnız çizim içindir: köpeğin gerçek yeri dışarıdaki eşik.
+ */
+export function kennelRestSpotInside(map: InteriorMap, slot: number): { x: number; y: number; bed: boolean } | null {
+  const bed = map.items.find((it) => it.type === 'dogBed' && (it.slot ?? 0) === slot);
+  if (bed) return { x: bed.x + bed.w / 2, y: bed.y + bed.h, bed: true };
+  const w = map.world;
+  let k = 0;
+  for (let y = 0; y < w.height; y++) {
+    for (let x = 0; x < w.width - 1; x++) {
+      if (w.groundAt(x, y) !== Ground.Carpet || w.groundAt(x + 1, y) !== Ground.Carpet) continue;
+      if (k === slot) return { x: x + 1, y: y + 1, bed: false };
+      k++;
+      x++;
+    }
+  }
+  return null;
 }
 
 /** Oyuncunun içinde olduğu oda: hangi binanın, çıkınca dönülecek dış nokta (kapı önü). */

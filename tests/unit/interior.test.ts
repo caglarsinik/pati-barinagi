@@ -112,7 +112,8 @@ describe('İç mekân altyapısı (0.16.0)', () => {
 
   it('girilemeyen bina reddedilir; masa çizimi dolu', () => {
     const { sim } = atOfficeDoor(1604);
-    const other = sim.buildings.find((b) => b.type !== 'office')!;
+    // 0.22.3'ten beri kulübeye de girilir: iç mekânı olmayan yem kabı.
+    const other = sim.buildings.find((b) => b.type === 'bowl')!;
     expect(sim.enterBuilding(other.id).ok).toBe(false);
     expect(sim.interior).toBeNull();
     const desk = drawInteriorItem('desk');
