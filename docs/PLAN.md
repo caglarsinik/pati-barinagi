@@ -582,6 +582,55 @@ tanıtılsın (Ayarlar'dan kapatılabilir).
 | 0.23.3 ✅ | Evi onar: orman evi (`BALANCE.ruin.repair` 🪵40 🪨25 + 800 ₺, malzeme şart): ocakta E → `RepairPanel`; `sim.ruin.repaired` + `world.cabin` (tabela bayrağı), iç mekân `cabin` (pencereler, yanan ocak: günde bir dayanıklılık `warmDay`, yatak: 20:00 sonrası sabaha kadar, halı); `drawCabin` + bacadan duman parçacığı + gece kapı ışığı; `cabin` tabelası (kapının 2 kare doğusu) → hızlı seyahat; 02:00 bayılmasında ofisten yakınsa orman evi kapısı; başarım `cabin` (38) |
 | 0.23.4 ✅ | Cila: dokunma senaryosu 20 (ağacın tepesine dokun → kes, kaya → kır, eve dokun → içeri → sandık → kapıdan çık, malzemeyle küçük kulübe 420 ₺ + 🪵6 🪨2, otopilot ağacın dibinde ve evin kapısında işi reddeder), Kontroller'de "Orman ve malzeme" bölümü + dokunmatik satırları + otopilot satırı, başarımlar "Oduncu" (100 odun) ve "Taşçı" (60 taş) → 40, 12 boyutta TR/EN denetim 81 ekran temiz |
 
+### Bakım 0.23.5 (2026-09-27 dilimlendi; M18'den sonra, ilk iş)
+| Sürüm | Konu |
+|---|---|
+| 0.23.5 ✅ | Bakım: `gates.update` karede bir kez (`Sim.update`'teki fazladan çağrı silinir); kare pencerede "çevir" uyarısı sim'i de durdurur (`portraitBlocked` h ≥ w, CSS ile aynı); personel XP görev başına 10 → 2 (ölçüm: 08–18 vardiyasında 6–14 köpekle ~15 görev/gün → eskiden Sv5 6–8. günde; şimdi Sv2 ~4. gün, Sv5 ~34. gün; 2 köpekle ~8 görev/gün → Sv5 ~2 ay); yeni oyunda "Gün uzunluğu" 10 / 15 / 20 dk (`sim.dayMinutes`, kayıtta; eski kayıt 10; Ayarlar → Bu oyun'dan da; yalnız gerçek zaman ölçeği, oyun dakikası başına denge değişmez) |
+
+### M20 Karakter (2026-09-27 kullanıcı isteği; 0.24.x)
+Oyuncu oyuna girerken karakterini kurar: kadın/erkek beden, ten (4), saç biçimi (kısa, uzun, at kuyruğu, topuz, kısa kesim) ve
+rengi (6), tişört rengi (8) ve biçimi (düz, çizgili, kapüşonlu), pantolon rengi (4) ve biçimi (uzun, şort, etek), ayakkabı (5),
+şapka (4 renk), aksesuar (gözlük, atkı), ad (en çok 14 karakter). Bütün insanlar aynı 16×24 `drawHuman` ile çizildiğinden
+seçenekler `HumanStyle`'a isteğe bağlı alan olarak eklenir; NPC'ler (`humanStyleFromSeed`) değişmez, varsayılan görünüm
+bugünkü sprite ile piksel piksel aynıdır (eski kayıt aynen). Kararlar: karakter ekranı "Yeni oyun"dan sonra ayrı adım; açık
+oyunda Ayarlar → Karakter'den değiştirilir; fotoğrafa o anki görünüm işlenir (eski fotoğraflar değişmez).
+
+| Sürüm | Konu |
+|---|---|
+| 0.24.0 | Görünüm modeli (`PlayerLook`, indeks tabanlı; `Player.look/name` kayıtta, sürüm 2 kalır), `drawHuman` çeşitleri, `styleFromLook`, oyuncu dokusu görünümden (`ensurePlayerTexture`; varsayılan görünüm boot dokusunu kullanır), `setPlayer` komutu + `playerChanged` olayı ile canlı değişim; arayüz yok |
+| 0.24.1 | Karakter ekranı: "Yeni oyun" → "Karakterin" (dönen canlı önizleme, ◀ ▶ seçiciler, ad, Rastgele, Geri, Başla); son seçim hatırlanır; kayıt kartında ad + portre; 568×320'de iki sütun |
+| 0.24.2 | Ayarlar → Karakter (ad + Görünümü düzenle, oyunda canlı) + ad kullanımı (kayıt kartı, Nermin, sabah kartı, mektup "Sevgili {ad},", zafer) + sahiplendirme fotoğrafında oyuncu (`AdoptionRecord.playerLook` anlık kopya) |
+| 0.24.3 | Cila: dokunma senaryosu 21, Kontroller satırı, 12 boyutta TR/EN denetim, README/PLAN/handoff |
+
+### M21 Yuva evi içi (2026-09-27 dilimlendi; 0.25.x)
+Yuva evine girilir (kulübe içi deseni): pano çift panelini açar, çift içerideki iki yuva yatağında yatar (kozmetik; dışarıdaki
+dolaşmaları sürer), yumurta sepetinden yumurta alınır; eşyalar üremeyi ılımlı hızlandırır (`BALANCE.breeding.furniture`).
+
+| Sürüm | Konu |
+|---|---|
+| 0.25.0 | `nursery` iç mekânı (8×6: pano, iki yuva yatağı, yumurta sepeti, pencereler): pano → NurseryPanel, yatak ipucu köpek adı, sepet → `takeNurseryEgg` (çanta doluysa red); çift içeride yatar; ↑ / kapı dokunuşu / panelde "İçeri gir"; dış ipucu "E: yuva evi · ↑ içeri" |
+| 0.25.1 | Eşyalar: yumuşak yuva (süre ×0,85), ısıtıcı (bekleme ×0,75), pencere (dekor +1), fotoğraf duvarı (dekor +1, soy satırı); yumurta hazırken dış görünümde işaret; panelde eşya satırı; başarım "Sıcak yuva" (41) |
+| 0.25.2 | Cila: dokunma senaryosu 22 (yuva evi kur → içeri → pano → çift → 5 gün → sepet → çanta), Kontroller, denetim, belgeler |
+
+### M22 Kuzey/batı arsa (2026-09-27 dilimlendi; 0.26.x)
+Arsa dört yöne büyür (bugün yalnız doğu/güney). Engel denetimi (su, dağ, köy, orman evi açıklığı, gizli yuva) dört yöne uygulanır;
+inler yeni şeritten kaldırılır; orman evi/köy yerleri değişmez; kuzey/batı çitinde kapı yok (yol yok).
+
+| Sürüm | Konu |
+|---|---|
+| 0.26.0 | Sim: `ExpandDir` kuzey/batı (köşe kayar), `expansionBlockers` ("Orada genişletilemez: {neden}"), eski kenar çiti ve yeni şerit temizliği genel, kayıt yüklemede taban arsayı kapsayan dikdörtgen kabul edilir, `w.dens` süzülür; `QuestSystem.pickSpot` mevcut arsaya göre; hedef metni "dört yöne"; `expand.test.ts` |
+| 0.26.1 | Arsa sekmesi 2×2 yön düğmeleri (engelli yön soluk, dokununca neden), Kontroller satırı, dokunma senaryosu 23, denetim, belgeler |
+
+### M23 Arsa yeri (2026-09-27 dilimlendi; 0.27.x; en sona)
+Yeni oyunda barınağın yeri 4 hazır yerden seçilir (Orta çayır = bugünkü, Kuzey, Batı, Doğu; güney köy satırıyla çakışır).
+Serbest yer yok. Arsa merkezi zaten harita merkezi olduğundan dağ halkası harita merkezinden ölçülür ve varsayılan yerde dünya
+bit bit aynı kalır.
+
+| Sürüm | Konu |
+|---|---|
+| 0.27.0 | `generateWorld(seed, origin)`, `world.origin`; yollar, köy, ev (`Ruin.ts`, `RuinSystem`), tabelalar, `PlotReserve` köşeye göre; `validateOrigin(seed, origin)` (güney yol köye ulaşır, ev adayı var, doğu yolu ≥ 20); kayıtta `plotOrigin` (yoksa varsayılan); varsayılan yerde 5 tohum özet sabitleriyle bit bit aynı |
+| 0.27.1 | Arsa yeri ekranı (4 kart, tohuma göre doğrulama, biyom önizlemesi; köy/ev işaretlenmez), son seçim hatırlanır, denetim `screen:plot-site`, dokunma senaryosu 24, Kontroller, belgeler |
+
 ## 6. Varsayımlar ve açık noktalar
 
 - Tek oyunculu, çevrimdışı; klavye + fare ve dokunmatik (M9).

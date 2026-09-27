@@ -317,6 +317,8 @@ pencereler, gece kapı önü aydınlık; "Orman evi" başarımı açılır, hari
 - Lisans seviyesi yardım alınan köpek sayısını sınırlar (8/20/45); ofisten yükseltilir. Finans (N) kasa hareketlerini, son 8 haftanın gelir/gider grafiğini ve geçmiş haftaları gösterir; nakit tahmini son 3 haftanın ortalamasına bugünkü maaş ve kredi faizini ekleyip "Bu gidişle n hafta sonra kasa eksiye düşer" uyarısı verir.
 - **Zorluk:** yeni oyunda Kolay / Normal / Zor seçilir (başlangıç 9.000 / 6.000 / 4.000 ₺, yardım ×1,3 / 1 / 0,8, ihtiyaç hızı
   ×0,8 / 1 / 1,2); kayıtta korunur, Finans başlığında görünür.
+- **Gün uzunluğu (0.23.5):** yeni oyunda 10 / 15 / 20 gerçek dakika (1× hızda; Ayarlar → Bu oyun'dan sonradan da değişir); yalnız gerçek
+  zaman ölçeğidir, oyun dakikası başına denge değişmez, kayıtta korunur (eski kayıt 10 dk).
 - **Kredi:** ofisten tek seferde 5.000 ₺ kredi alınır; her hafta %5 faiz (250 ₺) kasadan düşer, anapara ofisten "Krediyi öde"
   ile kapatılır (kasa yetmezse kısmen). **İflas:** kasa üst üste 3 hafta −(haftalık maaş + 1.000 ₺) altındaysa oyun biter; uyarı
   sütunu "İflas riski: n/3 hafta" diye sayar, iflas ekranından ana menüye dönülür (kayıt korunur, "Devam et" yine iflas ekranını açar).
@@ -375,7 +377,7 @@ verir; dokunma senaryosu 16 bütün zinciri dener (ofiste masa → sahiplendir �
   (1×2, 400 ₺, Personel kategorisi) gidip 8 dakikada boşaltır ve işine döner. WC yoksa 90 üstünde saatte moral −4 ve verim
   ×0,9 (sıkışma morali 25 altına indirmez, yalnız WC yüzünden istifa olmaz); uyarı listesinde "Personel tuvaleti yok"
   çıkar. Personel kartında Tuvalet çubuğu var.
-- **Seviye ve moral:** her tamamlanan görev deneyim verir; eşikte personel seviye atlar (Sv5'e kadar) ve rolünün ana
+- **Seviye ve moral:** her tamamlanan görev deneyim verir (görev başına 2; Sv2 100, Sv5 için toplam 1.000 = 500 görev: yoğun barınakta ~15 görev/gün ile Sv2 4. gün, Sv5 ~5. hafta; 0.23.5); eşikte personel seviye atlar (Sv5'e kadar) ve rolünün ana
   niteliği (bakıcıda çalışkanlık, eğitmen/veterinerde beceri) artar. Moral yorgun çalışmak, iş yükü ve ödenmemiş maaşla
   düşer; mola odası, izin ve seviye atlamak yükseltir. Moral 30'un altındayken verim %20 düşer, 3 gün 10'un altında kalan
   personel istifa eder. Kartta "Sv2 ★★", deneyim ve moral çubuğu görünür.
@@ -609,6 +611,8 @@ Bilgisayar değiştirirken ya da yedek almak için kullan.
 - [x] 0.23.3 Orman evi: terk edilmiş evi 🪵40 🪨25 + 800 ₺ ile onar; yatakta uyu, ocakta günde bir ısın, kapıdaki tabeladan hızlı seyahat, gece bayılınca yakın evde uyan
 - [x] 0.23.4 Cila: dokunma senaryosu 20 (orman: ağaç, kaya, terk edilmiş ev, malzemeyle kulübe, otopilot), Kontroller'de "Orman ve malzeme", "Oduncu" ve "Taşçı" başarımları, 12 boyutta TR/EN denetim temiz — M18 tamam
 - [x] M18 Terk Edilmiş Ev ve Malzemeler (0.23.0–0.23.4): odun ve taş → malzemeyle öde → uzak ormanda ev → onarım (orman evi) → cila
+- [x] 0.23.5 Bakım: kapı güncellemesi karede bir kez; kare pencerede "çevir" uyarısı oyunu da durdurur; personel deneyimi görev başına 10 → 2 (Sv5 ~5 hafta, eskiden ~1 hafta); yeni oyunda ve Ayarlar → Bu oyun'da "Gün uzunluğu" 10 / 15 / 20 dk
+- [ ] Sıradaki (2026-09-27 yol haritası, `docs/PLAN.md` §7): M20 Karakter (0.24.0–0.24.3: görünüm modeli → karakter ekranı → Ayarlar'dan değiştirme + ad + fotoğrafta oyuncu → cila) → M21 Yuva evi içi (0.25.0–0.25.2) → M22 Kuzey/batı arsa (0.26.0–0.26.1) → M23 Arsa yeri (0.27.0–0.27.1)
 - [ ] Sonrası: yuva evi içi, kuzey/batı arsa genişletme
 
 ## Geliştirme

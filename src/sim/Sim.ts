@@ -1,4 +1,4 @@
-import { BALANCE, type Speed } from '../config/balance';
+import { BALANCE, type Speed, type DayMinutes } from '../config/balance';
 import { BUILDING_DEFS, type BuildingType, type TileTool } from '../content/buildings';
 import { DOG_NAMES } from '../content/names';
 import { GAME } from '../config/game';
@@ -77,6 +77,11 @@ import { CampaignSystem } from './systems/CampaignSystem';
 import { SIGN_NAMES_TR, type SignId, type Signpost, landingTile, signKnown, signposts, travelMinutes } from './world/Signposts';
 
 export type Mode = 'avatar' | 'manage';
+
+/** Gün uzunluğu seçeneklerinden biri mi (0.23.5)? */
+export function isDayMinutes(v: unknown): v is DayMinutes {
+  return typeof v === 'number' && (BALANCE.time.dayMinutesOptions as readonly number[]).includes(v);
+}
 
 export type Difficulty = 'easy' | 'normal' | 'hard';
 export const DIFFICULTIES: readonly Difficulty[] = ['easy', 'normal', 'hard'];
@@ -189,6 +194,8 @@ export type Command =
   | { type: 'setSchedule'; staffId: number; schedule: number[] }
   | { type: 'setPriority'; staffId: number; task: TaskType; value: number }
   | { type: 'setPolicy'; policy: Partial<Policies> }
+  /** Gün uzunluğu (0.23.5): 10 / 15 / 20 gerçek dakika. */
+  | { type: 'setDayMinutes'; minutes: number }
   | { type: 'walkDog'; dogId: number }
   | { type: 'endWalk' }
   | { type: 'setKeep'; dogId: number; keep: boolean }
@@ -434,6 +441,13 @@ export class Sim {
   speed: Speed = 1;
   mode: Mode = 'avatar';
   difficulty: Difficulty = 'normal';
+  /** Bir oyun gününün gerçek süresi, dakika (0.23.5; kayıtta). Yalnız gerçek zaman ölçeği: oyun dakikası başına hiçbir şey değişmez. */
+  dayMinutes: DayMinutes = BALANCE.time.dayMinutes;
+
+  /** 1× hızda bir gerçek saniyede geçen oyun dakikası; gün uzunluğuna göre ölçekli (varsayılanda BALANCE değeri bire bir). */
+  get minutesPerRealSecond(): number {
+    return this.dayMinutes === BALANCE.time.dayMinutes ? BALANCE.time.minutesPerRealSecond : 1440 / (this.dayMinutes * 60);
+  }
   /** Kalan kredi anaparası. */
   loan = 0;
   /** Kasanın art arda kaç hafta iflas eşiğinin altında kaldığı. */
@@ -518,13 +532,14 @@ export class Sim {
     this.events.on('day', (d) => this.campaigns.onDay(d));
   }
 
-  static create(seed: number, difficulty: Difficulty = 'normal', starter: StarterKind = 'ready'): Sim {
+  static create(seed: number, difficulty: Difficulty = 'normal', starter: StarterKind = 'ready', dayMinutes: DayMinutes = BALANCE.time.dayMinutes): Sim {
     const world = generateWorld(seed);
     if (starter === 'guided') applyFoundingPlot(world);
     const player = new Player(world.spawn.x, world.spawn.y);
     const sim = new Sim(seed, world, new Clock(), player, BALANCE.difficulty[difficulty].startMoney);
     sim.difficulty = difficulty;
     sim.starter = starter;
+    sim.dayMinutes = dayMinutes;
     sim.setupStarterShelter(starter);
     // Hazır barınakta kurulu gelenler (kulübe, kap ve yalak, kuluçka, kiler) ödülsüz tamam sayılır (0.19.1).
     if (starter === 'ready') sim.goals.catchUp();
@@ -565,11 +580,9 @@ export class Sim {
   /** Gerçek zamanlı bir kare ilerletir. Oyuncu hareketi gerçek zamanlı, saat oyun hızıyla ölçekli. */
   update(dtSec: number, input: PlayerInput = IDLE_INPUT): void {
     if (this.paused || this.gameOver || dtSec <= 0) return;
-    const dtMin = dtSec * BALANCE.time.minutesPerRealSecond * this.speed;
+    const dtMin = dtSec * this.minutesPerRealSecond * this.speed;
     this.stepSim(dtMin, dtSec);
     if (this.gameOver) return;
-    // Kapılar gerçek zamanda: oyuncu için katılık, NPC'ler için yakınlık.
-    this.gates.update(0);
     if (this.mode === 'avatar') {
       // Klavye girişi dokun-git yolunu iptal eder; girdi yoksa yol takibi girdiyi üretir.
       const manual = input.dx !== 0 || input.dy !== 0;
@@ -594,7 +607,7 @@ export class Sim {
   }
 
   /** Oyun zamanını ilerletir (oyuncu hareketi hariç). Uyku gibi atlamalar bunu döngüde çağırır. */
-  stepSim(dtMin: number, dtSec = dtMin / BALANCE.time.minutesPerRealSecond): void {
+  stepSim(dtMin: number, dtSec = dtMin / this.minutesPerRealSecond): void {
     if (this.gameOver) return;
     this.gates.update(dtSec);
     this.weatherSys.update();
@@ -1033,6 +1046,11 @@ export class Sim {
         if (!s || !TASK_TYPES.includes(cmd.task)) return { ok: false };
         s.priorities[cmd.task] = Math.max(0, Math.min(5, Math.round(cmd.value)));
         return { ok: true };
+      }
+      case 'setDayMinutes': {
+        if (!isDayMinutes(cmd.minutes)) return { ok: false, message: t('Geçersiz gün uzunluğu') };
+        this.dayMinutes = cmd.minutes;
+        return { ok: true, message: t('Gün uzunluğu: {n} dk', { n: cmd.minutes }) };
       }
       case 'setPolicy': {
         const p = cmd.policy;
@@ -1795,6 +1813,7 @@ export class Sim {
       mode: this.mode,
       money: this.money,
       difficulty: this.difficulty,
+      dayMinutes: this.dayMinutes,
       autopilot: this.autopilot,
       coffeeDay: this.coffeeDay,
       bakeDay: this.bakeDay,
@@ -1936,6 +1955,7 @@ export class Sim {
     const speeds = BALANCE.time.speeds as readonly number[];
     sim.speed = speeds.includes(data.speed) && data.speed !== 0 ? (data.speed as Speed) : 1;
     sim.lastRunningSpeed = sim.speed;
+    sim.dayMinutes = isDayMinutes(data.dayMinutes) ? data.dayMinutes : BALANCE.time.dayMinutes;
     sim.mode = data.mode === 'manage' ? 'manage' : 'avatar';
     sim.tool = TOOL_DEFS.some((t) => t.id === data.tool) ? (data.tool as Tool) : 'pet';
     sim.foodStock = numOr(data.foodStock, 0, 0);

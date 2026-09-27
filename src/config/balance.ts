@@ -4,8 +4,11 @@
  */
 export const BALANCE = {
   time: {
-    /** 1x hızda 1 gerçek saniyede geçen oyun dakikası (10 gerçek dakika = 1 gün). */
+    /** 1x hızda 1 gerçek saniyede geçen oyun dakikası (varsayılan gün 10 gerçek dakika; oyun içinde `sim.minutesPerRealSecond` gün uzunluğuna göre ölçekler). */
     minutesPerRealSecond: 2.4,
+    /** Bir oyun gününün gerçek süresi (dakika, 1× hızda): varsayılan ve seçenekler (0.23.5). Yalnız gerçek zaman ölçeği; oyun dakikası başına denge değişmez. */
+    dayMinutes: 10,
+    dayMinutesOptions: [10, 15, 20] as const,
     speeds: [0, 1, 2, 4] as const,
     /** Oyun Pazartesi 06:00'da başlar. */
     startMinutes: 6 * 60,
@@ -95,8 +98,8 @@ export const BALANCE = {
     course: { cost: 800, days: 1 },
     /** Gönüllü: Cuma başvurur (weekday 4), maaşsız, yalnız hafta sonu, verim düşük, 2 maaş günü sonra ayrılır. */
     volunteer: { weeks: 2, efficiencyMul: 0.6, reputationGain: 1, offerWeekday: 4 },
-    /** Deneyim: görev başına xp; seviye eşiği xpPerLevel × seviye. */
-    progress: { xpPerTask: 10, xpPerLevel: 100, maxLevel: 5, levelUpMorale: 5 },
+    /** Deneyim: görev başına xp; seviye eşiği xpPerLevel × seviye. 0.23.5 ölçümü: bakıcı 08–18 vardiyasında 6–14 köpekle ~15 görev/gün → Sv2 ~4. gün, Sv5 ~34. gün (2 köpekle ~8 görev/gün → Sv5 ~2 ay); eski 10 ile Sv5 bir haftada geliyordu. */
+    progress: { xpPerTask: 2, xpPerLevel: 100, maxLevel: 5, levelUpMorale: 5 },
     /** Moral (0-100): saatlik değişimler, düşük moral cezası ve istifa. */
     morale: {
       start: 70,
@@ -750,3 +753,6 @@ export const BALANCE = {
 } as const;
 
 export type Speed = (typeof BALANCE.time.speeds)[number];
+
+/** Gün uzunluğu seçeneği (0.23.5): bir oyun gününün gerçek dakikası. */
+export type DayMinutes = (typeof BALANCE.time.dayMinutesOptions)[number];

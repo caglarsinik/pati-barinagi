@@ -17,4 +17,6 @@ it('does not resume under another modal or after bankruptcy', () => {
 it('matches the rotate overlay boundaries',()=>{
  expect(portraitBlocked(375,812)).toBe(true); expect(portraitBlocked(812,375)).toBe(false);
  expect(portraitBlocked(768,1024)).toBe(false); expect(portraitBlocked(767,768)).toBe(true);
+ // 0.23.5: kare pencere CSS'teki gibi dikey sayılır (h >= w); geniş kare değil.
+ expect(portraitBlocked(500,500)).toBe(true); expect(portraitBlocked(767,767)).toBe(true); expect(portraitBlocked(768,768)).toBe(false);
 });

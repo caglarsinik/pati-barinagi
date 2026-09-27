@@ -1,6 +1,7 @@
 import type { Speed } from '../config/balance';
 interface ClockControl { speed: Speed; gameOver: unknown; setSpeed(speed: Speed): void }
-export function portraitBlocked(width: number, height: number): boolean { return width <= 767 && height > width; }
+/** Dar (≤ 767 px) ve dikey ya da kare pencere: CSS `orientation: portrait` gibi h ≥ w (0.23.5). */
+export function portraitBlocked(width: number, height: number): boolean { return width <= 767 && height >= width; }
 /** Keeps orientation suspension independent from a manually paused game. */
 export class OrientationPause {
   private saved: Speed | null = null;

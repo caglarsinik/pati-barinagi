@@ -1,6 +1,7 @@
 import { useState } from 'preact/hooks';
 import { app } from '../app';
 import { audio } from '../audio/audio';
+import { BALANCE } from '../config/balance';
 import { getLang, t } from '../i18n';
 import { InstallControls } from './InstallControls';
 import { showToast, store } from './store';
@@ -26,6 +27,7 @@ export function SettingsPanel() {
   );
   const exportText = app.exportSave();
   const lang = getLang();
+  const sim = app.sim;
   return (
     <div class="overlay">
       <div class="menu-card panel wide settings">
@@ -84,6 +86,22 @@ export function SettingsPanel() {
               {t('Tanıtımı şimdi başlat')}
             </button>
           </div>
+        )}
+        {sim && (
+          <>
+            <h4>{t('Bu oyun')}</h4>
+            <label class="setting">
+              <span>{t('Gün uzunluğu')}</span>
+              <select value={sim.dayMinutes} onChange={(e) => app.setDayMinutes(Number((e.target as HTMLSelectElement).value))}>
+                {BALANCE.time.dayMinutesOptions.map((m) => (
+                  <option key={m} value={m}>
+                    {t('{n} dk', { n: m })}
+                  </option>
+                ))}
+              </select>
+              <span class="muted small-text">{t('1× hızda bir oyun günü kaç gerçek dakika sürer; oyun içi denge değişmez.')}</span>
+            </label>
+          </>
         )}
         <h4>{t('Dokunmatik')}</h4>
         <label class="setting">

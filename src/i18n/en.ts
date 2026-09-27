@@ -1832,4 +1832,12 @@ export const EN: Record<string, string> = {
   'Yanına gidip keser, kırar ya da söker (🪵/🪨 çantaya)': 'Walks over and chops, breaks or uproots it (🪵/🪨 into the bag)',
   'Terk edilmiş eve dokun': 'Tap the abandoned house',
   'Kapısına yürüyüp içeri girer; içeride ocağa dokun: onarım': 'Walks to its door and goes inside; inside, tap the hearth: repair',
+  // 0.23.5 bakım: gün uzunluğu
+  "Bu oyun": "This game",
+  "Gün uzunluğu": "Day length",
+  "{n} dk": "{n} min",
+  "1× hızda bir oyun günü {n} gerçek dakika sürer.": "At 1× speed a game day lasts {n} real minutes.",
+  "1× hızda bir oyun günü kaç gerçek dakika sürer; oyun içi denge değişmez.": "How many real minutes a game day lasts at 1×; in-game balance is unchanged.",
+  "Gün uzunluğu: {n} dk": "Day length: {n} min",
+  "Geçersiz gün uzunluğu": "Invalid day length",
 };

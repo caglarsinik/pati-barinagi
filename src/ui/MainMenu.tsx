@@ -1,7 +1,7 @@
 import { useState } from 'preact/hooks';
 import { app } from '../app';
 import { GAME } from '../config/game';
-import { BALANCE } from '../config/balance';
+import { BALANCE, type DayMinutes } from '../config/balance';
 import type { SaveSummary } from '../core/SaveManager';
 import { getLang, t } from '../i18n';
 import { DIFFICULTIES, DIFFICULTY_NAMES_TR, type Difficulty, type StarterKind } from '../sim/Sim';
@@ -96,6 +96,7 @@ export function MainMenu() {
   const [seed, setSeed] = useState('');
   const [difficulty, setDifficulty] = useState<Difficulty>(() => app.lastDifficulty());
   const [starter, setStarter] = useState<StarterKind>(() => app.lastStarter());
+  const [dayMinutes, setDayMinutes] = useState<DayMinutes>(() => app.lastDayMinutes());
   const [confirmOverwrite, setConfirmOverwrite] = useState(false);
   const D = BALANCE.difficulty[difficulty];
   const booted = store.booted.value;
@@ -109,7 +110,7 @@ export function MainMenu() {
       return;
     }
     setConfirmOverwrite(false);
-    app.newGame(seed, difficulty, selected, starter);
+    app.newGame(seed, difficulty, selected, starter, dayMinutes);
   };
   const select = (i: number): void => {
     store.saveSlot.value = i;
@@ -165,6 +166,17 @@ export function MainMenu() {
               <option value="guided">{t('Kuruluş: küçük arsa, adım adım (önerilir)')}</option>
               <option value="ready">{t('Hazır barınak: büyük arsa, binalar kurulu')}</option>
             </select>
+          </label>
+          <label class="field">
+            <span>{t('Gün uzunluğu')}</span>
+            <select value={dayMinutes} onChange={(e) => setDayMinutes(Number((e.target as HTMLSelectElement).value) as DayMinutes)}>
+              {BALANCE.time.dayMinutesOptions.map((m) => (
+                <option key={m} value={m}>
+                  {t('{n} dk', { n: m })}
+                </option>
+              ))}
+            </select>
+            <span class="muted small-text">{t('1× hızda bir oyun günü {n} gerçek dakika sürer.', { n: dayMinutes })}</span>
           </label>
           <button class={'btn' + (confirmOverwrite ? ' danger' : '')} disabled={!booted} onClick={startNew}>
             {confirmOverwrite ? t('Yuva {n} silinip yeni oyun başlasın mı? Onayla', { n: selected + 1 }) : occupied ? t('Yeni oyun (yuva {n}, üzerine yazar)', { n: selected + 1 }) : t('Yeni oyun (yuva {n})', { n: selected + 1 })}

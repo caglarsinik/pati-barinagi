@@ -11,6 +11,8 @@ export interface SaveData {
   mode: string;
   money: number;
   difficulty?: string;
+  /** Gün uzunluğu (0.23.5; yoksa 10). */
+  dayMinutes?: number;
   loan?: number;
   negativeWeeks?: number;
   gameOver?: unknown;

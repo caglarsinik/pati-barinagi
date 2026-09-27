@@ -5,7 +5,7 @@ import { classifyLayout } from './ui/layout';
 import { audio } from './audio/audio';
 import { GAME } from './config/game';
 import { type Lang, getLang, initLang, setLang, t } from './i18n';
-import type { Speed } from './config/balance';
+import { BALANCE, type DayMinutes, type Speed } from './config/balance';
 import type { Tool } from './sim/systems/Interaction';
 import type { BuildTool, Layout, Panel, TouchMode } from './ui/store';
 import { parseSeed } from './core/Rng';
@@ -14,7 +14,7 @@ import { SaveManager } from './core/SaveManager';
 import { BootScene } from './scenes/BootScene';
 import { WorldScene } from './scenes/WorldScene';
 import { OverlayScene } from './scenes/OverlayScene';
-import { Sim, DIFFICULTIES, STARTER_KINDS, type Difficulty, type StarterKind } from './sim/Sim';
+import { Sim, DIFFICULTIES, STARTER_KINDS, isDayMinutes, type Difficulty, type StarterKind } from './sim/Sim';
 import { BUILDING_DEFS, type BuildingType } from './content/buildings';
 import { type MorningReport, buildMorningReport } from './sim/systems/DayReport';
 import { showToast, store, syncStore } from './ui/store';
@@ -233,6 +233,30 @@ class AppController {
     return 'guided';
   }
 
+  /** Son seçilen gün uzunluğu (0.23.5; varsayılan 10 dk). */
+  lastDayMinutes(): DayMinutes {
+    try {
+      const v = Number(localStorage.getItem(`${SaveManager.key(0)}.dayMinutes`));
+      if (isDayMinutes(v)) return v;
+    } catch {
+      /* yoksay */
+    }
+    return BALANCE.time.dayMinutes;
+  }
+
+  /** Açık oyunda gün uzunluğunu değiştirir (Ayarlar → Bu oyun); tercih tarayıcıda kalır. */
+  setDayMinutes(minutes: number): void {
+    if (!this.sim) return;
+    const r = this.sim.command({ type: 'setDayMinutes', minutes });
+    if (r.message) showToast(r.message);
+    if (!r.ok) return;
+    try {
+      localStorage.setItem(`${SaveManager.key(0)}.dayMinutes`, String(minutes));
+    } catch {
+      /* yoksay */
+    }
+  }
+
   setTouchMode(mode: TouchMode): void {
     store.touchMode.value = mode;
     try {
@@ -290,17 +314,18 @@ class AppController {
     showToast(t('Yuva {n} silindi', { n: slot + 1 }));
   }
 
-  newGame(seedInput: string, difficulty: Difficulty = 'normal', slot: number = store.saveSlot.value, starter: StarterKind = 'guided'): void {
+  newGame(seedInput: string, difficulty: Difficulty = 'normal', slot: number = store.saveSlot.value, starter: StarterKind = 'guided', dayMinutes: DayMinutes = BALANCE.time.dayMinutes): void {
     this.debugGame = false;
     this.useSlot(slot);
     const seed = parseSeed(seedInput);
     try {
       localStorage.setItem(`${SaveManager.key(0)}.difficulty`, difficulty);
       localStorage.setItem(`${SaveManager.key(0)}.starter`, starter);
+      localStorage.setItem(`${SaveManager.key(0)}.dayMinutes`, String(dayMinutes));
     } catch {
       /* yoksay */
     }
-    const sim = Sim.create(seed, difficulty, starter);
+    const sim = Sim.create(seed, difficulty, starter, dayMinutes);
     this.start(sim);
     this.save(true);
     showToast(t('Yeni dünya · tohum {seed} · yuva {n}', { seed, n: store.saveSlot.value + 1 }));

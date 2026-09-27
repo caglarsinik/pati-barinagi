@@ -57,6 +57,29 @@
   köpek paneli, araç şeridi, alt menü listesi, ana menü, Ayarlar: çakışma yok, taşma yok. Alt menü açılır listesi köpek
   panelinin üstüne gelebilir (geçici popover, üstte kalır) — kabul edildi. Gerçek cihaz testi kullanıcıda.
 
+## 0.23.5 — Bakım (Claude, 2026-09-27)
+- `Sim.update` içindeki fazladan `gates.update(0)` silindi: `stepSim` başta gerçek dt ile, sonda 0 ile zaten çağırıyor; dt=0 yalnız
+  açar/sayaç sıfırlar, kapatmaz (idempotent). Kalan çağrılar: stepSim başı/sonu ve yüklemede bir kez.
+- `portraitBlocked` h ≥ w (CSS `orientation: portrait` ile aynı): kare pencerede "çevir" uyarısıyla birlikte sim de durur
+  (test 500×500 ve 767×767 engelli, 768×768 değil).
+- Personel XP ölçümü (geçici `tests/unit/_xpprobe.test.ts`, silindi; hazır başlangıç, 1 bakıcı varsayılan 08–18 vardiyası,
+  otomatik sipariş, 28 gün): 6–14 köpekle 15–18 görev/gün, 2 köpekle ~8. Eski `xpPerTask: 10` ile Sv5 6–8. günde (2 köpekle
+  14.), kurs (800 ₺) anlamsızdı. Yeni `xpPerTask: 2` (`BALANCE.staff.progress`): Sv2 ~4. gün, Sv3 ~10., Sv4 ~20., Sv5 ~34.
+  gün; 2 köpekle Sv5 ~2 ay. Not: 24 saatlik vardiya (longrun testindeki gibi) moral 25 → 0 ile 6–8. günde istifa ettiriyor;
+  dinlenmesiz vardiya tasarım gereği cezalı, varsayılan vardiyada moral 35'te dengeleniyor.
+- Gün uzunluğu seçeneği: `BALANCE.time.dayMinutes 10`, `dayMinutesOptions [10, 15, 20]`, tür `DayMinutes`; `Sim.dayMinutes`
+  (kayıtta `dayMinutes`, yoksa/geçersizse 10), `Sim.minutesPerRealSecond` getter (varsayılanda BALANCE değeri bire bir, başka
+  türlü 1440/(dk·60)); `Sim.update` ve `stepSim` onu kullanır; komut `setDayMinutes` (`isDayMinutes`); `Sim.create(seed,
+  difficulty, starter, dayMinutes)`. Menü formunda 'Başlangıç türü'nün altında "Gün uzunluğu" seçimi (son seçim
+  `${SaveManager.key(0)}.dayMinutes`, `app.lastDayMinutes`, `app.newGame(..., dayMinutes)`); Ayarlar → "Bu oyun" bölümü
+  (yalnız açık oyunda; `app.setDayMinutes`; EN'de "Oyun" anahtarı "Play" olduğu için başlık "Bu oyun"). Oyuncu hareketi gerçek
+  saniyeyle, uyku/seyahat döngüleri oyun dakikasıyla adımladığı için ikisi de etkilenmez; oyun içi denge (dakika başına)
+  değişmez. Test `tests/unit/dayLength.test.ts` (4).
+- 479 test. Denetim `screen:menu` ve `modal:settings` 12 boyutta TR/EN 0 sorun (form bir satır uzadı; 568×320'de iki sütun
+  düzeni kaydırmalı kalır).
+- Yol haritası (2026-09-27, plan dosyasında): M20 Karakter (0.24.x) → M21 Yuva evi içi (0.25.x) → M22 Kuzey/batı arsa (0.26.x) →
+  M23 Arsa yeri (0.27.x); `docs/PLAN.md` §7 ve README "Sıradaki".
+
 ## 0.23.4 — M18 cilası (Claude, 2026-09-27) — M18 tamam
 - Dokunma senaryosu 20 (`touchDebug.ts`, taze hazır oyun, tohum 1942): evin kapısının 3–16 karesinde açıklık dışındaki en yakın ağaç ve
   kaya (altında/yanında yürünür kare); ağacın tepesine dokun → yürür, keser (gövde kütük), kayaya dokun → kırar; oyuncu kapının iki

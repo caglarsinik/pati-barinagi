@@ -121,3 +121,15 @@ describe('Personel morali', () => {
     expect(old.morale).toBe(M.start);
   });
 });
+
+describe('Deneyim hızı (0.23.5 ayarı)', () => {
+  it('Sv5 için 400–600 görev, Sv2 için en çok 60 görev gerekir (görev başına xp BALANCE)', () => {
+    let total = 0;
+    for (let l = 1; l < P.maxLevel; l++) total += xpForLevel(l);
+    const tasks = total / P.xpPerTask;
+    expect(tasks).toBeGreaterThanOrEqual(400);
+    expect(tasks).toBeLessThanOrEqual(600);
+    // ~15 görev/gün ile Sv2 ilk hafta içinde.
+    expect(xpForLevel(1) / P.xpPerTask).toBeLessThanOrEqual(60);
+  });
+});
