@@ -57,6 +57,31 @@
   köpek paneli, araç şeridi, alt menü listesi, ana menü, Ayarlar: çakışma yok, taşma yok. Alt menü açılır listesi köpek
   panelinin üstüne gelebilir (geçici popover, üstte kalır) — kabul edildi. Gerçek cihaz testi kullanıcıda.
 
+## 0.22.4 — Kulübe eşyalarının etkileri (M19; Claude, 2026-09-27)
+- Yeni saf `src/sim/systems/KennelComfort.ts`: `kennelComfort(sim, dog)` → `{bed, blanket, bowl, toy, window, count}` (kulübesiz ya da
+  kulübe hazır değilse hepsi yok; **yatak köpek başına**: `dogBed` sayısı > köpeğin `occupants` sırası), `atKennelRest(sim, dog)`
+  (köpek kendi `kennelRestTile`'ında mı), `kennelFurnishing(b)` (0–5 çeşit), `furnishedRatio(sim)` (hazır kulübelerin ortalaması;
+  kulübe yoksa null). `Interiors.KENNEL_FURNITURE` dışa açıldı. `BALANCE.kennelComfort`: bedSleepRegenMul 1,25,
+  blanketHygieneAsleepMul 0,5, blanketIllnessMul 0,75, bowlThirstAsleepMul 0, toyPlayDecayMul 0,75, windowDecor 1, inspectionBonus 0,5.
+- Kancalar: `NeedsSystem.updateDog` `cozy = asleep && count > 0 && atKennelRest` → uykuda susama × su kabı, uykuda kirlenme ×
+  battaniye, uyku enerjisi × yatak; oyuncak sepeti keyif düşüşünü her zaman çarpar. `ClinicSystem.illnessChanceMul` × battaniye
+  (günlük zar ve saatlik bulaşma; `rng.chance` yine çağrılır → ana RNG'ye yeni çağrı yok, yalnız eşik). `Sim.decorScore` kulübe
+  penceresi başına +1 (tavan 20 aynı) → sahiplenici geliş/sabır ve "Çevre". `runInspection` yeni "Konfor" kalemi (`%` döşenmişlik,
+  etki oran × 0,5) **yalnız artı ve ağırlığa eklenmez** (ağırlığa eklense eşyasız barınağın ortalaması seyrelir, çarpan düşerdi);
+  kulübe yoksa kalem yok. `matchScore` değişmedi.
+- Arayüz: DogPanel kulübe satırının altında "🛏️ Kulübe konforu: yatak · battaniye…" / "🛏️ Kulübede eşya yok (kulübe paneli →
+  Eşyalar)"; KennelPanel düğmelerin altında simgeler (🛏️🧺💧🎾🪟, yatak sayısı kadar) + etkiler tek satır (sayılar BALANCE'tan);
+  `FURNITURE_DESC_TR` sayılarla, kulübe içi ipuçları etkiye göre. Başarım `comfy-kennel` "Konforlu kulübe" (beş çeşit; 35).
+  Denetim oyununda (`richGame`) ilk küçük kulübe tam döşeli (etki satırı en uzun hâliyle denetlenir).
+- Testler `tests/unit/kennel-comfort.test.ts` (6): kulübesinde uyuyan tam döşeli köpek ile eşyasız köpek 1 saat — enerji oranı
+  1,25, kirlenme oranı 0,5, susama 0; kulübesi dışında uyuyana işlemez; uyanıkken keyif düşüşü 0,75; `illnessChanceMul` 0,75;
+  büyük kulübede tek yatak ilk köpeğin, ikinci yatakla ikisinin; hazır olmayan kulübe işlemez; pencere dekor +1/+2, Konfor kalemi %0
+  → %60 ve etki 0,3, çarpan düşmez, başarım, kayıt turu; kuruluşta (kulübesiz) Konfor kalemi yok. 443 test. Tarayıcı 812×375: köpek
+  panelinde konfor satırı, kulübe panelinde simge + etki satırı, eşya panelinde sayılı açıklamalar, son iki eşyayla "Başarım:
+  Konforlu kulübe", haftalık raporda "Konfor %0". Denetim 62 ekran 568×320 ve 812×375 (TR/EN), 768×1024, 1280×720: 0 sorun;
+  dokunma senaryoları 16/16.
+- Sıradaki: 0.22.5 açılış hikâyesi (tanıtım, Nermin Hanım).
+
 ## 0.22.3 — Kulübe içi: oda, eşya kataloğu, uyuyan köpek içeride (M19; Claude, 2026-09-27)
 - Sim/iç mekân: `InteriorKind` += `'kennel'` (küçük kulübe, 8×6) ve `'kennelLarge'` (10×6); `interiorKindFor` switch'e döndü,
   kennelSmall → kennel, kennelLarge → kennelLarge (döndürülmüş büyük kulübe de aynı oda). Şablonlar: pano `kennelBoard` (1,1 w2,

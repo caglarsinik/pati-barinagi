@@ -320,8 +320,21 @@ kaydedersen oyun seni kapının önünde kaydeder.
 
 **Kulübe içi** (0.22.3): küçük kulübe 8×6, büyük kulübe 10×6 karelik bir oda. Kulübede E (ya da gövdesine dokunmak) kulübe
 panelini açar; panelde **🚪 İçeri gir** ve **🛋️ Eşyalar** düğmeleri var. Klavyede kapının önünde ya da eşiğin orta karesinde ↑ basılı
-tut; dokunmatikte eşiğin orta karesine dokun (büyük kulübede orada köpek yatıyorsa dokunuş köpeğe gider, paneli kullan). Eşyalar
-şimdilik görseldir; etkileri 0.22.4'te gelir.
+tut; dokunmatikte eşiğin orta karesine dokun (büyük kulübede orada köpek yatıyorsa dokunuş köpeğe gider, paneli kullan).
+
+**Eşyaların etkileri** (0.22.4; ılımlı, `BALANCE.kennelComfort`):
+
+| Eşya | Etki | Ne zaman |
+|---|---|---|
+| 🛏️ Köpek yatağı | Uykuda enerji %25 daha hızlı dolar | Köpek kendi kulübesinde uyurken; yatak köpek başına (büyük kulübede tek yatak ilk köpeğin) |
+| 🧺 Battaniye | Uykuda kirlenme yarıya iner; hastalanma olasılığı %25 düşer | Kirlenme uykuda, hastalık her zaman |
+| 💧 Su kabı | Uyurken hiç susamaz (sabah yalağa daha az koşar) | Kendi kulübesinde uyurken |
+| 🎾 Oyuncak sepeti | Keyif %25 daha yavaş düşer | Her zaman |
+| 🪟 Pencere | Dekor +1 (sahiplenici biraz daha sık gelir, daha sabırlı bekler; tavan 20) | Her zaman |
+
+Köpek panelinde "🛏️ Kulübe konforu: yatak · battaniye…", kulübe panelinde eşya simgeleri ve etkileri tek satırda yazar.
+Haftalık denetimde yeni **Konfor** kalemi kulübelerin ortalama döşenmişliğini gösterir; yalnız artı katkıdır, eşyasız barınağın
+çarpanı düşmez. Beş eşyanın hepsi olan kulübe "Konforlu kulübe" başarımını açar.
 
 Otopilot içerideyken açılırsa kapıdan yürüyerek çıkar; gece ofise girip yatakta uyur, sabah dışarı çıkıp işine döner.
 Personel yalnız dinlenme odasına girer (molada); Personel WC'yi dışarıdan kullanır.
@@ -410,7 +423,7 @@ Görevi olan köylünün başında soru balonu çıkar; sabah raporu kalan süre
 
 ## Başarımlar
 
-H tuşu ya da ofis panelinden 34 başarımın listesi açılır (ilk yumurta, 10 sahiplendirme, 95+ eşleşme, 1,4 denetim çarpanı, 20.000 ₺, efsanevi köpek, bir yıl dayanmak...). Her başarım açıldığında itibar +1 verir; kayıtla korunur.
+H tuşu ya da ofis panelinden 35 başarımın listesi açılır (ilk yumurta, 10 sahiplendirme, 95+ eşleşme, 1,4 denetim çarpanı, 20.000 ₺, efsanevi köpek, bir yıl dayanmak...). Her başarım açıldığında itibar +1 verir; kayıtla korunur.
 
 ## Dil
 
@@ -492,7 +505,8 @@ Bilgisayar değiştirirken ya da yedek almak için kullan.
 - [x] 0.22.1 Mini harita yakınlaştırma: 1×/2×/4×, sürükle, iki parmak, tekerlek, ⌖ ile bana dön; yakınken binalar görünür
 - [x] 0.22.2 Taşı aracı: kurulu bina içindekilerle yerinde taşınır (dokun-dokun ya da sürükle-bırak, R/Döndür), ücretsiz; ofis taşınmaz
 - [x] 0.22.3 Kulübe içi: kulübeye girilir (panel, ↑, kapı karesi), panodan yatak/battaniye/su kabı/oyuncak/pencere; uyuyan köpek içeride yatağında
-- [ ] M19 Konfor ve Yaşam Kalitesi (dilimlendi, `docs/PLAN.md`): 0.22.0 ✅ müzik + ihtiyaç şeridi → 0.22.1 ✅ mini harita yakınlaştırma → 0.22.2 ✅ binayı taşı → 0.22.3 ✅ kulübe içi → 0.22.4 kulübe eşya etkileri → 0.22.5 açılış hikâyesi (tanıtım) → 0.22.6 cila
+- [x] 0.22.4 Kulübe eşya etkileri: yatak uyku enerjisi, battaniye temizlik ve hastalık, su kabı gece susuzluğu, oyuncak keyif, pencere dekor; denetimde Konfor, "Konforlu kulübe" başarımı
+- [ ] M19 Konfor ve Yaşam Kalitesi (dilimlendi, `docs/PLAN.md`): 0.22.0 ✅ müzik + ihtiyaç şeridi → 0.22.1 ✅ mini harita yakınlaştırma → 0.22.2 ✅ binayı taşı → 0.22.3 ✅ kulübe içi → 0.22.4 ✅ kulübe eşya etkileri → 0.22.5 açılış hikâyesi (tanıtım) → 0.22.6 cila
 - [ ] M18 Terk Edilmiş Ev ve Malzemeler (0.23.0–0.23.4): odun ve taş, malzemeyle öde, uzak ormanda ev, onarım
 - [ ] Sonrası: yuva evi içi, kuzey/batı arsa genişletme
 

@@ -247,11 +247,11 @@ function resolveInterior(sim: Sim, tile: TilePos): ResolvedAction {
       return { kind: 'none', hint: t('Köpek yatağı · {name}', { name: dog.name }), tile };
     }
     case 'blanket':
-      return { kind: 'none', hint: t('Battaniye: soğuk gecelerde sıcak tutar'), tile };
+      return { kind: 'none', hint: t('Battaniye: uykuda kirlenme yarı, hastalık %25 az'), tile };
     case 'dogBowl':
-      return { kind: 'none', hint: t('Su kabı: gece uyanan köpek içeride su içer'), tile };
+      return { kind: 'none', hint: t('Su kabı: kulübesinde uyuyan köpek susamaz'), tile };
     case 'dogToy':
-      return { kind: 'none', hint: t('Oyuncak sepeti: top, kemik ve halat'), tile };
+      return { kind: 'none', hint: t('Oyuncak sepeti: keyif %25 daha yavaş düşer'), tile };
     default:
       if (it.kind === 'kennel' || it.kind === 'kennelLarge') return { kind: 'none', hint: t('Kulübe içi · panoya bakıp E: eşya al · çıkmak için kapıya yürü'), tile };
       if (it.kind === 'toyShop') return { kind: 'none', hint: t('Oyuncak ve ilaç dükkânı · tezgâha bakıp E · çıkmak için kapıya yürü'), tile };

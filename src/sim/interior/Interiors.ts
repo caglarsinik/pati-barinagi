@@ -36,15 +36,15 @@ export const FURNITURE_DESC_TR: Record<FurnitureType, string> = {
   oven2: 'Günde 3 pişirme hakkı daha.',
   medCabinet: 'Tedavi ücreti %30 düşer.',
   heatLamp: 'Yumurtalar %15 daha çabuk çatlar (içerideki yumurtalar da).',
-  dogBed: 'Yumuşak minder: kulübedeki köpek geceyi üstünde geçirir (büyük kulübeye iki tane).',
-  blanket: 'Sepette ekose battaniye: soğuk gecelerde sıcak tutar.',
-  dogBowl: 'Gece uyanan köpek dışarı çıkmadan su içer.',
-  dogToy: 'Top, kemik ve halat: kulübede oyalanacak bir şey.',
-  kennelWindow: 'İçeri gün ışığı girer, kulübe ferahlar.',
+  dogBed: 'Kulübesinde uyuyan köpeğin enerjisi %25 daha hızlı dolar. Yatak köpek başınadır: büyük kulübeye iki tane.',
+  blanket: 'Kulübesinde uyurken kirlenme yarıya iner; hastalanma olasılığı %25 düşer.',
+  dogBowl: 'Kulübesinde uyuyan köpek susamaz; sabah yalağa daha az koşar.',
+  dogToy: 'Keyif %25 daha yavaş düşer.',
+  kennelWindow: 'Dekor +1: sahiplenici biraz daha sık gelir, daha sabırlı bekler.',
 };
 
 /** Oda türü başına satın alınabilen eşyalar (0.17.0 ortak katalog; kulübe 0.22.3). */
-const KENNEL_FURNITURE: readonly FurnitureType[] = ['dogBed', 'blanket', 'dogBowl', 'dogToy', 'kennelWindow'];
+export const KENNEL_FURNITURE: readonly FurnitureType[] = ['dogBed', 'blanket', 'dogBowl', 'dogToy', 'kennelWindow'];
 export const FURNITURE_BY_KIND: Record<InteriorKind, readonly FurnitureType[]> = {
   office: [],
   restRoom: ['sofa', 'coffee', 'tv', 'fridge'],

@@ -18,6 +18,7 @@ import {
 import { DogPortrait } from './DogPortrait';
 import { showToast, store } from './store';
 import { lineageOf } from '../sim/systems/Lineage';
+import { kennelComfort } from '../sim/systems/KennelComfort';
 
 export function Bar({ label, value, danger = 30 }: { label: string; value: number; danger?: number }) {
   const v = Math.round(value);
@@ -69,6 +70,11 @@ export function DogPanel() {
   const n = dog.needs;
   const kennel = dog.kennelId !== null ? sim.buildingById(dog.kennelId) : undefined;
   const kennels = sim.buildings.filter((b) => (b.type === 'kennelSmall' || b.type === 'kennelLarge') && sim.kennelHasRoom(b, dog));
+  // Kulübe konforu (0.22.4): bu köpeğe işleyen eşyalar (yatak köpeğin sırasına göre).
+  const comfort = kennel ? kennelComfort(sim, dog) : null;
+  const comfortList = comfort
+    ? [comfort.bed && t('yatak'), comfort.blanket && t('battaniye'), comfort.bowl && t('su kabı'), comfort.toy && t('oyuncak'), comfort.window && t('pencere')].filter((x): x is string => !!x)
+    : [];
   const bf = dog.bestFriend();
   const friend = bf ? sim.dogById(bf.id) : undefined;
   const partner = bondedPartner(sim, dog);
@@ -235,6 +241,11 @@ export function DogPanel() {
           </button>
         )}
       </div>
+      {kennel && (
+        <p class="small-text">
+          {comfortList.length > 0 ? t('🛏️ Kulübe konforu: {list}', { list: comfortList.join(' · ') }) : t('🛏️ Kulübede eşya yok (kulübe paneli → Eşyalar)')}
+        </p>
+      )}
       <h4>{t('Sahiplendirme')}</h4>
       <label class="policy">
         <input

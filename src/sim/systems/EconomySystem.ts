@@ -2,6 +2,7 @@ import { BALANCE } from '../../config/balance';
 import { buildingDef, isReady } from '../entities/Building';
 import type { Sim } from '../Sim';
 import { effectiveMessCount, toiletMessCount } from './MessSystem';
+import { furnishedRatio } from './KennelComfort';
 import { t } from '../../i18n';
 
 export type LedgerCategory =
@@ -116,6 +117,13 @@ export function runInspection(sim: Sim): InspectionReport {
   }
   const decor = sim.decorScore();
   add('Çevre', `${Math.round(decor)}/${BALANCE.decor.max}`, (decor / BALANCE.decor.max) * 0.8 - 0.1, 1);
+  // Konfor (0.22.4): kulübelerin döşenmişliği; yalnız artı ve ağırlığa eklenmez (eşyasız barınağın çarpanı düşmez).
+  const comfort = furnishedRatio(sim);
+  if (comfort !== null) {
+    const effect = comfort * BALANCE.kennelComfort.inspectionBonus;
+    items.push({ name: 'Konfor', value: `%${Math.round(comfort * 100)}`, effect });
+    score += effect;
+  }
   const licenseCap = B.licenseCaps[sim.licenseLevel - 1];
   const overCap = Math.max(0, dogs.length - licenseCap);
   if (overCap > 0) add('Lisans aşımı', t('{n} köpek fazla', { n: overCap }), -1, 3);

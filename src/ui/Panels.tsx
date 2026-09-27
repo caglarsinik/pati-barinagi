@@ -83,6 +83,19 @@ export function KennelPanel() {
   const occupants = kennel.occupants.map((d) => sim.dogById(d)).filter((d) => !!d);
   const candidates = sim.shelterDogs().filter((d) => d.kennelId !== kennel.id && sim.kennelHasRoom(kennel, d));
   const ready = isReady(kennel);
+  // Kulübe konforu (0.22.4): sahip olunan eşyaların simgeleri ve etkileri tek satırda.
+  const K = BALANCE.kennelComfort;
+  const f = kennel.furniture;
+  const pct = (m: number): number => Math.round(Math.abs(1 - m) * 100);
+  const owned: Array<[string, string, string]> = [
+    ['dogBed', '🛏️', t('uykuda enerji +%{n}', { n: pct(K.bedSleepRegenMul) })],
+    ['blanket', '🧺', t('uykuda kirlenme −%{n}, hastalık −%{m}', { n: pct(K.blanketHygieneAsleepMul), m: pct(K.blanketIllnessMul) })],
+    ['dogBowl', '💧', t('uykuda susamaz')],
+    ['dogToy', '🎾', t('keyif %{n} yavaş düşer', { n: pct(K.toyPlayDecayMul) })],
+    ['kennelWindow', '🪟', t('dekor +{n}', { n: K.windowDecor })],
+  ];
+  const icons = owned.map(([k, icon]) => icon.repeat(f.filter((x) => x === k).length)).join('');
+  const effects = owned.filter(([k]) => f.includes(k)).map(([, , text]) => text);
   // Kulübe içi (0.22.3): kapıya yürüyüp girer (dokunmatikte kapı karesi köpeğin yattığı yer olabilir); eşya paneli.
   const enter = (): void => {
     const r = sim.command({ type: 'goInteract', goal: { kind: 'enter', id: kennel.id } });
@@ -109,6 +122,9 @@ export function KennelPanel() {
             {t('🛋️ Eşyalar ({n})', { n: kennel.furniture.length })}
           </button>
         </div>
+        <p class={effects.length > 0 ? 'small-text' : 'muted small-text'}>
+          {effects.length > 0 ? `${icons} ${effects.join(' · ')}` : t('Eşya yok: yatak, battaniye, su kabı, oyuncak ve pencere köpeği rahatlatır')}
+        </p>
         <p>{t('Doluluk: {n}/{cap}', { n: occupants.length, cap: def.capacity ?? 0 })}</p>
         {occupants.map((d) => (
           <div key={d.id} class="row">

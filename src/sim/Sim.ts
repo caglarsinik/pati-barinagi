@@ -1507,13 +1507,17 @@ export class Sim {
     return BALANCE.shelter.troughCapacity;
   }
 
-  /** Dekor puanı 0-max: hazır çiçek/bank/tabela/lamba. Sahiplenici sabrı, geliş sıklığı ve denetim "Çevre" kalemi bundan okur. */
+  /**
+   * Dekor puanı 0-max: hazır çiçek/bank/tabela/lamba ve kulübe pencereleri (0.22.4). Sahiplenici sabrı, geliş sıklığı ve
+   * denetim "Çevre" kalemi bundan okur.
+   */
   decorScore(): number {
     const D = BALANCE.decor;
     let score = 0;
     let signs = 0;
     for (const b of this.buildings) {
       if (!isReady(b)) continue;
+      if (b.furniture.includes('kennelWindow')) score += BALANCE.kennelComfort.windowDecor;
       const pts = (D.points as Record<string, number>)[b.type];
       if (pts === undefined) continue;
       if (b.type === 'sign') {

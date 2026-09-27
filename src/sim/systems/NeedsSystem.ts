@@ -3,6 +3,7 @@ import { type Dog, clamp100 } from '../entities/Dog';
 import type { Sim } from '../Sim';
 import { Zone } from '../world/tiles';
 import type { WeatherModifiers } from './WeatherSystem';
+import { atKennelRest, kennelComfort } from './KennelComfort';
 
 /** İhtiyaçların zamanla değişimi. Davranış (yeme, tuvalet) DogBrain'de; burada sadece sürekli akış var. */
 export class NeedsSystem {
@@ -24,13 +25,18 @@ export class NeedsSystem {
     const asleep = dog.isAsleep();
     const night = this.sim.clock.isNight();
     const mul = this.sim.needsMul();
+    // Kulübe eşyaları (0.22.4): yatak, battaniye ve su kabı kendi kulübesinde uyurken; oyuncak sepeti her zaman.
+    const K = BALANCE.kennelComfort;
+    const comfort = kennelComfort(this.sim, dog);
+    const cozy = asleep && comfort.count > 0 && atKennelRest(this.sim, dog);
 
     const hungerRate = (dog.stage === 'puppy' ? B.hungerPerHourPuppy : dog.genome.size === 'L' ? B.hungerPerHourLarge : B.hungerPerHour) * wm.hunger * mul;
     n.hunger = clamp100(n.hunger + hungerRate * (asleep ? 0.5 : 1) * dtH);
-    n.thirst = clamp100(n.thirst + B.thirstPerHour * wm.thirst * mul * (asleep ? 0.4 : 1) * dtH);
+    n.thirst = clamp100(n.thirst + B.thirstPerHour * wm.thirst * mul * (asleep ? 0.4 * (cozy && comfort.bowl ? K.bowlThirstAsleepMul : 1) : 1) * dtH);
 
     let playRate = dog.genome.temperament === 'playful' ? B.playDecayPerHour * 1.3 : dog.genome.temperament === 'calm' ? B.playDecayPerHour * 0.75 : B.playDecayPerHour;
     if (senior) playRate *= S.playDecayMul;
+    if (comfort.toy) playRate *= K.toyPlayDecayMul;
     playRate *= mul;
     if (!asleep) {
       const inYard = this.sim.world.zoneAt(dog.tileX, dog.tileY) === Zone.Play;
@@ -38,9 +44,9 @@ export class NeedsSystem {
     }
 
     n.bladder = clamp100(n.bladder + (B.bladderPerHour * mul * (asleep ? 0.4 : 1) + (ill === 'stomach' ? I.stomachBladderPerHour : 0)) * dtH);
-    n.hygiene = clamp100(n.hygiene - (B.hygieneDecayPerHour * mul * (asleep ? 1 : wm.hygiene) + (ill === 'flea' ? I.fleaHygienePerHour : 0)) * dtH);
+    n.hygiene = clamp100(n.hygiene - (B.hygieneDecayPerHour * mul * (asleep ? (cozy && comfort.blanket ? K.blanketHygieneAsleepMul : 1) : wm.hygiene) + (ill === 'flea' ? I.fleaHygienePerHour : 0)) * dtH);
 
-    if (asleep) n.energy = clamp100(n.energy + B.energyRegenPerHour * (dog.kennelId === null ? 0.5 : 1) * dtH);
+    if (asleep) n.energy = clamp100(n.energy + B.energyRegenPerHour * (dog.kennelId === null ? 0.5 : 1) * (cozy && comfort.bed ? K.bedSleepRegenMul : 1) * dtH);
     else n.energy = clamp100(n.energy - (night ? B.energyDecayPerHour * 2 : B.energyDecayPerHour) * wm.energy * (ill === 'cold' ? I.coldEnergyDrainMul : 1) * dtH);
 
     if (n.hunger > B.healthDropHungerAbove || n.hygiene < B.healthDropHygieneBelow) {

@@ -161,6 +161,25 @@ export const BALANCE = {
       kennelWindow: { cost: 200, max: 1 },
     },
   },
+  /**
+   * Kulübe eşyalarının etkileri (0.22.4; ılımlı). Yatak, battaniye (kirlenme) ve su kabı köpek kendi kulübesinde uyurken
+   * işler; battaniyenin hastalık etkisi, oyuncak sepeti ve pencere her zaman. Yatak köpek başınadır (büyük kulübede iki).
+   */
+  kennelComfort: {
+    /** Yatak: uykuda enerji dolma hızı çarpanı. */
+    bedSleepRegenMul: 1.25,
+    /** Battaniye: uykuda kirlenme çarpanı ve hastalanma olasılığı çarpanı (zar yine atılır). */
+    blanketHygieneAsleepMul: 0.5,
+    blanketIllnessMul: 0.75,
+    /** Su kabı: uykuda susama çarpanı (0 = uyurken hiç susamaz). */
+    bowlThirstAsleepMul: 0,
+    /** Oyuncak sepeti: keyif (oyun ihtiyacı) düşüş çarpanı. */
+    toyPlayDecayMul: 0.75,
+    /** Pencere: kulübe başına dekor puanı (dekor tavanı aynı). */
+    windowDecor: 1,
+    /** Haftalık denetimde "Konfor" kaleminin en büyük artı katkısı (ağırlığa eklenmez: eşyasız barınak cezalanmaz). */
+    inspectionBonus: 0.5,
+  },
   /** Kuluçka içi (0.17.3): ısı lambası kalan ve yeni çatlama sürelerini bu oranla kısaltır. */
   hatchery: {
     lampTimeMul: 0.85,

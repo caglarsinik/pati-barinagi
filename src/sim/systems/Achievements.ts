@@ -1,6 +1,9 @@
 import { t } from '../../i18n';
+import { isReady } from '../entities/Building';
 import { clamp100 } from '../entities/Dog';
+import { KENNEL_FURNITURE } from '../interior/Interiors';
 import type { Sim } from '../Sim';
+import { kennelFurnishing } from './KennelComfort';
 
 export interface AchievementDef {
   id: string;
@@ -43,6 +46,12 @@ export const ACHIEVEMENTS: AchievementDef[] = [
   { id: 'graduates-25', name: 'Mezunlar', desc: '25 köpeği yeni yuvasına gönder.', check: (s) => s.stats.adopted >= 25 },
   { id: 'bonded-pair', name: 'Can dostları', desc: 'İki can dostunu aynı yuvaya birlikte gönder.', check: (s) => s.adoptions.some((r) => r.pair !== undefined) },
   { id: 'mailbox', name: 'Mektup kutusu', desc: 'Sahiplendirdiğin köpeklerin ailelerinden 10 mektup al.', check: (s) => s.adoptions.filter((r) => r.lettered).length >= 10 },
+  {
+    id: 'comfy-kennel',
+    name: 'Konforlu kulübe',
+    desc: 'Bir kulübeyi beş eşyayla döşe: yatak, battaniye, su kabı, oyuncak sepeti ve pencere.',
+    check: (s) => s.buildings.some((b) => isReady(b) && kennelFurnishing(b) >= KENNEL_FURNITURE.length),
+  },
   { id: 'healer', name: 'Şifacı', desc: '10 hastalığı tedaviyle geçir.', check: (s) => s.stats.cured >= 10 },
   { id: 'builder', name: 'Mimar', desc: '10 inşaat yap.', check: (s) => s.stats.built >= 10 },
   { id: 'explorer', name: 'Kâşif', desc: 'Haritanın yarısını keşfet.', check: (s) => s.exploredCount >= s.world.width * s.world.height * 0.5 },

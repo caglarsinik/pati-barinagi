@@ -3,6 +3,7 @@ import { t } from '../../i18n';
 import { isReady } from '../entities/Building';
 import type { Dog } from '../entities/Dog';
 import type { Sim } from '../Sim';
+import { kennelComfort } from './KennelComfort';
 
 /** Hazır bir veteriner odasında bu eşya var mı (0.17.2: ilaç dolabı). */
 function clinicHas(sim: Sim, item: string): boolean {
@@ -27,7 +28,9 @@ export function illnessChanceMul(sim: Sim, dog: Dog): number {
   const vaccine = dog.vaccinatedUntil > now ? BALANCE.clinic.vaccineMul : 1;
   // Vitamin (0.20.0): bir gün boyunca hastalık olasılığı düşer.
   const vitamin = dog.vitaminUntil > now ? BALANCE.shop.vitaminIllnessMul : 1;
-  return vaccine * vitamin;
+  // Kulübede battaniye (0.22.4).
+  const blanket = kennelComfort(sim, dog).blanket ? BALANCE.kennelComfort.blanketIllnessMul : 1;
+  return vaccine * vitamin * blanket;
 }
 
 /** Aşılanamıyorsa nedeni; aşılanabiliyorsa null. */
