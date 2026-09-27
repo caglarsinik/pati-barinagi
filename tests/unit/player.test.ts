@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { BALANCE } from '../../src/config/balance';
 import { Player } from '../../src/sim/entities/Player';
+import { DEFAULT_LOOK, isDefaultLook } from '../../src/sim/entities/PlayerLook';
 import { TileWorld } from '../../src/sim/world/TileWorld';
 import { Ground, Obj } from '../../src/sim/world/tiles';
 
@@ -73,5 +74,20 @@ describe('Player', () => {
     expect(bad.x).toBe(1);
     expect(bad.facing).toBe(0);
     expect(bad.stamina).toBe(BALANCE.player.staminaMax);
+  });
+
+  it('görünüm ve ad kayıtta gider gelir; eski kayıt ve bozuk değerler varsayılana döner (0.24.0)', () => {
+    const p = new Player(1, 1);
+    p.look = { ...DEFAULT_LOOK, body: 1, hairStyle: 2, hat: 3 };
+    p.name = 'Defne';
+    const q = Player.fromJSON(JSON.parse(JSON.stringify(p.toJSON())), { x: 0, y: 0 });
+    expect(q.look).toEqual(p.look);
+    expect(q.name).toBe('Defne');
+    const old = Player.fromJSON({ x: 2, y: 3, facing: 0, stamina: 50 }, { x: 0, y: 0 });
+    expect(isDefaultLook(old.look)).toBe(true);
+    expect(old.name).toBe('');
+    const bad = Player.fromJSON({ x: 2, y: 3, look: { body: 7, hairStyle: -1, shirt: 2.5, hat: 'x' }, name: 42 }, { x: 0, y: 0 });
+    expect(bad.look).toEqual({ ...DEFAULT_LOOK });
+    expect(bad.name).toBe('');
   });
 });

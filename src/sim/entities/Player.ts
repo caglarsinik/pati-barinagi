@@ -1,6 +1,7 @@
 import { BALANCE } from '../../config/balance';
 import type { TileWorld } from '../world/TileWorld';
 import { Ground } from '../world/tiles';
+import { DEFAULT_LOOK, type PlayerLook, lookFromJSON, sanitizePlayerName } from './PlayerLook';
 
 /** 0 aşağı, 1 sol, 2 sağ, 3 yukarı. */
 export type Facing = 0 | 1 | 2 | 3;
@@ -45,6 +46,10 @@ export class Player {
   busy = 0;
   busyTotal = 0;
   busyAction: string | null = null;
+  /** Görünüm (0.24.0; kayıtta). Varsayılan eski sabit sprite. */
+  look: PlayerLook = { ...DEFAULT_LOOK };
+  /** Karakter adı (0.24.0; kayıtta; boşsa `displayPlayerName` varsayılanı gösterir). */
+  name = '';
 
   constructor(x: number, y: number) {
     this.x = x;
@@ -160,7 +165,7 @@ export class Player {
   }
 
   toJSON(): PlayerSave {
-    return { x: this.x, y: this.y, facing: this.facing, stamina: this.stamina };
+    return { x: this.x, y: this.y, facing: this.facing, stamina: this.stamina, look: { ...this.look }, name: this.name };
   }
 
   static fromJSON(data: unknown, fallback: { x: number; y: number }): Player {
@@ -172,6 +177,8 @@ export class Player {
     if (typeof d.stamina === 'number' && Number.isFinite(d.stamina)) {
       p.stamina = Math.min(BALANCE.player.staminaMax, Math.max(0, d.stamina));
     }
+    p.look = lookFromJSON(d.look);
+    p.name = sanitizePlayerName(d.name);
     return p;
   }
 }
@@ -181,6 +188,9 @@ export interface PlayerSave {
   y: number;
   facing: Facing;
   stamina: number;
+  /** 0.24.0; eski kayıtta yok → varsayılan. */
+  look?: PlayerLook;
+  name?: string;
 }
 
 export const FACING_DELTA: Record<Facing, { x: number; y: number }> = {

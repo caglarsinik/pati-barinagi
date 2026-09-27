@@ -30,6 +30,21 @@ import { SEASON_NAMES_TR, WEATHER_NAMES_TR } from '../../src/sim/systems/Weather
 import { ZONE_NAMES_TR } from '../../src/sim/world/tiles';
 import { TUTORIAL_GUIDED, TUTORIAL_READY } from '../../src/ui/tutorial/steps';
 import { JOURNAL_PAGES_TR } from '../../src/sim/systems/RuinSystem';
+import {
+  ACCESSORY_NAMES_TR,
+  DEFAULT_PLAYER_NAME,
+  HAIR_COLOR_NAMES_TR,
+  HAIR_STYLE_NAMES_TR,
+  HAT_NAMES_TR,
+  LOOK_FIELD_NAMES_TR,
+  PANTS_COLOR_NAMES_TR,
+  PANTS_STYLE_NAMES_TR,
+  PLAYER_BODY_NAMES_TR,
+  SHIRT_COLOR_NAMES_TR,
+  SHIRT_STYLE_NAMES_TR,
+  SHOE_COLOR_NAMES_TR,
+  SKIN_NAMES_TR,
+} from '../../src/sim/entities/PlayerLook';
 
 /** Tüm kaynak dosyalar ham metin olarak (Vite glob). */
 const SOURCES = import.meta.glob('../../src/**/*.{ts,tsx}', { query: '?raw', import: 'default', eager: true }) as Record<string, string>;
@@ -87,6 +102,10 @@ function tableValues(): string[] {
   for (const l of [...Object.values(GREAT_LETTERS).flat(), ...OK_LETTERS, ...HARD_LETTERS, ...VILLAGE_LETTERS, ...PAIR_LETTERS]) out.push(l);
   for (const st of [...TUTORIAL_GUIDED, ...TUTORIAL_READY]) out.push(st.text, st.touchText ?? '', st.info ?? '', st.cta?.label ?? '');
   for (const p of JOURNAL_PAGES_TR) out.push(p);
+  // 0.24.0 karakter görünümü seçenekleri
+  for (const l of [...PLAYER_BODY_NAMES_TR, ...HAIR_STYLE_NAMES_TR, ...SHIRT_STYLE_NAMES_TR, ...PANTS_STYLE_NAMES_TR, ...ACCESSORY_NAMES_TR, ...SKIN_NAMES_TR, ...HAIR_COLOR_NAMES_TR, ...SHIRT_COLOR_NAMES_TR, ...PANTS_COLOR_NAMES_TR, ...SHOE_COLOR_NAMES_TR, ...HAT_NAMES_TR]) out.push(l);
+  push(LOOK_FIELD_NAMES_TR);
+  out.push(DEFAULT_PLAYER_NAME);
   return out.filter((v) => typeof v === 'string' && v.length > 0);
 }
 

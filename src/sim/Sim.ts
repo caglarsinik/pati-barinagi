@@ -13,6 +13,7 @@ import { Dog, type DogOrigin, SKILL_KEYS, STAGE_NAMES_TR, type SkillKey, clamp10
 import { type DogGenome, randomGenome } from './entities/DogGenome';
 import { type Egg, eggFromJSON } from './entities/Egg';
 import { IDLE_INPUT, Player, type PlayerInput } from './entities/Player';
+import { type PlayerLook, type PlayerProfile, lookFromJSON, sanitizePlayerName } from './entities/PlayerLook';
 import { Staff, TASK_TYPES, type TaskType } from './entities/Staff';
 import { type AdoptionRecord, AdoptionSystem, type PendingReturn } from './systems/AdoptionSystem';
 import { AlertSystem } from './systems/AlertSystem';
@@ -121,6 +122,8 @@ export interface SimEvents extends Record<string, unknown> {
   buildingRemoved: number;
   /** Bina yerinde taşındı (0.22.2; kimlik aynı). */
   buildingMoved: Building;
+  /** Oyuncunun görünümü ya da adı değişti (0.24.0). */
+  playerChanged: { look: PlayerLook; name: string };
   buildingReady: Building;
   adopterArrived: Adopter;
   weekReport: WeekSummary;
@@ -163,6 +166,8 @@ export type Command =
   | { type: 'interact' }
   | { type: 'setTool'; tool: Tool }
   | { type: 'renameDog'; id: number; name: string }
+  /** Oyuncunun görünümü ve/veya adı (0.24.0). */
+  | { type: 'setPlayer'; look?: PlayerLook; name?: string }
   | { type: 'orderFood'; bags: number }
   | { type: 'setTrainingFocus'; id: number; skill: SkillKey | null }
   | { type: 'assignKennel'; dogId: number; buildingId: number | null }
@@ -532,10 +537,15 @@ export class Sim {
     this.events.on('day', (d) => this.campaigns.onDay(d));
   }
 
-  static create(seed: number, difficulty: Difficulty = 'normal', starter: StarterKind = 'ready', dayMinutes: DayMinutes = BALANCE.time.dayMinutes): Sim {
+  static create(seed: number, difficulty: Difficulty = 'normal', starter: StarterKind = 'ready', dayMinutes: DayMinutes = BALANCE.time.dayMinutes, profile?: Partial<PlayerProfile>): Sim {
     const world = generateWorld(seed);
     if (starter === 'guided') applyFoundingPlot(world);
     const player = new Player(world.spawn.x, world.spawn.y);
+    // Karakter (0.24.0): RNG kullanmaz, ana RNG sırası değişmez.
+    if (profile) {
+      player.look = lookFromJSON(profile.look);
+      player.name = sanitizePlayerName(profile.name);
+    }
     const sim = new Sim(seed, world, new Clock(), player, BALANCE.difficulty[difficulty].startMoney);
     sim.difficulty = difficulty;
     sim.starter = starter;
@@ -926,6 +936,12 @@ export class Sim {
         const name = cmd.name.trim().slice(0, 16);
         if (!dog || !name) return { ok: false };
         dog.name = name;
+        return { ok: true };
+      }
+      case 'setPlayer': {
+        if (cmd.look !== undefined) this.player.look = lookFromJSON(cmd.look);
+        if (cmd.name !== undefined) this.player.name = sanitizePlayerName(cmd.name);
+        this.events.emit('playerChanged', { look: { ...this.player.look }, name: this.player.name });
         return { ok: true };
       }
       case 'orderFood': {

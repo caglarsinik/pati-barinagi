@@ -1,4 +1,5 @@
 import { GAME } from '../config/game';
+import { type PlayerLook, lookFromJSON, sanitizePlayerName } from '../sim/entities/PlayerLook';
 
 /** Kayıt dosyasının kökü. Alt alanların doğrulaması ilgili sınıfların fromJSON'unda yapılır. */
 export interface SaveData {
@@ -90,6 +91,9 @@ export interface SaveSummary {
   money: number;
   difficulty: string | null;
   victory: boolean;
+  /** Oyuncu adı (0.24.0; boşsa varsayılan) ve görünümü (eski kayıtta varsayılan). */
+  name: string;
+  look: PlayerLook;
 }
 
 type Migration = (data: Record<string, unknown>) => Record<string, unknown>;
@@ -198,6 +202,7 @@ export const SaveManager = {
     if (!d) return null;
     const clock = d.clock as { totalMinutes?: number } | null;
     const minutes = typeof clock?.totalMinutes === 'number' ? clock.totalMinutes : 0;
+    const pl = (d.player ?? {}) as { name?: unknown; look?: unknown };
     return {
       slot,
       savedAt: d.savedAt,
@@ -205,6 +210,8 @@ export const SaveManager = {
       money: d.money,
       difficulty: typeof d.difficulty === 'string' ? d.difficulty : null,
       victory: !!d.victory,
+      name: sanitizePlayerName(pl.name),
+      look: lookFromJSON(pl.look),
     };
   },
 

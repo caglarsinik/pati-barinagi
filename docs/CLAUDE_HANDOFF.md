@@ -57,6 +57,32 @@
   köpek paneli, araç şeridi, alt menü listesi, ana menü, Ayarlar: çakışma yok, taşma yok. Alt menü açılır listesi köpek
   panelinin üstüne gelebilir (geçici popover, üstte kalır) — kabul edildi. Gerçek cihaz testi kullanıcıda.
 
+## 0.24.0 — Karakter 1: görünüm modeli, çizim, doku (Claude, 2026-09-27)
+- `src/sim/entities/PlayerLook.ts` (saf): `PlayerLook` 11 alan (body, skin, hair, hairStyle, shirt, shirtStyle, pants, pantsStyle,
+  shoes, hat, accessory; hepsi indeks), `LOOK_KEYS/LOOK_COUNTS/DEFAULT_LOOK` (hepsi 0), renk tabloları (SKIN_TONES, MOUTH_COLORS,
+  HAIR_COLORS 6, SHIRT_COLORS 8, PANTS_COLORS 4, SHOE_COLORS 5, HAT_COLORS 4; ilk girişler palette P.* ile aynı), TR ad tabloları
+  (`PLAYER_BODY_NAMES_TR` — `BODY_NAMES_TR` DogGenome'da vardı —, `*_NAMES_TR`, `LOOK_FIELD_NAMES_TR`; EN'e 37 anahtar, i18n
+  `tableValues()`'a eklendi), `lookOptionName/lookOptionColor`, `lookFromJSON` (tam sayı + aralık, yoksa varsayılan),
+  `isDefaultLook`, `sameLook`, `lookKey` (11 karakter 36 tabanı), `randomLook(rng)` (yalnız arayüz RNG'siyle; şapka %60 /
+  aksesuar %65 yok), `PLAYER_NAME_MAX 14`, `sanitizePlayerName`, `displayPlayerName` (boşsa t('Bakıcı')), `PlayerProfile`.
+- `Player.look/name` (`PlayerSave.look?/name?`, yüklemede klemp; eski kayıt varsayılan). `Sim.create(seed, difficulty, starter,
+  dayMinutes, profile?)` RNG kullanmadan uygular (test: ana RNG ve köpekler aynı). Komut `setPlayer {look?, name?}` →
+  `playerChanged {look, name}` olayı. `SaveSummary.name/look` (`summary()` `d.player`'dan). `app.lastLook()`,
+  `lastPlayerName()`, `rememberPlayer()` (`${SaveManager.key(0)}.look` JSON ve `.playerName`), `app.newGame(..., profile?)`,
+  `startDebugGame(seed, starter, profile?)`.
+- `HumanStyle` += isteğe bağlı `body, hairStyle, shirtStyle, pantsStyle, accessory, mouth`; `styleFromLook(look)` (shirt 0'da
+  `P.shirtDark`, ağız `MOUTH_COLORS[skin]`). `drawHuman`: değer 0 dalları eski kodun aynısı; şort (alt bacak ten), etek (bacaklar
+  ten + 3 satır blok), kadın beden (bel satırları 1 px içeride, çift göz pikseli), çizgili (y13/y16), kapüşon (ön yaka + cep,
+  arka/profil ense bloğu saçtan sonra), saç uzun/at kuyruğu/topuz (şapkasızken)/kısa kesim, gözlük (gri 0x8f9196; gözler koyu
+  kalır), atkı (kırmızı-lacivert desen + sarkan uç). Ağız: `s.mouth ?? eski koşul` → NPC'lerde eski davranış (ağız yok) korundu.
+  Test `playerLookArt.test.ts`: varsayılan şerit `PLAYER_STYLE` ile `toEqual`; her alanın her değeri şeridi değiştirir; piksel
+  sondaları; **NPC özetleri** (`humanStyleFromSeed(12345)` literal + 5 tohumun FNV-1a şerit hash'i, 0.24.0 öncesinde alındı).
+- `TextureRegistry`: `playerTextureKey(look)` (varsayılan → `TEX.player`), `ensurePlayerTexture` (doku + `${key}-walk-${dir}`
+  animasyonları; `anims.exists` ile idempotent), `releasePlayerTexture` (`TEX.player` asla silinmez). WorldScene `playerTexKey`,
+  `create()` ve `syncPlayerSprite` onu kullanır, `playerChanged` → `setTexture` + eskiyi bırak; `playerSpriteInfo()` debug.
+  Tarayıcıda doğrulandı: taze oyun 'player'; `setPlayer` sonrası 'player-12315112301', doku ve animasyon var.
+- 493 test. Arayüz değişmedi (denetim gerekmedi). Sıradaki 0.24.1: karakter ekranı.
+
 ## 0.23.5 — Bakım (Claude, 2026-09-27)
 - `Sim.update` içindeki fazladan `gates.update(0)` silindi: `stepSim` başta gerçek dt ile, sonda 0 ile zaten çağırıyor; dt=0 yalnız
   açar/sayaç sıfırlar, kapatmaz (idempotent). Kalan çağrılar: stepSim başı/sonu ve yüklemede bir kez.

@@ -7,7 +7,8 @@ import { drawBuilding } from './BuildingArt';
 import { EMOTE_SIZE, EMOTE_TEX, buildEmoteSheet } from './EmoteArt';
 import { EMOTE_KEYS } from '../sim/systems/Emotes';
 import { DOG_DIRS, DOG_FRAME, DOG_FRAMES, buildDogSheet, dogTextureKey } from './DogPainter';
-import { HUMAN_DIRS, HUMAN_FRAMES, HUMAN_H, HUMAN_W, type HumanStyle, PLAYER_STYLE, buildHumanSheet, humanStyleFromSeed } from './HumanPainter';
+import { HUMAN_DIRS, HUMAN_FRAMES, HUMAN_H, HUMAN_W, type HumanStyle, PLAYER_STYLE, buildHumanSheet, humanStyleFromSeed, styleFromLook } from './HumanPainter';
+import { type PlayerLook, isDefaultLook, lookKey } from '../sim/entities/PlayerLook';
 import { type RGBA, hex, shade } from './Pixels';
 import { buildTileset } from './TileArt';
 
@@ -58,6 +59,44 @@ export function registerAnimations(scene: Phaser.Scene): void {
       repeat: -1,
     });
   }
+}
+
+/** Yürüme animasyonları (`${key}-walk-${dir}`) yoksa oluşturur; animasyonlar globaldir. */
+function ensureWalkAnims(scene: Phaser.Scene, key: string): void {
+  for (let dir = 0; dir < HUMAN_DIRS; dir++) {
+    const name = `${key}-walk-${dir}`;
+    if (scene.anims.exists(name)) continue;
+    const base = dir * HUMAN_FRAMES;
+    scene.anims.create({
+      key: name,
+      frames: scene.anims.generateFrameNumbers(key, { frames: [base + 1, base, base + 2, base] }),
+      frameRate: 8,
+      repeat: -1,
+    });
+  }
+}
+
+/** Oyuncu görünümünün doku anahtarı (0.24.0): varsayılan görünüm boot'taki `TEX.player`, başkası `player-<anahtar>`. */
+export function playerTextureKey(look: PlayerLook): string {
+  return isDefaultLook(look) ? TEX.player : `player-${lookKey(look)}`;
+}
+
+/** Oyuncu dokusunu gerekiyorsa üretir (görünüm başına bir kez) ve yürüme animasyonlarını hazırlar; anahtarı döndürür. */
+export function ensurePlayerTexture(scene: Phaser.Scene, look: PlayerLook): string {
+  const key = playerTextureKey(look);
+  if (key !== TEX.player && !scene.textures.exists(key)) {
+    const tex = scene.textures.addCanvas(key, buildHumanSheet(styleFromLook(look)).toCanvas());
+    if (tex) for (let i = 0; i < HUMAN_DIRS * HUMAN_FRAMES; i++) tex.add(i, 0, i * HUMAN_W, 0, HUMAN_W, HUMAN_H);
+  }
+  ensureWalkAnims(scene, key);
+  return key;
+}
+
+/** Görünüm değişince eski oyuncu dokusunu ve animasyonlarını bırakır; `TEX.player` asla silinmez. */
+export function releasePlayerTexture(scene: Phaser.Scene, key: string): void {
+  if (key === TEX.player || !scene.textures.exists(key)) return;
+  for (let dir = 0; dir < HUMAN_DIRS; dir++) scene.anims.remove(`${key}-walk-${dir}`);
+  scene.textures.remove(key);
 }
 
 const ROLE_SHIRTS: Record<string, number> = { caretaker: 0x4fb36b, trainer: 0xa66bd6, vet: 0xf7f3ea };

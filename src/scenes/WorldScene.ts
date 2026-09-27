@@ -7,7 +7,7 @@ import { BALANCE } from '../config/balance';
 import { GAME } from '../config/game';
 import { BUILDING_DEFS } from '../content/buildings';
 import { DOG_FRAMES, DOG_FRAME_EAT, DOG_FRAME_IDLE, DOG_FRAME_LIE, DOG_FRAME_SIT } from '../render/DogPainter';
-import { TEX, buildingTextureKey, ensureDogTexture, ensureHumanTexture, releaseDogTextures } from '../render/TextureRegistry';
+import { TEX, buildingTextureKey, ensureDogTexture, ensureHumanTexture, releaseDogTextures, ensurePlayerTexture, releasePlayerTexture } from '../render/TextureRegistry';
 import { type DogGenome, genomeKey } from '../sim/entities/DogGenome';
 import { type Building, type Rotation, buildingDef, buildingDoorTile, buildingFootprint, canPlaceBuilding, isReady, buildingSize, kennelRestTile, solidRowsFor } from '../sim/entities/Building';
 import type { Dog } from '../sim/entities/Dog';
@@ -83,6 +83,8 @@ export class WorldScene extends Phaser.Scene {
   private objectLayer!: Phaser.Tilemaps.TilemapLayer;
   private aboveLayer!: Phaser.Tilemaps.TilemapLayer;
   private playerSprite!: Phaser.GameObjects.Sprite;
+  /** Oyuncunun doku anahtarı (0.24.0): görünüme göre; varsayılan `TEX.player`. */
+  private playerTexKey: string = TEX.player;
   private nightRect!: Phaser.GameObjects.Rectangle;
   private selectRing!: Phaser.GameObjects.Ellipse;
   private busyBar!: Phaser.GameObjects.Graphics;
@@ -252,6 +254,14 @@ export class WorldScene extends Phaser.Scene {
         this.cameras.main.flash(250, 10, 8, 20);
       }),
       this.sim.events.on('slept', () => this.cameras.main.flash(600, 10, 8, 20)),
+      // Karakter değişti (0.24.0): doku anında değişir, eski doku bırakılır.
+      this.sim.events.on('playerChanged', ({ look }) => {
+        const old = this.playerTexKey;
+        this.playerTexKey = ensurePlayerTexture(this, look);
+        this.playerSprite.anims.stop();
+        this.playerSprite.setTexture(this.playerTexKey, this.sim.player.facing * 3);
+        if (old !== this.playerTexKey) releasePlayerTexture(this, old);
+      }),
       this.sim.events.on('dogHatched', (d) => {
         store.selectedDogId.value = d.id;
         store.panel.value = 'dog';
@@ -281,7 +291,8 @@ export class WorldScene extends Phaser.Scene {
 
     // --- Oyuncu ---
     const p = this.sim.player;
-    this.playerSprite = this.add.sprite(Math.round(p.x * T), Math.round(p.y * T), TEX.player, 0).setOrigin(0.5, 1);
+    this.playerTexKey = ensurePlayerTexture(this, p.look);
+    this.playerSprite = this.add.sprite(Math.round(p.x * T), Math.round(p.y * T), this.playerTexKey, 0).setOrigin(0.5, 1);
     this.busyBar = this.add.graphics().setDepth(7000);
 
     // --- Seçim halkası ve inşa hayaleti ---
@@ -1024,7 +1035,7 @@ export class WorldScene extends Phaser.Scene {
     s.setPosition(ox + Math.round(p.x * T), Math.round(p.y * T));
     s.setDepth(100 + p.y * T);
     if (p.moving && this.sim.mode === 'avatar' && !this.sim.paused) {
-      s.anims.play(`player-walk-${p.facing}`, true);
+      s.anims.play(`${this.playerTexKey}-walk-${p.facing}`, true);
       s.anims.timeScale = p.running ? 1.7 : 1;
     } else {
       s.anims.stop();
@@ -1760,6 +1771,12 @@ export class WorldScene extends Phaser.Scene {
     const p = stand[(i - seats.length) % stand.length];
     const py = (p.y + 1) * T - 2;
     return { x: ox + (p.x + 0.5) * T, y: py, depth: 100 + py, frame: 0 };
+  }
+
+  /** Hata ayıklama (0.24.0): oyuncu görüntüsünün dokusu, karesi ve süren animasyonu. */
+  playerSpriteInfo(): { texture: string; frame: number; anim: string | null } {
+    const s = this.playerSprite;
+    return { texture: s.texture.key, frame: Number(s.frame.name), anim: s.anims.isPlaying ? (s.anims.currentAnim?.key ?? null) : null };
   }
 
   /** Hata ayıklama (0.22.6, dokunma senaryosu 18): köpek görüntüsünün yeri, karesi ve iç odada çizilip çizilmediği. */

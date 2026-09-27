@@ -597,7 +597,7 @@ oyunda Ayarlar → Karakter'den değiştirilir; fotoğrafa o anki görünüm iş
 
 | Sürüm | Konu |
 |---|---|
-| 0.24.0 | Görünüm modeli (`PlayerLook`, indeks tabanlı; `Player.look/name` kayıtta, sürüm 2 kalır), `drawHuman` çeşitleri, `styleFromLook`, oyuncu dokusu görünümden (`ensurePlayerTexture`; varsayılan görünüm boot dokusunu kullanır), `setPlayer` komutu + `playerChanged` olayı ile canlı değişim; arayüz yok |
+| 0.24.0 ✅ | Görünüm modeli (`sim/entities/PlayerLook.ts`: 11 alan, indeks tabanlı, renk ve ad tabloları, `lookFromJSON` klemp, `lookKey`, `randomLook`, `sanitizePlayerName` ≤ 14, `displayPlayerName` boşsa "Bakıcı"; `Player.look/name` kayıtta, sürüm 2 kalır), `HumanStyle`e isteğe bağlı alanlar + `styleFromLook` + `drawHuman` çeşitleri (kadın beden, 5 saç, 3 tişört, 3 pantolon, gözlük/atkı; varsayılan görünüm eski şeritle bayt bayt aynı, NPC şerit özetleri sabit), `playerTextureKey/ensurePlayerTexture/releasePlayerTexture` (varsayılan boot dokusu), WorldScene `playerTexKey` + `playerChanged` ile anında değişim + `playerSpriteInfo`, `setPlayer` komutu, `SaveSummary.name/look`, `app.lastLook/lastPlayerName/rememberPlayer`, `Sim.create(..., profile)`; arayüz yok |
 | 0.24.1 | Karakter ekranı: "Yeni oyun" → "Karakterin" (dönen canlı önizleme, ◀ ▶ seçiciler, ad, Rastgele, Geri, Başla); son seçim hatırlanır; kayıt kartında ad + portre; 568×320'de iki sütun |
 | 0.24.2 | Ayarlar → Karakter (ad + Görünümü düzenle, oyunda canlı) + ad kullanımı (kayıt kartı, Nermin, sabah kartı, mektup "Sevgili {ad},", zafer) + sahiplendirme fotoğrafında oyuncu (`AdoptionRecord.playerLook` anlık kopya) |
 | 0.24.3 | Cila: dokunma senaryosu 21, Kontroller satırı, 12 boyutta TR/EN denetim, README/PLAN/handoff |
