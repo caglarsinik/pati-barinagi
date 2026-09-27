@@ -556,9 +556,9 @@ küçük telefonda üç satır olup hedef kartının üstüne biniyordu; sahiple
 köpek panelinde kulübe + Göster satırı taşıyordu; ofis düğme satırı taşıyordu; görevlendirme öncelik tablosu 1024'te
 530 px taşıyordu; tablet dikeyde alt menü düğmeleri eşitsiz daralıp taşıyor, ipucu satırı kesiliyordu; dünyada adlar
 ve balonlar üst üste biniyordu. Sonuç: bütün boyutlarda Türkçe 0 sorun (İngilizcede yalnız tablet dikeyde "Achievements"
-etiketi birkaç piksel üç noktayla kısalıyor).
+etiketi birkaç piksel üç noktayla kısalıyordu; 0.22.6'da "Awards" ile giderildi).
 
-### M19 Konfor ve Yaşam Kalitesi (2026-09-27 kullanıcı notları; M18'den önce)
+### M19 Konfor ve Yaşam Kalitesi (2026-09-27 kullanıcı notları; M18'den önce) — TAMAM
 Kullanıcının altı notu: arka plana atılınca müzik kesilsin, köpeklerin açlık/susuzluk gibi yoksunlukları sol altta sayılsın,
 mini harita yakınlaşsın, kurulu binalar taşınabilsin, kulübenin içi eşyayla tasarlansın, düğmeler bir başlangıç hikâyesiyle
 tanıtılsın (Ayarlar'dan kapatılabilir).
@@ -571,7 +571,7 @@ tanıtılsın (Ayarlar'dan kapatılabilir).
 | 0.22.3 ✅ | Kulübe içi 1: kapıdan girilen oda (`'kennel'` 8×6, `'kennelLarge'` 10×6), panodan yatak (küçükte 1, büyükte 2; `furnitureMax` = denge sınırı ∧ şablon yuvası), battaniye, su kabı, oyuncak sepeti, pencere; uyuyan köpekler içeride yatakta/halıda (`kennelRestSpotInside`, yalnız çizim); KennelPanel İçeri gir + Eşyalar; eşikten ↑ |
 | 0.22.4 ✅ | Kulübe içi 2: eşya etkileri (`BALANCE.kennelComfort`, `KennelComfort.ts`): yatak uyku enerjisi ×1,25 ve battaniye uykuda kirlenme ×0,5 ve su kabı uykuda susama ×0 (kendi kulübesinde uyurken; yatak köpek başına), battaniye hastalık ×0,75 (`illnessChanceMul`, zar yine atılır), oyuncak keyif düşüşü ×0,75, pencere dekor +1; denetimde "Konfor" (yalnız artı, ağırlığa eklenmez), köpek ve kulübe panelinde konfor satırı, başarım "Konforlu kulübe" (35) |
 | 0.22.5 ✅ | Açılış hikâyesi: belediyeden Nermin Hanım gerçek düğmeleri halkayla gösterir (kuruluş 7, hazır 8 adım; `ui/tutorial/steps.ts` + `Tutorial.ts` + `Coach.tsx` z 150); dünyadaki hedefte (köpek, kap) halka, ekran dışında kenarda ok; olay güdümlü, öne geçen oyuncu bekletilmez; Atla / Tanıtımı kapat; yalnız yeni oyunda; cihaz tercihi `tutorialDone`, Ayarlar'dan kutu + "Tanıtımı şimdi başlat" |
-| 0.22.6 | Cila: dokunma senaryoları 17–19, Kontroller, başarımlar, belgeler, tam denetim |
+| 0.22.6 ✅ | Cila: dokunma senaryoları 17 Taşı, 18 kulübe içi, 19 tanıtım (gerçek DOM düğmeleri; test oyununda tercih değişmez; `runTouchScenarios` artık söz); Kontroller'de tanıtım, ihtiyaç şeridi, harita yakınlaştırma, Taşı ve kulübe satırları, klavye tablosunun tuş sütunu çevrilir; başarım "Yeni düzen" (5 taşıma; 36); İngilizcede "Achievements" → "Awards" (tablet dikeyde alt menüye sığar); denetim bant yüksekliklerini ölçmeden önce tazeler; 12 boyutta TR/EN 77 ekran 0 sorun → **M19 tamam** |
 
 ### M18 Terk Edilmiş Ev ve Malzemeler (2026-09-26 dilimlendi; M19'dan sonra, 0.23.x)
 | Sürüm | Konu |

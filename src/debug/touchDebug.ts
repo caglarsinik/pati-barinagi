@@ -7,14 +7,15 @@ import { BALANCE } from '../config/balance';
 import { GAME } from '../config/game';
 import type { GesturePointer } from '../scenes/TouchGestures';
 import type { WorldScene } from '../scenes/WorldScene';
-import type { BuildingType } from '../content/buildings';
+import { BUILDING_DEFS, type BuildingType } from '../content/buildings';
 import type { Sim, StarterKind } from '../sim/Sim';
 import { goalShowTool } from '../sim/systems/Goals';
 import type { Dog } from '../sim/entities/Dog';
-import { buildingDoorTile, isReady } from '../sim/entities/Building';
+import { type Rotation, buildingDoorTile, buildingSize, canPlaceBuilding, isReady, kennelRestTile } from '../sim/entities/Building';
 import type { TilePos } from '../sim/world/TileWorld';
 import { Obj } from '../sim/world/tiles';
-import { store } from '../ui/store';
+import { rotateBuildTool, store, syncStore } from '../ui/store';
+import { DOG_FRAMES, DOG_FRAME_LIE } from '../render/DogPainter';
 import { resolveAction } from '../sim/systems/Interaction';
 import { interiorItemAt } from '../sim/interior/Interiors';
 import { signposts } from '../sim/world/Signposts';
@@ -40,9 +41,14 @@ export interface DebugApp {
   startDebugGame(seed: number, starter: StarterKind): Sim;
   /** Hedef "Göster" ile aynı yol: yönetim modu, inşa çubuğu, araç. */
   showBuild(target: BuildingType | 'plot'): void;
+  /** Açılış tanıtımı (0.22.5; senaryo 19 test oyununda zorla başlatır). */
+  readonly tutorial: { start(sim: Sim, starter: StarterKind): void; readonly active: boolean; readonly step: { id: string } | null };
 }
 
-/** Senaryoların sabit tohumları (0.19.3): 1–12 hazır barınakta, 13 kuruluşta; 14–15 taze hazır oyunda köy (0.20.5), 16 sahiplendirme hikâyesi (0.21.5). */
+/**
+ * Senaryoların sabit tohumları (0.19.3): 1–12 hazır barınakta, 13 kuruluşta; 14–15 taze hazır oyunda köy (0.20.5), 16 sahiplendirme
+ * hikâyesi (0.21.5); 17–18 taze hazır oyunda Taşı ve kulübe içi, 19 taze kuruluşta açılış tanıtımı (0.22.6).
+ */
 const SCENARIO_SEED_READY = 1942;
 const SCENARIO_SEED_GUIDED = 1913;
 
@@ -178,7 +184,8 @@ export function createTouchDebug(app: DebugApp & AuditApp) {
         activeElement: document.activeElement?.tagName ?? null,
       };
     },
-    runTouchScenarios(): { summary: string; results: ScenarioResult[] } {
+    /** Bütün senaryolar; 19 arayüzün çizilmesini beklediği için sonuç bir söz (await). */
+    async runTouchScenarios(): Promise<{ summary: string; results: ScenarioResult[] }> {
       // 0.19.3: senaryolar kendi dünyalarını kurar (sabit tohum, kayda dokunmaz): 1–12 hazır barınakta, 13 kuruluşta, 14–15 köyde.
       const sim = freshGame('ready', SCENARIO_SEED_READY);
       const results: ScenarioResult[] = [];
@@ -618,6 +625,214 @@ export function createTouchDebug(app: DebugApp & AuditApp) {
           `bilgisayar=${computer} sahiplendi=${adopted} mektup=${lettered} panel=${noPanel ? 'kapalı' : 'açıldı'} otopilot=${pilotOk ? 'karışmadı' : 'karıştı'} okundu=${read} albüm=${inAlbum}`,
         ];
       });
+
+      // 17–19 (0.22.6): M19 — binayı taşı, kulübe içi, açılış tanıtımı; her biri taze oyunda.
+      /** Arsada binanın sığdığı, oyuncudan ve köpeklerden en az 3 kare uzak ilk yer. */
+      const spotFor = (g: Sim, type: BuildingType, rot: Rotation = 0): TilePos | null => {
+        const p = g.world.plotInterior();
+        const s = buildingSize(BUILDING_DEFS[type], rot);
+        for (let y = p.y + 2; y < p.y + p.h - s.h - 1; y++) {
+          for (let x = p.x + 2; x < p.x + p.w - s.w - 1; x++) {
+            if (!canPlaceBuilding(g.world, type, x, y, rot)) continue;
+            const cx = x + s.w / 2;
+            const cy = y + s.h / 2;
+            if (Math.hypot(g.player.x - cx, g.player.y - cy) < 3 || g.dogs.some((d) => Math.hypot(d.x - cx, d.y - cy) < 3)) continue;
+            return { x, y };
+          }
+        }
+        return null;
+      };
+      const reset = (g: Sim): void => {
+        api.cancelTouches();
+        store.panel.value = 'none';
+        store.build.value = { kind: 'none' };
+        store.buildBar.value = false;
+        g.setMode('avatar');
+      };
+
+      scenario('17 Taşı: kulübeye dokun → boş yere dokun → köpeğiyle taşındı; sürükle-bırak; büyük kulübe Döndür ile', () => {
+        const g = freshGame('ready', SCENARIO_SEED_READY);
+        api.cancelTouches();
+        store.panel.value = 'none';
+        const k = g.buildings.find((b) => b.type === 'kennelSmall' && b.occupants.length > 0) ?? g.buildings.find((b) => b.type === 'kennelSmall');
+        if (!k) return [false, 'kulübe yok'];
+        const dogs0 = k.occupants.join();
+        // Yönet → İnşa → Taşı (düğmelerin yolu); binaya dokun: tutulur.
+        g.setMode('manage');
+        store.buildBar.value = true;
+        store.build.value = { kind: 'move', id: null };
+        api.tapTile(k.x + 0.5, k.y + 0.5);
+        const t0 = store.build.value;
+        const held = t0.kind === 'move' && t0.id === k.id;
+        const to = spotFor(g, 'kennelSmall');
+        if (!to) return [false, 'boş yer yok'];
+        api.tapTile(to.x + 0.5, to.y + 0.5);
+        const tapped = k.x === to.x && k.y === to.y && k.occupants.join() === dogs0;
+        const t1 = store.build.value;
+        const again = t1.kind === 'move' && t1.id === null;
+        // Sürükle-bırak tek harekette taşır.
+        const to2 = spotFor(g, 'kennelSmall');
+        if (!to2) return [false, 'ikinci boş yer yok'];
+        api.dragTile(k.x + 0.5, k.y + 0.5, to2.x + 0.5, to2.y + 0.5);
+        const dragged = k.x === to2.x && k.y === to2.y;
+        // Büyük kulübe: tut, Döndür çipinin yolu, yeni yerine dokun.
+        const bs = spotFor(g, 'kennelLarge');
+        const big = bs ? g.placeBuilding('kennelLarge', bs.x, bs.y) : null;
+        if (!big) return [false, 'büyük kulübe kurulamadı'];
+        api.tapTile(big.x + 0.5, big.y + 0.5);
+        const turned = rotateBuildTool();
+        const to3 = spotFor(g, 'kennelLarge', 1);
+        if (!to3) return [false, 'döndürülmüş büyük kulübeye yer yok'];
+        api.tapTile(to3.x + 0.5, to3.y + 0.5);
+        const rotated = big.rot === 1 && big.x === to3.x && big.y === to3.y;
+        const moved = g.stats.moved;
+        reset(g);
+        return [held && tapped && again && dragged && turned && rotated && moved === 3, `tutuldu=${held} dokunuşla=${tapped} yeniden seç=${again} sürükle=${dragged} döndür=${rotated} taşıma=${moved}`];
+      });
+
+      scenario('18 kulübeye dokun → panel → İçeri gir → panoya dokun → yatak al → gece köpek yatağında çizili → kapıdan çık', () => {
+        const g = freshGame('ready', SCENARIO_SEED_READY);
+        const grun = (frames: number, until?: () => boolean): void => {
+          for (let i = 0; i < frames && !(until && until()); i++) g.update(1 / 30);
+        };
+        api.cancelTouches();
+        store.panel.value = 'none';
+        const { scene } = need();
+        const k = g.buildings.find((b) => b.type === 'kennelSmall');
+        const dog = g.shelterDogs()[0];
+        if (!k || !dog) return [false, 'kulübe ya da köpek yok'];
+        if (dog.kennelId !== k.id && !g.command({ type: 'assignKennel', dogId: dog.id, buildingId: k.id }).ok) return [false, 'köpek kulübeye yerleşmedi'];
+        // Köpek uzakta otursun (dokunuş köpeğe gitmesin); oyuncu kulübenin kapı önünde.
+        const far = freeTileNear(g, 8);
+        if (far) {
+          dog.x = far.x + 0.5;
+          dog.y = far.y + 0.7;
+        }
+        dog.path = [];
+        dog.state = 'sit';
+        dog.stateTimer = 9999;
+        const door = buildingDoorTile(k);
+        g.player.x = door.x + 0.5;
+        g.player.y = door.y + 0.9;
+        api.tapTile(k.x + 0.5, k.y + 0.5);
+        grun(300, () => store.panel.value === 'kennel');
+        // store.panel yukarıda 'none' atandı; TS daraltmasın diye genişletilir.
+        const panel = (store.panel.value as string) === 'kennel';
+        // Kulübe panelindeki "🚪 İçeri gir" düğmesinin yolu.
+        const entered = g.command({ type: 'goInteract', goal: { kind: 'enter', id: k.id } }).ok;
+        store.panel.value = 'none';
+        grun(300, () => g.interior !== null);
+        const it = g.interior;
+        if (!it || it.kind !== 'kennel') return [false, `panel=${panel} içeri=${it?.kind ?? 'yok'}`];
+        const board = it.items.find((i) => i.type === 'kennelBoard');
+        if (!board) return [false, 'pano yok'];
+        api.tapTile(board.x + 0.5, board.y + 0.5);
+        grun(300, () => store.panel.value === 'furniture');
+        const shop = (store.panel.value as string) === 'furniture';
+        // Eşya panelindeki "Al" düğmesinin yolu.
+        g.money = Math.max(g.money, 1000);
+        const bought = g.command({ type: 'buyFurniture', buildingId: k.id, item: 'dogBed' }).ok && !!g.interior?.items.some((i) => i.type === 'dogBed');
+        store.panel.value = 'none';
+        // Gece: köpek kulübesinin eşiğinde uyur; sahne onu içeride, yatağında yatarken çizer.
+        g.clock.totalMinutes = (g.clock.day - 1) * 24 * 60 + 22 * 60;
+        const rest = kennelRestTile(k, k.occupants.indexOf(dog.id));
+        dog.x = rest.x + 0.5;
+        dog.y = rest.y + 0.5;
+        dog.path = [];
+        dog.state = 'sleep';
+        dog.needs.energy = 20;
+        let now = performance.now();
+        for (let i = 0; i < 4; i++) {
+          now += 16;
+          app.game?.step(now, 16);
+        }
+        const info = scene.dogSpriteInfo(dog.id);
+        const drawn = !!info && info.inside && info.frame % DOG_FRAMES === DOG_FRAME_LIE;
+        const exitDoor = g.interior?.door ?? it.door;
+        api.tapTile(exitDoor.x + 0.5, exitDoor.y + 0.5);
+        grun(300, () => g.interior === null);
+        const out = g.interior === null && g.player.tileX === door.x && g.player.tileY === door.y;
+        reset(g);
+        return [panel && entered && shop && bought && drawn && out, `panel=${panel} içeri=kennel pano=${shop} yatak=${bought} çizim=${drawn ? 'içeride yatıyor' : JSON.stringify(info)} çıktı=${out}`];
+      });
+
+      // 19: açılış tanıtımı arayüzün gerçek düğmeleriyle (DOM tıklaması; Preact çizimi beklenir). Test oyununda tercih değişmez.
+      try {
+        const g = freshGame('guided', SCENARIO_SEED_GUIDED);
+        const grun = (frames: number, until?: () => boolean): void => {
+          for (let i = 0; i < frames && !(until && until()); i++) g.update(1 / 30);
+        };
+        const settle = (ms: number): Promise<void> => new Promise((r) => setTimeout(r, ms));
+        /** Sahneyi birkaç kare ilerlet, store'u tazele (tanıtım koşulları denetlenir), arayüz çizilsin. */
+        const tick = async (): Promise<void> => {
+          let now = performance.now();
+          for (let i = 0; i < 6; i++) {
+            now += 16;
+            app.game?.step(now, 16);
+          }
+          syncStore(g);
+          await settle(80);
+        };
+        const click = (sel: string): boolean => {
+          const el = document.querySelector<HTMLElement>(sel);
+          const target = el && el.tagName !== 'BUTTON' ? el.querySelector<HTMLElement>('.btn:not(.close)') : el;
+          target?.click();
+          return !!target;
+        };
+        api.cancelTouches();
+        store.panel.value = 'none';
+        const pref0 = store.tutorialDone.value;
+        const at = (): string => app.tutorial.step?.id ?? 'bitti';
+        const log: string[] = [];
+        app.tutorial.start(g, 'guided');
+        await tick();
+        const bubble = !!document.querySelector('.coach-bubble');
+        // 1 Başla (balondaki birincil düğme).
+        click('.coach-bubble .btn.primary');
+        await tick();
+        log.push(at());
+        // 2 köpeğin yanına dokun.
+        const dog = g.shelterDogs()[0];
+        dog.path = [];
+        dog.state = 'sit';
+        dog.stateTimer = 9999;
+        api.tapTile(dog.x + 1.6, dog.y - 0.2);
+        grun(600, () => !g.nav.active);
+        await tick();
+        log.push(at());
+        // 3 köpeğe dokun: sever.
+        api.tapTile(dog.x, dog.y - 0.2);
+        grun(600, () => g.stats.petted > 0 && !g.nav.active);
+        await tick();
+        log.push(at());
+        // 4 🛠 Yönet, 5 🏗️ İnşa, 6 Küçük kulübe → arsaya dokun, 7 hedef kartı.
+        click('[data-tut="mode"]');
+        await tick();
+        log.push(at());
+        click('[data-nav="build"]');
+        await tick();
+        log.push(at());
+        click('.build-item[data-type="kennelSmall"]');
+        await tick();
+        const spot = spotFor(g, 'kennelSmall');
+        if (spot) api.tapTile(spot.x + 0.5, spot.y + 0.5);
+        await tick();
+        log.push(at());
+        click('[data-tut="guide"]');
+        await tick();
+        log.push(at());
+        const finished = !app.tutorial.active && store.tutorial.value === null;
+        const prefKept = store.tutorialDone.value === pref0;
+        const expected = 'walk,pet,manage,build-open,kennel,goals,bitti';
+        reset(g);
+        results.push({
+          name: '19 tanıtım: gerçek düğmelerle kuruluş adımları (Başla, yürü, sev, Yönet, İnşa, kulübe, hedefler) → bitti, tercih değişmez',
+          ok: bubble && log.join(',') === expected && finished && prefKept,
+          detail: `balon=${bubble} adımlar=${log.join(' → ')} bitti=${finished} tercih=${prefKept ? 'aynı' : 'değişti'}`,
+        });
+      } catch (e) {
+        results.push({ name: '19 tanıtım', ok: false, detail: String(e) });
+      }
 
       return { summary: summarize(results), results };
     },

@@ -140,6 +140,10 @@ kendiliğinden açılır; Ayarlar → Dokunmatik kontroller ile Otomatik / Açı
 - **🤖 (üst şerit):** otopilotu açar; karakter barınağın işlerini kendisi yapar, haritaya dokununca kapanır (bkz. "Otopilot").
 - **İki parmak:** yakınlaştırır, yönetim modunda kaydırır. **Sürükle (yönetim):** kamerayı kaydırır; araç seçiliyken çit/yol/bölge çizer;
   aracı bırakmak için ipucu satırındaki İptal, kare olmayan binayı döndürmek için Döndür.
+- **Konfor (0.22.x):** sol alttaki **ihtiyaç şeridine** dokun → uyarı listesi; 🗺️ haritada iki parmak ya da −/+ yakınlaştırır
+  (1×/2×/4×), sürükleyince kayar, ⌖ seni ortalar; yönetimde İnşa → **Taşı**: binaya dokun, sonra yeni yerine dokun ya da binayı
+  sürükle (Döndür çipi çevirir); **kulübeye dokun** → 🚪 İçeri gir / 🛋️ Eşyalar; yeni oyunda Nermin Hanım'ın **tanıtımı** sarı
+  halkayla gerçek düğmeleri gösterir (Ayarlar → Rehber).
 - Paneller telefonda tam ekran sayfa olur; görevlendirme ızgarası parmakla boyanır, öncelikler +/− adımlayıcıdır;
   telefonda üst şeritteki 🥚 çanta, 🔔 uyarı ve 🗺️ harita çipleri ilgili sayfayı açar.
 - **Telefon yerleşimi:** alt şerit tek satırdır — solda etkin araç düğmesi (dokununca 6 araçlık şerit açılır), ortada
@@ -439,7 +443,7 @@ Görevi olan köylünün başında soru balonu çıkar; sabah raporu kalan süre
 
 ## Başarımlar
 
-H tuşu ya da ofis panelinden 35 başarımın listesi açılır (ilk yumurta, 10 sahiplendirme, 95+ eşleşme, 1,4 denetim çarpanı, 20.000 ₺, efsanevi köpek, bir yıl dayanmak...). Her başarım açıldığında itibar +1 verir; kayıtla korunur.
+H tuşu ya da ofis panelinden 36 başarımın listesi açılır (ilk yumurta, 10 sahiplendirme, 95+ eşleşme, 1,4 denetim çarpanı, 20.000 ₺, efsanevi köpek, bir yıl dayanmak...). Her başarım açıldığında itibar +1 verir; kayıtla korunur.
 
 ## Dil
 
@@ -523,7 +527,8 @@ Bilgisayar değiştirirken ya da yedek almak için kullan.
 - [x] 0.22.3 Kulübe içi: kulübeye girilir (panel, ↑, kapı karesi), panodan yatak/battaniye/su kabı/oyuncak/pencere; uyuyan köpek içeride yatağında
 - [x] 0.22.4 Kulübe eşya etkileri: yatak uyku enerjisi, battaniye temizlik ve hastalık, su kabı gece susuzluğu, oyuncak keyif, pencere dekor; denetimde Konfor, "Konforlu kulübe" başarımı
 - [x] 0.22.5 Açılış tanıtımı: yeni oyunda Nermin Hanım gerçek düğmeleri halkayla gösterir (kuruluş 7, hazır barınak 8 adım); Atla, kapat, Ayarlar'dan yeniden
-- [ ] M19 Konfor ve Yaşam Kalitesi (dilimlendi, `docs/PLAN.md`): 0.22.0 ✅ müzik + ihtiyaç şeridi → 0.22.1 ✅ mini harita yakınlaştırma → 0.22.2 ✅ binayı taşı → 0.22.3 ✅ kulübe içi → 0.22.4 ✅ kulübe eşya etkileri → 0.22.5 ✅ açılış hikâyesi (tanıtım) → 0.22.6 cila
+- [x] 0.22.6 Cila: dokunma senaryoları 17–19 (Taşı, kulübe içi, tanıtım), Kontroller'de yeni satırlar, "Yeni düzen" başarımı, İngilizcede "Awards", 12 boyutta TR/EN denetim temiz — M19 tamam
+- [x] M19 Konfor ve Yaşam Kalitesi (0.22.0–0.22.6): müzik arka planda durur, ihtiyaç şeridi, mini harita yakınlaştırma, binayı taşı, kulübe içi ve eşya etkileri, açılış tanıtımı
 - [ ] M18 Terk Edilmiş Ev ve Malzemeler (0.23.0–0.23.4): odun ve taş, malzemeyle öde, uzak ormanda ev, onarım
 - [ ] Sonrası: yuva evi içi, kuzey/batı arsa genişletme
 
@@ -535,16 +540,20 @@ npm run typecheck # tsc --noEmit
 npm run build     # dist/index.html
 ```
 
-Dokunma testleri: oyunu `?touch=1&debug=1` ile açıp bir oyun başlatınca konsolda `__pati.debug.runTouchScenarios()`
-16 senaryoyu koşar ve `{ summary, results }` döndürür: 1–12 sabit tohumlu hazır barınakta (eğit → yürü, E düğmesi,
+Dokunma testleri: oyunu `?touch=1&debug=1` ile açıp bir oyun başlatınca konsolda `await __pati.debug.runTouchScenarios()`
+19 senaryoyu koşar ve `{ summary, results }` döndürür (sözdür; 19 arayüzün çizilmesini bekler): 1–12 sabit tohumlu hazır barınakta (eğit → yürü, E düğmesi,
 pinch + iptal, takılı parmak, yönetim modu, uzun basış, köpeğin dibinde dokunuş, otopilot, ofis ve kiler iç mekânları),
 13 kuruluş oyununda (hedef "Göster" → dokunarak kulübe, kap, yalak, kuluçka → üç belediye hedefi), 14–15 taze hazır oyunda
 köyde (tabelaya dokun → hızlı seyahat paneli → köye git; görev panosu → kayıp köpeği bul → panoda teslim, otopilot panoyu
 açmadan eve yürür), 16 taze hazır oyunda sahiplendirme hikâyesi (ofiste masaya dokun → bilgisayar → sahiplendir → mektup
-gelir, panel açılmaz, otopilot karışmaz → Posta → albüm). Senaryolar açık oyunun
+gelir, panel açılmaz, otopilot karışmaz → Posta → albüm), 17 Taşı (kulübeye dokun → boş yere dokun → köpeğiyle taşındı;
+sürükle-bırak; büyük kulübe Döndür ile), 18 kulübe içi (kulübeye dokun → panel → İçeri gir → panoya dokun → yatak al → gece köpek
+içeride yatağında çizili → kapıdan çık), 19 taze kuruluşta açılış tanıtımı gerçek arayüz düğmeleriyle (Başla, yürü, sev, Yönet,
+İnşa, kulübe, hedefler → bitti; test oyununda cihaz tercihi değişmez). Senaryolar açık oyunun
 yerine kendi test oyununu kurar; test oyunu kaydedilmez, yeni oyun ya da devam et ile normal oyuna dönülür. `__pati.debug.snapshot()` o anki
 dokunma/yürüyüş durumunu verir. Arayüz denetimi (0.21.6): `await __pati.debug.auditScreens()` zengin bir test oyununda
-59 ekranı (HUD hâlleri, inşa sekmeleri, açılır menüler, bütün paneller ve sekmeleri, raporlar, ana menü) sırayla açar ve
+77 ekranı (HUD hâlleri, inşa sekmeleri, açılır menüler, bütün paneller ve sekmeleri, kulübe içi, açılış tanıtımının 15 adımı,
+raporlar, ana menü) sırayla açar ve
 kutusundan taşan, kesilen, üç noktayla kısalan, ekran dışında kalan, yatay kayan ya da üst üste binen yazı/kutuları
 listeler; `__pati.debug.summarizeAudit(sonuç.screens)` aynı sorunu tek satırda toplar, `__pati.debug.layoutAudit()` yalnız
 o anki ekranı denetler. Telefon/tablet boyutu pencereden gelir. `?debug=1` olmadan kanca bağlanmaz. Gerçek cihaz kontrol listesi: `docs/CLAUDE_HANDOFF.md`.

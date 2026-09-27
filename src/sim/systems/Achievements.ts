@@ -54,6 +54,7 @@ export const ACHIEVEMENTS: AchievementDef[] = [
   },
   { id: 'healer', name: 'Şifacı', desc: '10 hastalığı tedaviyle geçir.', check: (s) => s.stats.cured >= 10 },
   { id: 'builder', name: 'Mimar', desc: '10 inşaat yap.', check: (s) => s.stats.built >= 10 },
+  { id: 'mover', name: 'Yeni düzen', desc: 'Kurulu binaları 5 kez taşı.', check: (s) => s.stats.moved >= 5 },
   { id: 'explorer', name: 'Kâşif', desc: 'Haritanın yarısını keşfet.', check: (s) => s.exploredCount >= s.world.width * s.world.height * 0.5 },
   { id: 'legendary', name: 'Efsane', desc: 'Efsanevi bir köpeğe bak.', check: (s) => s.shelterDogs().some((d) => d.genome.rarity === 'legendary') },
   { id: 'senior', name: 'Ak sakal', desc: 'Bir köpek barınağında yaşlansın.', check: (s) => s.shelterDogs().some((d) => d.stage === 'senior') },

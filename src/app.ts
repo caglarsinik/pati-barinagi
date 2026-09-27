@@ -158,7 +158,8 @@ class AppController {
   /** Tanıtım adımı değişti ya da bitti: bitince (tamam ya da kapatıldı) cihaz tercihi "görüldü" olur. */
   private onTutorial(state: TutorialState | null, end?: TutorialEnd): void {
     store.tutorial.value = state;
-    if (!end) return;
+    // Test oyununda (dokunma senaryosu 19) cihaz tercihi değişmez.
+    if (!end || this.debugGame) return;
     this.setTutorialDone(true);
     showToast(end === 'done' ? t("Tanıtım bitti · Ayarlar'dan yeniden başlatabilirsin") : t("Tanıtım kapandı · Ayarlar'dan yeniden başlatabilirsin"), 4000);
   }

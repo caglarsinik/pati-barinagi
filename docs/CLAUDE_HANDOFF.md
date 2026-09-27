@@ -57,6 +57,27 @@
   köpek paneli, araç şeridi, alt menü listesi, ana menü, Ayarlar: çakışma yok, taşma yok. Alt menü açılır listesi köpek
   panelinin üstüne gelebilir (geçici popover, üstte kalır) — kabul edildi. Gerçek cihaz testi kullanıcıda.
 
+## 0.22.6 — M19 cilası: dokunma senaryoları 17–19, Kontroller, "Yeni düzen", tam denetim (M19 tamam; Claude, 2026-09-27)
+- Dokunma senaryoları (`src/debug/touchDebug.ts`): **17 Taşı** (taze hazır oyun: Yönet → İnşa → Taşı yolu, kulübeye dokun → tutulur,
+  boş yere dokun → köpeğiyle taşındı ve araç seçme evresine döndü; `dragTile` ile sürükle-bırak; büyük kulübe tut → `rotateBuildTool`
+  [Döndür çipi] → döndürülmüş yere dokun; `stats.moved` 3), **18 kulübe içi** (kulübe gövdesine dokun → KennelPanel → "İçeri gir"
+  yolu → panoya dokun → eşya paneli → yatak al → gece köpek eşikte uyur → sahne onu içeride yatarken çizer [`WorldScene.dogSpriteInfo`
+  yeni, yalnız hata ayıklama] → kapıya dokun → dışarı), **19 tanıtım** (taze kuruluş, `app.tutorial.start`; balondaki Başla,
+  `[data-tut=mode]`, `[data-nav=build]`, `.build-item[data-type=kennelSmall]`, `[data-tut=guide]` gerçek DOM tıklamasıyla; yürü ve sev
+  dokunuşla; adımlar walk → pet → manage → build-open → kennel → goals → bitti). 19 Preact çizimini beklediği için
+  `runTouchScenarios` artık `async` (`await`). Test oyununda tanıtım bitince cihaz tercihi değişmez (`app.onTutorial` `debugGame`).
+  `DebugApp.tutorial`. 812×375 ve 568×320: 19/19.
+- Kontroller: İlk adımlara "Tanıtım" ve "İhtiyaç şeridi"; M satırına yakınlaştırma; dokunmatiğe "Haritada iki parmak / + −", "Yönet → İnşa →
+  Taşı", "Kulübeye dokun". Klavye tablosunun tuş sütunu da `t()` ile çevrilir ("↑ (kapıda basılı tut)", "Fare tekeri" İngilizcede
+  Türkçe kalıyordu; bilinmeyen tuşlar kendisi döner).
+- Başarım `mover` "Yeni düzen" (`stats.moved ≥ 5`; 36); `move.test.ts` +1 test. İngilizcede "Achievements" → "Awards" (başlık, menü,
+  bildirim "Award: …"): tablet dikeyde 46 px alt menü düğmesine sığmıyordu (açık küçük işlerden biri kapandı).
+- Denetim: `auditScreens` her ekranı ölçmeden önce `--dock-h`/`--top-h`'yi elle tazeler (`syncBands`): arka plandaki önizleme
+  bölmesinde ResizeObserver gecikince, yönetimden avatara geçişte uzayan rıhtım köpek panelini E/Koş'a biniyor gösteriyordu (gerçek
+  cihazda gözlemci her karede çalışır). 12 boyut (568×320, 640×360, 667×375, 740×360, 812×375, 844×390, 915×412 dokunmatik telefon;
+  768×1024, 820×1180, 1024×768, 1180×820 dokunmatik tablet; 1280×720 fareli masaüstü) × TR/EN: 77 ekran, 0 sorun. 448 test.
+- M19 bitti. Sıradaki büyük iş M18 Terk Edilmiş Ev (0.23.0 odun ve taş).
+
 ## 0.22.5 — Açılış tanıtımı: Nermin Hanım (M19; Claude, 2026-09-27)
 - Yapı (sim'e dokunmaz): `src/ui/tutorial/steps.ts` saf adımlar (`TutorialStep {id, text, touchText?, anchor?(view), world?(sim),
   info?, cta?, done?(sim, view, ctx), enter?(ui)}`; `TUTORIAL_GUIDED` 7: welcome, walk, pet, manage, build-open, kennel, goals;

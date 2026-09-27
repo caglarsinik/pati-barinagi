@@ -575,8 +575,21 @@ export async function auditScreens(app: AuditApp, only?: string, keep = false): 
   ];
   const screens: ScreenReport[] = [];
   let checked = 0;
+  /**
+   * Üst şerit ve rıhtım yüksekliklerini (--top-h, --dock-h) ölçmeden önce tazeler (0.22.6): HUD bunları ResizeObserver ile
+   * yazar, arka plandaki önizleme bölmesinde gözlemci gecikince sütunlar bir an eski yükseklikte kalıyordu (rıhtım uzadığı
+   * anda köpek paneli E/Koş'a biniyor görünüyordu). Gerçek cihazda gözlemci her karede çalışır.
+   */
+  const syncBands = (): void => {
+    const root = document.getElementById('ui');
+    const dock = document.querySelector('.hud-dock');
+    const top = document.querySelector('.topbar');
+    if (root && dock) root.style.setProperty('--dock-h', `${Math.ceil(dock.getBoundingClientRect().height)}px`);
+    if (root && top) root.style.setProperty('--top-h', `${Math.ceil(top.getBoundingClientRect().height)}px`);
+  };
   const run = async (name: string): Promise<void> => {
     checked++;
+    syncBands();
     const issues = layoutAudit();
     if (issues.length > 0) screens.push({ screen: name, issues });
   };

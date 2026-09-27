@@ -1693,6 +1693,14 @@ export class WorldScene extends Phaser.Scene {
     return { x: ox + (p.x + 0.5) * T, y: py, depth: 100 + py, frame: 0 };
   }
 
+  /** Hata ayıklama (0.22.6, dokunma senaryosu 18): köpek görüntüsünün yeri, karesi ve iç odada çizilip çizilmediği. */
+  dogSpriteInfo(id: number): { x: number; y: number; frame: number; inside: boolean } | null {
+    const s = this.dogSprites.get(id);
+    if (!s) return null;
+    const ox = this.interiorOffsetX();
+    return { x: s.x, y: s.y, frame: Number(s.frame.name), inside: ox > 0 && s.x >= ox };
+  }
+
   /**
    * Oyuncu bir kulübenin içindeyken o kulübenin dışarıdaki eşiğinde uyuyan (ya da uzanan) sakininin içerideki yeri (0.22.3):
    * sırasındaki yatak varsa yatağın üstü, yoksa halı. Gündüz dışarıda gezen köpek içeride görünmez. İkinci köpek karşıya bakar.

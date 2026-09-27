@@ -18,7 +18,7 @@ const ROWS: Array<[string, string, string]> = [
   ['V', '–', 'Taşı: binayı tıkla ya da sürükle, yeni yerine bırak (içindekiler korunur)'],
   ['I / O / N / P / F / H', 'Köpekler / Sahiplendirme / Finans / Personel / Görevlendirme / Başarımlar', 'Aynı'],
   ['L', 'İsim etiketlerini aç/kapa', 'Aynı'],
-  ['M', 'Tam ekran harita: dokunarak işaret koy, işarete git', 'Aynı'],
+  ['M', 'Tam ekran harita: dokunarak işaret koy, işarete git; tekerlek ya da +/−: yakınlaştır, sürükle: kaydır', 'Aynı'],
   ['T', 'Otopilot aç/kapa: barınağın işlerini kendisi yapar (elle müdahale kapatır)', 'Aynı'],
   ['Space', 'Duraklat / devam', 'Aynı'],
   ['+ / -', 'Hız artır / azalt', 'Aynı'],
@@ -30,6 +30,9 @@ const START_ROWS: Array<[string, string]> = [
   ['Kuruluş', 'Yeni oyunda "Kuruluş" seçilirse küçük arsa, ofis ve ilk köpeğinle başlarsın; kulübe, kap, yalak ve kuluçkayı sen kurarsın.'],
   ['🎯 Hedefler', 'Sol üstteki karta ya da Menü → Hedefler\'e dokun: sıradaki belediye hedefi, ödülü ve "Göster" (aracı ya da paneli açar).'],
   ['Sabah raporu', 'Uyuyunca dünün özeti ve bugünün işleri gelir; kayıttan dönünce "Hoş geldin" kartı. Ayarlar\'dan kapatılır.'],
+  // M19 (0.22.6): açılış tanıtımı ve sol alttaki ihtiyaç şeridi.
+  ['Tanıtım', 'Yeni oyunda belediyeden Nermin Hanım ilk adımları gösterir: sarı halkalı düğmeye bas, iş yapılınca adım geçer. Ayarlar → Rehber\'den kapatılır ya da yeniden başlatılır.'],
+  ['İhtiyaç şeridi', 'Sol altta: aç, susuz, hasta, kirli ya da kulübesiz köpekleri sayar; dokununca uyarı listesi açılır.'],
 ];
 
 /** [konu, açıklama] Köy ve dünya (0.20.5). */
@@ -59,12 +62,15 @@ const TOUCH_ROWS: Array<[string, string]> = [
   ['Binanın kapı karesine dokun', 'İçeri girer (ofis, dinlenme odası, kiler, mutfak, veteriner, kuluçka, kulübe); binanın başka yerine dokunmak hızlı işi yapar'],
   ['İçeride eşyaya / kapıya dokun', 'Eşyayı kullanır · paspaslı kapıdan dışarı çıkar'],
   ['Mini haritaya ya da 🗺️ çipine dokun', 'Tam ekran harita: haritaya dokun → işaret; "Git" ile oraya yürü'],
+  ['Haritada iki parmak / + −', 'Yakınlaştır (1×/2×/4×) · sürükle: kaydır · ⌖: bana dön'],
   ['Uzun bas', 'Köpeği seç (panel açılır)'],
   ['E düğmesi', 'Baktığın işi yap (düğme işi yazar)'],
   ['Koş düğmesi', 'Koşarak yürü (dayanıklılık harcar)'],
   ['🤖 düğmesi (üst şerit)', 'Otopilot: yem, su, temizlik, köpek işleri, yumurta, gece uykusu, ödül maması pişirme; köy işlerine gitmez; haritaya dokununca kapanır'],
   ['İki parmak', 'Yakınlaştır · yönetim modunda kaydır'],
   ['Sürükle (yönetim)', 'Kamerayı kaydır · araç seçiliyse çit/yol/bölge çiz'],
+  ['Yönet → İnşa → Taşı', 'Binaya dokun, sonra yeni yerine dokun ya da binayı sürükle; Döndür çipi çevirir, içindekiler korunur'],
+  ['Kulübeye dokun', 'Kulübe paneli: 🚪 İçeri gir · 🛋️ Eşyalar (yatak, battaniye, su kabı, oyuncak, pencere)'],
   ['Köylüye dokun', 'Yanına gidip konuşur: ipucu ve köy dedikodusu'],
   ['Tabelaya dokun', 'Hızlı seyahat: keşfettiğin tabelalar arasında git (yol kadar zaman geçer)'],
   ['Panoya dokun', 'Köy görev panosu: köylülerin ricaları, ödüllü görevler'],
@@ -108,7 +114,7 @@ export function HelpSheet() {
             <tbody>
               {ROWS.map(([k, a, m]) => (
                 <tr key={k}>
-                  <td>{k}</td>
+                  <td>{t(k)}</td>
                   <td>{t(a)}</td>
                   <td>{t(m)}</td>
                 </tr>

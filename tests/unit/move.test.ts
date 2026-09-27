@@ -158,4 +158,20 @@ describe('Taşı aracı (0.22.2)', () => {
     expect(back.buildingById(inc.id)!.eggs.map((e) => e.id)).toEqual([egg.id]);
     expect(back.stats.moved).toBe(3);
   });
+
+  it('beş taşıma "Yeni düzen" başarımını açar (0.22.6)', () => {
+    const sim = Sim.create(2226);
+    const b = readyBuilding(sim, 'bench');
+    for (let i = 0; i < 5; i++) {
+      const s = freeSpot(sim, 1, 1);
+      expect(sim.command({ type: 'moveBuilding', id: b.id, x: s.x, y: s.y }).ok, `taşıma ${i + 1}`).toBe(true);
+      if (i < 4) {
+        sim.achievements.check();
+        expect(sim.achievements.unlocked.has('mover')).toBe(false);
+      }
+    }
+    expect(sim.stats.moved).toBe(5);
+    sim.achievements.check();
+    expect(sim.achievements.unlocked.has('mover')).toBe(true);
+  });
 });
