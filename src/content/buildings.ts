@@ -61,6 +61,11 @@ export interface BuildingDef {
   upgrade?: { cost: number; eggSlots?: number; hatchDays?: number };
   /** Oyuncak: kendi kendine oyunda keyif kazancı. */
   playGain?: number;
+  /**
+   * Malzemeyle öde tarifi (0.23.1): her odun `BALANCE.materials.woodValue`, her taş `stoneValue` ₺ indirir (en çok fiyatın
+   * yarısı); çantada yetmeyen kısım parayla ödenir.
+   */
+  mats?: { wood?: number; stone?: number };
 }
 
 export const BUILDING_DEFS: Record<BuildingType, BuildingDef> = {
@@ -88,6 +93,7 @@ export const BUILDING_DEFS: Record<BuildingType, BuildingDef> = {
     buildMinutes: 90,
     buildable: true,
     capacity: 1,
+    mats: { wood: 6, stone: 2 },
   },
   kennelLarge: {
     type: 'kennelLarge',
@@ -101,6 +107,7 @@ export const BUILDING_DEFS: Record<BuildingType, BuildingDef> = {
     buildMinutes: 150,
     buildable: true,
     capacity: 2,
+    mats: { wood: 10, stone: 4 },
   },
   shed: {
     type: 'shed',
@@ -113,6 +120,7 @@ export const BUILDING_DEFS: Record<BuildingType, BuildingDef> = {
     desc: 'Yem çuvalları burada durur. Yanına gelip E ile sipariş verilir.',
     buildMinutes: 60,
     buildable: true,
+    mats: { wood: 6, stone: 2 },
   },
   kitchen: {
     type: 'kitchen',
@@ -125,6 +133,7 @@ export const BUILDING_DEFS: Record<BuildingType, BuildingDef> = {
     desc: 'Yem kapları iki kat porsiyon alır, yalaklar kendiliğinden dolar, personel yem/su işini %40 hızlı yapar. İçeride fırında ödül maması pişer.',
     buildMinutes: 180,
     buildable: true,
+    mats: { wood: 8, stone: 8 },
   },
   bowl: {
     type: 'bowl',
@@ -138,6 +147,7 @@ export const BUILDING_DEFS: Record<BuildingType, BuildingDef> = {
     buildMinutes: 0,
     buildable: true,
     foodCapacity: 4,
+    mats: { wood: 1 },
   },
   trough: {
     type: 'trough',
@@ -150,6 +160,7 @@ export const BUILDING_DEFS: Record<BuildingType, BuildingDef> = {
     desc: 'Köpekler susayınca buradan içer. Önünde E ile doldur (ücretsiz); mutfak varsa kendiliğinden dolar.',
     buildMinutes: 0,
     buildable: true,
+    mats: { stone: 2 },
   },
   groomStation: {
     type: 'groomStation',
@@ -162,6 +173,7 @@ export const BUILDING_DEFS: Record<BuildingType, BuildingDef> = {
     desc: 'Yakındaki köpeği yıkar: temizlik 100. Önünde E.',
     buildMinutes: 120,
     buildable: true,
+    mats: { wood: 6, stone: 6 },
   },
   vetClinic: {
     type: 'vetClinic',
@@ -174,6 +186,7 @@ export const BUILDING_DEFS: Record<BuildingType, BuildingDef> = {
     desc: 'Yakındaki hasta köpeği tedavi eder (ilaç masrafı). Önünde E. İçeride muayene masasından köpekler aşılanır.',
     buildMinutes: 240,
     buildable: true,
+    mats: { wood: 10, stone: 14 },
   },
   incubator: {
     type: 'incubator',
@@ -188,6 +201,7 @@ export const BUILDING_DEFS: Record<BuildingType, BuildingDef> = {
     buildable: true,
     eggSlots: 3,
     upgrade: { cost: 2000, eggSlots: 6, hatchDays: 2 },
+    mats: { wood: 4, stone: 6 },
   },
   nursery: {
     type: 'nursery',
@@ -201,6 +215,7 @@ export const BUILDING_DEFS: Record<BuildingType, BuildingDef> = {
     buildMinutes: 240,
     buildable: true,
     eggSlots: 1,
+    mats: { wood: 14, stone: 8 },
   },
   toyBall: {
     type: 'toyBall',
@@ -227,6 +242,7 @@ export const BUILDING_DEFS: Record<BuildingType, BuildingDef> = {
     buildMinutes: 0,
     buildable: true,
     playGain: 26,
+    mats: { wood: 2 },
   },
   toyTunnel: {
     type: 'toyTunnel',
@@ -240,6 +256,7 @@ export const BUILDING_DEFS: Record<BuildingType, BuildingDef> = {
     buildMinutes: 30,
     buildable: true,
     playGain: 32,
+    mats: { wood: 4 },
   },
   obstacle: {
     type: 'obstacle',
@@ -252,6 +269,7 @@ export const BUILDING_DEFS: Record<BuildingType, BuildingDef> = {
     desc: 'Eğitim alanına konursa eğitim daha hızlı ilerler (en fazla 3 engel sayılır).',
     buildMinutes: 0,
     buildable: true,
+    mats: { wood: 3 },
   },
   staffRoom: {
     type: 'staffRoom',
@@ -264,6 +282,7 @@ export const BUILDING_DEFS: Record<BuildingType, BuildingDef> = {
     desc: 'Personel burada mola verir. İçine girip kanepe, kahve köşesi, TV ve buzdolabı alınabilir.',
     buildMinutes: 150,
     buildable: true,
+    mats: { wood: 8, stone: 4 },
   },
   staffToilet: {
     type: 'staffToilet',
@@ -276,6 +295,7 @@ export const BUILDING_DEFS: Record<BuildingType, BuildingDef> = {
     desc: 'Personel tuvaleti. Yoksa personel sıkışır: morali ve verimi düşer.',
     buildMinutes: 60,
     buildable: true,
+    mats: { wood: 3, stone: 3 },
   },
   lamp: {
     type: 'lamp',
@@ -288,6 +308,7 @@ export const BUILDING_DEFS: Record<BuildingType, BuildingDef> = {
     desc: 'Gece çevresini aydınlatır. Dekor +0,5.',
     buildMinutes: 0,
     buildable: true,
+    mats: { stone: 1 },
   },
   feeder: {
     type: 'feeder',
@@ -300,6 +321,7 @@ export const BUILDING_DEFS: Record<BuildingType, BuildingDef> = {
     desc: 'Her saat 8 kare içindeki yem kaplarına kilerden 2 porsiyon koyar. Kiler boşsa durur.',
     buildMinutes: 120,
     buildable: true,
+    mats: { wood: 4, stone: 10 },
   },
   bin: {
     type: 'bin',
@@ -312,6 +334,7 @@ export const BUILDING_DEFS: Record<BuildingType, BuildingDef> = {
     desc: 'Yakınındaki tuvalet alanının (6 kare) kapasitesini +4 artırır; çevresindeki pislikler %30 daha hızlı temizlenir.',
     buildMinutes: 0,
     buildable: true,
+    mats: { stone: 2 },
   },
   flower: {
     type: 'flower',
@@ -336,6 +359,7 @@ export const BUILDING_DEFS: Record<BuildingType, BuildingDef> = {
     desc: 'Dekor +3: sahiplenici daha uzun bekler, denetimde "Çevre" artar.',
     buildMinutes: 0,
     buildable: true,
+    mats: { wood: 3 },
   },
   sign: {
     type: 'sign',
@@ -348,6 +372,7 @@ export const BUILDING_DEFS: Record<BuildingType, BuildingDef> = {
     desc: 'Dekor +5 (bir tabela sayılır): daha çok sahiplenici gelir, denetimde "Çevre" artar.',
     buildMinutes: 0,
     buildable: true,
+    mats: { wood: 3 },
   },
 };
 
@@ -358,12 +383,20 @@ export interface TileToolDef {
   name: string;
   cost: number;
   desc: string;
+  /** Malzemeyle öde (0.23.1): `n` birim malzeme `tiles` kareyi karşılar; malzeme bitince kalan kareler parayla. */
+  mat: { kind: 'wood' | 'stone'; n: number; tiles: number };
 }
 
 export const TILE_TOOL_DEFS: Record<TileTool, TileToolDef> = {
-  fence: { id: 'fence', name: 'Çit', cost: 15, desc: 'Sürükleyerek düz çizgi çek. Köpekler geçemez.' },
-  gate: { id: 'gate', name: 'Kapı', cost: 60, desc: 'Çit üzerinde geçiş; sen, personel, sahiplenici ve tasmalı köpek yaklaşınca kendiliğinden açılır. Serbest köpekler geçemez.' },
-  path: { id: 'path', name: 'Yol', cost: 8, desc: 'Üstünde biraz daha hızlı yürünür.' },
+  fence: { id: 'fence', name: 'Çit', cost: 15, desc: 'Sürükleyerek düz çizgi çek. Köpekler geçemez.', mat: { kind: 'wood', n: 1, tiles: 1 } },
+  gate: {
+    id: 'gate',
+    name: 'Kapı',
+    cost: 60,
+    desc: 'Çit üzerinde geçiş; sen, personel, sahiplenici ve tasmalı köpek yaklaşınca kendiliğinden açılır. Serbest köpekler geçemez.',
+    mat: { kind: 'wood', n: 2, tiles: 1 },
+  },
+  path: { id: 'path', name: 'Yol', cost: 8, desc: 'Üstünde biraz daha hızlı yürünür.', mat: { kind: 'stone', n: 1, tiles: 2 } },
 };
 
 export const BUILD_ORDER: BuildingCategory[] = ['altyapi', 'barinma', 'besleme', 'bakim', 'buyume', 'oyun', 'personel', 'dekor'];

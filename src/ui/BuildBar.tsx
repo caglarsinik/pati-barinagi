@@ -8,10 +8,10 @@ import {
   TILE_TOOL_DEFS,
 } from '../content/buildings';
 import { t } from '../i18n';
-import { plotExpansionCost } from '../sim/systems/BuildSystem';
+import { plotExpansionCost, quoteBuilding, tileMatLabel } from '../sim/systems/BuildSystem';
 import { ZONE_NAMES_TR, Zone } from '../sim/world/tiles';
 import { formatMoney } from './HUD';
-import { type BuildTool, showToast, store } from './store';
+import { type BuildTool, showToast, store, syncStore } from './store';
 
 type Tab = BuildingCategory | 'arsa' | 'bolge';
 
@@ -41,6 +41,22 @@ export function BuildBar() {
   const money = store.money.value;
   const expandCost = sim ? plotExpansionCost(sim) : PLOT_EXPANSION_COST;
   const pick = (x: BuildTool): void => app.setBuildTool(sameTool(tool, x) ? { kind: 'none' } : x);
+  // Malzemeyle öde (0.23.1): anahtar çantada odun ya da taş varken görünür; açıkken kartlarda tarif (yetmeyen soluk).
+  const useMats = sim.policies.useMaterials;
+  const haveMats = sim.materials.wood + sim.materials.stone > 0;
+  const toggleMats = (): void => {
+    // Tıklandığı andaki değer (çift dokunuşta bayat kapanış aynı değeri iki kez göndermesin); kartlar hemen yenilensin.
+    const r = sim.command({ type: 'setPolicy', policy: { useMaterials: !sim.policies.useMaterials } });
+    if (r.message) showToast(r.message);
+    syncStore(sim);
+  };
+  const recipe = (wood: number | undefined, stone: number | undefined) => (
+    <span class="bi-mats">
+      {wood ? <span class={sim.materials.wood < wood ? 'short' : undefined}>🪵{wood}</span> : null}
+      {wood && stone ? ' ' : null}
+      {stone ? <span class={sim.materials.stone < stone ? 'short' : undefined}>🪨{stone}</span> : null}
+    </span>
+  );
 
   const tabs: Array<[Tab, string]> = [
     ...BUILD_ORDER.map((c) => [c, t(CATEGORY_NAMES_TR[c])] as [Tab, string]),
@@ -59,6 +75,17 @@ export function BuildBar() {
           ))}
         </div>
         <span class="spacer" />
+        {haveMats && (
+          <button
+            class={'btn small mats-toggle' + (useMats ? ' active' : '')}
+            data-tut="mats"
+            title={t('Tariften odun ve taş kullan: fiyat en çok yarıya iner')}
+            aria-pressed={useMats}
+            onClick={toggleMats}
+          >
+            🪵🪨<span class="mats-label"> {t('Malzemeyle öde')}</span>
+          </button>
+        )}
         <button class={'btn small' + (tool.kind === 'move' ? ' active' : '')} onClick={() => pick({ kind: 'move', id: null })}>
           {touch ? t('Taşı') : t('Taşı (V)')}
         </button>
@@ -80,7 +107,14 @@ export function BuildBar() {
                 title={t(d.desc)}
                 onClick={() => pick({ kind: 'tile', tool: d.id })}
               >
-                <span class="bi-name">{t(d.name)}</span>
+                <span class="bi-top">
+                  <span class="bi-name">{t(d.name)}</span>
+                  {useMats && (
+                    <span class="bi-mats">
+                      <span class={sim.materials[d.mat.kind] < d.mat.n ? 'short' : undefined}>{tileMatLabel(d)}</span>
+                    </span>
+                  )}
+                </span>
                 <span class="bi-cost">{t('{cost} ₺/kare', { cost: d.cost })}</span>
               </button>
             ))}
@@ -88,20 +122,27 @@ export function BuildBar() {
             tab !== 'bolge' &&
             Object.values(BUILDING_DEFS)
               .filter((d) => d.buildable && d.category === tab)
-              .map((d) => (
-                <button
-                  key={d.type}
-                  data-type={d.type}
-                  class={'build-item' + (tool.kind === 'building' && tool.type === d.type ? ' active' : '') + (money < d.cost ? ' poor' : '')}
-                  title={`${t(d.desc)}${d.buildMinutes ? ` · ${d.buildMinutes} dk` : ''}`}
-                  onClick={() => pick({ kind: 'building', type: d.type })}
-                >
-                  <span class="bi-name">{t(d.name)}</span>
-                  <span class="bi-cost">
-                    {tool.kind === 'building' && tool.type === d.type && tool.rot === 1 ? `${d.h}×${d.w}` : `${d.w}×${d.h}`} · {formatMoney(d.cost)}
-                  </span>
-                </button>
-              ))}
+              .map((d) => {
+                const q = quoteBuilding(sim, d.type);
+                return (
+                  <button
+                    key={d.type}
+                    data-type={d.type}
+                    class={'build-item' + (tool.kind === 'building' && tool.type === d.type ? ' active' : '') + (money < q.money ? ' poor' : '')}
+                    title={`${t(d.desc)}${d.buildMinutes ? ` · ${d.buildMinutes} dk` : ''}`}
+                    onClick={() => pick({ kind: 'building', type: d.type })}
+                  >
+                    <span class="bi-top">
+                      <span class="bi-name">{t(d.name)}</span>
+                      {useMats && d.mats && recipe(d.mats.wood, d.mats.stone)}
+                    </span>
+                    <span class="bi-cost">
+                      {tool.kind === 'building' && tool.type === d.type && tool.rot === 1 ? `${d.h}×${d.w}` : `${d.w}×${d.h}`} ·{' '}
+                      {q.discount > 0 ? `${d.cost.toLocaleString('tr-TR')} → ${formatMoney(q.money)}` : formatMoney(d.cost)}
+                    </span>
+                  </button>
+                );
+              })}
           {tab === 'bolge' && (
             <>
               {ZONES.map((z) => (

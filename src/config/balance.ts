@@ -197,6 +197,10 @@ export const BALANCE = {
     max: 99,
     regrowDaysMin: 5,
     regrowDaysMax: 8,
+    /** Malzemeyle öde (0.23.1): bina tarifindeki her odun ve taş bu kadar ₺ indirir; indirim fiyatın en çok `maxShare` kadarı. */
+    woodValue: 20,
+    stoneValue: 30,
+    maxShare: 0.5,
   },
   /** Kuluçka içi (0.17.3): ısı lambası kalan ve yeni çatlama sürelerini bu oranla kısaltır. */
   hatchery: {

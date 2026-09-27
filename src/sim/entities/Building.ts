@@ -30,6 +30,15 @@ export interface Building {
   breedLeft: number;
   /** Dinlenme odası: satın alınan eşyalar (0.16.3). */
   furniture: string[];
+  /** Kurarken ödenen (0.23.1): yıkımda bunun yarısı geri döner. Eski kayıtta ve başlangıç binalarında para = fiyat. */
+  paid: BuildPaid;
+}
+
+/** Binaya ödenen para ve malzeme (0.23.1; kayıtta). */
+export interface BuildPaid {
+  money: number;
+  wood: number;
+  stone: number;
 }
 
 export interface BuildingSave {
@@ -47,10 +56,20 @@ export interface BuildingSave {
   pair?: number[];
   breedLeft?: number;
   furniture?: string[];
+  paid?: unknown;
 }
 
 export function buildingDef(b: Building | BuildingType): BuildingDef {
   return BUILDING_DEFS[typeof b === 'string' ? b : b.type];
+}
+
+/** Kayıttaki ödeme (0.23.1): yoksa tam fiyat parayla ödenmiş sayılır; değerler fiyat ve tarifle sınırlanır. */
+export function paidFromJSON(raw: unknown, type: BuildingType): BuildPaid {
+  const def = BUILDING_DEFS[type];
+  const p = (raw && typeof raw === 'object' ? raw : {}) as Partial<Record<keyof BuildPaid, unknown>>;
+  const read = (v: unknown, fallback: number, max: number): number =>
+    typeof v === 'number' && Number.isFinite(v) ? Math.max(0, Math.min(max, Math.round(v))) : fallback;
+  return { money: read(p.money, def.cost, def.cost), wood: read(p.wood, 0, def.mats?.wood ?? 0), stone: read(p.stone, 0, def.mats?.stone ?? 0) };
 }
 
 export function isReady(b: Building): boolean {

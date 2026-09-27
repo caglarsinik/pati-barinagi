@@ -422,6 +422,11 @@ html.is-touch .build-item {
     flex: none;
   }
 
+  /* Malzemeyle öde anahtarı telefonda yalnız simge (0.23.1); açık/kapalı rengiyle belli, dokununca açıklama çıkar. */
+  .mats-label {
+    display: none;
+  }
+
   /* Kısa ekranda uzun menü listesi iki sütun. */
   .nav-menu {
     display: grid;

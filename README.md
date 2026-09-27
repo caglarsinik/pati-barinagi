@@ -200,7 +200,8 @@ toplamaya arsadan en çok 40 kare uzağa gider, köyün çevresine hiç gitmez. 
 
 - Yönetim modunda B ile inşa çubuğu açılır: kategori → bina. Hayalet yeşilse yerleşir, kırmızıysa sığmıyor ya da para yetmiyor. R ile kare olmayan binalar (büyük kulübe, mutfak, personel odası, tünel, bank) 90° döner; ön yüz ve kapı hep güneyde kalır.
 - Çit ve yol sürükleyerek düz çizgi halinde çekilir; kapı çitin üstüne konur. **Kapı kapalıyken geçilmez:** sen, personel, sahiplenici ve tasmalı köpek yaklaşınca kendiliğinden açılır, geçince kapanır; serbest köpekler kapıdan çıkamaz (gece kaçış yine çitten atlamadır). Bölgeler (tuvalet, oyun bahçesi, eğitim, karantina, personel) dikdörtgen sürükleyerek boyanır.
-- Büyük binalar inşaat süresi boyunca yarı saydamdır ve kullanılamaz. Yıkım bedelin yarısını iade eder.
+- Büyük binalar inşaat süresi boyunca yarı saydamdır ve kullanılamaz. Yıkım ödediğinin yarısını iade eder (malzemeyle
+  ödediysen paranın ve malzemenin yarısı; bkz. "Malzemeyle öde").
 - **Taşı** (0.22.2; inşa çubuğunda Yık'ın yanında, klavyede V): binaya dokun, sonra yeni yerine dokun — ya da binayı
   parmakla/fareyle sürükleyip bırak. Bina tuttuğun yerinden taşınır; hayalet yeşilse sığar, kırmızıysa sığmaz, eski yeri ince
   beyaz çerçeveyle görünür. Taşırken R ya da Döndür çipiyle döner. **Ücretsizdir ve içindekiler korunur:** kulübedeki köpekler
@@ -249,8 +250,38 @@ dokun (ağacın tepesine dokunmak da olur):
 
 İş 1,2 saniye sürer ve bu sürede dayanıklılık yenilenmez; yetmezse "Çok yorgunsun: biraz soluklan". Çantada her birinden en
 çok 99 durur (masaüstünde sol üstteki çanta satırında, telefonda 🥚 çipiyle açılan çanta sayfasında 🪵 ve 🪨). Kütüğün
-yeniden ağaç olması için üstündeki kare boş olmalı, değilse ertesi gün yeniden denenir. Otopilot toplamaz. Malzemeler
-0.23.1'den itibaren inşada indirim olarak kullanılacak.
+yeniden ağaç olması için üstündeki kare boş olmalı, değilse ertesi gün yeniden denenir. Otopilot toplamaz.
+
+### Malzemeyle öde (0.23.1)
+
+İnşa çubuğundaki **🪵🪨 Malzemeyle öde** anahtarı (çantada odun ya da taş varken görünür; varsayılan açık, kayıtta; telefonda
+yalnız simge) açıkken binanın tarifindeki odun ve taş çantadan düşer, fiyat iner: her odun 20 ₺, her taş 30 ₺ (en çok
+fiyatın yarısı). Çantada yetmeyen kısım parayla ödenir. Kartta "600 → 420 ₺" ve tarif görünür (yetmeyen malzeme soluk),
+ipucu "Küçük kulübe (420 ₺ + 🪵6 🪨2)". Anahtar kapalıyken tam fiyat, malzeme harcanmaz.
+
+| Bina | Tarif | İndirim |
+|---|---|---|
+| Küçük kulübe, kiler | 🪵6 🪨2 | 180 ₺ |
+| Büyük kulübe | 🪵10 🪨4 | 320 ₺ |
+| Mutfak | 🪵8 🪨8 | 400 ₺ |
+| Tımar istasyonu | 🪵6 🪨6 | 300 ₺ |
+| Veteriner odası | 🪵10 🪨14 | 620 ₺ |
+| Kuluçka | 🪵4 🪨6 | 260 ₺ |
+| Yuva evi | 🪵14 🪨8 | 520 ₺ |
+| Dinlenme odası | 🪵8 🪨4 | 280 ₺ |
+| Personel WC | 🪵3 🪨3 | 150 ₺ |
+| Otomatik yem makinesi | 🪵4 🪨10 | 380 ₺ |
+| Tünel | 🪵4 | 80 ₺ |
+| Eğitim engeli, bank, tabela | 🪵3 | 60 ₺ |
+| Halat | 🪵2 | 40 ₺ |
+| Su yalağı, çöp kutusu | 🪨2 | 60 ₺ |
+| Lamba | 🪨1 | 30 ₺ |
+| Yem kabı | 🪵1 | 20 ₺ |
+
+Top ve çiçek saksısının tarifi yok. Çit karesi 1 odun, kapı 2 odun, yol 2 kareye 1 taş (bir çizgide yukarı yuvarlanır);
+malzeme bitince kalan kareler parayla. Yıkım ödediğinin yarısını geri verir: paranın ve malzemenin yarısı (malzeme aşağı
+yuvarlanır, çanta doluysa fazlası kaybolur); malzemeyle konan çit, kapı ya da yol karesi iade vermez. Defterde gider ödenen
+paradır, notta "(malzemeyle −180 ₺)". Malzeme satılamaz.
 
 ## Ekonomi ve sahiplendirme
 
@@ -547,7 +578,8 @@ Bilgisayar değiştirirken ya da yedek almak için kullan.
 - [x] 0.22.6 Cila: dokunma senaryoları 17–19 (Taşı, kulübe içi, tanıtım), Kontroller'de yeni satırlar, "Yeni düzen" başarımı, İngilizcede "Awards", 12 boyutta TR/EN denetim temiz — M19 tamam
 - [x] M19 Konfor ve Yaşam Kalitesi (0.22.0–0.22.6): müzik arka planda durur, ihtiyaç şeridi, mini harita yakınlaştırma, binayı taşı, kulübe içi ve eşya etkileri, açılış tanıtımı
 - [x] 0.23.0 Odun ve taş: arsa ve köy dışında ağaç/çam kes, kaya kır, kütük sök (E ya da dokunuş); kütük 5–8 günde yeniden ağaç; çantada en çok 99
-- [ ] M18 Terk Edilmiş Ev ve Malzemeler (0.23.0–0.23.4): 0.23.0 ✅ odun ve taş → 0.23.1 malzemeyle öde → 0.23.2 uzak ormanda ev → 0.23.3 onarım → 0.23.4 cila
+- [x] 0.23.1 Malzemeyle öde: inşa çubuğunda 🪵🪨 anahtarı; bina tarifleri (odun 20 ₺, taş 30 ₺ indirim, en çok yarısı), çit/kapı odunla, yol taşla; yıkımda ödenenin yarısı
+- [ ] M18 Terk Edilmiş Ev ve Malzemeler (0.23.0–0.23.4): 0.23.0 ✅ odun ve taş → 0.23.1 ✅ malzemeyle öde → 0.23.2 uzak ormanda ev → 0.23.3 onarım → 0.23.4 cila
 - [ ] Sonrası: yuva evi içi, kuzey/batı arsa genişletme
 
 ## Geliştirme

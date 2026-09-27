@@ -6,7 +6,7 @@ import { Clock, MINUTES_PER_DAY } from '../core/Clock';
 import { EventBus } from '../core/EventBus';
 import { Rng, hash2, hash3 } from '../core/Rng';
 import type { SaveData } from '../core/SaveManager';
-import { type Building, type BuildingSave, buildingDef, buildingDoorTile, canPlaceBuilding, isReady, kennelRestTile, stampBuilding, unstampBuilding, normalizeRot, type Rotation } from './entities/Building';
+import { type Building, type BuildingSave, buildingDef, buildingDoorTile, canPlaceBuilding, isReady, kennelRestTile, paidFromJSON, stampBuilding, unstampBuilding, normalizeRot, type Rotation } from './entities/Building';
 import { type Adopter, adopterFromJSON } from './entities/Adopter';
 import { VILLAGER_ADOPTER_TYPE, adopterIdentity, isAdopterType } from './entities/AdopterType';
 import { Dog, type DogOrigin, SKILL_KEYS, STAGE_NAMES_TR, type SkillKey, clamp100, defaultNeeds } from './entities/Dog';
@@ -16,16 +16,7 @@ import { IDLE_INPUT, Player, type PlayerInput } from './entities/Player';
 import { Staff, TASK_TYPES, type TaskType } from './entities/Staff';
 import { type AdoptionRecord, AdoptionSystem, type PendingReturn } from './systems/AdoptionSystem';
 import { AlertSystem } from './systems/AlertSystem';
-import {
-  type ExpandDir,
-  paintZone,
-  tickConstruction,
-  tryDemolish,
-  tryExpandPlot,
-  tryMoveBuilding,
-  tryPlaceBuilding,
-  tryPlaceTiles,
-} from './systems/BuildSystem';
+import { type ExpandDir, paintZone, tickConstruction, tryDemolish, tryExpandPlot, tryMoveBuilding, tryPlaceBuilding, tryPlaceTiles, matTilesFromJSON } from './systems/BuildSystem';
 import { DogBrain } from './systems/DogBrain';
 import {
   type InspectionReport,
@@ -235,10 +226,12 @@ export interface Policies {
   quarantineSick: boolean;
   /** Sahiplendirme açık mı: kapalıyken sahiplenici gelmez, bekleyenler cezasız uğurlanır. */
   adoptionsOpen: boolean;
+  /** Malzemeyle öde (0.23.1): inşada tariften odun/taş kullanılır, fiyat düşer. */
+  useMaterials: boolean;
 }
 
 export function defaultPolicies(): Policies {
-  return { autoOrderFood: false, foodThreshold: 10, trainTarget: 6, quarantineSick: true, adoptionsOpen: true };
+  return { autoOrderFood: false, foodThreshold: 10, trainTarget: 6, quarantineSick: true, adoptionsOpen: true, useMaterials: true };
 }
 
 export interface SimFlags {
@@ -409,6 +402,9 @@ export class Sim {
   materials: Materials = { wood: 0, stone: 0 };
   /** Kesilen ağaçların kütükleri: kare → yeniden ağaç olacağı gün ve türü (kayıtta). */
   regrow = new Map<number, Regrow>();
+  /** Malzemeyle konan çit/kapı (matTiles) ve yol (matPaths) kareleri (0.23.1; kayıtta): yıkınca iade yok. */
+  matTiles = new Set<number>();
+  matPaths = new Set<number>();
   bicycle = false;
   marketEggWeek = 0;
   /** Köy kademesi (0.20.2; kayıtta): itibarla 1'den 3'e çıkar, düşmez. */
@@ -1016,6 +1012,13 @@ export class Sim {
           if (p.adoptionsOpen) this.events.emit('message', t('Sahiplendirme açıldı: sahiplenici gelmeye başlar'));
           else this.adoption.closeDesk();
         }
+        if (typeof p.useMaterials === 'boolean' && p.useMaterials !== this.policies.useMaterials) {
+          this.policies.useMaterials = p.useMaterials;
+          return {
+            ok: true,
+            message: p.useMaterials ? t('Malzemeyle öde açık: tariften odun ve taş kullanılır') : t('Malzemeyle öde kapalı: tam fiyat, odun ve taş harcanmaz'),
+          };
+        }
         return { ok: true };
       }
       case 'setKeep': {
@@ -1578,6 +1581,7 @@ export class Sim {
       pair: [],
       breedLeft: type === 'nursery' ? breedMinutes() : 0,
       furniture: [],
+      paid: { money: BUILDING_DEFS[type].cost, wood: 0, stone: 0 },
     };
     this.buildings.push(b);
     this.buildingMap.set(b.id, b);
@@ -1749,6 +1753,8 @@ export class Sim {
       supplies: { ...this.supplies },
       materials: { ...this.materials },
       regrow: regrowToJSON(this.regrow),
+      matTiles: [...this.matTiles],
+      matPaths: [...this.matPaths],
       bicycle: this.bicycle,
       marketEggWeek: this.marketEggWeek,
       villageStage: this.villageStage,
@@ -1783,6 +1789,7 @@ export class Sim {
         pair: [...b.pair],
         breedLeft: b.breedLeft,
         furniture: [...b.furniture],
+        paid: { ...b.paid },
       })),
       dogs: this.dogs.map((d) => d.toJSON()),
       backpack: this.backpack.map(eggSave),
@@ -1941,6 +1948,9 @@ export class Sim {
       }
     }
     rebuildMessSet(sim);
+    // Malzemeyle konan kareler (0.23.1): yalnız hâlâ çit/kapı ya da yol olanlar kalır.
+    sim.matTiles = matTilesFromJSON(data.matTiles, world, 'fence');
+    sim.matPaths = matTilesFromJSON(data.matPaths, world, 'path');
     const readMap = (arr: unknown): Map<number, number> => {
       const m = new Map<number, number>();
       if (!Array.isArray(arr)) return m;
@@ -2000,6 +2010,7 @@ export class Sim {
           pair: Array.isArray(raw.pair) ? raw.pair.filter((x): x is number => Number.isInteger(x)).slice(0, 2) : [],
           breedLeft: raw.type === 'nursery' ? Math.min(breedMinutes(), numOr(raw.breedLeft, breedMinutes(), 0)) : 0,
           furniture: interiorKindFor(raw.type) ? sanitizeFurniture(interiorKindFor(raw.type)!, raw.furniture) : [],
+          paid: paidFromJSON(raw.paid, raw.type),
         };
         b.eggs = b.eggs.slice(0, incubatorSlots(b));
         sim.buildings.push(b);
@@ -2085,6 +2096,7 @@ export class Sim {
       if (typeof p.trainTarget === 'number') sim.policies.trainTarget = p.trainTarget;
       if (typeof p.quarantineSick === 'boolean') sim.policies.quarantineSick = p.quarantineSick;
       if (typeof p.adoptionsOpen === 'boolean') sim.policies.adoptionsOpen = p.adoptionsOpen;
+      if (typeof p.useMaterials === 'boolean') sim.policies.useMaterials = p.useMaterials;
     }
     sim.weatherSys.load(data.weather);
     sim.eventSys.load(data.eventLog);

@@ -577,7 +577,7 @@ tanıtılsın (Ayarlar'dan kapatılabilir).
 | Sürüm | Konu |
 |---|---|
 | 0.23.0 ✅ | Odun ve taş (`Materials.ts`, `BALANCE.materials`): arsa ve köy dışında ağaç +3 odun, çam +2, kaya +2 taş, kütük +1 odun (E ya da dokunuş; tepeye bakış/dokunuş gövdeyi hedefler); dayanıklılık 15/18/8 ve iş sürerken yenilenmez; çantada en çok 99; kesilen ağacın kütüğü 5–8 günde yeniden ağaç (`sim.regrow`, ayrı RNG, gün olayında; tepe karesi doluysa ertesi gün), doğal kütük ve kaya büyümez; otopilot toplamaz |
-| 0.23.1 | Malzemeyle öde: bina tarifleri (odun 20 ₺, taş 30 ₺ indirim, en çok yarısı), çit odunla, yol taşla; yıkımda ödenenin yarısı |
+| 0.23.1 ✅ | Malzemeyle öde (`BuildingDef.mats`, `quoteBuilding`, `BALANCE.materials.woodValue/stoneValue/maxShare`): 20 bina tarifi (odun 20 ₺, taş 30 ₺ indirim, en çok fiyatın yarısı; yetmezse kısmi), çit 1 odun, kapı 2 odun, yol 2 kareye 1 taş (malzeme bitince parayla); `policies.useMaterials` anahtarı (varsayılan açık, kayıtta); binada `paid {money, wood, stone}` → yıkımda ödenenin yarısı (eski binada para = fiyat); malzemeli çit/kapı/yol `sim.matTiles/matPaths` iade vermez; kartta "600 → 420 ₺" + tarif, ipucu "(420 ₺ + 🪵6 🪨2)" |
 | 0.23.2 | Terk edilmiş ev: uzak ormanda RNG'siz yer, keşif, köylüden ipucu; sandık, dolap (keskin aletler), günlük (gizli yuva) |
 | 0.23.3 | Evi onar: orman evi (yatak, ocak, tabela, bayılınca yakın ev) |
 | 0.23.4 | Cila: dokunma senaryosu 20, Kontroller, başarımlar, belgeler |

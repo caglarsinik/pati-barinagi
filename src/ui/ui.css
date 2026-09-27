@@ -697,6 +697,24 @@ select,
   opacity: 0.85;
 }
 
+/* Malzemeyle öde (0.23.1): kartın üst satırında tarif; çantada yetmeyen malzeme soluk. */
+.bi-top {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 6px;
+  width: 100%;
+}
+
+.bi-mats {
+  font-size: 0.72rem;
+  white-space: nowrap;
+}
+
+.bi-mats .short {
+  opacity: 0.45;
+}
+
 /* --- Çanta ve yumurtalar --- */
 /* Dar sütunda (tablet) sayaçlar alt satıra geçer (0.23.0: odun ve taş eklenince taşıyordu). */
 .backpack-row {

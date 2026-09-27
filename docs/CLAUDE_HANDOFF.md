@@ -57,6 +57,37 @@
   köpek paneli, araç şeridi, alt menü listesi, ana menü, Ayarlar: çakışma yok, taşma yok. Alt menü açılır listesi köpek
   panelinin üstüne gelebilir (geçici popover, üstte kalır) — kabul edildi. Gerçek cihaz testi kullanıcıda.
 
+## 0.23.1 — Malzemeyle öde (M18 ikinci dilimi; Claude, 2026-09-27)
+- İçerik: `BuildingDef.mats?: {wood?, stone?}` 20 binada (top, çiçek, ofis yok; her tarif fiyatın en çok yarısı, test denetler);
+  `TileToolDef.mat {kind, n, tiles}` (çit odun 1/1, kapı odun 2/1, yol taş 1/2). `BALANCE.materials` += `woodValue 20`,
+  `stoneValue 30`, `maxShare 0.5`.
+- `BuildSystem`: `quoteBuilding(sim, type)` → `{money, wood, stone, discount}` (çantadakiyle sınırlı → kısmi; anahtar kapalı ya da
+  tarifsiz → tam fiyat); `tryPlaceBuilding` indirimli parayı ister, malzemeyi düşer, `b.paid`'i yazar, defter notu
+  "Küçük kulübe (malzemeyle −180 ₺)", ileti "… inşa ediliyor (🪵6 🪨2)". `tryPlaceTiles`: önce malzemenin karşıladığı kareler
+  (`floor(stok / n) × tiles`), kalanı parayla; harcanan `ceil(malzemeli / tiles) × n` (yolda tek kare yarım taşı boşa harcar);
+  malzemeli kareler `sim.matTiles` (çit/kapı) ya da `sim.matPaths` (yol) kümesine, parayla konanlar kümeden silinir; ileti
+  "10 çit (🪵8 + 30 ₺)". `tryDemolish`: bina iadesi `paid.money × 0,5` + malzemenin yarısı (aşağı yuvarlanır, `giveMaterial` üst
+  sınırda keser), malzemeli kare iade vermez ("Kaldırıldı (malzemeyle konduğu için iade yok)"); `clearFence` (arsa genişletme)
+  kümeden de siler. Yardımcılar `matsLabel` ("🪵6 🪨2"), `tileMatLabel` ("🪵1", "🪨½"), `tileMatReady`, `matTilesFromJSON`.
+- Bina: `Building.paid: BuildPaid` (zorunlu; `placeBuilding` varsayılanı tam fiyat parayla → başlangıç binaları ve eski davranış
+  aynı), kayıtta; `paidFromJSON` (yoksa tam fiyat, para fiyata, malzeme tarife kırpılır). Taşıma (`moveBuilding`) yerinde
+  olduğu için `paid` korunur. Upkeep (`EconomySystem`) hâlâ fiyattan.
+- Sim: `Policies.useMaterials` (varsayılan true, kayıtta; `setPolicy` değişince ileti döner), `matTiles`/`matPaths` (kayıtta
+  dizi; yüklemede yalnız arsa içinde hâlâ çit/kapı ya da yol olan kareler kalır).
+- Arayüz: BuildBar sekme satırında Taşı'nın önünde `.mats-toggle` "🪵🪨 Malzemeyle öde" (çantada malzeme varken; telefon
+  bloğunda `.mats-label` gizli → yalnız simge; `aria-pressed`, tıklanınca o anki değerin tersini gönderir ve `syncStore` ile hemen
+  yenilenir). Kartlarda `.bi-top` satırı: ad + `.bi-mats` tarif (çantada yetmeyen `.short` soluk), maliyet "600 → 420 ₺"; kare
+  araçlarında tarif (🪵1/🪵2/🪨½). `buildToolHint(tool, touch, sim?)` üçüncü parametreyle malzemeli ipucu ("Küçük kulübe (420 ₺ +
+  🪵6 🪨2) · dokun: yerleştir", "Çit (🪵1/kare, bitince 15 ₺/kare) · sürükle: çizgi çek"); `hintFor` sim'i geçer. WorldScene
+  hayaleti `quoteBuilding(...).money` ile renklenir. 14 yeni EN metni.
+- Testler `tests/unit/buildMaterials.test.ts` (7): tarifler ≤ yarı; fiyat (tam, kısmi, kapalı, malzemesiz); kurulum (para/malzeme/
+  paid/defter) ve yıkım iadesi (kur-yık döngüsü kayıp); kapalıyken tam fiyat, iade üst sınırı; çit/kapı/yol malzeme ve para
+  karışımı, malzemeli kare iadesiz, tek karelik yol; kayıt turu, eski kayıt, bozuk değerler; ipuçları. 461 test. Tarayıcı 812×375:
+  kartlar "600 → 420 ₺ · 🪵6 🪨2", 8 odun 1 taşla "600 → 450 ₺" ve soluk 🪨, anahtar kapalı → "600 ₺", dokunarak kulübe kuruldu
+  (🪵6 🪨2 düştü, defter notu), 10 karelik çit "10 çit (🪵8 + 30 ₺)". Denetim 77 ekran 812×375, 568×320 (TR/EN), 768×1024 (TR/EN),
+  1024×768, 1280×720 (TR/EN): 0 sorun; dokunma senaryoları 19/19.
+- Sıradaki: 0.23.2 terk edilmiş ev.
+
 ## 0.23.0 — Odun ve taş (M18 ilk dilimi; Claude, 2026-09-27)
 - Yeni `src/sim/systems/Materials.ts`: `harvestAt(world, x, y)` → `{kind: chop|mine|uproot, tile, material, amount, stamina, pine}`
   (ağaç tepesi `isTreeTop` → alttaki gövde; arsa ve köy dikdörtgeninde null), `harvestHint`, `harvestIssue` (çanta dolu

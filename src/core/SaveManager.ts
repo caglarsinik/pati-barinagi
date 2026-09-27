@@ -32,6 +32,9 @@ export interface SaveData {
   /** Odun ve taş (0.23.0) ve kesilen ağaçların yeniden büyümesi: [kare, gün, çam, …]. */
   materials?: unknown;
   regrow?: number[];
+  /** Malzemeyle konan çit/kapı ve yol kareleri (0.23.1): yıkınca iade yok. */
+  matTiles?: number[];
+  matPaths?: number[];
   bicycle?: boolean;
   marketEggWeek?: number;
   villageStage?: number;

@@ -11,6 +11,7 @@ import { t } from '../i18n';
 import type { BeforeInstallPromptEvent } from '../pwa';
 import { WEEKDAYS_TR } from '../core/Clock';
 import { type Tool, resolveAction } from '../sim/systems/Interaction';
+import { matsLabel, quoteBuilding, tileMatLabel, tileMatReady } from '../sim/systems/BuildSystem';
 
 export type Screen = 'menu' | 'game';
 /** Cihaz sınıfı: pencere boyutundan (app.ts) belirlenir. */
@@ -239,17 +240,33 @@ export function rotateBuildTool(): boolean {
   return true;
 }
 
-/** İnşa aracının ipucu; dokunmatikte klavye/fare kısayolları yazılmaz (Döndür ve İptal ipucu satırında düğme). */
-export function buildToolHint(tool: BuildTool, touch = store.touch.value): string {
+/**
+ * İnşa aracının ipucu; dokunmatikte klavye/fare kısayolları yazılmaz (Döndür ve İptal ipucu satırında düğme). `sim` verilirse
+ * malzemeyle öde (0.23.1) fiyata yansır: "Küçük kulübe (420 ₺ + 🪵6 🪨2)", "Çit (🪵1/kare, bitince 15 ₺/kare)".
+ */
+export function buildToolHint(tool: BuildTool, touch = store.touch.value, sim?: Sim): string {
   switch (tool.kind) {
     case 'building': {
       const d = BUILDING_DEFS[tool.type];
+      const q = sim ? quoteBuilding(sim, tool.type) : null;
+      const mats = q ? matsLabel(q) : '';
+      if (q && mats) {
+        const v = { name: t(d.name), cost: q.money, mats };
+        if (touch) return t('{name} ({cost} ₺ + {mats}) · dokun: yerleştir', v);
+        if (canRotate(tool.type)) return t('{name} ({cost} ₺ + {mats}) · tıkla: yerleştir · R: döndür · sağ tık/Esc: iptal', v);
+        return t('{name} ({cost} ₺ + {mats}) · tıkla: yerleştir · sağ tık/Esc: iptal', v);
+      }
       if (touch) return t('{name} ({cost} ₺) · dokun: yerleştir', { name: t(d.name), cost: d.cost });
       if (canRotate(tool.type)) return t('{name} ({cost} ₺) · tıkla: yerleştir · R: döndür · sağ tık/Esc: iptal', { name: t(d.name), cost: d.cost });
       return t('{name} ({cost} ₺) · tıkla: yerleştir · sağ tık/Esc: iptal', { name: t(d.name), cost: d.cost });
     }
     case 'tile': {
       const d = TILE_TOOL_DEFS[tool.tool];
+      if (sim && tileMatReady(sim, tool.tool)) {
+        const v = { name: t(d.name), cost: d.cost, mats: tileMatLabel(d) };
+        if (touch) return t('{name} ({mats}/kare, bitince {cost} ₺/kare) · sürükle: çizgi çek', v);
+        return t('{name} ({mats}/kare, bitince {cost} ₺/kare) · sürükle: çizgi çek · Esc: iptal', v);
+      }
       if (touch) return t('{name} ({cost} ₺/kare) · sürükle: çizgi çek', { name: t(d.name), cost: d.cost });
       return t('{name} ({cost} ₺/kare) · sürükle: çizgi çek · Esc: iptal', { name: t(d.name), cost: d.cost });
     }
@@ -285,7 +302,7 @@ function hintFor(sim: Sim): string {
   const touch = store.touch.value;
   if (sim.paused && store.build.value.kind === 'none') return touch ? t('Duraklatıldı · ▶ ile devam') : t('Duraklatıldı · Space: devam');
   if (sim.mode === 'manage') {
-    const bt = buildToolHint(store.build.value, touch);
+    const bt = buildToolHint(store.build.value, touch, sim);
     if (bt) return bt;
     if (touch) return t('Yönetim modu · sürükle: kaydır · iki parmak: yakınlaştır');
     return t('Yönetim modu · B: inşa · sağ tık ya da WASD: kaydır · Tekerlek: yakınlaştır · Tab: avatara dön');

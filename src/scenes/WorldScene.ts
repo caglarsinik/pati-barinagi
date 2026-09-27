@@ -11,6 +11,7 @@ import { TEX, buildingTextureKey, ensureDogTexture, ensureHumanTexture, releaseD
 import { type DogGenome, genomeKey } from '../sim/entities/DogGenome';
 import { type Building, type Rotation, buildingDef, buildingDoorTile, buildingFootprint, canPlaceBuilding, isReady, buildingSize, kennelRestTile, solidRowsFor } from '../sim/entities/Building';
 import type { Dog } from '../sim/entities/Dog';
+import { quoteBuilding } from '../sim/systems/BuildSystem';
 import type { PlayerInput } from '../sim/entities/Player';
 import type { Mode, Sim } from '../sim/Sim';
 import type { ActionKind, ActionOutcome, Tool } from '../sim/systems/Interaction';
@@ -907,7 +908,7 @@ export class WorldScene extends Phaser.Scene {
       const def = BUILDING_DEFS[tool.type];
       const rot = tool.rot ?? 0;
       const size = buildingSize(def, rot);
-      const ok = this.sim.money >= def.cost && canPlaceBuilding(this.sim.world, tool.type, t.x, t.y, rot);
+      const ok = this.sim.money >= quoteBuilding(this.sim, tool.type).money && canPlaceBuilding(this.sim.world, tool.type, t.x, t.y, rot);
       this.ghostImage
         .setTexture(buildingTextureKey(tool.type, tool.type === 'bowl' ? 2 : 0, rot))
         .setPosition(t.x * T, (t.y + size.h) * T)

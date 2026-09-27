@@ -7,9 +7,10 @@ import {
   REFUND_RATE,
   TILE_TOOL_DEFS,
   type TileTool,
+  type TileToolDef,
 } from '../../content/buildings';
 import { type Building, buildingDef, canPlaceBuilding, buildingSize, normalizeRot, type Rotation } from '../entities/Building';
-import type { TilePos } from '../world/TileWorld';
+import type { TilePos, TileWorld } from '../world/TileWorld';
 import { Biome, Ground, Obj, Zone } from '../world/tiles';
 import type { Sim } from '../Sim';
 import { t } from '../../i18n';
@@ -23,20 +24,68 @@ export interface BuildResult {
   cost?: number;
 }
 
-/** Bina yerleştirme: para, yer, üstünde canlı var mı kontrolleri. */
+/** Bina bedeli (0.23.1): ödenecek para, harcanacak odun/taş ve malzemenin sağladığı indirim. */
+export interface BuildQuote {
+  money: number;
+  wood: number;
+  stone: number;
+  discount: number;
+}
+
+/**
+ * Malzemeyle öde (0.23.1): tarifteki odun/taş çantadakiyle sınırlı kullanılır (yetmezse kısmi); her odun `woodValue`, her taş
+ * `stoneValue` ₺ indirir, indirim fiyatın en çok `maxShare` kadarı. Anahtar kapalıysa ya da tarif yoksa tam fiyat.
+ */
+export function quoteBuilding(sim: Sim, type: BuildingType): BuildQuote {
+  const def = BUILDING_DEFS[type];
+  const M = BALANCE.materials;
+  if (!def.mats || !sim.policies.useMaterials) return { money: def.cost, wood: 0, stone: 0, discount: 0 };
+  const wood = Math.min(def.mats.wood ?? 0, sim.materials.wood);
+  const stone = Math.min(def.mats.stone ?? 0, sim.materials.stone);
+  const discount = Math.min(Math.floor(def.cost * M.maxShare), wood * M.woodValue + stone * M.stoneValue);
+  return { money: def.cost - discount, wood, stone, discount };
+}
+
+/** "🪵6 🪨2" (sıfır olan yazılmaz). */
+export function matsLabel(m: { wood?: number; stone?: number }): string {
+  const parts: string[] = [];
+  if (m.wood) parts.push(`🪵${m.wood}`);
+  if (m.stone) parts.push(`🪨${m.stone}`);
+  return parts.join(' ');
+}
+
+/** Kare başına malzeme: çit "🪵1", kapı "🪵2", yol "🪨½". */
+export function tileMatLabel(def: TileToolDef): string {
+  const per = def.mat.n / def.mat.tiles;
+  return `${def.mat.kind === 'wood' ? '🪵' : '🪨'}${per === 0.5 ? '½' : per}`;
+}
+
+/** Kare aracı şu an malzemeyle mi ödenir (anahtar açık, çantada en az bir birim). */
+export function tileMatReady(sim: Sim, tool: TileTool): boolean {
+  const m = TILE_TOOL_DEFS[tool].mat;
+  return sim.policies.useMaterials && sim.materials[m.kind] >= m.n;
+}
+
+/** Bina yerleştirme: para, yer, üstünde canlı var mı kontrolleri. Malzemeyle ödemede tarif çantadan düşer (0.23.1). */
 export function tryPlaceBuilding(sim: Sim, type: BuildingType, x: number, y: number, rotIn: Rotation = 0): BuildResult {
   const def = BUILDING_DEFS[type];
   if (!def || !def.buildable) return { ok: false, message: t('Bu bina inşa edilemez') };
   const rot = normalizeRot(type, rotIn);
   const size = buildingSize(def, rot);
-  if (sim.money < def.cost) return { ok: false, message: t('Yeterli para yok ({cost} ₺)', { cost: def.cost }) };
+  const q = quoteBuilding(sim, type);
+  if (sim.money < q.money) return { ok: false, message: t('Yeterli para yok ({cost} ₺)', { cost: q.money }) };
   if (!canPlaceBuilding(sim.world, type, x, y, rot)) return { ok: false, message: t('Buraya sığmıyor') };
   if (occupiedByCreature(sim, x, y, size.w, size.h)) return { ok: false, message: t('Üstünde biri var') };
   const b = sim.placeBuilding(type, x, y, def.buildMinutes, rot);
   if (!b) return { ok: false, message: t('Yerleştirilemedi') };
-  sim.addExpense('building', def.cost, t(def.name));
+  b.paid = { money: q.money, wood: q.wood, stone: q.stone };
+  sim.materials.wood -= q.wood;
+  sim.materials.stone -= q.stone;
+  sim.addExpense('building', q.money, q.discount > 0 ? t('{name} (malzemeyle −{n} ₺)', { name: t(def.name), n: q.discount }) : t(def.name));
   sim.stats.built++;
-  return { ok: true, building: b, cost: def.cost, message: def.buildMinutes > 0 ? t('{name} inşa ediliyor', { name: t(def.name) }) : t('{name} yerleştirildi', { name: t(def.name) }) };
+  const msg = def.buildMinutes > 0 ? t('{name} inşa ediliyor', { name: t(def.name) }) : t('{name} yerleştirildi', { name: t(def.name) });
+  const mats = matsLabel(q);
+  return { ok: true, building: b, cost: q.money, message: mats ? `${msg} (${mats})` : msg };
 }
 
 function occupiedByCreature(sim: Sim, x: number, y: number, w: number, h: number): boolean {
@@ -89,20 +138,33 @@ export function tryPlaceTiles(sim: Sim, tool: TileTool, tiles: TilePos[]): Build
     valid.push(t);
   }
   if (valid.length === 0) return { ok: false, message: t('Uygun kare yok') };
-  const affordable = Math.floor(sim.money / def.cost);
-  if (affordable <= 0) return { ok: false, message: t('Yeterli para yok') };
-  const placed = valid.slice(0, affordable);
-  for (const t of placed) {
-    if (tool === 'path') w.setGround(t.x, t.y, Ground.Path);
-    else if (tool === 'gate') w.setObject(t.x, t.y, Obj.Gate);
-    else w.setObject(t.x, t.y, Obj.Fence);
-  }
-  const cost = placed.length * def.cost;
-  sim.addExpense('building', cost, `${placed.length} ${t(def.name).toLowerCase()}`);
-  return { ok: true, count: placed.length, cost, message: t('{n} {name} ({cost} ₺)', { n: placed.length, name: t(def.name).toLowerCase(), cost }) };
+  // Malzemeyle öde (0.23.1): önce malzemenin karşıladığı kareler (çit 1 odun, kapı 2 odun, yol 2 kareye 1 taş), kalanı parayla.
+  const mat = sim.policies.useMaterials ? def.mat : null;
+  const byMat = mat ? Math.min(valid.length, Math.floor(sim.materials[mat.kind] / mat.n) * mat.tiles) : 0;
+  const byMoney = Math.min(valid.length - byMat, Math.floor(sim.money / def.cost));
+  if (byMat + byMoney <= 0) return { ok: false, message: t('Yeterli para yok') };
+  const placed = valid.slice(0, byMat + byMoney);
+  const matSet = tool === 'path' ? sim.matPaths : sim.matTiles;
+  placed.forEach((p, k) => {
+    if (tool === 'path') w.setGround(p.x, p.y, Ground.Path);
+    else if (tool === 'gate') w.setObject(p.x, p.y, Obj.Gate);
+    else w.setObject(p.x, p.y, Obj.Fence);
+    // Malzemeyle konan kare yıkılınca iade vermez; parayla konan (ya da üstüne parayla yeniden konan) verir.
+    if (k < byMat) matSet.add(w.idx(p.x, p.y));
+    else matSet.delete(w.idx(p.x, p.y));
+  });
+  const used = mat ? Math.ceil(byMat / mat.tiles) * mat.n : 0;
+  if (mat) sim.materials[mat.kind] -= used;
+  const cost = byMoney * def.cost;
+  const name = t(def.name).toLowerCase();
+  sim.addExpense('building', cost, `${placed.length} ${name}`);
+  const mats = mat && used > 0 ? matsLabel({ [mat.kind]: used }) : '';
+  const n = placed.length;
+  const message = !mats ? t('{n} {name} ({cost} ₺)', { n, name, cost }) : cost > 0 ? t('{n} {name} ({mats} + {cost} ₺)', { n, name, mats, cost }) : t('{n} {name} ({mats})', { n, name, mats });
+  return { ok: true, count: n, cost, message };
 }
 
-/** Yıkım: karedeki bina, çit, kapı ya da yol kaldırılır; yarısı iade edilir. */
+/** Yıkım: karedeki bina, çit, kapı ya da yol kaldırılır; ödenenin yarısı iade edilir (malzemeyle konan kare iade vermez). */
 export function tryDemolish(sim: Sim, x: number, y: number): BuildResult {
   const w = sim.world;
   const bid = w.buildingIdAt(x, y);
@@ -111,24 +173,55 @@ export function tryDemolish(sim: Sim, x: number, y: number): BuildResult {
     if (!b) return { ok: false };
     const def = buildingDef(b);
     if (!def.buildable) return { ok: false, message: t('{name} yıkılamaz', { name: t(def.name) }) };
-    const refund = Math.round(def.cost * REFUND_RATE);
+    // 0.23.1: fiyat değil ödenen esas (malzemeyle ucuza kurup yıkarak para basılmasın); malzemenin yarısı çantaya, üst sınıra kadar.
+    const refund = Math.round(b.paid.money * REFUND_RATE);
+    const back = { wood: giveMaterial(sim, 'wood', Math.floor(b.paid.wood * REFUND_RATE)), stone: giveMaterial(sim, 'stone', Math.floor(b.paid.stone * REFUND_RATE)) };
     sim.removeBuilding(b.id);
     sim.addIncome('refund', refund, t(def.name));
-    return { ok: true, message: t('{name} yıkıldı (+{refund} ₺)', { name: t(def.name), refund }) };
+    const mats = matsLabel(back);
+    return {
+      ok: true,
+      message: mats ? t('{name} yıkıldı (+{refund} ₺, +{mats})', { name: t(def.name), refund, mats }) : t('{name} yıkıldı (+{refund} ₺)', { name: t(def.name), refund }),
+    };
   }
   const o = w.objectAt(x, y);
   if (o === Obj.Fence || o === Obj.Gate) {
-    const refund = Math.round(TILE_TOOL_DEFS[o === Obj.Fence ? 'fence' : 'gate'].cost * REFUND_RATE);
+    const byMat = sim.matTiles.delete(w.idx(x, y));
     w.setObject(x, y, Obj.None);
+    if (byMat) return { ok: true, message: t('Kaldırıldı (malzemeyle konduğu için iade yok)') };
+    const refund = Math.round(TILE_TOOL_DEFS[o === Obj.Fence ? 'fence' : 'gate'].cost * REFUND_RATE);
     sim.addIncome('refund', refund, t('Çit'));
     return { ok: true, message: t('Kaldırıldı (+{refund} ₺)', { refund }) };
   }
   if (w.groundAt(x, y) === Ground.Path && w.inPlot(x, y)) {
+    const byMat = sim.matPaths.delete(w.idx(x, y));
     w.setGround(x, y, Ground.Plot);
-    sim.addIncome('refund', Math.round(TILE_TOOL_DEFS.path.cost * REFUND_RATE), t('Yol'));
+    if (!byMat) sim.addIncome('refund', Math.round(TILE_TOOL_DEFS.path.cost * REFUND_RATE), t('Yol'));
     return { ok: true };
   }
   return { ok: false, message: t('Burada yıkılacak bir şey yok') };
+}
+
+/** Çantaya malzeme ekler (üst sınırı aşan kısım kaybolur); eklenen miktarı döndürür. */
+function giveMaterial(sim: Sim, kind: 'wood' | 'stone', n: number): number {
+  const gain = Math.max(0, Math.min(n, BALANCE.materials.max - sim.materials[kind]));
+  sim.materials[kind] += gain;
+  return gain;
+}
+
+/** Kayıttaki malzemeli kareler (0.23.1): arsa içinde ve hâlâ çit/kapı (ya da yol) olanlar kalır. */
+export function matTilesFromJSON(raw: unknown, w: TileWorld, layer: 'fence' | 'path'): Set<number> {
+  const out = new Set<number>();
+  if (!Array.isArray(raw)) return out;
+  for (const i of raw) {
+    if (!Number.isInteger(i) || i < 0 || i >= w.object.length) continue;
+    const x = i % w.width;
+    const y = Math.floor(i / w.width);
+    if (!w.inPlot(x, y)) continue;
+    const o = w.objectAt(x, y);
+    if (layer === 'path' ? w.groundAt(x, y) === Ground.Path : o === Obj.Fence || o === Obj.Gate) out.add(i);
+  }
+  return out;
 }
 
 /** Bölge boyama: dikdörtgen içindeki uygun arsa kareleri (bina ve çit hariç). */
@@ -229,7 +322,10 @@ export function tryExpandPlot(sim: Sim, dir: ExpandDir): BuildResult {
 
 function clearFence(sim: Sim, x: number, y: number): void {
   const o = sim.world.objectAt(x, y);
-  if (o === Obj.Fence || o === Obj.Gate) sim.world.setObject(x, y, Obj.None);
+  if (o === Obj.Fence || o === Obj.Gate) {
+    sim.world.setObject(x, y, Obj.None);
+    sim.matTiles.delete(sim.world.idx(x, y));
+  }
 }
 
 /** İnşaat sayacı: her sim dakikası binaların kalan süresi düşer. */
